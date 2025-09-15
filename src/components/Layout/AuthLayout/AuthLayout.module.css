@@ -1,0 +1,26 @@
+.authLayout {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.threadsBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.authContainer {
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  z-index: 2;
+}
