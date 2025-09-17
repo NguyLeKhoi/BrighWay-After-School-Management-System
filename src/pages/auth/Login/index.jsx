@@ -60,7 +60,7 @@ const Login = () => {
               <polyline points="9,22 9,12 15,12 15,22"/>
             </svg>
           </Link>
-          <h3 className={styles.cardTitle}>Login</h3>
+          <h3 className={styles.cardTitle}>BASE</h3>
           
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.formGroup}>
@@ -102,7 +102,7 @@ const Login = () => {
             </div>
             
             <button type="submit" className={styles.continueButton}>
-              Continue
+              Login
             </button>
             
             <Link to="/forgot-password" className={styles.forgotLink}>

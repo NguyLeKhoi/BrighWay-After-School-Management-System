@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Threads from '../../Animation/Background/Threads';
 import styles from './AuthLayout.module.css';
 
-const AuthLayout = ({ children }) => {
+const AuthLayout = () => {
   return (
     <div className={styles.authLayout}>
       <div className={styles.threadsBackground}>
@@ -14,7 +14,7 @@ const AuthLayout = ({ children }) => {
         />
       </div>
       <div className={styles.authContainer}>
-        {children || <Outlet />}
+        <Outlet />
       </div>
     </div>
   );
