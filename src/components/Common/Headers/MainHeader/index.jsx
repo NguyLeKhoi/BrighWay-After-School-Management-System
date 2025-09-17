@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import styles from './Header.module.css';
+import styles from './MainHeader.module.css';
 
-const Header = () => {
+const MainHeader = () => {
   return (
     <header className={styles.header}>
       <div className={styles.headerContainer}>
         <div className={styles.headerLogo}>
           <Link to="/" className={styles.logoLink}>
-            <h1>MyApp</h1>
+            <h1>BASE</h1>
           </Link>
         </div>
         
@@ -31,11 +31,10 @@ const Header = () => {
         
         <div className={styles.headerActions}>
           <Link to="/login" className={`${styles.btn} ${styles.btnOutline}`}>Login</Link>
-          <Link to="/register" className={`${styles.btn} ${styles.btnPrimary}`}>Register</Link>
         </div>
       </div>
     </header>
   );
 };
 
-export default Header;
+export default MainHeader;

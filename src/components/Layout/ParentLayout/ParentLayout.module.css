@@ -1,0 +1,12 @@
+/* Parent Layout Styles */
+.parentLayout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+}
+
+.mainContent {
+  flex: 1;
+  min-height: calc(100vh - 70px);
+}

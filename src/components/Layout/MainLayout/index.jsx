@@ -1,16 +1,16 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Header from '../../Common/Header';
+import MainHeader from '../../Common/Headers/MainHeader';
 import Footer from '../../Common/Footer';
 import styles from './MainLayout.module.css';
 
-const MainLayout = ({ children, showHeader = true, showFooter = true }) => {
+const MainLayout = ({ showHeader = true, showFooter = true }) => {
   return (
     <div className={styles.mainLayout}>
-      {showHeader && <Header />}
+      {showHeader && <MainHeader />}
       
       <main className={styles.mainContent}>
-        {children || <Outlet />}
+        <Outlet />
       </main>
       
       {showFooter && <Footer />}

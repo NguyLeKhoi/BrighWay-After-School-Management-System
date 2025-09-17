@@ -1,65 +1,120 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../components/Layout/MainLayout';
 import AuthLayout from '../components/Layout/AuthLayout';
+import ParentLayout from '../components/Layout/ParentLayout';
 
-// Pages
+// Main Pages
 import Homepage from '../pages/main/Homepage';
 import CourseCatalog from '../pages/main/CourseCatalog';
 import FacilitiesAbout from '../pages/main/FacilitiesAbout';
 import Contact from '../pages/main/Contact';
+
+// Auth Pages
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
+
+// Parent Pages
+import ParentProfile from '../pages/parent/profile';
+import ChildrenList from '../pages/parent/children';
+import MyWallet from '../pages/parent/wallet';
+import MyCourses from '../pages/parent/courses';
+import Notifications from '../pages/parent/notifications';
+
+// Other Pages
 import NotFound from '../pages/NotFound';
 
 export const routes = createBrowserRouter([
+  // Main Layout Routes (Landing Pages)
   {
     path: '/',
-    element: (
-      <MainLayout>
-        <Homepage />
-      </MainLayout>
-    ),
+    element: <MainLayout />,
+    children: [
+      {
+        index: true,
+        element: <Homepage />,
+      },
+      {
+        path: 'courses',
+        element: <CourseCatalog />,
+      },
+      {
+        path: 'facilities',
+        element: <FacilitiesAbout />,
+      },
+      {
+        path: 'contact',
+        element: <Contact />,
+      },
+    ],
   },
+  
+  // Auth Layout Routes (Authentication Pages)
   {
-    path: '/courses',
-    element: (
-      <MainLayout>
-        <CourseCatalog />
-      </MainLayout>
-    ),
+    path: '/auth',
+    element: <AuthLayout />,
+    children: [
+      {
+        path: 'login',
+        element: <Login />,
+      },
+      {
+        path: 'register',
+        element: <Register />,
+      },
+    ],
   },
-  {
-    path: '/facilities',
-    element: (
-      <MainLayout>
-        <FacilitiesAbout />
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/contact',
-    element: (
-      <MainLayout>
-        <Contact />
-      </MainLayout>
-    ),
-  },
+  
+  // Legacy auth routes for backward compatibility
   {
     path: '/login',
-    element: (
-      <AuthLayout>
-        <Login />
-      </AuthLayout>
-    ),
+    element: <AuthLayout />,
+    children: [
+      {
+        index: true,
+        element: <Login />,
+      },
+    ],
   },
   {
     path: '/register',
-    element: (
-      <AuthLayout>
-        <Register />
-      </AuthLayout>
-    ),
+    element: <AuthLayout />,
+    children: [
+      {
+        index: true,
+        element: <Register />,
+      },
+    ],
   },
+  
+  // Parent Layout Routes (Parent Portal)
+  {
+    path: '/parent',
+    element: <ParentLayout />,
+    children: [
+      {
+        path: 'profile',
+        element: <ParentProfile />,
+      },
+      {
+        path: 'children',
+        element: <ChildrenList />,
+      },
+      {
+        path: 'wallet',
+        element: <MyWallet />,
+      },
+      {
+        path: 'courses',
+        element: <MyCourses />,
+      },
+      {
+        path: 'notifications',
+        element: <Notifications />,
+      },
+    ],
+  },
+  
+  // 404 Page
   {
     path: '*',
     element: <NotFound />,
