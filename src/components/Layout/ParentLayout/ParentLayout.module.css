@@ -2,11 +2,34 @@
 .parentLayout {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
   background-color: #f8f9fa;
+}
+
+.layoutContent {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
 }
 
 .mainContent {
   flex: 1;
-  min-height: calc(100vh - 70px);
+  margin-left: 250px; /* Width of sidebar */
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .mainContent {
+    margin-left: 200px;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mainContent {
+    margin-left: 180px;
+    padding: 10px;
+  }
 }
