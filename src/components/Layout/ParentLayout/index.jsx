@@ -1,19 +1,18 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import ParentHeader from '../../Common/Headers/ParentHeader';
-import Footer from '../../Common/Footer';
+import ParentSidebar from '../../Common/Sidebar/ParentSidebar';
 import styles from './ParentLayout.module.css';
 
 const ParentLayout = () => {
   return (
     <div className={styles.parentLayout}>
-      <ParentHeader />
-      
-      <main className={styles.mainContent}>
-        <Outlet />
-      </main>
-      
-      <Footer />
+      <div className={styles.layoutContent}>
+        <ParentSidebar />
+        
+        <main className={styles.mainContent}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };
