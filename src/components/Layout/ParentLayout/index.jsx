@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { Box, AppBar, Toolbar, IconButton, Typography } from '@mui/material';
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
   Person as PersonIcon,
@@ -11,15 +10,8 @@ import {
   Notifications as BellIcon
 } from '@mui/icons-material';
 
-const drawerWidth = 250;
-
 const ParentLayout = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -57,39 +49,12 @@ const ParentLayout = () => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* App Bar */}
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          display: { xs: 'block', sm: 'none' }
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            BASE Parent Portal
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
       {/* Generic Drawer */}
       <GenericDrawer
         title="BASE"
         subtitle="Parent Portal"
         menuItems={menuItems}
         onLogout={handleLogout}
-        open={mobileOpen}
-        onToggle={handleDrawerToggle}
       />
 
       {/* Main Content */}
@@ -98,9 +63,6 @@ const ParentLayout = () => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          mt: { xs: '64px', sm: 0 },
           backgroundColor: '#f5f5f5',
           minHeight: '100vh'
         }}
