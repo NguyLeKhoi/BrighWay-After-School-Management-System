@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button
+} from '@mui/material';
 import styles from './Courses.module.css';
 
 const MyCourses = () => {
   const [activeTab, setActiveTab] = useState('registered');
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [courseToCancel, setCourseToCancel] = useState(null);
   
   const [registeredCourses] = useState([
     {
@@ -77,8 +87,23 @@ const MyCourses = () => {
   };
 
   const handleCancelCourse = (courseId) => {
-    console.log('Cancel course:', courseId);
-    // Handle course cancellation
+    const course = registeredCourses.find(c => c.id === courseId);
+    setCourseToCancel(course);
+    setCancelDialogOpen(true);
+  };
+
+  const handleConfirmCancel = () => {
+    console.log('Confirm cancel course:', courseToCancel?.id);
+    // Handle course cancellation logic here
+    setCancelDialogOpen(false);
+    setCourseToCancel(null);
+    // Show success message
+    alert(`Đã hủy đăng ký khóa học "${courseToCancel?.name}" thành công!`);
+  };
+
+  const handleCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setCourseToCancel(null);
   };
 
   return (
@@ -140,14 +165,11 @@ const MyCourses = () => {
                     </div>
 
                     <div className={styles.courseActions}>
-                      <button className={styles.viewScheduleButton}>
-                        Xem lịch học
-                      </button>
                       <button 
-                        className={styles.cancelButton}
+                        className={styles.cancelRegistrationButton}
                         onClick={() => handleCancelCourse(course.id)}
                       >
-                        Hủy khóa học
+                        Hủy đăng ký
                       </button>
                     </div>
                   </div>
@@ -223,6 +245,44 @@ const MyCourses = () => {
             </div>
           </div>
         )}
+
+        {/* Cancel Course Dialog */}
+        <Dialog
+          open={cancelDialogOpen}
+          onClose={handleCancelDialog}
+          aria-labelledby="cancel-dialog-title"
+          aria-describedby="cancel-dialog-description"
+        >
+          <DialogTitle id="cancel-dialog-title">
+            Xác nhận hủy đăng ký
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="cancel-dialog-description">
+              Bạn có chắc chắn muốn hủy đăng ký khóa học <strong>"{courseToCancel?.name}"</strong> không?
+              <br /><br />
+              <span style={{ color: '#d32f2f', fontSize: '14px' }}>
+                ⚠️ Hành động này không thể hoàn tác. Học phí đã đóng có thể không được hoàn lại tùy theo chính sách của trung tâm.
+              </span>
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={handleCancelDialog}
+              color="primary"
+              variant="outlined"
+            >
+              Không hủy
+            </Button>
+            <Button 
+              onClick={handleConfirmCancel}
+              color="error"
+              variant="contained"
+              autoFocus
+            >
+              Có, hủy đăng ký
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );

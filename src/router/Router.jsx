@@ -15,7 +15,7 @@ import Register from '../pages/auth/Register';
 
 // Parent Pages
 import ParentProfile from '../pages/parent/profile';
-import ChildrenList from '../pages/parent/children';
+import ChildrenList from '../pages/parent/children/AllChildren';
 import ChildProfile from '../pages/parent/children/ChildProfile';
 import ChildSchedule from '../pages/parent/children/ChildSchedule';
 import MyWallet from '../pages/parent/wallet';
