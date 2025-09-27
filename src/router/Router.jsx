@@ -17,6 +17,7 @@ import Register from '../pages/auth/Register';
 import ParentProfile from '../pages/parent/profile';
 import ChildrenList from '../pages/parent/children';
 import ChildProfile from '../pages/parent/children/ChildProfile';
+import ChildSchedule from '../pages/parent/children/ChildSchedule';
 import MyWallet from '../pages/parent/wallet';
 import MyCourses from '../pages/parent/courses';
 import Notifications from '../pages/parent/notifications';
@@ -103,6 +104,10 @@ export const routes = createBrowserRouter([
       {
         path: 'children/:childId/profile',
         element: <ChildProfile />,
+      },
+      {
+        path: 'children/:childId/schedule',
+        element: <ChildSchedule />,
       },
       {
         path: 'wallet',
