@@ -168,12 +168,12 @@ const ChildrenList = () => {
                 </div>
               </div>
               <div className={styles.childActions}>
-                <Link to={`/parent/children/${child.id}`} className={styles.viewButton}>
-                  Xem chi tiết
+                <Link to={`/parent/children/${child.id}/profile`} className={styles.profileButton}>
+                  Xem Profile
                 </Link>
-                <button className={styles.editButton}>
-                  Chỉnh sửa
-                </button>
+                <Link to={`/parent/children/${child.id}/schedule`} className={styles.scheduleButton}>
+                  Lịch học
+                </Link>
               </div>
             </div>
           ))}

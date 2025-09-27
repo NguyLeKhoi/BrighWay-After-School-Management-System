@@ -29,6 +29,8 @@ const GenericDrawer = ({
 
   const handleNavigation = (path) => {
     navigate(path);
+    // Scroll to top when navigating
+    window.scrollTo(0, 0);
   };
 
   const handleLogout = () => {
