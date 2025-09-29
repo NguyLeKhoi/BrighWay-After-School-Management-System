@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Form from '@components/Common/Form';
+import InfoGrid from '@components/Common/InfoGrid';
 import styles from './Contact.module.css';
 
 const Contact = () => {
@@ -20,9 +22,16 @@ const Contact = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission
     console.log('Form submitted:', formData);
   };
+
+  const formFields = [
+    { name: 'name', label: 'Name', type: 'text', value: formData.name, onChange: handleChange, required: true },
+    { name: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange, required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', value: formData.phone, onChange: handleChange },
+    { name: 'company', label: 'Company', type: 'text', value: formData.company, onChange: handleChange },
+    { name: 'message', label: 'Message', type: 'textarea', value: formData.message, onChange: handleChange, required: true, rows: 6 }
+  ];
 
   const contactInfo = [
     { label: 'Address', value: '123 Education Street, Learning City' },
@@ -35,7 +44,6 @@ const Contact = () => {
 
   return (
     <div className={styles.contact}>
-      {/* Contact Form Section */}
       <section className={styles.contactFormSection}>
         <div className={styles.contactContainer}>
           <div className={styles.formWrapper}>
@@ -43,76 +51,12 @@ const Contact = () => {
               <h1 className={styles.contactTitle}>Get in touch</h1>
               <p className={styles.contactSubtitle}>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
               
-              <form onSubmit={handleSubmit} className={styles.contactForm}>
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="name" className={styles.formLabel}>Name</label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className={styles.formInput}
-                      required
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="email" className={styles.formLabel}>Email</label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className={styles.formInput}
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="phone" className={styles.formLabel}>Phone</label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className={styles.formInput}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="company" className={styles.formLabel}>Company</label>
-                    <input
-                      type="text"
-                      id="company"
-                      name="company"
-                      value={formData.company}
-                      onChange={handleChange}
-                      className={styles.formInput}
-                    />
-                  </div>
-                </div>
-                
-                <div className={styles.formGroup}>
-                  <label htmlFor="message" className={styles.formLabel}>Message</label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    className={styles.formTextarea}
-                    rows="6"
-                    required
-                  ></textarea>
-                </div>
-                
-                <button type="submit" className={styles.submitButton}>
-                  Send message
-                </button>
-              </form>
+              <Form
+                fields={formFields}
+                onSubmit={handleSubmit}
+                submitText="Send message"
+                className={styles.contactForm}
+              />
             </div>
             
             <div className={styles.imageContent}>
@@ -122,17 +66,9 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Information Section */}
       <section className={styles.informationSection}>
         <div className={styles.informationContainer}>
-          <div className={styles.infoGrid}>
-            {contactInfo.map((info, index) => (
-              <div key={index} className={styles.infoItem}>
-                <div className={styles.infoLabel}>{info.label}</div>
-                <div className={styles.infoValue}>{info.value}</div>
-              </div>
-            ))}
-          </div>
+          <InfoGrid items={contactInfo} columns={3} />
         </div>
       </section>
     </div>

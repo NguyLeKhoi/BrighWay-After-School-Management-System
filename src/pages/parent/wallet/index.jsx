@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import Tabs from '@components/Common/Tabs';
+import Card from '@components/Common/Card';
+import InfoGrid from '@components/Common/InfoGrid';
 import styles from './Wallet.module.css';
 
 const MyWallet = () => {
@@ -95,78 +98,56 @@ const MyWallet = () => {
     activeTab === 'main' ? tx.wallet === 'main' : tx.wallet === 'allowance'
   );
 
+  const tabs = [
+    { id: 'main', label: 'Ví chính' },
+    { id: 'allowance', label: 'Ví tiêu vặt' }
+  ];
+
+  const mainWalletInfo = [
+    { label: 'Số dư', value: formatCurrency(walletData.mainWallet.balance) },
+    { label: 'Mục đích', value: 'Thanh toán học phí, phí thành viên và các khoản phí chính' }
+  ];
+
+  const allowanceWalletInfo = [
+    { label: 'Số dư', value: formatCurrency(walletData.allowanceWallet.balance) },
+    { label: 'Hạn mức tháng', value: formatCurrency(walletData.allowanceWallet.monthlyLimit) },
+    { label: 'Còn lại tháng này', value: formatCurrency(walletData.allowanceWallet.monthlyLimit - walletData.allowanceWallet.balance) },
+    { label: 'Mục đích', value: 'Mua đồ ăn vặt, chơi game tại trung tâm' }
+  ];
+
   return (
     <div className={styles.walletPage}>
       <div className={styles.container}>
         <h1 className={styles.title}>Ví của tôi</h1>
         
-        {/* Wallet Tabs */}
-        <div className={styles.tabContainer}>
-          <button 
-            className={`${styles.tab} ${activeTab === 'main' ? styles.active : ''}`}
-            onClick={() => setActiveTab('main')}
-          >
-            Ví chính
-          </button>
-          <button 
-            className={`${styles.tab} ${activeTab === 'allowance' ? styles.active : ''}`}
-            onClick={() => setActiveTab('allowance')}
-          >
-            Ví tiêu vặt
-          </button>
-        </div>
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
         {/* Main Wallet */}
         {activeTab === 'main' && (
-          <div className={styles.walletCard}>
-            <div className={styles.walletHeader}>
-              <h2>Ví chính</h2>
-              <span className={styles.balance}>
-                {formatCurrency(walletData.mainWallet.balance)}
-              </span>
-            </div>
-            <p className={styles.walletDescription}>
-              Dùng để thanh toán học phí, phí thành viên và các khoản phí chính
-            </p>
-            <div className={styles.walletActions}>
-              <button className={styles.topUpButton}>
-                Nạp tiền
-              </button>
-              <button className={styles.historyButton}>
-                Lịch sử giao dịch
-              </button>
-            </div>
-          </div>
+          <Card
+            title="Ví chính"
+            infoRows={mainWalletInfo}
+            actions={[
+              { text: 'Nạp tiền', primary: true, onClick: () => console.log('Top up main wallet') },
+              { text: 'Lịch sử giao dịch', primary: false, onClick: () => console.log('View history') }
+            ]}
+          />
         )}
 
         {/* Allowance Wallet */}
         {activeTab === 'allowance' && (
-          <div className={styles.walletCard}>
-            <div className={styles.walletHeader}>
-              <h2>Ví tiêu vặt</h2>
-              <span className={styles.balance}>
-                {formatCurrency(walletData.allowanceWallet.balance)}
-              </span>
-            </div>
-            <p className={styles.walletDescription}>
-              Dành cho con bạn mua đồ ăn vặt, chơi game tại trung tâm
-            </p>
-            
-            <div className={styles.allowanceInfo}>
-              <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>Hạn mức tháng:</span>
-                <span className={styles.infoValue}>
-                  {formatCurrency(walletData.allowanceWallet.monthlyLimit)}
-                </span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>Còn lại tháng này:</span>
-                <span className={styles.infoValue}>
-                  {formatCurrency(walletData.allowanceWallet.monthlyLimit - walletData.allowanceWallet.balance)}
-                </span>
-              </div>
-            </div>
-
+          <Card
+            title="Ví tiêu vặt"
+            infoRows={allowanceWalletInfo}
+            actions={[
+              { text: 'Nạp tiền', primary: true, onClick: () => console.log('Top up allowance wallet') },
+              { text: 'Cài đặt hạn chế', primary: false, onClick: () => console.log('Settings') }
+            ]}
+          >
             <div className={styles.restrictions}>
               <h4>Hạn chế chi tiêu:</h4>
               <div className={styles.restrictionTags}>
@@ -178,16 +159,7 @@ const MyWallet = () => {
                 ))}
               </div>
             </div>
-
-            <div className={styles.walletActions}>
-              <button className={styles.topUpButton}>
-                Nạp tiền
-              </button>
-              <button className={styles.settingsButton}>
-                Cài đặt hạn chế
-              </button>
-            </div>
-          </div>
+          </Card>
         )}
 
         {/* Transaction History */}

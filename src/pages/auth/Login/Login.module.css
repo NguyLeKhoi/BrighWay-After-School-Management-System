@@ -1,11 +1,10 @@
 /* Login Page Styles */
 .loginPage {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  overflow: hidden;
 }
 
 .loginContainer {
@@ -13,228 +12,15 @@
   max-width: 400px;
 }
 
-.card {
-  background-color: #fff;
-  padding: 25px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  position: relative;
-}
-
-.homeIcon {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  color: #333;
-  text-decoration: none;
-  transition: color 0.3s ease;
-  z-index: 10;
-}
-
-.homeIcon:hover {
-  color: #000;
-}
-
-.cardTitle {
-  font-size: 18px;
-  font-weight: 600;
-  color: #000;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.form {
-  margin-bottom: 15px;
-}
-
-.formGroup {
-  margin-bottom: 15px;
-}
-
-.formLabel {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.formInput {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 16px;
-  background-color: #f9f9f9;
-  transition: border-color 0.3s ease;
-  box-sizing: border-box;
-}
-
-.formInput:focus {
-  outline: none;
-  border-color: #666;
-  background-color: #fff;
-}
-
-.checkboxGroup {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.checkbox {
-  margin-right: 8px;
-  width: 16px;
-  height: 16px;
-}
-
-.checkboxLabel {
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
-}
-
-.continueButton {
-  width: 100%;
-  background-color: #e0e0e0;
-  color: #333;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-bottom: 15px;
-}
-
-.continueButton:hover {
-  background-color: #d0d0d0;
-}
-
 .forgotLink {
   display: block;
-  text-align: center;
-  color: #666;
+  text-align: right;
+  color: #007bff;
   text-decoration: none;
   font-size: 14px;
-  margin-bottom: 20px;
+  margin-top: 10px;
 }
 
 .forgotLink:hover {
-  color: #000;
-}
-
-.separator {
-  position: relative;
-  text-align: center;
-  margin: 20px 0;
-}
-
-.separator::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #e0e0e0;
-}
-
-.separatorText {
-  background-color: #fff;
-  padding: 0 15px;
-  color: #666;
-  font-size: 14px;
-}
-
-.socialLogin {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.socialButton {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid #e0e0e0;
-  background-color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.socialButton:hover {
-  background-color: #f5f5f5;
-  border-color: #ccc;
-}
-
-.socialIcon {
-  font-size: 16px;
-  font-weight: 600;
-  color: #666;
-}
-
-.signupLink {
-  text-align: center;
-  font-size: 14px;
-  color: #666;
-}
-
-.link {
-  color: #000;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.link:hover {
   text-decoration: underline;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .loginContainer {
-    padding: 20px;
-  }
-  
-  .card {
-    padding: 25px;
-  }
-  
-  .pageTitle {
-    font-size: 20px;
-    margin-bottom: 20px;
-  }
-  
-  .cardTitle {
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 480px) {
-  .loginPage {
-    padding: 10px;
-  }
-  
-  .loginContainer {
-    padding: 15px;
-  }
-  
-  .card {
-    padding: 20px;
-  }
-  
-  .formInput {
-    padding: 10px 14px;
-    font-size: 14px;
-  }
-  
-  .continueButton {
-    padding: 10px 20px;
-    font-size: 14px;
-  }
 }

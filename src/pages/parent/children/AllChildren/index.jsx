@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Card from '@components/Common/Card';
+import Form from '@components/Common/Form';
 import styles from './Children.module.css';
 
 const ChildrenList = () => {
@@ -57,6 +59,24 @@ const ChildrenList = () => {
     });
   };
 
+  const formFields = [
+    { name: 'name', label: 'Tên con', type: 'text', value: newChild.name, onChange: handleInputChange, required: true },
+    { name: 'age', label: 'Tuổi', type: 'number', value: newChild.age, onChange: handleInputChange, required: true },
+    { name: 'grade', label: 'Lớp', type: 'text', value: newChild.grade, onChange: handleInputChange, placeholder: 'Ví dụ: Lớp 3', required: true },
+    { 
+      name: 'gender', 
+      label: 'Giới tính', 
+      type: 'select', 
+      value: newChild.gender, 
+      onChange: handleInputChange,
+      options: [
+        { value: 'male', label: 'Nam' },
+        { value: 'female', label: 'Nữ' }
+      ]
+    },
+    { name: 'dateOfBirth', label: 'Ngày sinh', type: 'date', value: newChild.dateOfBirth, onChange: handleInputChange }
+  ];
+
   return (
     <div className={styles.childrenPage}>
       <div className={styles.container}>
@@ -73,109 +93,37 @@ const ChildrenList = () => {
         {showAddForm && (
           <div className={styles.addForm}>
             <h3>Thêm con mới</h3>
-            <form onSubmit={handleAddChild}>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label>Tên con</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={newChild.name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Tuổi</label>
-                  <input
-                    type="number"
-                    name="age"
-                    value={newChild.age}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label>Lớp</label>
-                  <input
-                    type="text"
-                    name="grade"
-                    value={newChild.grade}
-                    onChange={handleInputChange}
-                    placeholder="Ví dụ: Lớp 3"
-                    required
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Giới tính</label>
-                  <select
-                    name="gender"
-                    value={newChild.gender}
-                    onChange={handleInputChange}
-                  >
-                    <option value="male">Nam</option>
-                    <option value="female">Nữ</option>
-                  </select>
-                </div>
-              </div>
-              <div className={styles.formGroup}>
-                <label>Ngày sinh</label>
-                <input
-                  type="date"
-                  name="dateOfBirth"
-                  value={newChild.dateOfBirth}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.saveButton}>
-                  Lưu
-                </button>
-                <button 
-                  type="button" 
-                  className={styles.cancelButton}
-                  onClick={() => setShowAddForm(false)}
-                >
-                  Hủy
-                </button>
-              </div>
-            </form>
+            <Form
+              fields={formFields}
+              onSubmit={handleAddChild}
+              submitText="Lưu"
+            />
+            <button 
+              type="button" 
+              className={styles.cancelButton}
+              onClick={() => setShowAddForm(false)}
+            >
+              Hủy
+            </button>
           </div>
         )}
 
         <div className={styles.childrenGrid}>
           {children.map((child) => (
-            <div key={child.id} className={styles.childCard}>
-              <div className={styles.childAvatar}>
-                <span>{child.avatar}</span>
-              </div>
-              <div className={styles.childInfo}>
-                <h3 className={styles.childName}>{child.name}</h3>
-                <p className={styles.childDetails}>
-                  {child.age} tuổi • {child.grade}
-                </p>
-                <div className={styles.membership}>
-                  <span className={`${styles.membershipBadge} ${styles[child.membershipType.toLowerCase().replace('-', '')]}`}>
-                    {child.membershipType}
-                  </span>
-                </div>
-                <div className={styles.status}>
-                  <span className={`${styles.statusBadge} ${styles[child.status]}`}>
-                    {child.status === 'active' ? 'Hoạt động' : 'Chờ duyệt'}
-                  </span>
-                </div>
-              </div>
-              <div className={styles.childActions}>
-                <Link to={`/parent/children/${child.id}/profile`} className={styles.profileButton}>
-                  Xem Profile
-                </Link>
-                <Link to={`/parent/children/${child.id}/schedule`} className={styles.scheduleButton}>
-                  Lịch học
-                </Link>
-              </div>
-            </div>
+            <Card
+              key={child.id}
+              title={child.name}
+              subtitle={`${child.age} tuổi • ${child.grade}`}
+              avatar={child.avatar}
+              badges={[
+                { text: child.membershipType, type: child.membershipType.toLowerCase().replace('-', '') }
+              ]}
+              status={{ text: child.status === 'active' ? 'Hoạt động' : 'Chờ duyệt', type: child.status }}
+              actions={[
+                { text: 'Xem Profile', primary: false, onClick: () => window.location.href = `/parent/children/${child.id}/profile` },
+                { text: 'Lịch học', primary: true, onClick: () => window.location.href = `/parent/children/${child.id}/schedule` }
+              ]}
+            />
           ))}
         </div>
 
