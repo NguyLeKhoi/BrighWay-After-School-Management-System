@@ -1,19 +1,75 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import ParentSidebar from '../../Common/Sidebar/ParentSidebar';
-import styles from './ParentLayout.module.css';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { Box } from '@mui/material';
+import GenericDrawer from '../../Common/Drawer/GenericDrawer';
+import {
+  Person as PersonIcon,
+  ChildCare as ChildIcon,
+  AccountBalanceWallet as WalletIcon,
+  School as BookIcon,
+  Notifications as BellIcon
+} from '@mui/icons-material';
 
 const ParentLayout = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
+    navigate('/login');
+  };
+
+  const menuItems = [
+    {
+      path: '/parent/profile',
+      label: 'Hồ sơ',
+      icon: PersonIcon
+    },
+    {
+      path: '/parent/children',
+      label: 'Con cái',
+      icon: ChildIcon
+    },
+    {
+      path: '/parent/wallet',
+      label: 'Ví',
+      icon: WalletIcon
+    },
+    {
+      path: '/parent/courses',
+      label: 'Khóa học',
+      icon: BookIcon
+    },
+    {
+      path: '/parent/notifications',
+      label: 'Thông báo',
+      icon: BellIcon
+    }
+  ];
+
   return (
-    <div className={styles.parentLayout}>
-      <div className={styles.layoutContent}>
-        <ParentSidebar />
-        
-        <main className={styles.mainContent}>
-          <Outlet />
-        </main>
-      </div>
-    </div>
+    <Box sx={{ display: 'flex' }}>
+      {/* Generic Drawer */}
+      <GenericDrawer
+        title="BASE"
+        subtitle="Parent Portal"
+        menuItems={menuItems}
+        onLogout={handleLogout}
+      />
+
+      {/* Main Content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          backgroundColor: '#f5f5f5',
+          minHeight: '100vh'
+        }}
+      >
+        <Outlet />
+      </Box>
+    </Box>
   );
 };
 

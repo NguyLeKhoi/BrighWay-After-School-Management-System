@@ -1,33 +1,63 @@
 import React from 'react';
+import HeroSection from '@components/Common/HeroSection';
+import Card from '@components/Common/Card';
 import styles from './CourseCatalog.module.css';
 
 const CourseCatalog = () => {
-  const courses = [
-    { id: 1, title: 'Web Development', description: 'Learn modern web technologies' },
-    { id: 2, title: 'Data Science', description: 'Master data analysis and visualization' },
-    { id: 3, title: 'Mobile App Development', description: 'Build iOS and Android apps' }
-  ];
-
   const bestCourses = [
-    { id: 1, title: 'React Mastery', description: 'Complete React course' },
-    { id: 2, title: 'Python Basics', description: 'Learn Python programming' },
-    { id: 3, title: 'UI/UX Design', description: 'Design beautiful interfaces' }
+    {
+      id: 1,
+      title: 'React Mastery',
+      description: 'Complete React course',
+      infoRows: [
+        { label: 'Age Group', value: '18+' },
+        { label: 'Schedule', value: 'Mon, Wed, Fri - 19:00-21:00' },
+        { label: 'Price', value: '2,500,000 VND' }
+      ],
+      actions: [
+        { text: 'Register', primary: true, onClick: () => console.log('Register course:', 1) },
+        { text: 'View Details', primary: false, onClick: () => console.log('View details:', 1) }
+      ]
+    },
+    {
+      id: 2,
+      title: 'Python Basics',
+      description: 'Learn Python programming',
+      infoRows: [
+        { label: 'Age Group', value: '16+' },
+        { label: 'Schedule', value: 'Tue, Thu - 18:00-20:00' },
+        { label: 'Price', value: '2,000,000 VND' }
+      ],
+      actions: [
+        { text: 'Register', primary: true, onClick: () => console.log('Register course:', 2) },
+        { text: 'View Details', primary: false, onClick: () => console.log('View details:', 2) }
+      ]
+    },
+    {
+      id: 3,
+      title: 'UI/UX Design',
+      description: 'Design beautiful interfaces',
+      infoRows: [
+        { label: 'Age Group', value: '18+' },
+        { label: 'Schedule', value: 'Sat, Sun - 14:00-17:00' },
+        { label: 'Price', value: '3,000,000 VND' }
+      ],
+      actions: [
+        { text: 'Register', primary: true, onClick: () => console.log('Register course:', 3) },
+        { text: 'View Details', primary: false, onClick: () => console.log('View details:', 3) }
+      ]
+    }
   ];
 
   return (
     <div className={styles.courseCatalog}>
-      {/* Hero Section */}
-      <section className={styles.heroSection}>
-        <div className={styles.heroContainer}>
-          <h1 className={styles.heroTitle}>Course Catalog</h1>
-          <p className={styles.heroSubtitle}>Discover our comprehensive learning programs</p>
-          <div className={styles.heroImage}>
-            <div className={styles.imagePlaceholder}>Image</div>
-          </div>
-        </div>
-      </section>
+      <HeroSection
+        title="Course Catalog"
+        subtitle="Discover our comprehensive learning programs"
+        hasImage={true}
+      />
 
-      {/* Content Section */}
+      {/* Article Section */}
       <section className={styles.contentSection}>
         <div className={styles.contentContainer}>
           <article className={styles.article}>
@@ -60,11 +90,13 @@ const CourseCatalog = () => {
           <h2 className={styles.sectionHeading}>Best courses</h2>
           <div className={styles.bestCoursesGrid}>
             {bestCourses.map((course) => (
-              <div key={course.id} className={styles.bestCourseCard}>
-                <div className={styles.cardPlaceholder}>Card</div>
-                <h3 className={styles.courseTitle}>{course.title}</h3>
-                <p className={styles.courseDescription}>{course.description}</p>
-              </div>
+              <Card
+                key={course.id}
+                title={course.title}
+                description={course.description}
+                infoRows={course.infoRows}
+                actions={course.actions}
+              />
             ))}
           </div>
         </div>

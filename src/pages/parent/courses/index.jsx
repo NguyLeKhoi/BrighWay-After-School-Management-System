@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
+import Tabs from '@components/Common/Tabs';
+import Card from '@components/Common/Card';
+import ConfirmDialog from '@components/Common/ConfirmDialog';
 import styles from './Courses.module.css';
 
 const MyCourses = () => {
   const [activeTab, setActiveTab] = useState('registered');
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [courseToCancel, setCourseToCancel] = useState(null);
   
   const [registeredCourses] = useState([
     {
@@ -13,8 +18,6 @@ const MyCourses = () => {
       schedule: 'Thứ 2, 4, 6 - 14:00-15:30',
       room: 'Phòng 201',
       status: 'active',
-      startDate: '2024-01-15',
-      endDate: '2024-06-15',
       price: 1500000
     },
     {
@@ -25,8 +28,6 @@ const MyCourses = () => {
       schedule: 'Thứ 3, 5 - 16:00-17:30',
       room: 'Phòng 105',
       status: 'active',
-      startDate: '2024-01-20',
-      endDate: '2024-05-20',
       price: 1200000
     }
   ]);
@@ -73,34 +74,41 @@ const MyCourses = () => {
 
   const handleRegisterCourse = (courseId) => {
     console.log('Register course:', courseId);
-    // Handle course registration
   };
 
   const handleCancelCourse = (courseId) => {
-    console.log('Cancel course:', courseId);
-    // Handle course cancellation
+    const course = registeredCourses.find(c => c.id === courseId);
+    setCourseToCancel(course);
+    setCancelDialogOpen(true);
   };
+
+  const handleConfirmCancel = () => {
+    console.log('Confirm cancel course:', courseToCancel?.id);
+    setCancelDialogOpen(false);
+    setCourseToCancel(null);
+    alert(`Đã hủy đăng ký khóa học "${courseToCancel?.name}" thành công!`);
+  };
+
+  const handleCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setCourseToCancel(null);
+  };
+
+  const tabs = [
+    { id: 'registered', label: `Đã đăng ký (${registeredCourses.length})` },
+    { id: 'available', label: `Có thể đăng ký (${availableCourses.length})` }
+  ];
 
   return (
     <div className={styles.coursesPage}>
       <div className={styles.container}>
         <h1 className={styles.title}>Khóa học của tôi</h1>
         
-        {/* Tabs */}
-        <div className={styles.tabContainer}>
-          <button 
-            className={`${styles.tab} ${activeTab === 'registered' ? styles.active : ''}`}
-            onClick={() => setActiveTab('registered')}
-          >
-            Đã đăng ký ({registeredCourses.length})
-          </button>
-          <button 
-            className={`${styles.tab} ${activeTab === 'available' ? styles.active : ''}`}
-            onClick={() => setActiveTab('available')}
-          >
-            Có thể đăng ký ({availableCourses.length})
-          </button>
-        </div>
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
         {/* Registered Courses */}
         {activeTab === 'registered' && (
@@ -108,49 +116,21 @@ const MyCourses = () => {
             {registeredCourses.length > 0 ? (
               <div className={styles.coursesGrid}>
                 {registeredCourses.map((course) => (
-                  <div key={course.id} className={styles.courseCard}>
-                    <div className={styles.courseHeader}>
-                      <h3 className={styles.courseName}>{course.name}</h3>
-                      <span className={`${styles.statusBadge} ${styles[course.status]}`}>
-                        {course.status === 'active' ? 'Đang học' : 'Tạm dừng'}
-                      </span>
-                    </div>
-                    
-                    <div className={styles.courseInfo}>
-                      <div className={styles.infoRow}>
-                        <span className={styles.infoLabel}>Con:</span>
-                        <span className={styles.infoValue}>{course.childName}</span>
-                      </div>
-                      <div className={styles.infoRow}>
-                        <span className={styles.infoLabel}>Giáo viên:</span>
-                        <span className={styles.infoValue}>{course.teacher}</span>
-                      </div>
-                      <div className={styles.infoRow}>
-                        <span className={styles.infoLabel}>Lịch học:</span>
-                        <span className={styles.infoValue}>{course.schedule}</span>
-                      </div>
-                      <div className={styles.infoRow}>
-                        <span className={styles.infoLabel}>Phòng:</span>
-                        <span className={styles.infoValue}>{course.room}</span>
-                      </div>
-                      <div className={styles.infoRow}>
-                        <span className={styles.infoLabel}>Học phí:</span>
-                        <span className={styles.infoValue}>{formatCurrency(course.price)}</span>
-                      </div>
-                    </div>
-
-                    <div className={styles.courseActions}>
-                      <button className={styles.viewScheduleButton}>
-                        Xem lịch học
-                      </button>
-                      <button 
-                        className={styles.cancelButton}
-                        onClick={() => handleCancelCourse(course.id)}
-                      >
-                        Hủy khóa học
-                      </button>
-                    </div>
-                  </div>
+                  <Card
+                    key={course.id}
+                    title={course.name}
+                    status={{ text: course.status === 'active' ? 'Đang học' : 'Tạm dừng', type: course.status }}
+                    infoRows={[
+                      { label: 'Con', value: course.childName },
+                      { label: 'Giáo viên', value: course.teacher },
+                      { label: 'Lịch học', value: course.schedule },
+                      { label: 'Phòng', value: course.room },
+                      { label: 'Học phí', value: formatCurrency(course.price) }
+                    ]}
+                    actions={[
+                      { text: 'Hủy đăng ký', primary: false, onClick: () => handleCancelCourse(course.id) }
+                    ]}
+                  />
                 ))}
               </div>
             ) : (
@@ -174,55 +154,37 @@ const MyCourses = () => {
           <div className={styles.coursesSection}>
             <div className={styles.coursesGrid}>
               {availableCourses.map((course) => (
-                <div key={course.id} className={styles.availableCourseCard}>
-                  <div className={styles.courseHeader}>
-                    <h3 className={styles.courseName}>{course.name}</h3>
-                    <span className={styles.priceTag}>
-                      {formatCurrency(course.price)}
-                    </span>
-                  </div>
-                  
-                  <p className={styles.courseDescription}>
-                    {course.description}
-                  </p>
-                  
-                  <div className={styles.courseInfo}>
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Độ tuổi:</span>
-                      <span className={styles.infoValue}>{course.ageGroup}</span>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Lịch học:</span>
-                      <span className={styles.infoValue}>{course.schedule}</span>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Thời gian:</span>
-                      <span className={styles.infoValue}>{course.duration}</span>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Còn lại:</span>
-                      <span className={styles.infoValue}>
-                        {course.spotsLeft} chỗ
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className={styles.courseActions}>
-                    <button 
-                      className={styles.registerButton}
-                      onClick={() => handleRegisterCourse(course.id)}
-                    >
-                      Đăng ký ngay
-                    </button>
-                    <button className={styles.detailsButton}>
-                      Chi tiết
-                    </button>
-                  </div>
-                </div>
+                <Card
+                  key={course.id}
+                  title={course.name}
+                  description={course.description}
+                  badges={[{ text: formatCurrency(course.price), type: 'price' }]}
+                  infoRows={[
+                    { label: 'Độ tuổi', value: course.ageGroup },
+                    { label: 'Lịch học', value: course.schedule },
+                    { label: 'Thời gian', value: course.duration },
+                    { label: 'Còn lại', value: `${course.spotsLeft} chỗ` }
+                  ]}
+                  actions={[
+                    { text: 'Đăng ký ngay', primary: true, onClick: () => handleRegisterCourse(course.id) },
+                    { text: 'Chi tiết', primary: false, onClick: () => console.log('View details:', course.id) }
+                  ]}
+                />
               ))}
             </div>
           </div>
         )}
+
+        <ConfirmDialog
+          open={cancelDialogOpen}
+          onClose={handleCancelDialog}
+          onConfirm={handleConfirmCancel}
+          title="Xác nhận hủy đăng ký"
+          description={`Bạn có chắc chắn muốn hủy đăng ký khóa học "${courseToCancel?.name}" không?\n\n⚠️ Hành động này không thể hoàn tác. Học phí đã đóng có thể không được hoàn lại tùy theo chính sách của trung tâm.`}
+          confirmText="Có, hủy đăng ký"
+          cancelText="Không hủy"
+          confirmColor="error"
+        />
       </div>
     </div>
   );

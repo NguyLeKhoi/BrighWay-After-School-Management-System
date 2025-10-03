@@ -180,7 +180,23 @@
   background-color: #0056b3;
 }
 
-.cancelButton,
+.cancelRegistrationButton {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.cancelRegistrationButton:hover {
+  background-color: #c82333;
+}
+
 .detailsButton {
   background-color: #6c757d;
   color: white;
@@ -195,7 +211,6 @@
   min-width: 120px;
 }
 
-.cancelButton:hover,
 .detailsButton:hover {
   background-color: #5a6268;
 }
