@@ -11,7 +11,7 @@ import Contact from '../pages/main/Contact';
 
 // Auth Pages
 import Login from '../pages/auth/Login';
-import Register from '../pages/auth/Register';
+
 
 // Parent Pages
 import ParentProfile from '../pages/parent/profile';
@@ -50,23 +50,7 @@ export const routes = createBrowserRouter([
     ],
   },
   
-  // Auth Layout Routes (Authentication Pages)
-  {
-    path: '/auth',
-    element: <AuthLayout />,
-    children: [
-      {
-        path: 'login',
-        element: <Login />,
-      },
-      {
-        path: 'register',
-        element: <Register />,
-      },
-    ],
-  },
-  
-  // Legacy auth routes for backward compatibility
+  // Auth Routes (Authentication Pages)
   {
     path: '/login',
     element: <AuthLayout />,
@@ -74,16 +58,6 @@ export const routes = createBrowserRouter([
       {
         index: true,
         element: <Login />,
-      },
-    ],
-  },
-  {
-    path: '/register',
-    element: <AuthLayout />,
-    children: [
-      {
-        index: true,
-        element: <Register />,
       },
     ],
   },

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthCard from '@components/Common/AuthCard';
 import Form from '@components/Common/Form';
+import authService from '../../../services/auth.service';
 import styles from './Login.module.css';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -28,19 +30,33 @@ const Login = () => {
     setError('');
 
     try {
-      if (formData.email === 'admin@example.com' && formData.password === 'admin123') {
-        localStorage.setItem('token', 'mock-token');
-        localStorage.setItem('userRole', 'admin');
-        window.location.href = '/';
-      } else if (formData.email === 'user@example.com' && formData.password === 'user123') {
-        localStorage.setItem('token', 'mock-token');
-        localStorage.setItem('userRole', 'user');
-        window.location.href = '/';
+      // Call real authentication API
+      const result = await authService.login({
+        email: formData.email,
+        password: formData.password
+      });
+
+      // Get user info to check role
+      const user = result.user;
+      
+      // Log user info for debugging
+      console.log('🚀 Login successful! User:', user);
+      console.log('🎯 User role:', user.role);
+      
+      // Redirect based on role
+      if (user.role === 'Admin') {
+        console.log('➡️ Redirecting to Admin dashboard...');
+        navigate('/admin/dashboard');
+      } else if (user.role === 'Teacher') {
+        console.log('➡️ Redirecting to Teacher dashboard...');
+        navigate('/teacher/dashboard');
       } else {
-        setError('Invalid email or password');
+        console.log('➡️ Redirecting to Parent profile...');
+        navigate('/parent/profile');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      console.error('Login error:', err);
+      setError('Invalid email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -53,18 +69,11 @@ const Login = () => {
     { name: 'rememberMe', label: 'Remember Me?', type: 'checkbox', value: formData.rememberMe, onChange: handleChange }
   ];
 
-  const bottomLink = {
-    text: "Don't have an account?",
-    to: "/register",
-    linkText: "Sign Up"
-  };
-
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
         <AuthCard
           title="Login"
-          bottomLink={bottomLink}
         >
           <Form
             fields={formFields}
