@@ -22,6 +22,8 @@ import Form from '../../../components/Common/Form';
 import { roleSchema } from '../../../utils/validationSchemas';
 import roleService from '../../../services/role.service';
 import { useApp } from '../../../contexts/AppContext';
+import { useLoading } from '../../../hooks/useLoading';
+import Loading from '../../Loading';
 
 const RoleManagement = () => {
   const [roles, setRoles] = useState([]);
@@ -38,10 +40,11 @@ const RoleManagement = () => {
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
+  const { isLoading: isPageLoading, showLoading, hideLoading } = useLoading();
 
   // Load roles
   const loadRoles = async () => {
-    setLoading(true);
+    showLoading();
     setError(null);
     try {
       const response = await roleService.getAllRoles();
@@ -51,7 +54,7 @@ const RoleManagement = () => {
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
@@ -116,6 +119,7 @@ const RoleManagement = () => {
   };
 
   const handleFormSubmit = async (data) => {
+    showLoading();
     try {
       if (dialogMode === 'create') {
         await roleService.createRole(data);
@@ -136,11 +140,14 @@ const RoleManagement = () => {
       const errorMessage = err.message || 'Có lỗi xảy ra khi lưu role';
       setError(errorMessage);
       showGlobalError(errorMessage);
+    } finally {
+      hideLoading();
     }
   };
 
   return (
     <Box>
+      {isPageLoading && <Loading />}
       {/* Header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h4" component="h1">
