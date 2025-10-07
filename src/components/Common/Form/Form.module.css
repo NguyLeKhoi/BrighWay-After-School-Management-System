@@ -98,6 +98,20 @@
   transform: none;
 }
 
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.resetButton {
+  background: #6c757d !important;
+}
+
+.resetButton:hover:not(:disabled) {
+  background: #5a6268 !important;
+}
+
 @media (max-width: 768px) {
   .submitButton {
     width: 100%;

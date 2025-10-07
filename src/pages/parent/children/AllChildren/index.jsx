@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '@components/Common/Card';
 import Form from '@components/Common/Form';
+import { childSchema } from '../../../../utils/validationSchemas';
+import { useApp } from '../../../../contexts/AppContext';
 import styles from './Children.module.css';
 
 const ChildrenList = () => {
+  const { addNotification } = useApp();
+  
   const [children, setChildren] = useState([
     {
       id: 1,
@@ -27,55 +31,27 @@ const ChildrenList = () => {
   ]);
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newChild, setNewChild] = useState({
-    name: '',
-    age: '',
-    grade: '',
-    dateOfBirth: '',
-    gender: 'male'
-  });
 
-  const handleAddChild = (e) => {
-    e.preventDefault();
+  const handleAddChild = (data) => {
     const child = {
       id: Date.now(),
-      name: newChild.name,
-      age: parseInt(newChild.age),
-      grade: newChild.grade,
-      avatar: newChild.name.split(' ').map(n => n[0]).join(''),
+      name: data.name,
+      age: parseInt(data.age),
+      grade: data.grade,
+      avatar: data.name.split(' ').map(n => n[0]).join(''),
       membershipType: 'Chưa có',
       status: 'pending'
     };
     setChildren([...children, child]);
-    setNewChild({ name: '', age: '', grade: '', dateOfBirth: '', gender: 'male' });
     setShowAddForm(false);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewChild({
-      ...newChild,
-      [name]: value
+    
+    addNotification({
+      message: 'Thêm con thành công!',
+      severity: 'success'
     });
   };
 
-  const formFields = [
-    { name: 'name', label: 'Tên con', type: 'text', value: newChild.name, onChange: handleInputChange, required: true },
-    { name: 'age', label: 'Tuổi', type: 'number', value: newChild.age, onChange: handleInputChange, required: true },
-    { name: 'grade', label: 'Lớp', type: 'text', value: newChild.grade, onChange: handleInputChange, placeholder: 'Ví dụ: Lớp 3', required: true },
-    { 
-      name: 'gender', 
-      label: 'Giới tính', 
-      type: 'select', 
-      value: newChild.gender, 
-      onChange: handleInputChange,
-      options: [
-        { value: 'male', label: 'Nam' },
-        { value: 'female', label: 'Nữ' }
-      ]
-    },
-    { name: 'dateOfBirth', label: 'Ngày sinh', type: 'date', value: newChild.dateOfBirth, onChange: handleInputChange }
-  ];
+  // Fields will be auto-generated from childSchema
 
   return (
     <div className={styles.childrenPage}>
@@ -94,9 +70,32 @@ const ChildrenList = () => {
           <div className={styles.addForm}>
             <h3>Thêm con mới</h3>
             <Form
-              fields={formFields}
+              schema={childSchema}
               onSubmit={handleAddChild}
               submitText="Lưu"
+              fields={[
+                { name: 'name', label: 'Tên con', type: 'text', required: true },
+                { name: 'age', label: 'Tuổi', type: 'number', required: true },
+                { name: 'grade', label: 'Lớp', type: 'text', required: true, placeholder: 'Ví dụ: Lớp 3' },
+                { 
+                  name: 'gender', 
+                  label: 'Giới tính', 
+                  type: 'select', 
+                  required: true,
+                  options: [
+                    { value: 'male', label: 'Nam' },
+                    { value: 'female', label: 'Nữ' }
+                  ]
+                },
+                { name: 'dateOfBirth', label: 'Ngày sinh', type: 'date' }
+              ]}
+              defaultValues={{
+                name: '',
+                age: '',
+                grade: '',
+                gender: 'male',
+                dateOfBirth: ''
+              }}
             />
             <button 
               type="button" 

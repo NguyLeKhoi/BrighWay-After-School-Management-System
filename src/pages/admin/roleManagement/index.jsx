@@ -18,7 +18,10 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import RoleTable from '../../../components/Common/RoleTable';
+import Form from '../../../components/Common/Form';
+import { roleSchema } from '../../../utils/validationSchemas';
 import roleService from '../../../services/role.service';
+import { useApp } from '../../../contexts/AppContext';
 
 const RoleManagement = () => {
   const [roles, setRoles] = useState([]);
@@ -32,10 +35,9 @@ const RoleManagement = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState('create');
   const [selectedRole, setSelectedRole] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: ''
-  });
+  
+  // Global state
+  const { showGlobalError, addNotification } = useApp();
 
   // Load roles
   const loadRoles = async () => {
@@ -45,7 +47,9 @@ const RoleManagement = () => {
       const response = await roleService.getAllRoles();
       setRoles(response);
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi tải danh sách roles');
+      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách roles';
+      setError(errorMessage);
+      showGlobalError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -85,17 +89,12 @@ const RoleManagement = () => {
   const handleCreateRole = () => {
     setDialogMode('create');
     setSelectedRole(null);
-    setFormData({ name: '', description: '' });
     setOpenDialog(true);
   };
 
   const handleEditRole = (role) => {
     setDialogMode('edit');
     setSelectedRole(role);
-    setFormData({
-      name: role.name || '',
-      description: role.description || ''
-    });
     setOpenDialog(true);
   };
 
@@ -104,31 +103,40 @@ const RoleManagement = () => {
       try {
         await roleService.deleteRole(roleId);
         loadRoles();
+        addNotification({
+          message: 'Xóa role thành công',
+          severity: 'success'
+        });
       } catch (err) {
-        setError(err.message || 'Có lỗi xảy ra khi xóa role');
+        const errorMessage = err.message || 'Có lỗi xảy ra khi xóa role';
+        setError(errorMessage);
+        showGlobalError(errorMessage);
       }
     }
   };
 
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = async (data) => {
     try {
       if (dialogMode === 'create') {
-        await roleService.createRole(formData);
+        await roleService.createRole(data);
+        addNotification({
+          message: 'Tạo role thành công',
+          severity: 'success'
+        });
       } else {
-        await roleService.updateRole(selectedRole.id, formData);
+        await roleService.updateRole(selectedRole.id, data);
+        addNotification({
+          message: 'Cập nhật role thành công',
+          severity: 'success'
+        });
       }
       setOpenDialog(false);
       loadRoles();
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi lưu role');
+      const errorMessage = err.message || 'Có lỗi xảy ra khi lưu role';
+      setError(errorMessage);
+      showGlobalError(errorMessage);
     }
-  };
-
-  const handleFormChange = (field) => (event) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: event.target.value
-    }));
   };
 
   return (
@@ -201,35 +209,22 @@ const RoleManagement = () => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
-            <TextField
-              fullWidth
-              label="Tên Role"
-              value={formData.name}
-              onChange={handleFormChange('name')}
-              margin="normal"
-              required
-              placeholder="Ví dụ: Admin, Teacher, Student"
-            />
-            <TextField
-              fullWidth
-              label="Mô tả"
-              value={formData.description}
-              onChange={handleFormChange('description')}
-              margin="normal"
-              multiline
-              rows={3}
-              placeholder="Mô tả chi tiết về role này"
+            <Form
+              schema={roleSchema}
+              defaultValues={{
+                name: selectedRole?.name || '',
+                description: selectedRole?.description || ''
+              }}
+              onSubmit={handleFormSubmit}
+              submitText={dialogMode === 'create' ? 'Tạo' : 'Cập nhật'}
+              loading={loading}
+              fields={[
+                { name: 'name', label: 'Tên Role', type: 'text', required: true, placeholder: 'Ví dụ: Admin, Teacher, Student' },
+                { name: 'description', label: 'Mô tả', type: 'textarea', placeholder: 'Mô tả chi tiết về role này' }
+              ]}
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>
-            Hủy
-          </Button>
-          <Button onClick={handleFormSubmit} variant="contained">
-            {dialogMode === 'create' ? 'Tạo' : 'Cập nhật'}
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );

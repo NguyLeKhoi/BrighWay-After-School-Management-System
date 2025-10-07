@@ -1,39 +1,25 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthCard from '@components/Common/AuthCard';
-import Form from '@components/Common/Form';
-import authService from '../../../services/auth.service';
+import Form from '../../../components/Common/Form';
+import { loginSchema } from '../../../utils/validationSchemas';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useApp } from '../../../contexts/AppContext';
 import styles from './Login.module.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
-  });
-
+  const { login } = useAuth();
+  const { addNotification, showGlobalError } = useApp();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'rememberMe' ? checked : value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (data) => {
     setIsLoading(true);
-    setError('');
 
     try {
-      // Call real authentication API
-      const result = await authService.login({
-        email: formData.email,
-        password: formData.password
+      const result = await login({
+        email: data.email,
+        password: data.password
       });
 
       // Get user info to check role
@@ -42,6 +28,12 @@ const Login = () => {
       // Log user info for debugging
       console.log('🚀 Login successful! User:', user);
       console.log('🎯 User role:', user.role);
+      
+      // Show success notification
+      addNotification({
+        message: 'Đăng nhập thành công!',
+        severity: 'success'
+      });
       
       // Redirect based on role
       if (user.role === 'Admin') {
@@ -56,18 +48,13 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('Invalid email or password. Please try again.');
+      const errorMessage = err.message || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.';
+      showGlobalError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-
-  const formFields = [
-    { name: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange, required: true },
-    { name: 'password', label: 'Password', type: 'password', value: formData.password, onChange: handleChange, required: true },
-    { name: 'rememberMe', label: 'Remember Me?', type: 'checkbox', value: formData.rememberMe, onChange: handleChange }
-  ];
 
   return (
     <div className={styles.loginPage}>
@@ -76,11 +63,14 @@ const Login = () => {
           title="Login"
         >
           <Form
-            fields={formFields}
+            schema={loginSchema}
             onSubmit={handleSubmit}
             submitText="Login"
-            isLoading={isLoading}
-            error={error}
+            loading={isLoading}
+            fields={[
+              { name: 'email', label: 'Email', type: 'email', required: true },
+              { name: 'password', label: 'Mật khẩu', type: 'password', required: true }
+            ]}
           />
           <Link to="/forgot-password" className={styles.forgotLink}>
             Forgot Password
