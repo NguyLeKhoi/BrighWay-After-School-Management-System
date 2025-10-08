@@ -19,11 +19,13 @@ import {
 } from '@mui/icons-material';
 import RoleTable from '../../../components/Common/RoleTable';
 import Form from '../../../components/Common/Form';
+import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import { roleSchema } from '../../../utils/validationSchemas';
 import roleService from '../../../services/role.service';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../Loading';
+import { toast } from 'react-toastify';
 
 const RoleManagement = () => {
   const [roles, setRoles] = useState([]);
@@ -37,6 +39,14 @@ const RoleManagement = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState('create');
   const [selectedRole, setSelectedRole] = useState(null);
+  
+  // Confirm dialog states
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: null
+  });
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
@@ -101,46 +111,103 @@ const RoleManagement = () => {
     setOpenDialog(true);
   };
 
-  const handleDeleteRole = async (roleId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa role này?')) {
-      try {
-        await roleService.deleteRole(roleId);
-        loadRoles();
-        addNotification({
-          message: 'Xóa role thành công',
-          severity: 'success'
-        });
-      } catch (err) {
-        const errorMessage = err.message || 'Có lỗi xảy ra khi xóa role';
-        setError(errorMessage);
-        showGlobalError(errorMessage);
-      }
+  const handleDeleteRole = (role) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Xác nhận xóa role',
+      description: `Bạn có chắc chắn muốn xóa role "${role.name}"? Hành động này không thể hoàn tác.`,
+      onConfirm: () => performDeleteRole(role.id)
+    });
+  };
+
+  const performDeleteRole = async (roleId) => {
+    setConfirmDialog(prev => ({ ...prev, open: false }));
+    setLoading(true);
+    
+    try {
+      await roleService.deleteRole(roleId);
+      await loadRoles();
+      toast.success(`Xóa role thành công!`, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa role';
+      setError(errorMessage);
+      showGlobalError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 6000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleFormSubmit = async (data) => {
+    setLoading(true);
     showLoading();
+    
     try {
       if (dialogMode === 'create') {
         await roleService.createRole(data);
-        addNotification({
-          message: 'Tạo role thành công',
-          severity: 'success'
+        toast.success(`Tạo role "${data.name}" thành công!`, {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
         });
       } else {
         await roleService.updateRole(selectedRole.id, data);
-        addNotification({
-          message: 'Cập nhật role thành công',
-          severity: 'success'
+        toast.success(`Cập nhật role "${data.name}" thành công!`, {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
         });
       }
+      
       setOpenDialog(false);
-      loadRoles();
+      setSelectedRole(null);
+      await loadRoles(); // Reload the list
+      
     } catch (err) {
-      const errorMessage = err.message || 'Có lỗi xảy ra khi lưu role';
+      
+      // Handle different types of errors
+      let errorMessage = 'Có lỗi xảy ra khi lưu role';
+      
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.title) {
+        errorMessage = err.response.data.title;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       showGlobalError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 6000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
+      setLoading(false);
       hideLoading();
     }
   };
@@ -178,14 +245,6 @@ const RoleManagement = () => {
             }}
             sx={{ minWidth: 300 }}
           />
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={loadRoles}
-            disabled={loading}
-          >
-            Tải lại
-          </Button>
         </Box>
       </Paper>
 
@@ -210,9 +269,19 @@ const RoleManagement = () => {
       />
 
       {/* Create/Edit Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog 
+        open={openDialog} 
+        onClose={() => !loading && setOpenDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
         <DialogTitle>
           {dialogMode === 'create' ? 'Thêm Role mới' : 'Chỉnh sửa Role'}
+          {loading && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Đang xử lý...
+            </Typography>
+          )}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
@@ -223,16 +292,50 @@ const RoleManagement = () => {
                 description: selectedRole?.description || ''
               }}
               onSubmit={handleFormSubmit}
-              submitText={dialogMode === 'create' ? 'Tạo' : 'Cập nhật'}
+              submitText={dialogMode === 'create' ? 'Tạo Role' : 'Cập nhật Role'}
               loading={loading}
+              disabled={loading}
               fields={[
-                { name: 'name', label: 'Tên Role', type: 'text', required: true, placeholder: 'Ví dụ: Admin, Teacher, Student' },
-                { name: 'description', label: 'Mô tả', type: 'textarea', placeholder: 'Mô tả chi tiết về role này' }
+                { 
+                  name: 'name', 
+                  label: 'Tên Role', 
+                  type: 'text', 
+                  required: true, 
+                  placeholder: 'Ví dụ: Admin, Teacher, Student',
+                  disabled: loading
+                },
+                { 
+                  name: 'description', 
+                  label: 'Mô tả', 
+                  type: 'textarea', 
+                  placeholder: 'Mô tả chi tiết về role này',
+                  disabled: loading
+                }
               ]}
             />
           </Box>
         </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setOpenDialog(false)} 
+            disabled={loading}
+          >
+            Hủy
+          </Button>
+        </DialogActions>
       </Dialog>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        confirmColor="error"
+      />
     </Box>
   );
 };

@@ -54,9 +54,20 @@ const roleService = {
    */
   updateRole: async (roleId, roleData) => {
     try {
-      const response = await axiosInstance.put(`/Role/${roleId}`, roleData);
+      // Prepare data in the format expected by the API
+      const updateData = {
+        id: roleId,
+        name: roleData.name,
+        description: roleData.description || null
+      };
+      
+      console.log('🔄 Updating role with data:', updateData);
+      
+      const response = await axiosInstance.put(`/Role/${roleId}`, updateData);
+      console.log('✅ Role updated successfully:', response.data);
       return response.data;
     } catch (error) {
+      console.error('❌ Error updating role:', error);
       throw error.response?.data || error.message;
     }
   },

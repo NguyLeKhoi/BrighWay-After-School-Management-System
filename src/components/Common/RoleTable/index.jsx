@@ -93,13 +93,17 @@ const RoleTable = ({
                       size="small" 
                       onClick={() => onEdit?.(role)}
                       color="primary"
+                      disabled={loading}
+                      title="Chỉnh sửa role"
                     >
                       <EditIcon />
                     </IconButton>
                     <IconButton 
                       size="small" 
-                      onClick={() => onDelete?.(role.id)}
+                      onClick={() => onDelete?.(role)}
                       color="error"
+                      disabled={loading}
+                      title="Xóa role"
                     >
                       <DeleteIcon />
                     </IconButton>

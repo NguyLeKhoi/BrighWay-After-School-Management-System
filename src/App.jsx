@@ -5,6 +5,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AppProvider } from './contexts/AppContext';
 import ErrorBoundary from './core/error/ErrorBoundary';
 import GlobalErrorHandler from './core/error/GlobalErrorHandler';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -13,6 +15,18 @@ function App() {
         <AuthProvider>
           <RouterProvider router={routes} />
           <GlobalErrorHandler />
+          <ToastContainer
+            position="top-right"
+            autoClose={4000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
         </AuthProvider>
       </AppProvider>
     </ErrorBoundary>
