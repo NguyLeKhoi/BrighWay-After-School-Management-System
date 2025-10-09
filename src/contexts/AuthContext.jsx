@@ -29,7 +29,6 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.error('Error loading user:', error);
         // Clear invalid data
         localStorage.removeItem('user');
         localStorage.removeItem('accessToken');
@@ -62,16 +61,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // Clear localStorage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
-    
-    // Clear state
-    setUser(null);
-    setIsAuthenticated(false);
-    
-    // Redirect to login
-    window.location.href = '/login';
+    try {
+      // Clear localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      
+      // Clear state
+      setUser(null);
+      setIsAuthenticated(false);
+      
+      // Redirect to login
+      window.location.href = '/login';
+    } catch (error) {
+      // Force logout even if error
+      setUser(null);
+      setIsAuthenticated(false);
+      window.location.href = '/login';
+    }
   };
 
   const updateUser = (userData) => {

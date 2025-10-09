@@ -29,18 +29,12 @@ const authService = {
         // Decode JWT to extract user info
         const decoded = jwtDecode(response.data.token);
         
-        // Log full JWT payload for debugging
-        console.log('🔍 Full JWT Decoded:', decoded);
-        
         // Extract user info from JWT claims
         const userInfo = {
           id: decoded[JWT_CLAIMS.USER_ID],
           email: decoded[JWT_CLAIMS.EMAIL],
           role: decoded[JWT_CLAIMS.ROLE] || 'User'
         };
-        
-        // Log extracted user info
-        console.log('👤 User Info Extracted:', userInfo);
         
         // Save user info
         localStorage.setItem('user', JSON.stringify(userInfo));
@@ -59,9 +53,17 @@ const authService = {
    * Clear local storage and redirect to login
    */
   logout: () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+    try {
+      // Clear all auth data from localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      
+      // Redirect to login
+      window.location.href = '/login';
+    } catch (error) {
+      // Force redirect even if error
+      window.location.href = '/login';
+    }
   },
 
   /**

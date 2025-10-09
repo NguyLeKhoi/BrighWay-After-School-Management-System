@@ -44,28 +44,23 @@ axiosInstance.interceptors.response.use(
         
         case 403:
           // Forbidden
-          console.error('Access forbidden:', error.response.data);
           break;
         
         case 404:
           // Not found
-          console.error('Resource not found:', error.response.data);
           break;
         
         case 500:
           // Server error
-          console.error('Server error:', error.response.data);
           break;
         
         default:
-          console.error('API Error:', error.response.data);
+          break;
       }
     } else if (error.request) {
       // Request was made but no response received
-      console.error('No response from server:', error.request);
     } else {
       // Something else happened
-      console.error('Error:', error.message);
     }
     
     return Promise.reject(error);
