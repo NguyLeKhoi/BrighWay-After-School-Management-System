@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
   People as UsersIcon,
+  Business as BranchIcon,
   School as CoursesIcon,
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
@@ -29,6 +30,11 @@ const AdminLayout = () => {
       path: '/admin/roles',
       label: 'Quản lý Role',
       icon: UsersIcon
+    },
+    {
+      path: '/admin/branches',
+      label: 'Quản lý Chi Nhánh',
+      icon: BranchIcon
     },
     {
       path: '/admin/courses',

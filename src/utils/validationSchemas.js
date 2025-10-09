@@ -108,6 +108,27 @@ export const childSchema = yup.object({
     })
 });
 
+// Branch validation schema
+export const branchSchema = yup.object({
+  branchName: yup
+    .string()
+    .required('Tên chi nhánh là bắt buộc')
+    .min(2, 'Tên chi nhánh phải có ít nhất 2 ký tự')
+    .max(100, 'Tên chi nhánh không được quá 100 ký tự')
+    .matches(/^[a-zA-ZÀ-ỹ0-9\s\-.,()]+$/, 'Tên chi nhánh chỉ được chứa chữ cái, số, khoảng trắng và ký tự đặc biệt cơ bản'),
+  address: yup
+    .string()
+    .required('Địa chỉ là bắt buộc')
+    .min(10, 'Địa chỉ phải có ít nhất 10 ký tự')
+    .max(200, 'Địa chỉ không được quá 200 ký tự'),
+  phone: yup
+    .string()
+    .required('Số điện thoại là bắt buộc')
+    .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
+    .min(10, 'Số điện thoại phải có ít nhất 10 số')
+    .max(15, 'Số điện thoại không được quá 15 số')
+});
+
 // Generic validation helpers
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

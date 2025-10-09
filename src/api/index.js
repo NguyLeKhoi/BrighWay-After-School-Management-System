@@ -5,6 +5,7 @@
 
 export { default as authService } from '../services/auth.service';
 export { default as roleService } from '../services/role.service';
+export { default as branchService } from '../services/branch.service';
 
 // You can add more services here as you create them
 // export { default as userService } from '../services/user.service';

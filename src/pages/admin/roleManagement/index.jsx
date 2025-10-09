@@ -10,26 +10,27 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Alert
+  Alert,
+  Chip
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Add as AddIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
-import RoleTable from '../../../components/Common/RoleTable';
+import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import { roleSchema } from '../../../utils/validationSchemas';
 import roleService from '../../../services/role.service';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
-import Loading from '../../Loading';
+import Loading from '../../../components/Common/Loading';
 import { toast } from 'react-toastify';
 
 const RoleManagement = () => {
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -50,7 +51,58 @@ const RoleManagement = () => {
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, showLoading, hideLoading } = useLoading();
+  const { isLoading: isPageLoading, showLoading, hideLoading } = useLoading(1500); // Only for page load
+
+  // Define table columns
+  const columns = [
+    {
+      key: 'name',
+      header: 'Tên Role',
+      render: (value) => {
+        const getRoleColor = (roleName) => {
+          switch (roleName.toLowerCase()) {
+            case 'admin': return 'error';
+            case 'manager': return 'warning';
+            case 'teacher': return 'success';
+            case 'staff': return 'info';
+            case 'parent': return 'primary';
+            case 'student': return 'secondary';
+            default: return 'default';
+          }
+        };
+        return (
+          <Chip 
+            label={value} 
+            color={getRoleColor(value)}
+            size="small"
+          />
+        );
+      }
+    },
+    {
+      key: 'description',
+      header: 'Mô tả',
+      render: (value) => value || '-'
+    },
+    {
+      key: 'normalizedName',
+      header: 'Normalized Name',
+      render: (value) => (
+        <Typography variant="body2" color="text.secondary">
+          {value}
+        </Typography>
+      )
+    },
+    {
+      key: 'id',
+      header: 'ID',
+      render: (value) => (
+        <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+          {value.substring(0, 8)}...
+        </Typography>
+      )
+    }
+  ];
 
   // Load roles
   const loadRoles = async () => {
@@ -122,18 +174,18 @@ const RoleManagement = () => {
 
   const performDeleteRole = async (roleId) => {
     setConfirmDialog(prev => ({ ...prev, open: false }));
-    setLoading(true);
+    setActionLoading(true);
     
     try {
       await roleService.deleteRole(roleId);
-      await loadRoles();
+      
+      // Reload data without showing loading page
+      const response = await roleService.getAllRoles();
+      setRoles(response);
+      
       toast.success(`Xóa role thành công!`, {
         position: "top-right",
-        autoClose: 4000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
+        autoClose: 3000,
       });
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa role';
@@ -141,51 +193,38 @@ const RoleManagement = () => {
       showGlobalError(errorMessage);
       toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 6000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
+        autoClose: 4000,
       });
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
   const handleFormSubmit = async (data) => {
-    setLoading(true);
-    showLoading();
+    setActionLoading(true);
     
     try {
       if (dialogMode === 'create') {
         await roleService.createRole(data);
         toast.success(`Tạo role "${data.name}" thành công!`, {
           position: "top-right",
-          autoClose: 4000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
+          autoClose: 3000,
         });
       } else {
         await roleService.updateRole(selectedRole.id, data);
         toast.success(`Cập nhật role "${data.name}" thành công!`, {
           position: "top-right",
-          autoClose: 4000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
+          autoClose: 3000,
         });
       }
       
+      // Reload data without showing loading page
+      const response = await roleService.getAllRoles();
+      setRoles(response);
+      
       setOpenDialog(false);
-      setSelectedRole(null);
-      await loadRoles(); // Reload the list
       
     } catch (err) {
-      
-      // Handle different types of errors
       let errorMessage = 'Có lỗi xảy ra khi lưu role';
       
       if (err.response?.data?.message) {
@@ -200,15 +239,10 @@ const RoleManagement = () => {
       showGlobalError(errorMessage);
       toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 6000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
+        autoClose: 4000,
       });
     } finally {
-      setLoading(false);
-      hideLoading();
+      setActionLoading(false);
     }
   };
 
@@ -256,9 +290,10 @@ const RoleManagement = () => {
       )}
 
       {/* Table */}
-      <RoleTable
-        roles={paginatedRoles}
-        loading={loading}
+      <DataTable
+        data={paginatedRoles}
+        columns={columns}
+        loading={isPageLoading}
         page={page}
         rowsPerPage={rowsPerPage}
         totalCount={filteredRoles.length}
@@ -266,22 +301,18 @@ const RoleManagement = () => {
         onRowsPerPageChange={handleRowsPerPageChange}
         onEdit={handleEditRole}
         onDelete={handleDeleteRole}
+        emptyMessage="Không có role nào. Hãy thêm role đầu tiên để bắt đầu."
       />
 
       {/* Create/Edit Dialog */}
       <Dialog 
         open={openDialog} 
-        onClose={() => !loading && setOpenDialog(false)} 
+        onClose={() => !actionLoading && setOpenDialog(false)} 
         maxWidth="sm" 
         fullWidth
       >
         <DialogTitle>
           {dialogMode === 'create' ? 'Thêm Role mới' : 'Chỉnh sửa Role'}
-          {loading && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Đang xử lý...
-            </Typography>
-          )}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
@@ -293,8 +324,8 @@ const RoleManagement = () => {
               }}
               onSubmit={handleFormSubmit}
               submitText={dialogMode === 'create' ? 'Tạo Role' : 'Cập nhật Role'}
-              loading={loading}
-              disabled={loading}
+              loading={actionLoading}
+              disabled={actionLoading}
               fields={[
                 { 
                   name: 'name', 
@@ -302,14 +333,14 @@ const RoleManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: Admin, Teacher, Student',
-                  disabled: loading
+                  disabled: actionLoading
                 },
                 { 
                   name: 'description', 
                   label: 'Mô tả', 
                   type: 'textarea', 
                   placeholder: 'Mô tả chi tiết về role này',
-                  disabled: loading
+                  disabled: actionLoading
                 }
               ]}
             />
@@ -318,7 +349,7 @@ const RoleManagement = () => {
         <DialogActions>
           <Button 
             onClick={() => setOpenDialog(false)} 
-            disabled={loading}
+            disabled={actionLoading}
           >
             Hủy
           </Button>

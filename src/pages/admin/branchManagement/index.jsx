@@ -24,7 +24,7 @@ import { branchSchema } from '../../../utils/validationSchemas';
 import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
-import Loading from '../../Loading';
+import Loading from '../../../components/Common/Loading';
 import { toast } from 'react-toastify';
 
 const BranchManagement = () => {
