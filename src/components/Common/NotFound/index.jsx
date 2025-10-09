@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Threads from '../../components/Animation/Background/Threads';
+import Threads from '../../Animation/Background/Threads';
 import styles from './NotFound.module.css';
 
 const NotFound = () => {

@@ -28,13 +28,6 @@ const Loading = () => {
           <p className={styles.loadingSubtitle}>Vui lòng chờ trong giây lát</p>
         </div>
 
-        {/* Progress Bar */}
-        <div className={styles.progressContainer}>
-          <div className={styles.progressBar}>
-            <div className={styles.progressFill}></div>
-          </div>
-        </div>
-
         {/* Dots Animation */}
         <div className={styles.dotsContainer}>
           <div className={styles.dots}>

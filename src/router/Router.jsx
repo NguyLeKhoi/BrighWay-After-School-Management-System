@@ -25,12 +25,13 @@ import Notifications from '../pages/parent/notifications';
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
 import RoleManagement from '../pages/admin/roleManagement';
+import BranchManagement from '../pages/admin/branchManagement';
 import CourseManagement from '../pages/admin/coursesManagement';
 import Reports from '../pages/admin/reports';
 import Settings from '../pages/admin/settings';
 
 // Other Pages
-import NotFound from '../pages/NotFound';
+import NotFound from '../components/Common/NotFound';
 
 export const routes = createBrowserRouter([
   // Main Layout Routes (Landing Pages)
@@ -121,6 +122,10 @@ export const routes = createBrowserRouter([
       {
         path: 'roles',
         element: <RoleManagement />,
+      },
+      {
+        path: 'branches',
+        element: <BranchManagement />,
       },
       {
         path: 'courses',
