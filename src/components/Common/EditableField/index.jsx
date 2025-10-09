@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './EditableField.module.css';
 
 const EditableField = ({ 
@@ -10,6 +10,11 @@ const EditableField = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value);
+
+  // Sync tempValue with value prop changes
+  useEffect(() => {
+    setTempValue(value);
+  }, [value]);
 
   const handleFieldClick = () => {
     setIsEditing(true);
@@ -43,21 +48,33 @@ const EditableField = ({
     <div className={`${styles.formGroup} ${className}`}>
       <label className={styles.label}>{label}</label>
       {isEditing ? (
-        <input
-          type={type}
-          value={tempValue}
-          onChange={handleFieldChange}
-          onBlur={handleFieldBlur}
-          onKeyDown={handleKeyPress}
-          className={styles.editInput}
-          autoFocus
-        />
+        type === 'textarea' ? (
+          <textarea
+            value={tempValue}
+            onChange={handleFieldChange}
+            onBlur={handleFieldBlur}
+            onKeyDown={handleKeyPress}
+            className={styles.editTextarea}
+            autoFocus
+            rows={4}
+          />
+        ) : (
+          <input
+            type={type}
+            value={tempValue}
+            onChange={handleFieldChange}
+            onBlur={handleFieldBlur}
+            onKeyDown={handleKeyPress}
+            className={styles.editInput}
+            autoFocus
+          />
+        )
       ) : (
         <div 
           className={styles.fieldValue}
           onClick={handleFieldClick}
         >
-          {type === 'date' ? new Date(value).toLocaleDateString('vi-VN') : value}
+          {type === 'date' && value ? new Date(value).toLocaleDateString('vi-VN') : value}
           <span className={styles.editIcon}>✏️</span>
         </div>
       )}

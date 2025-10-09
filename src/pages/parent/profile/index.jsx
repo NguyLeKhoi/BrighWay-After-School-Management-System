@@ -72,7 +72,7 @@ const ParentProfile = () => {
               <EditableField
                 label="Địa chỉ"
                 value={formData.address}
-                type="text"
+                type="textarea"
                 onSave={(value) => handleFieldSave('address', value)}
               />
             </div>

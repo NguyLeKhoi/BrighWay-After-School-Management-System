@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../components/Layout/MainLayout';
 import AuthLayout from '../components/Layout/AuthLayout';
 import ParentLayout from '../components/Layout/ParentLayout';
+import AdminLayout from '../components/Layout/AdminLayout';
 
 // Main Pages
 import Homepage from '../pages/main/Homepage';
@@ -11,7 +12,6 @@ import Contact from '../pages/main/Contact';
 
 // Auth Pages
 import Login from '../pages/auth/Login';
-import Register from '../pages/auth/Register';
 
 // Parent Pages
 import ParentProfile from '../pages/parent/profile';
@@ -22,8 +22,16 @@ import MyWallet from '../pages/parent/wallet';
 import MyCourses from '../pages/parent/courses';
 import Notifications from '../pages/parent/notifications';
 
+// Admin Pages
+import AdminDashboard from '../pages/admin/dashboard';
+import RoleManagement from '../pages/admin/roleManagement';
+import BranchManagement from '../pages/admin/branchManagement';
+import CourseManagement from '../pages/admin/coursesManagement';
+import Reports from '../pages/admin/reports';
+import Settings from '../pages/admin/settings';
+
 // Other Pages
-import NotFound from '../pages/NotFound';
+import NotFound from '../components/Common/NotFound';
 
 export const routes = createBrowserRouter([
   // Main Layout Routes (Landing Pages)
@@ -50,23 +58,7 @@ export const routes = createBrowserRouter([
     ],
   },
   
-  // Auth Layout Routes (Authentication Pages)
-  {
-    path: '/auth',
-    element: <AuthLayout />,
-    children: [
-      {
-        path: 'login',
-        element: <Login />,
-      },
-      {
-        path: 'register',
-        element: <Register />,
-      },
-    ],
-  },
-  
-  // Legacy auth routes for backward compatibility
+  // Auth Routes (Authentication Pages)
   {
     path: '/login',
     element: <AuthLayout />,
@@ -74,16 +66,6 @@ export const routes = createBrowserRouter([
       {
         index: true,
         element: <Login />,
-      },
-    ],
-  },
-  {
-    path: '/register',
-    element: <AuthLayout />,
-    children: [
-      {
-        index: true,
-        element: <Register />,
       },
     ],
   },
@@ -120,6 +102,42 @@ export const routes = createBrowserRouter([
       {
         path: 'notifications',
         element: <Notifications />,
+      },
+    ],
+  },
+  
+  // Admin Layout Routes (Admin Portal)
+  {
+    path: '/admin',
+    element: <AdminLayout />,
+    children: [
+      {
+        index: true,
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'dashboard',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'roles',
+        element: <RoleManagement />,
+      },
+      {
+        path: 'branches',
+        element: <BranchManagement />,
+      },
+      {
+        path: 'courses',
+        element: <CourseManagement />,
+      },
+      {
+        path: 'reports',
+        element: <Reports />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
       },
     ],
   },
