@@ -66,7 +66,6 @@ const Login = () => {
       <div className={styles.loginPage}>
         <div className={styles.loginContainer}>
           <AuthCard
-            title="Đăng nhập"
             headerAction={
               <IconButton
                 onClick={() => navigate('/')}
