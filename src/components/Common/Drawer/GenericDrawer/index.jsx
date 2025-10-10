@@ -19,7 +19,7 @@ import {
 const drawerWidth = 250;
 
 const GenericDrawer = ({ 
-  title = "BASE",
+  title = "BRIGHWAY",
   subtitle = "Portal",
   menuItems = [],
   onLogout = () => {}

@@ -43,7 +43,7 @@ const Settings = () => {
     language: 'vi',
     
     // General Settings
-    siteName: 'BASE - After School Management',
+    siteName: 'BRIGHWAY - After School Management',
     siteDescription: 'Hệ thống quản lý sau giờ học',
     contactEmail: 'admin@base.edu.vn',
     contactPhone: '+84 123 456 789'

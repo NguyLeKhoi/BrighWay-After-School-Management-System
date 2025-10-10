@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Typography, Box, IconButton } from '@mui/material';
+import { Home as HomeIcon } from '@mui/icons-material';
 import AuthCard from '@components/Common/AuthCard';
 import Form from '../../../components/Common/Form';
 import Loading from '../../../components/Common/Loading';
@@ -64,19 +66,49 @@ const Login = () => {
       <div className={styles.loginPage}>
         <div className={styles.loginContainer}>
           <AuthCard
-            title="Login"
+            title="Đăng nhập"
+            headerAction={
+              <IconButton
+                onClick={() => navigate('/')}
+                sx={{
+                  color: '#1976d2',
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)'
+                  }
+                }}
+                title="Về trang chủ"
+              >
+                <HomeIcon />
+              </IconButton>
+            }
           >
+            {/* Portal Title inside AuthCard */}
+            <Box sx={{ mb: 3, textAlign: 'center' }}>
+              <Typography variant="h4" component="h1" sx={{ 
+                fontWeight: 'bold', 
+                color: '#1976d2',
+                mb: 1
+              }}>
+                BRIGHWAY
+              </Typography>
+              <Typography variant="h6" component="h2" sx={{ 
+                color: '#666',
+                fontWeight: 'normal'
+              }}>
+                After School Management Portal
+              </Typography>
+            </Box>
             <Form
               schema={loginSchema}
               onSubmit={handleSubmit}
-              submitText="Login"
+              submitText="Đăng nhập"
               fields={[
                 { name: 'email', label: 'Email', type: 'email', required: true },
                 { name: 'password', label: 'Mật khẩu', type: 'password', required: true }
               ]}
             />
             <Link to="/forgot-password" className={styles.forgotLink}>
-              Forgot Password
+              Quên mật khẩu?
             </Link>
           </AuthCard>
         </div>

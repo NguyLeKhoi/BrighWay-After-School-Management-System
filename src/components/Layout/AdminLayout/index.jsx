@@ -6,6 +6,7 @@ import {
   People as UsersIcon,
   Business as BranchIcon,
   Room as FacilityIcon,
+  Person as UserIcon,
   School as CoursesIcon,
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
@@ -43,6 +44,11 @@ const AdminLayout = () => {
       icon: FacilityIcon
     },
     {
+      path: '/admin/users',
+      label: 'Quản lý Người Dùng',
+      icon: UserIcon
+    },
+    {
       path: '/admin/courses',
       label: 'Quản lý Khóa học',
       icon: CoursesIcon
@@ -63,7 +69,7 @@ const AdminLayout = () => {
     <Box sx={{ display: 'flex' }}>
       {/* Generic Drawer */}
       <GenericDrawer
-        title="BASE"
+        title="BRIGHWAY"
         subtitle="Admin Portal"
         menuItems={menuItems}
         onLogout={handleLogout}
