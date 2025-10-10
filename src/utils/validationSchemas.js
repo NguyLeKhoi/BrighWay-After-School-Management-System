@@ -129,6 +129,21 @@ export const branchSchema = yup.object({
     .max(15, 'Số điện thoại không được quá 15 số')
 });
 
+// Facility validation schema
+export const facilitySchema = yup.object({
+  facilityName: yup
+    .string()
+    .required('Tên cơ sở vật chất là bắt buộc')
+    .min(2, 'Tên cơ sở vật chất phải có ít nhất 2 ký tự')
+    .max(100, 'Tên cơ sở vật chất không được quá 100 ký tự')
+    .matches(/^[a-zA-ZÀ-ỹ0-9\s\-.,()]+$/, 'Tên cơ sở vật chất chỉ được chứa chữ cái, số, khoảng trắng và ký tự đặc biệt cơ bản'),
+  description: yup
+    .string()
+    .required('Mô tả là bắt buộc')
+    .min(10, 'Mô tả phải có ít nhất 10 ký tự')
+    .max(500, 'Mô tả không được quá 500 ký tự')
+});
+
 // Generic validation helpers
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

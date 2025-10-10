@@ -5,6 +5,7 @@ import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
   People as UsersIcon,
   Business as BranchIcon,
+  Room as FacilityIcon,
   School as CoursesIcon,
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
@@ -35,6 +36,11 @@ const AdminLayout = () => {
       path: '/admin/branches',
       label: 'Quản lý Chi Nhánh',
       icon: BranchIcon
+    },
+    {
+      path: '/admin/facilities',
+      label: 'Quản lý Cơ Sở Vật Chất',
+      icon: FacilityIcon
     },
     {
       path: '/admin/courses',
