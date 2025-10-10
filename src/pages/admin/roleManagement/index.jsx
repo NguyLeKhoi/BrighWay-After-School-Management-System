@@ -24,8 +24,8 @@ import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import { roleSchema } from '../../../utils/validationSchemas';
 import roleService from '../../../services/role.service';
 import { useApp } from '../../../contexts/AppContext';
-import { useLoading } from '../../../hooks/useLoading';
-import Loading from '../../../components/Common/Loading';
+import useContentLoading from '../../../hooks/useContentLoading';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
 
 const RoleManagement = () => {
@@ -51,7 +51,7 @@ const RoleManagement = () => {
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, showLoading, hideLoading } = useLoading(1500); // Only for page load
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
 
   // Define table columns
   const columns = [
@@ -248,7 +248,7 @@ const RoleManagement = () => {
 
   return (
     <Box>
-      {isPageLoading && <Loading />}
+      {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       {/* Header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h4" component="h1">

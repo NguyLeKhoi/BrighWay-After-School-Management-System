@@ -31,8 +31,8 @@ import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import { createUserSchema, updateUserSchema } from '../../../utils/validationSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
-import { useLoading } from '../../../hooks/useLoading';
-import Loading from '../../../components/Common/Loading';
+import useContentLoading from '../../../hooks/useContentLoading';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
 
 const UserManagement = () => {
@@ -67,7 +67,7 @@ const UserManagement = () => {
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, showLoading, hideLoading } = useLoading(1500); // Only for page load
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
 
   // Role options based on API documentation (0, 1, 2, 3, 4)
   const roleOptions = [
@@ -393,7 +393,7 @@ const UserManagement = () => {
 
   return (
     <Box>
-      {isPageLoading && <Loading />}
+      {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       {/* Header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h4" component="h1">
