@@ -34,6 +34,7 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
+import styles from './UserManagement.module.css';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -392,30 +393,31 @@ const UserManagement = () => {
   };
 
   return (
-    <Box>
+    <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           Quản lý Người Dùng
-        </Typography>
+        </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleCreateUser}
+          className={styles.addButton}
         >
          Tạo Tài Khoản Mới
         </Button>
-      </Box>
+      </div>
 
       {/* Search by ID */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Paper className={styles.searchSection}>
+        <div className={styles.searchContainer}>
           <TextField
             placeholder="Nhập ID người dùng để tìm kiếm..."
             value={searchId}
             onChange={handleSearchIdChange}
-            sx={{ minWidth: 300 }}
+            className={styles.searchField}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 handleSearchById();
@@ -426,6 +428,7 @@ const UserManagement = () => {
             variant="contained"
             onClick={handleSearchById}
             disabled={!searchId.trim() || searchLoading}
+            className={styles.searchButton}
           >
             {searchLoading ? 'Đang tìm...' : 'Tìm theo ID'}
           </Button>
@@ -433,32 +436,34 @@ const UserManagement = () => {
             <Button
               variant="outlined"
               onClick={handleClearSearch}
+              className={styles.clearButton}
             >
               Xóa tìm kiếm
             </Button>
           )}
-        </Box>
+        </div>
       </Paper>
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
       {/* Table */}
-      <DataTable
-        data={paginatedUsers}
-        columns={columns}
-        loading={isPageLoading}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        totalCount={searchResult ? 1 : totalCount}
-        onPageChange={handlePageChange}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        onEdit={handleEditUser}
-        onDelete={handleDeleteUser}
+      <div className={styles.tableContainer}>
+        <DataTable
+          data={paginatedUsers}
+          columns={columns}
+          loading={isPageLoading}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalCount={searchResult ? 1 : totalCount}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          onEdit={handleEditUser}
+          onDelete={handleDeleteUser}
         emptyMessage={searchResult ? "Không có người dùng nào." : "Không có người dùng nào. Hãy tạo tài khoản đầu tiên để bắt đầu."}
       />
 
@@ -469,19 +474,21 @@ const UserManagement = () => {
         maxWidth="sm" 
         fullWidth
       >
-        <DialogTitle>
-          {dialogMode === 'create' ? 'Tạo Tài Khoản Mới' : 'Chỉnh sửa Thông Tin Người Dùng'}
+        <DialogTitle className={styles.dialogTitle}>
+          <span className={styles.dialogTitleText}>
+            {dialogMode === 'create' ? 'Tạo Tài Khoản Mới' : 'Chỉnh sửa Thông Tin Người Dùng'}
+          </span>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent className={styles.dialogContent}>
           {dialogMode === 'edit' && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              <Typography variant="body2">
+            <Alert severity="info" style={{ marginBottom: '16px' }}>
+              <span>
                 <strong>Lưu ý:</strong> Chỉ có thể cập nhật <strong>Họ và Tên</strong> và <strong>Số Điện Thoại</strong>. 
                 Email và Vai trò không thể thay đổi sau khi tạo tài khoản.
-              </Typography>
+              </span>
             </Alert>
           )}
-          <Box sx={{ pt: 1 }}>
+          <div style={{ paddingTop: '8px' }}>
             <Form
               schema={dialogMode === 'create' ? createUserSchema : updateUserSchema}
               defaultValues={{
@@ -559,7 +566,7 @@ const UserManagement = () => {
                 }
               ]}
             />
-          </Box>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button 
@@ -611,7 +618,7 @@ const UserManagement = () => {
                 Thông tin tài khoản
               </Typography>
               
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
                     Họ và Tên:
@@ -651,16 +658,16 @@ const UserManagement = () => {
                     icon={<RoleIcon fontSize="small" />}
                   />
                 </Box>
-              </Box>
+              </div>
               
-              <Box sx={{ mt: 2 }}>
+              <div style={{ marginTop: '16px' }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Mật Khẩu:
                 </Typography>
                 <Typography variant="body1" fontWeight="medium">
                   {'•'.repeat(confirmCreateDialog.userData.password?.length || 0)}
                 </Typography>
-              </Box>
+              </div>
             </Paper>
           )}
           
@@ -694,7 +701,8 @@ const UserManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+      </div>
+    </div>
   );
 };
 

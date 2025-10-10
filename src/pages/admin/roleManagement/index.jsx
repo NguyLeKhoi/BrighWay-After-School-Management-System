@@ -27,6 +27,7 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
+import styles from './RoleManagement.module.css';
 
 const RoleManagement = () => {
   const [roles, setRoles] = useState([]);
@@ -247,62 +248,58 @@ const RoleManagement = () => {
   };
 
   return (
-    <Box>
+    <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           Quản lý Roles
-        </Typography>
+        </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleCreateRole}
+          className={styles.addButton}
         >
-          Thêm Role
+         Thêm Role
         </Button>
-      </Box>
+      </div>
 
       {/* Search */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Paper className={styles.searchSection}>
+        <div className={styles.searchContainer}>
           <TextField
             placeholder="Tìm kiếm role..."
             value={searchTerm}
             onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ minWidth: 300 }}
+            className={styles.searchField}
           />
-        </Box>
+        </div>
       </Paper>
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
       {/* Table */}
-      <DataTable
-        data={paginatedRoles}
-        columns={columns}
-        loading={isPageLoading}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        totalCount={filteredRoles.length}
-        onPageChange={handlePageChange}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        onEdit={handleEditRole}
-        onDelete={handleDeleteRole}
-        emptyMessage="Không có role nào. Hãy thêm role đầu tiên để bắt đầu."
-      />
+      <div className={styles.tableContainer}>
+        <DataTable
+          data={paginatedRoles}
+          columns={columns}
+          loading={isPageLoading}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalCount={filteredRoles.length}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          onEdit={handleEditRole}
+          onDelete={handleDeleteRole}
+          emptyMessage="Không có role nào. Hãy thêm role đầu tiên để bắt đầu."
+        />
+      </div>
 
       {/* Create/Edit Dialog */}
       <Dialog 
@@ -311,11 +308,13 @@ const RoleManagement = () => {
         maxWidth="sm" 
         fullWidth
       >
-        <DialogTitle>
-          {dialogMode === 'create' ? 'Thêm Role mới' : 'Chỉnh sửa Role'}
+        <DialogTitle className={styles.dialogTitle}>
+          <span className={styles.dialogTitleText}>
+            {dialogMode === 'create' ? 'Thêm Role mới' : 'Chỉnh sửa Role'}
+          </span>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 1 }}>
+        <DialogContent className={styles.dialogContent}>
+          <div style={{ paddingTop: '8px' }}>
             <Form
               schema={roleSchema}
               defaultValues={{
@@ -344,7 +343,7 @@ const RoleManagement = () => {
                 }
               ]}
             />
-          </Box>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button 
@@ -367,7 +366,7 @@ const RoleManagement = () => {
         cancelText="Hủy"
         confirmColor="error"
       />
-    </Box>
+    </div>
   );
 };
 

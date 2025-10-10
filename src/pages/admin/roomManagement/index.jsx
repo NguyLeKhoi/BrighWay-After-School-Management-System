@@ -33,6 +33,7 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
+import styles from './RoomManagement.module.css';
 
 const RoomManagement = () => {
   const [rooms, setRooms] = useState([]);
@@ -84,12 +85,12 @@ const RoomManagement = () => {
       header: 'Cơ Sở Vật Chất',
       sortable: true,
       render: (value, row) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <RoomIcon color="primary" />
-          <Typography variant="body2" fontWeight="medium">
+        <div className={styles.facilityCell}>
+          <RoomIcon className={styles.facilityIcon} />
+          <span className={styles.facilityName}>
             {row.facilityName || 'N/A'}
-          </Typography>
-        </Box>
+          </span>
+        </div>
       )
     },
     {
@@ -107,9 +108,9 @@ const RoomManagement = () => {
       header: 'Sức Chứa',
       sortable: true,
       render: (value) => (
-        <Typography variant="body2">
+        <span className={styles.capacityText}>
           {value} người
-        </Typography>
+        </span>
       )
     },
     {
@@ -117,10 +118,10 @@ const RoomManagement = () => {
       header: 'Thao Tác',
       sortable: false,
       render: (value, row) => (
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <div className={styles.actionsCell}>
           <IconButton
             size="small"
-            color="primary"
+            className={`${styles.actionButton} ${styles.edit}`}
             onClick={() => handleEdit(row)}
             disabled={actionLoading}
             title="Sửa"
@@ -129,14 +130,14 @@ const RoomManagement = () => {
           </IconButton>
           <IconButton
             size="small"
-            color="error"
+            className={`${styles.actionButton} ${styles.delete}`}
             onClick={() => handleDelete(row)}
             disabled={actionLoading}
             title="Xóa"
           >
             <DeleteIcon />
           </IconButton>
-        </Box>
+        </div>
       )
     }
   ];
@@ -282,26 +283,27 @@ const RoomManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <div className={styles.container}>
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           Quản lý Phòng Học
-        </Typography>
+        </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleCreate}
           disabled={isDataLoading}
+          className={styles.addButton}
         >
           Thêm Phòng Học
         </Button>
-      </Box>
+      </div>
 
       {/* Filter Section */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          <FormControl sx={{ minWidth: 200 }}>
+      <Paper className={styles.filterSection}>
+        <div className={styles.filterContainer}>
+          <FormControl className={styles.formControl}>
             <InputLabel>Cơ Sở Vật Chất</InputLabel>
             <Select
               value={facilityFilter}
@@ -317,7 +319,7 @@ const RoomManagement = () => {
             </Select>
           </FormControl>
           
-          <FormControl sx={{ minWidth: 200 }}>
+          <FormControl className={styles.formControl}>
             <InputLabel>Chi Nhánh</InputLabel>
             <Select
               value={branchFilter}
@@ -337,7 +339,7 @@ const RoomManagement = () => {
             placeholder="Tìm kiếm theo tên..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ minWidth: 200 }}
+            className={styles.searchField}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 handleSearch();
@@ -349,21 +351,22 @@ const RoomManagement = () => {
             variant="contained"
             onClick={handleSearch}
             disabled={searchLoading}
+            className={styles.filterButton}
           >
             {searchLoading ? 'Đang tìm...' : 'Lọc'}
           </Button>
-        </Box>
+        </div>
       </Paper>
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
       {/* Data Table with Loading */}
-      <Box sx={{ position: 'relative' }}>
+      <div className={styles.tableContainer}>
         {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
         <DataTable
           columns={columns}
@@ -376,7 +379,7 @@ const RoomManagement = () => {
           loading={isPageLoading}
           showActions={false}
         />
-      </Box>
+      </div>
 
       {/* Create/Edit Dialog */}
       <Dialog 
@@ -385,21 +388,19 @@ const RoomManagement = () => {
         maxWidth="md" 
         fullWidth
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <RoomIcon color="primary" />
-            <Typography variant="h6" component="span">
-              {dialogMode === 'create' ? 'Thêm Phòng Học Mới' : 'Chỉnh Sửa Phòng Học'}
-            </Typography>
-          </Box>
+        <DialogTitle className={styles.dialogTitle}>
+          <RoomIcon color="primary" />
+          <span className={styles.dialogTitleText}>
+            {dialogMode === 'create' ? 'Thêm Phòng Học Mới' : 'Chỉnh Sửa Phòng Học'}
+          </span>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent className={styles.dialogContent}>
           {isDataLoading ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography>Đang tải dữ liệu...</Typography>
-            </Box>
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <span>Đang tải dữ liệu...</span>
+            </div>
           ) : dataError ? (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" style={{ marginBottom: '16px' }}>
               {dataError}
             </Alert>
           ) : (
@@ -424,7 +425,7 @@ const RoomManagement = () => {
         onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
         loading={actionLoading}
       />
-    </Box>
+    </div>
   );
 };
 

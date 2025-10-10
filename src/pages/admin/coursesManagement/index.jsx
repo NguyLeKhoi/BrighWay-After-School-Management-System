@@ -15,6 +15,7 @@ import {
   People as PeopleIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material';
+import styles from './CoursesManagement.module.css';
 
 const CourseManagement = () => {
   const courses = [
@@ -53,121 +54,106 @@ const CourseManagement = () => {
   };
 
   return (
-    <Box>
+    <div className={styles.container}>
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           Quản lý Khóa học
-        </Typography>
+        </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
+          className={styles.addButton}
         >
           Thêm Khóa học
         </Button>
-      </Box>
+      </div>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography color="textSecondary" gutterBottom>
-                    Tổng khóa học
-                  </Typography>
-                  <Typography variant="h4">
-                    {courses.length}
-                  </Typography>
-                </Box>
-                <SchoolIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>
+              Tổng khóa học
+            </span>
+            <div className={`${styles.statIcon} ${styles.primary}`}>
+              <SchoolIcon />
+            </div>
+          </div>
+          <p className={styles.statValue}>
+            {courses.length}
+          </p>
+        </div>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography color="textSecondary" gutterBottom>
-                    Đang hoạt động
-                  </Typography>
-                  <Typography variant="h4">
-                    {courses.filter(c => c.status === 'active').length}
-                  </Typography>
-                </Box>
-                <ScheduleIcon sx={{ fontSize: 40, color: 'success.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>
+              Đang hoạt động
+            </span>
+            <div className={`${styles.statIcon} ${styles.success}`}>
+              <ScheduleIcon />
+            </div>
+          </div>
+          <p className={styles.statValue}>
+            {courses.filter(c => c.status === 'active').length}
+          </p>
+        </div>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography color="textSecondary" gutterBottom>
-                    Tổng học sinh
-                  </Typography>
-                  <Typography variant="h4">
-                    {courses.reduce((sum, c) => sum + c.students, 0)}
-                  </Typography>
-                </Box>
-                <PeopleIcon sx={{ fontSize: 40, color: 'info.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>
+              Tổng học sinh
+            </span>
+            <div className={`${styles.statIcon} ${styles.info}`}>
+              <PeopleIcon />
+            </div>
+          </div>
+          <p className={styles.statValue}>
+            {courses.reduce((sum, c) => sum + c.students, 0)}
+          </p>
+        </div>
+      </div>
 
       {/* Courses List */}
-      <Grid container spacing={3}>
+      <div className={styles.coursesGrid}>
         {courses.map((course) => (
-          <Grid item xs={12} md={6} lg={4} key={course.id}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Typography variant="h6" component="h2">
-                  {course.name}
-                </Typography>
-                <Chip 
-                  label={getStatusText(course.status)}
-                  color={getStatusColor(course.status)}
-                  size="small"
-                />
-              </Box>
-              
-              <Typography color="textSecondary" sx={{ mb: 2 }}>
-                {course.description}
-              </Typography>
-              
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="body2" color="textSecondary">
-                  <PeopleIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
-                  {course.students} học sinh
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  <ScheduleIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
-                  {course.duration}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button size="small" variant="outlined">
-                  Chỉnh sửa
-                </Button>
-                <Button size="small" variant="outlined" color="error">
-                  Xóa
-                </Button>
-              </Box>
-            </Paper>
-          </Grid>
+          <div key={course.id} className={styles.courseCard}>
+            <div className={styles.courseHeader}>
+              <h3 className={styles.courseName}>
+                {course.name}
+              </h3>
+              <span className={`${styles.statusChip} ${styles[course.status]}`}>
+                {getStatusText(course.status)}
+              </span>
+            </div>
+            
+            <p className={styles.descriptionText}>
+              {course.description}
+            </p>
+            
+            <div className={styles.courseInfo}>
+              <span className={styles.infoItem}>
+                <PeopleIcon fontSize="small" />
+                {course.students} học sinh
+              </span>
+              <span className={styles.infoItem}>
+                <ScheduleIcon fontSize="small" />
+                {course.duration}
+              </span>
+            </div>
+            
+            <div className={styles.courseActions}>
+              <Button size="small" variant="outlined">
+                Chỉnh sửa
+              </Button>
+              <Button size="small" variant="outlined" color="error">
+                Xóa
+              </Button>
+            </div>
+          </div>
         ))}
-      </Grid>
-    </Box>
+      </div>
+    </div>
   );
 };
 

@@ -26,6 +26,7 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
+import styles from './FacilityManagement.module.css';
 
 const FacilityManagement = () => {
   const [facilities, setFacilities] = useState([]);
@@ -276,30 +277,31 @@ const FacilityManagement = () => {
   };
 
   return (
-    <Box>
+    <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           Quản lý Cơ Sở Vật Chất
-        </Typography>
+        </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleCreateFacility}
+          className={styles.addButton}
         >
          Thêm Cơ Sở Vật Chất
         </Button>
-      </Box>
+      </div>
 
       {/* Search by ID */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Paper className={styles.searchSection}>
+        <div className={styles.searchContainer}>
           <TextField
             placeholder="Nhập ID cơ sở vật chất để tìm kiếm..."
             value={searchId}
             onChange={handleSearchIdChange}
-            sx={{ minWidth: 300 }}
+            className={styles.searchField}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 handleSearchById();
@@ -310,6 +312,7 @@ const FacilityManagement = () => {
             variant="contained"
             onClick={handleSearchById}
             disabled={!searchId.trim() || searchLoading}
+            className={styles.searchButton}
           >
             {searchLoading ? 'Đang tìm...' : 'Tìm theo ID'}
           </Button>
@@ -317,33 +320,35 @@ const FacilityManagement = () => {
             <Button
               variant="outlined"
               onClick={handleClearSearch}
+              className={styles.clearButton}
             >
               Xóa tìm kiếm
             </Button>
           )}
-        </Box>
+        </div>
       </Paper>
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
       {/* Table */}
-      <DataTable
-        data={paginatedFacilities}
-        columns={columns}
-        loading={isPageLoading}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        totalCount={searchResult ? 1 : totalCount}
-        onPageChange={handlePageChange}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        onEdit={handleEditFacility}
-        onDelete={handleDeleteFacility}
-        emptyMessage={searchResult ? "Không có cơ sở vật chất nào." : "Không có cơ sở vật chất nào. Hãy thêm cơ sở vật chất đầu tiên để bắt đầu."}
+      <div className={styles.tableContainer}>
+        <DataTable
+          data={paginatedFacilities}
+          columns={columns}
+          loading={isPageLoading}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalCount={searchResult ? 1 : totalCount}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          onEdit={handleEditFacility}
+          onDelete={handleDeleteFacility}
+          emptyMessage={searchResult ? "Không có cơ sở vật chất nào." : "Không có cơ sở vật chất nào. Hãy thêm cơ sở vật chất đầu tiên để bắt đầu."}
       />
 
       {/* Create/Edit Dialog */}
@@ -353,11 +358,13 @@ const FacilityManagement = () => {
         maxWidth="sm" 
         fullWidth
       >
-        <DialogTitle>
-          {dialogMode === 'create' ? 'Thêm Cơ Sở Vật Chất mới' : 'Chỉnh sửa Cơ Sở Vật Chất'}
+        <DialogTitle className={styles.dialogTitle}>
+          <span className={styles.dialogTitleText}>
+            {dialogMode === 'create' ? 'Thêm Cơ Sở Vật Chất mới' : 'Chỉnh sửa Cơ Sở Vật Chất'}
+          </span>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 1 }}>
+        <DialogContent className={styles.dialogContent}>
+          <div style={{ paddingTop: '8px' }}>
             <Form
               schema={facilitySchema}
               defaultValues={{
@@ -387,7 +394,7 @@ const FacilityManagement = () => {
                 }
               ]}
             />
-          </Box>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button 
@@ -410,7 +417,8 @@ const FacilityManagement = () => {
         cancelText="Hủy"
         confirmColor="error"
       />
-    </Box>
+      </div>
+    </div>
   );
 };
 

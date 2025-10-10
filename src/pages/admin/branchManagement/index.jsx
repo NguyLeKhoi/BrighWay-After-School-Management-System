@@ -26,6 +26,7 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
+import styles from './BranchManagement.module.css';
 
 const BranchManagement = () => {
   const [branches, setBranches] = useState([]);
@@ -285,30 +286,31 @@ const BranchManagement = () => {
   };
 
   return (
-    <Box>
+    <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           Quản lý Chi Nhánh
-        </Typography>
+        </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleCreateBranch}
+          className={styles.addButton}
         >
          Thêm Chi Nhánh
         </Button>
-      </Box>
+      </div>
 
       {/* Search by ID */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Paper className={styles.searchSection}>
+        <div className={styles.searchContainer}>
           <TextField
             placeholder="Nhập ID chi nhánh để tìm kiếm..."
             value={searchId}
             onChange={handleSearchIdChange}
-            sx={{ minWidth: 300 }}
+            className={styles.searchField}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 handleSearchById();
@@ -319,6 +321,7 @@ const BranchManagement = () => {
             variant="contained"
             onClick={handleSearchById}
             disabled={!searchId.trim() || searchLoading}
+            className={styles.searchButton}
           >
             {searchLoading ? 'Đang tìm...' : 'Tìm theo ID'}
           </Button>
@@ -330,28 +333,29 @@ const BranchManagement = () => {
               Xóa tìm kiếm
             </Button>
           )}
-        </Box>
+        </div>
       </Paper>
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
       {/* Table */}
-      <DataTable
-        data={paginatedBranches}
-        columns={columns}
-        loading={isPageLoading}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        totalCount={searchResult ? 1 : totalCount}
-        onPageChange={handlePageChange}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        onEdit={handleEditBranch}
-        onDelete={handleDeleteBranch}
+      <div className={styles.tableContainer}>
+        <DataTable
+          data={paginatedBranches}
+          columns={columns}
+          loading={isPageLoading}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalCount={searchResult ? 1 : totalCount}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          onEdit={handleEditBranch}
+          onDelete={handleDeleteBranch}
         emptyMessage={searchResult ? "Không có chi nhánh nào." : "Không có chi nhánh nào. Hãy thêm chi nhánh đầu tiên để bắt đầu."}
       />
 
@@ -362,11 +366,13 @@ const BranchManagement = () => {
         maxWidth="sm" 
         fullWidth
       >
-        <DialogTitle>
-          {dialogMode === 'create' ? 'Thêm Chi Nhánh mới' : 'Chỉnh sửa Chi Nhánh'}
+        <DialogTitle className={styles.dialogTitle}>
+          <span className={styles.dialogTitleText}>
+            {dialogMode === 'create' ? 'Thêm Chi Nhánh mới' : 'Chỉnh sửa Chi Nhánh'}
+          </span>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 1 }}>
+        <DialogContent className={styles.dialogContent}>
+          <div style={{ paddingTop: '8px' }}>
             <Form
               schema={branchSchema}
               defaultValues={{
@@ -405,7 +411,7 @@ const BranchManagement = () => {
                 }
               ]}
             />
-          </Box>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button 
@@ -428,7 +434,8 @@ const BranchManagement = () => {
         cancelText="Hủy"
         confirmColor="error"
       />
-    </Box>
+      </div>
+    </div>
   );
 };
 

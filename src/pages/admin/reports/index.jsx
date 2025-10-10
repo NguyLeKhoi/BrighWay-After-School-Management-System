@@ -19,6 +19,7 @@ import {
   People as PeopleIcon,
   School as SchoolIcon
 } from '@mui/icons-material';
+import styles from './Reports.module.css';
 
 const Reports = () => {
   const reportTypes = [
@@ -57,14 +58,19 @@ const Reports = () => {
   };
 
   return (
-    <Box>
-      {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           Báo cáo & Thống kê
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl sx={{ minWidth: 150 }}>
+        </h1>
+        <p className={styles.subtitle}>
+          Tổng quan và phân tích dữ liệu hệ thống
+        </p>
+      </div>
+
+      <div className={styles.filterSection}>
+        <div className={styles.filterContainer}>
+          <FormControl className={styles.formControl}>
             <InputLabel>Thời gian</InputLabel>
             <Select
               value="this-month"
@@ -79,98 +85,87 @@ const Reports = () => {
           <Button
             variant="contained"
             startIcon={<DownloadIcon />}
+            className={styles.exportButton}
           >
             Xuất báo cáo
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography color="textSecondary" gutterBottom>
-                    Tổng User
-                  </Typography>
-                  <Typography variant="h4">
-                    1,234
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    +12% so với tháng trước
-                  </Typography>
-                </Box>
-                <PeopleIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>
+              Tổng User
+            </span>
+            <div className={`${styles.statIcon} ${styles.primary}`}>
+              <PeopleIcon />
+            </div>
+          </div>
+          <p className={styles.statValue}>
+            1,234
+          </p>
+          <div className={`${styles.statChange} ${styles.positive}`}>
+            <TrendingUpIcon fontSize="small" />
+            +12% so với tháng trước
+          </div>
+        </div>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography color="textSecondary" gutterBottom>
-                    Khóa học
-                  </Typography>
-                  <Typography variant="h4">
-                    56
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    +8% so với tháng trước
-                  </Typography>
-                </Box>
-                <SchoolIcon sx={{ fontSize: 40, color: 'success.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>
+              Khóa học
+            </span>
+            <div className={`${styles.statIcon} ${styles.success}`}>
+              <SchoolIcon />
+            </div>
+          </div>
+          <p className={styles.statValue}>
+            56
+          </p>
+          <div className={`${styles.statChange} ${styles.positive}`}>
+            <TrendingUpIcon fontSize="small" />
+            +8% so với tháng trước
+          </div>
+        </div>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography color="textSecondary" gutterBottom>
-                    Doanh thu
-                  </Typography>
-                  <Typography variant="h4">
-                    $12,345
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    +15% so với tháng trước
-                  </Typography>
-                </Box>
-                <TrendingUpIcon sx={{ fontSize: 40, color: 'warning.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>
+              Doanh thu
+            </span>
+            <div className={`${styles.statIcon} ${styles.warning}`}>
+              <TrendingUpIcon />
+            </div>
+          </div>
+          <p className={styles.statValue}>
+            $12,345
+          </p>
+          <div className={`${styles.statChange} ${styles.positive}`}>
+            <TrendingUpIcon fontSize="small" />
+            +15% so với tháng trước
+          </div>
+        </div>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography color="textSecondary" gutterBottom>
-                    Tỷ lệ hoàn thành
-                  </Typography>
-                  <Typography variant="h4">
-                    85%
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    +5% so với tháng trước
-                  </Typography>
-                </Box>
-                <AssessmentIcon sx={{ fontSize: 40, color: 'info.main' }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>
+              Tỷ lệ hoàn thành
+            </span>
+            <div className={`${styles.statIcon} ${styles.primary}`}>
+              <AssessmentIcon />
+            </div>
+          </div>
+          <p className={styles.statValue}>
+            85%
+          </p>
+          <div className={`${styles.statChange} ${styles.positive}`}>
+            <TrendingUpIcon fontSize="small" />
+            +5% so với tháng trước
+          </div>
+        </div>
+      </div>
 
       {/* Report Types */}
       <Typography variant="h5" component="h2" sx={{ mb: 3 }}>
@@ -223,34 +218,26 @@ const Reports = () => {
       </Grid>
 
       {/* Charts Placeholder */}
-      <Grid container spacing={3} sx={{ mt: 4 }}>
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Biểu đồ thống kê theo thời gian
-            </Typography>
-            <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography color="textSecondary">
-                Biểu đồ sẽ được tích hợp ở đây
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
+      <div className={styles.chartsSection}>
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>
+            Biểu đồ thống kê theo thời gian
+          </h3>
+          <div className={styles.chartContent}>
+            Biểu đồ sẽ được tích hợp ở đây
+          </div>
+        </div>
         
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Top khóa học phổ biến
-            </Typography>
-            <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography color="textSecondary">
-                Danh sách top khóa học sẽ được hiển thị ở đây
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>
+            Top khóa học phổ biến
+          </h3>
+          <div className={styles.chartContent}>
+            Danh sách top khóa học sẽ được hiển thị ở đây
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
