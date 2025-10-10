@@ -3,9 +3,9 @@ import { jwtDecode } from 'jwt-decode';
 
 // JWT Claim Types - Standard identifiers for user information
 const JWT_CLAIMS = {
-  USER_ID: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
-  EMAIL: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name',
-  ROLE: 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+  USER_ID: import.meta.env.VITE_JWT_CLAIM_USER_ID,
+  EMAIL: import.meta.env.VITE_JWT_CLAIM_EMAIL,
+  ROLE: import.meta.env.VITE_JWT_CLAIM_ROLE
 };
 
 /**

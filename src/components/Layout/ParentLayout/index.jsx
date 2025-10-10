@@ -51,7 +51,7 @@ const ParentLayout = () => {
     <Box sx={{ display: 'flex' }}>
       {/* Generic Drawer */}
       <GenericDrawer
-        title="BASE"
+        title="BRIGHWAY"
         subtitle="Parent Portal"
         menuItems={menuItems}
         onLogout={handleLogout}

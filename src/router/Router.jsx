@@ -26,6 +26,9 @@ import Notifications from '../pages/parent/notifications';
 import AdminDashboard from '../pages/admin/dashboard';
 import RoleManagement from '../pages/admin/roleManagement';
 import BranchManagement from '../pages/admin/branchManagement';
+import FacilityManagement from '../pages/admin/facilityManagement';
+import RoomManagement from '../pages/admin/roomManagement';
+import UserManagement from '../pages/admin/userManagement';
 import CourseManagement from '../pages/admin/coursesManagement';
 import Reports from '../pages/admin/reports';
 import Settings from '../pages/admin/settings';
@@ -126,6 +129,18 @@ export const routes = createBrowserRouter([
       {
         path: 'branches',
         element: <BranchManagement />,
+      },
+      {
+        path: 'facilities',
+        element: <FacilityManagement />,
+      },
+      {
+        path: 'rooms',
+        element: <RoomManagement />,
+      },
+      {
+        path: 'users',
+        element: <UserManagement />,
       },
       {
         path: 'courses',

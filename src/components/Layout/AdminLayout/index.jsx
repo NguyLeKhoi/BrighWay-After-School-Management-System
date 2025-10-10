@@ -5,10 +5,13 @@ import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
   People as UsersIcon,
   Business as BranchIcon,
+  Room as FacilityIcon,
+  Person as UserIcon,
   School as CoursesIcon,
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
-  Dashboard as DashboardIcon
+  Dashboard as DashboardIcon,
+  MeetingRoom as RoomIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -28,17 +31,32 @@ const AdminLayout = () => {
     },
     {
       path: '/admin/roles',
-      label: 'Quản lý Role',
+      label: 'Vai trò',
       icon: UsersIcon
     },
     {
+      path: '/admin/users',
+      label: 'Người Dùng',
+      icon: UserIcon
+    },
+    {
       path: '/admin/branches',
-      label: 'Quản lý Chi Nhánh',
+      label: 'Chi Nhánh',
       icon: BranchIcon
     },
     {
+      path: '/admin/facilities',
+      label: 'Cơ Sở Vật Chất',
+      icon: FacilityIcon
+    },
+    {
+      path: '/admin/rooms',
+      label: 'Phòng Học',
+      icon: RoomIcon
+    },
+    {
       path: '/admin/courses',
-      label: 'Quản lý Khóa học',
+      label: 'Khóa học',
       icon: CoursesIcon
     },
     {
@@ -57,7 +75,7 @@ const AdminLayout = () => {
     <Box sx={{ display: 'flex' }}>
       {/* Generic Drawer */}
       <GenericDrawer
-        title="BASE"
+        title="BRIGHWAY"
         subtitle="Admin Portal"
         menuItems={menuItems}
         onLogout={handleLogout}

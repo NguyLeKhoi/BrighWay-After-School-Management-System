@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Typography, Box, IconButton } from '@mui/material';
+import { Home as HomeIcon } from '@mui/icons-material';
 import AuthCard from '@components/Common/AuthCard';
 import Form from '../../../components/Common/Form';
+import Loading from '../../../components/Common/Loading';
 import { loginSchema } from '../../../utils/validationSchemas';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useApp } from '../../../contexts/AppContext';
+import { useLoading } from '../../../hooks/useLoading';
 import styles from './Login.module.css';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { addNotification, showGlobalError } = useApp();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, showLoading, hideLoading } = useLoading(1500);
 
   const handleSubmit = async (data) => {
-    setIsLoading(true);
+    showLoading();
 
     try {
       const result = await login({
@@ -51,33 +55,64 @@ const Login = () => {
       const errorMessage = err.message || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.';
       showGlobalError(errorMessage);
     } finally {
-      setIsLoading(false);
+      hideLoading();
     }
   };
 
 
   return (
-    <div className={styles.loginPage}>
-      <div className={styles.loginContainer}>
-        <AuthCard
-          title="Login"
-        >
-          <Form
-            schema={loginSchema}
-            onSubmit={handleSubmit}
-            submitText="Login"
-            loading={isLoading}
-            fields={[
-              { name: 'email', label: 'Email', type: 'email', required: true },
-              { name: 'password', label: 'Mật khẩu', type: 'password', required: true }
-            ]}
-          />
-          <Link to="/forgot-password" className={styles.forgotLink}>
-            Forgot Password
-          </Link>
-        </AuthCard>
+    <>
+      {isLoading && <Loading />}
+      <div className={styles.loginPage}>
+        <div className={styles.loginContainer}>
+          <AuthCard
+            headerAction={
+              <IconButton
+                onClick={() => navigate('/')}
+                sx={{
+                  color: '#1976d2',
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)'
+                  }
+                }}
+                title="Về trang chủ"
+              >
+                <HomeIcon />
+              </IconButton>
+            }
+          >
+            {/* Portal Title inside AuthCard */}
+            <Box sx={{ mb: 3, textAlign: 'center' }}>
+              <Typography variant="h4" component="h1" sx={{ 
+                fontWeight: 'bold', 
+                color: '#1976d2',
+                mb: 1
+              }}>
+                BRIGHWAY
+              </Typography>
+              <Typography variant="h6" component="h2" sx={{ 
+                color: '#666',
+                fontWeight: 'normal'
+              }}>
+                After School Management Portal
+              </Typography>
+            </Box>
+            <Form
+              schema={loginSchema}
+              onSubmit={handleSubmit}
+              submitText="Đăng nhập"
+              fields={[
+                { name: 'email', label: 'Email', type: 'email', required: true },
+                { name: 'password', label: 'Mật khẩu', type: 'password', required: true }
+              ]}
+            />
+            <Link to="/forgot-password" className={styles.forgotLink}>
+              Quên mật khẩu?
+            </Link>
+          </AuthCard>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

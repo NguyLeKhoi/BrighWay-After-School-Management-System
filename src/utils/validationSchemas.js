@@ -26,30 +26,6 @@ export const loginSchema = yup.object({
     .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
 });
 
-// User validation schema
-export const userSchema = yup.object({
-  email: yup
-    .string()
-    .required('Email là bắt buộc')
-    .email('Email không hợp lệ'),
-  firstName: yup
-    .string()
-    .required('Họ là bắt buộc')
-    .min(2, 'Họ phải có ít nhất 2 ký tự')
-    .max(50, 'Họ không được quá 50 ký tự'),
-  lastName: yup
-    .string()
-    .required('Tên là bắt buộc')
-    .min(2, 'Tên phải có ít nhất 2 ký tự')
-    .max(50, 'Tên không được quá 50 ký tự'),
-  phoneNumber: yup
-    .string()
-    .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
-    .nullable(),
-  role: yup
-    .string()
-    .required('Role là bắt buộc')
-});
 
 // Course validation schema
 export const courseSchema = yup.object({
@@ -127,6 +103,82 @@ export const branchSchema = yup.object({
     .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
     .min(10, 'Số điện thoại phải có ít nhất 10 số')
     .max(15, 'Số điện thoại không được quá 15 số')
+});
+
+// Facility validation schema
+export const facilitySchema = yup.object({
+  facilityName: yup
+    .string()
+    .required('Tên cơ sở vật chất là bắt buộc')
+    .min(2, 'Tên cơ sở vật chất phải có ít nhất 2 ký tự')
+    .max(100, 'Tên cơ sở vật chất không được quá 100 ký tự')
+    .matches(/^[a-zA-ZÀ-ỹ0-9\s\-.,()]+$/, 'Tên cơ sở vật chất chỉ được chứa chữ cái, số, khoảng trắng và ký tự đặc biệt cơ bản'),
+  description: yup
+    .string()
+    .required('Mô tả là bắt buộc')
+    .min(10, 'Mô tả phải có ít nhất 10 ký tự')
+    .max(500, 'Mô tả không được quá 500 ký tự')
+});
+
+// User validation schema for creating new user
+export const createUserSchema = yup.object({
+  fullName: yup
+    .string()
+    .required('Họ và tên là bắt buộc')
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự')
+    .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ'),
+  phoneNumber: yup
+    .string()
+    .required('Số điện thoại là bắt buộc')
+    .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
+    .min(10, 'Số điện thoại phải có ít nhất 10 số')
+    .max(15, 'Số điện thoại không được quá 15 số'),
+  password: yup
+    .string()
+    .required('Mật khẩu là bắt buộc')
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(50, 'Mật khẩu không được quá 50 ký tự'),
+  role: yup
+    .number()
+    .required('Vai trò là bắt buộc')
+    .oneOf([0, 1, 2, 3, 4], 'Vai trò không hợp lệ')
+});
+
+// User validation schema for updating existing user (only fullName and phoneNumber)
+export const updateUserSchema = yup.object({
+  fullName: yup
+    .string()
+    .required('Họ và tên là bắt buộc')
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự')
+    .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
+  phoneNumber: yup
+    .string()
+    .required('Số điện thoại là bắt buộc')
+    .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
+    .min(10, 'Số điện thoại phải có ít nhất 10 số')
+    .max(15, 'Số điện thoại không được quá 15 số')
+});
+
+// Room validation schema
+export const roomSchema = yup.object({
+  facilityId: yup
+    .string()
+    .required('Cơ sở vật chất là bắt buộc'),
+  branchId: yup
+    .string()
+    .required('Chi nhánh là bắt buộc'),
+  capacity: yup
+    .number()
+    .required('Sức chứa là bắt buộc')
+    .min(1, 'Sức chứa phải lớn hơn 0')
+    .max(1000, 'Sức chứa không được quá 1000')
+    .integer('Sức chứa phải là số nguyên')
 });
 
 // Generic validation helpers

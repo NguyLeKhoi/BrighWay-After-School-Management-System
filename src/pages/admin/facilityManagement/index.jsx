@@ -15,21 +15,21 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Business as BusinessIcon
+  Room as RoomIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { branchSchema } from '../../../utils/validationSchemas';
-import branchService from '../../../services/branch.service';
+import { facilitySchema } from '../../../utils/validationSchemas';
+import facilityService from '../../../services/facility.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
-import styles from './BranchManagement.module.css';
+import styles from './FacilityManagement.module.css';
 
-const BranchManagement = () => {
-  const [branches, setBranches] = useState([]);
+const FacilityManagement = () => {
+  const [facilities, setFacilities] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -42,7 +42,7 @@ const BranchManagement = () => {
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState('create');
-  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedFacility, setSelectedFacility] = useState(null);
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -59,11 +59,11 @@ const BranchManagement = () => {
   // Define table columns
   const columns = [
     {
-      key: 'branchName',
-      header: 'Tên Chi Nhánh',
+      key: 'facilityName',
+      header: 'Tên Cơ Sở Vật Chất',
       render: (value, item) => (
         <Box display="flex" alignItems="center" gap={1}>
-          <BusinessIcon fontSize="small" color="primary" />
+          <RoomIcon fontSize="small" color="primary" />
           <Typography variant="subtitle2" fontWeight="medium">
             {value}
           </Typography>
@@ -71,31 +71,22 @@ const BranchManagement = () => {
       )
     },
     {
-      key: 'address',
-      header: 'Địa Chỉ',
+      key: 'description',
+      header: 'Mô Tả',
       render: (value) => (
         <Typography variant="body2" color="text.secondary">
-          {value}
-        </Typography>
-      )
-    },
-    {
-      key: 'phone',
-      header: 'Số Điện Thoại',
-      render: (value) => (
-        <Typography variant="body2">
           {value}
         </Typography>
       )
     }
   ];
 
-  // Load branches with pagination
-  const loadBranches = async () => {
+  // Load facilities with pagination
+  const loadFacilities = async () => {
     showLoading();
     setError(null);
     try {
-      const response = await branchService.getBranchesPaged({
+      const response = await facilityService.getFacilitiesPaged({
         page: page + 1, // Backend uses 1-based indexing
         pageSize: rowsPerPage
       });
@@ -103,15 +94,15 @@ const BranchManagement = () => {
       // Handle both paginated and non-paginated responses
       if (response.items) {
         // Paginated response
-        setBranches(response.items);
+        setFacilities(response.items);
         setTotalCount(response.totalCount || response.items.length);
       } else {
         // Non-paginated response (fallback)
-        setBranches(response);
+        setFacilities(response);
         setTotalCount(response.length);
       }
     } catch (err) {
-      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách chi nhánh';
+      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách cơ sở vật chất';
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
@@ -119,15 +110,15 @@ const BranchManagement = () => {
     }
   };
 
-  // Load branches when page or rowsPerPage changes
+  // Load facilities when page or rowsPerPage changes
   useEffect(() => {
 
-    loadBranches();
+    loadFacilities();
   }, [page, rowsPerPage]);
 
-  // Use search result if available, otherwise use paginated branches
-  const displayBranches = searchResult ? [searchResult] : branches;
-  const paginatedBranches = displayBranches;
+  // Use search result if available, otherwise use paginated facilities
+  const displayFacilities = searchResult ? [searchResult] : facilities;
+  const paginatedFacilities = displayFacilities;
 
   // Event handlers
   const handleSearchById = async () => {
@@ -138,16 +129,16 @@ const BranchManagement = () => {
 
     setSearchLoading(true);
     try {
-      const result = await branchService.getBranchById(searchId.trim());
+      const result = await facilityService.getFacilityById(searchId.trim());
       setSearchResult(result);
       setPage(0);
       
-      toast.success(`Tìm thấy chi nhánh: ${result.branchName}`, {
+      toast.success(`Tìm thấy cơ sở vật chất: ${result.facilityName}`, {
         position: "top-right",
         autoClose: 3000,
       });
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Không tìm thấy chi nhánh với ID này';
+      const errorMessage = err.response?.data?.message || err.message || 'Không tìm thấy cơ sở vật chất với ID này';
       setError(errorMessage);
       setSearchResult(null);
       
@@ -179,54 +170,54 @@ const BranchManagement = () => {
     setPage(0);
   };
 
-  const handleCreateBranch = () => {
+  const handleCreateFacility = () => {
     setDialogMode('create');
-    setSelectedBranch(null);
+    setSelectedFacility(null);
     setOpenDialog(true);
   };
 
-  const handleEditBranch = (branch) => {
+  const handleEditFacility = (facility) => {
     setDialogMode('edit');
-    setSelectedBranch(branch);
+    setSelectedFacility(facility);
     setOpenDialog(true);
   };
 
-  const handleDeleteBranch = (branch) => {
+  const handleDeleteFacility = (facility) => {
     setConfirmDialog({
       open: true,
-      title: 'Xác nhận xóa chi nhánh',
-      description: `Bạn có chắc chắn muốn xóa chi nhánh "${branch.branchName}"? Hành động này không thể hoàn tác.`,
-      onConfirm: () => performDeleteBranch(branch.id)
+      title: 'Xác nhận xóa cơ sở vật chất',
+      description: `Bạn có chắc chắn muốn xóa cơ sở vật chất "${facility.facilityName}"? Hành động này không thể hoàn tác.`,
+      onConfirm: () => performDeleteFacility(facility.id)
     });
   };
 
-  const performDeleteBranch = async (branchId) => {
+  const performDeleteFacility = async (facilityId) => {
     setConfirmDialog(prev => ({ ...prev, open: false }));
     setActionLoading(true);
     
     try {
-      await branchService.deleteBranch(branchId);
+      await facilityService.deleteFacility(facilityId);
       
       // Reload data without showing loading page
-      const response = await branchService.getBranchesPaged({
+      const response = await facilityService.getFacilitiesPaged({
         page: page + 1,
         pageSize: rowsPerPage
       });
       
       if (response.items) {
-        setBranches(response.items);
+        setFacilities(response.items);
         setTotalCount(response.totalCount || response.items.length);
       } else {
-        setBranches(response);
+        setFacilities(response);
         setTotalCount(response.length);
       }
       
-      toast.success(`Xóa chi nhánh thành công!`, {
+      toast.success(`Xóa cơ sở vật chất thành công!`, {
         position: "top-right",
         autoClose: 3000,
       });
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa chi nhánh';
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa cơ sở vật chất';
       setError(errorMessage);
       showGlobalError(errorMessage);
       toast.error(errorMessage, {
@@ -243,37 +234,37 @@ const BranchManagement = () => {
     
     try {
       if (dialogMode === 'create') {
-        await branchService.createBranch(data);
-        toast.success(`Tạo chi nhánh "${data.branchName}" thành công!`, {
+        await facilityService.createFacility(data);
+        toast.success(`Tạo cơ sở vật chất "${data.facilityName}" thành công!`, {
           position: "top-right",
           autoClose: 3000,
         });
       } else {
-        await branchService.updateBranch(selectedBranch.id, data);
-        toast.success(`Cập nhật chi nhánh "${data.branchName}" thành công!`, {
+        await facilityService.updateFacility(selectedFacility.id, data);
+        toast.success(`Cập nhật cơ sở vật chất "${data.facilityName}" thành công!`, {
           position: "top-right",
           autoClose: 3000,
         });
       }
       
       // Reload data without showing loading page
-      const response = await branchService.getBranchesPaged({
+      const response = await facilityService.getFacilitiesPaged({
         page: page + 1,
         pageSize: rowsPerPage
       });
       
       if (response.items) {
-        setBranches(response.items);
+        setFacilities(response.items);
         setTotalCount(response.totalCount || response.items.length);
       } else {
-        setBranches(response);
+        setFacilities(response);
         setTotalCount(response.length);
       }
       
       setOpenDialog(false);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 
-        (dialogMode === 'create' ? 'Có lỗi xảy ra khi tạo chi nhánh' : 'Có lỗi xảy ra khi cập nhật chi nhánh');
+        (dialogMode === 'create' ? 'Có lỗi xảy ra khi tạo cơ sở vật chất' : 'Có lỗi xảy ra khi cập nhật cơ sở vật chất');
       setError(errorMessage);
       showGlobalError(errorMessage);
       toast.error(errorMessage, {
@@ -291,15 +282,15 @@ const BranchManagement = () => {
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.title}>
-          Quản lý Chi Nhánh
+          Quản lý Cơ Sở Vật Chất
         </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleCreateBranch}
+          onClick={handleCreateFacility}
           className={styles.addButton}
         >
-         Thêm Chi Nhánh
+         Thêm Cơ Sở Vật Chất
         </Button>
       </div>
 
@@ -307,7 +298,7 @@ const BranchManagement = () => {
       <Paper className={styles.searchSection}>
         <div className={styles.searchContainer}>
           <TextField
-            placeholder="Nhập ID chi nhánh để tìm kiếm..."
+            placeholder="Nhập ID cơ sở vật chất để tìm kiếm..."
             value={searchId}
             onChange={handleSearchIdChange}
             className={styles.searchField}
@@ -329,6 +320,7 @@ const BranchManagement = () => {
             <Button
               variant="outlined"
               onClick={handleClearSearch}
+              className={styles.clearButton}
             >
               Xóa tìm kiếm
             </Button>
@@ -346,7 +338,7 @@ const BranchManagement = () => {
       {/* Table */}
       <div className={styles.tableContainer}>
         <DataTable
-          data={paginatedBranches}
+          data={paginatedFacilities}
           columns={columns}
           loading={isPageLoading}
           page={page}
@@ -354,9 +346,9 @@ const BranchManagement = () => {
           totalCount={searchResult ? 1 : totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          onEdit={handleEditBranch}
-          onDelete={handleDeleteBranch}
-        emptyMessage={searchResult ? "Không có chi nhánh nào." : "Không có chi nhánh nào. Hãy thêm chi nhánh đầu tiên để bắt đầu."}
+          onEdit={handleEditFacility}
+          onDelete={handleDeleteFacility}
+          emptyMessage={searchResult ? "Không có cơ sở vật chất nào." : "Không có cơ sở vật chất nào. Hãy thêm cơ sở vật chất đầu tiên để bắt đầu."}
       />
 
       {/* Create/Edit Dialog */}
@@ -368,45 +360,36 @@ const BranchManagement = () => {
       >
         <DialogTitle className={styles.dialogTitle}>
           <span className={styles.dialogTitleText}>
-            {dialogMode === 'create' ? 'Thêm Chi Nhánh mới' : 'Chỉnh sửa Chi Nhánh'}
+            {dialogMode === 'create' ? 'Thêm Cơ Sở Vật Chất mới' : 'Chỉnh sửa Cơ Sở Vật Chất'}
           </span>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
           <div style={{ paddingTop: '8px' }}>
             <Form
-              schema={branchSchema}
+              schema={facilitySchema}
               defaultValues={{
-                branchName: selectedBranch?.branchName || '',
-                address: selectedBranch?.address || '',
-                phone: selectedBranch?.phone || ''
+                facilityName: selectedFacility?.facilityName || '',
+                description: selectedFacility?.description || ''
               }}
               onSubmit={handleFormSubmit}
-              submitText={dialogMode === 'create' ? 'Tạo Chi Nhánh' : 'Cập nhật Chi Nhánh'}
+              submitText={dialogMode === 'create' ? 'Tạo Cơ Sở Vật Chất' : 'Cập nhật Cơ Sở Vật Chất'}
               loading={actionLoading}
               disabled={actionLoading}
               fields={[
                 { 
-                  name: 'branchName', 
-                  label: 'Tên Chi Nhánh', 
+                  name: 'facilityName', 
+                  label: 'Tên Cơ Sở Vật Chất', 
                   type: 'text', 
                   required: true, 
-                  placeholder: 'Ví dụ: Chi nhánh Quận 1, Chi nhánh Thủ Đức',
+                  placeholder: 'Ví dụ: Phòng học A1, Thư viện, Sân thể thao',
                   disabled: actionLoading
                 },
                 { 
-                  name: 'address', 
-                  label: 'Địa Chỉ', 
+                  name: 'description', 
+                  label: 'Mô Tả', 
                   type: 'text', 
                   required: true, 
-                  placeholder: 'Địa chỉ đầy đủ của chi nhánh',
-                  disabled: actionLoading
-                },
-                { 
-                  name: 'phone', 
-                  label: 'Số Điện Thoại', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Ví dụ: 0123456789',
+                  placeholder: 'Mô tả chi tiết về cơ sở vật chất',
                   disabled: actionLoading
                 }
               ]}
@@ -439,5 +422,4 @@ const BranchManagement = () => {
   );
 };
 
-export default BranchManagement;
-
+export default FacilityManagement;

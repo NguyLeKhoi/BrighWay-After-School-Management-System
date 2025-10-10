@@ -9,7 +9,7 @@ const ParentHeader = () => {
         {/* Logo */}
         <div className={styles.logo}>
           <Link to="/" className={styles.logoLink}>
-            <span className={styles.logoText}>BASE</span>
+            <span className={styles.logoText}>BRIGHWAY</span>
             <span className={styles.logoSubtext}>Parent Portal</span>
           </Link>
         </div>

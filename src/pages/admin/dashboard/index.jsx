@@ -13,6 +13,7 @@ import {
   Assessment as AssessmentIcon,
   TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
+import styles from './Dashboard.module.css';
 
 const AdminDashboard = () => {
   const stats = [
@@ -43,66 +44,61 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <Box>
-      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
-        Dashboard Admin
-      </Typography>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>
+          Dashboard Admin
+        </h1>
+        <p className={styles.subtitle}>
+          Tổng quan hệ thống quản lý
+        </p>
+      </div>
 
-      <Grid container spacing={3}>
+      <div className={styles.statsGrid}>
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Typography color="textSecondary" gutterBottom variant="h6">
-                        {stat.title}
-                      </Typography>
-                      <Typography variant="h4" component="div">
-                        {stat.value}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ ml: 2 }}>
-                      <Icon sx={{ fontSize: 40, color: `${stat.color}.main` }} />
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+            <div key={index} className={styles.statCard}>
+              <div className={styles.statHeader}>
+                <span className={styles.statTitle}>
+                  {stat.title}
+                </span>
+                <div className={`${styles.statIcon} ${styles[stat.color]}`}>
+                  <Icon />
+                </div>
+              </div>
+              <p className={styles.statValue}>
+                {stat.value}
+              </p>
+              <div className={`${styles.statChange} ${styles.positive}`}>
+                <TrendingUpIcon fontSize="small" />
+                +12% so với tháng trước
+              </div>
+            </div>
           );
         })}
-      </Grid>
+      </div>
 
-      <Grid container spacing={3} sx={{ mt: 2 }}>
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Thống kê User theo tháng
-            </Typography>
-            <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography color="textSecondary">
-                Biểu đồ sẽ được thêm vào đây
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
+      <div className={styles.chartsSection}>
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>
+            Thống kê User theo tháng
+          </h3>
+          <div className={styles.chartContent}>
+            Biểu đồ sẽ được thêm vào đây
+          </div>
+        </div>
         
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              User mới nhất
-            </Typography>
-            <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography color="textSecondary">
-                Danh sách user mới sẽ được thêm vào đây
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>
+            User mới nhất
+          </h3>
+          <div className={styles.chartContent}>
+            Danh sách user mới sẽ được thêm vào đây
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
