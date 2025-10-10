@@ -165,6 +165,22 @@ export const updateUserSchema = yup.object({
     .max(15, 'Số điện thoại không được quá 15 số')
 });
 
+// Room validation schema
+export const roomSchema = yup.object({
+  facilityId: yup
+    .string()
+    .required('Cơ sở vật chất là bắt buộc'),
+  branchId: yup
+    .string()
+    .required('Chi nhánh là bắt buộc'),
+  capacity: yup
+    .number()
+    .required('Sức chứa là bắt buộc')
+    .min(1, 'Sức chứa phải lớn hơn 0')
+    .max(1000, 'Sức chứa không được quá 1000')
+    .integer('Sức chứa phải là số nguyên')
+});
+
 // Generic validation helpers
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
