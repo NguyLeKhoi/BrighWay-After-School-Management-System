@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthCard from '@components/Common/AuthCard';
 import Form from '../../../components/Common/Form';
+import Loading from '../../../components/Common/Loading';
 import { loginSchema } from '../../../utils/validationSchemas';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useApp } from '../../../contexts/AppContext';
+import { useLoading } from '../../../hooks/useLoading';
 import styles from './Login.module.css';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { addNotification, showGlobalError } = useApp();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, showLoading, hideLoading } = useLoading(1500);
 
   const handleSubmit = async (data) => {
-    setIsLoading(true);
+    showLoading();
 
     try {
       const result = await login({
@@ -51,33 +53,35 @@ const Login = () => {
       const errorMessage = err.message || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.';
       showGlobalError(errorMessage);
     } finally {
-      setIsLoading(false);
+      hideLoading();
     }
   };
 
 
   return (
-    <div className={styles.loginPage}>
-      <div className={styles.loginContainer}>
-        <AuthCard
-          title="Login"
-        >
-          <Form
-            schema={loginSchema}
-            onSubmit={handleSubmit}
-            submitText="Login"
-            loading={isLoading}
-            fields={[
-              { name: 'email', label: 'Email', type: 'email', required: true },
-              { name: 'password', label: 'Mật khẩu', type: 'password', required: true }
-            ]}
-          />
-          <Link to="/forgot-password" className={styles.forgotLink}>
-            Forgot Password
-          </Link>
-        </AuthCard>
+    <>
+      {isLoading && <Loading />}
+      <div className={styles.loginPage}>
+        <div className={styles.loginContainer}>
+          <AuthCard
+            title="Login"
+          >
+            <Form
+              schema={loginSchema}
+              onSubmit={handleSubmit}
+              submitText="Login"
+              fields={[
+                { name: 'email', label: 'Email', type: 'email', required: true },
+                { name: 'password', label: 'Mật khẩu', type: 'password', required: true }
+              ]}
+            />
+            <Link to="/forgot-password" className={styles.forgotLink}>
+              Forgot Password
+            </Link>
+          </AuthCard>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
