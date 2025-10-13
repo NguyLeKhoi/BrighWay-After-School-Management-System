@@ -39,6 +39,9 @@ import TeacherDashboard from '../pages/teacher/dashboard';
 import ClassManagement from '../pages/teacher/classes';
 import AttendanceManagement from '../pages/teacher/attendance';
 import PerformanceReviews from '../pages/teacher/performance';
+import TeacherSchedule from '../pages/teacher/schedule';
+import StudentRoster from '../pages/teacher/students';
+import TeacherMaterials from '../pages/teacher/materials';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -179,7 +182,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'schedule',
-        element: <TeacherDashboard />, // Will be replaced with Schedule component
+        element: <TeacherSchedule />,
       },
       {
         path: 'classes',
@@ -187,7 +190,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'students',
-        element: <ClassManagement />, // Will be replaced with StudentRoster component
+        element: <StudentRoster />,
       },
       {
         path: 'attendance',
@@ -199,7 +202,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'materials',
-        element: <TeacherDashboard />, // Will be replaced with Materials component
+        element: <TeacherMaterials />,
       },
     ],
   },
