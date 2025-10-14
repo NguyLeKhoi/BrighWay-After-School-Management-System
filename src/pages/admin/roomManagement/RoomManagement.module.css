@@ -40,18 +40,30 @@
 }
 
 .filterContainer {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
   gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: end;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterLabel {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
 }
 
 .formControl {
-  min-width: 200px;
+  min-width: 180px;
 }
 
 .searchField {
-  min-width: 200px;
+  min-width: 180px;
 }
 
 .filterButton {
@@ -183,8 +195,12 @@
   }
   
   .filterContainer {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .filterGroup {
+    width: 100%;
   }
   
   .formControl,

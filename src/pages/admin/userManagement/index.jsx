@@ -118,18 +118,32 @@ const UserManagement = () => {
       )
     },
     {
-      key: 'role',
+      key: 'roles',
       header: 'Vai Trò',
       render: (value, item) => {
-        const roleName = roleOptions.find(role => role.value === value)?.label || 'Unknown';
+        // Handle both array format (from API) and single value format
+        let roles = [];
+        if (Array.isArray(value)) {
+          roles = value;
+        } else if (value !== undefined && value !== null) {
+          // If it's a single value, try to map it to role name
+          const roleName = roleOptions.find(role => role.value === value)?.label;
+          roles = roleName ? [roleName] : ['Unknown'];
+        }
+        
         return (
-          <Chip 
-            label={roleName} 
-            color="info" 
-            size="small"
-            variant="outlined"
-            icon={<RoleIcon fontSize="small" />}
-          />
+          <Box display="flex" flexWrap="wrap" gap={0.5}>
+            {roles.map((role, index) => (
+              <Chip 
+                key={index}
+                label={role} 
+                color={role === 'Admin' ? 'error' : role === 'Manager' ? 'warning' : 'info'} 
+                size="small"
+                variant="outlined"
+                icon={<RoleIcon fontSize="small" />}
+              />
+            ))}
+          </Box>
         );
       }
     },
@@ -652,7 +666,7 @@ const UserManagement = () => {
                   </Typography>
                   <Chip 
                     label={roleOptions.find(role => role.value === confirmCreateDialog.userData.role)?.label || 'Unknown'}
-                    color="primary" 
+                    color={confirmCreateDialog.userData.role === 0 ? 'error' : confirmCreateDialog.userData.role === 1 ? 'warning' : 'info'} 
                     size="small"
                     variant="outlined"
                     icon={<RoleIcon fontSize="small" />}
