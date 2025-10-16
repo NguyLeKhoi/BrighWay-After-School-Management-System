@@ -47,7 +47,7 @@ const StaffAndManagerManagement = () => {
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [keyword, setKeyword] = useState('');
-  const [selectedRole, setSelectedRole] = useState(null); // null = all, 2 = Staff, 3 = Manager
+  const [selectedRole, setSelectedRole] = useState(null); // null = all, 0 = Staff, 1 = Teacher
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
@@ -72,10 +72,10 @@ const StaffAndManagerManagement = () => {
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
 
-  // Role options - only Manager and Staff allowed for admin-create endpoint
+  // Role options - only Staff and ManagerManager allowed for admin-create endpoint
   const roleOptions = [
-    { value: 3, label: 'Manager' },
-    { value: 2, label: 'Staff' }
+    { value: 0, label: 'Manager' },
+    { value: 1, label: 'Staff' }
   ];
 
   // Map role string to number for form submission
@@ -242,7 +242,7 @@ const StaffAndManagerManagement = () => {
     loadUsers();
   }, [page, rowsPerPage, selectedRole]);
 
-  // Filter users to only show Manager and Staff roles (for employee management)
+  // Filter users to only show Staff and Teacher roles (for employee management)
   const filterEmployeesOnly = (userList) => {
     return userList.filter(user => {
       if (!user.roles || !Array.isArray(user.roles)) return false;
@@ -530,8 +530,8 @@ const StaffAndManagerManagement = () => {
               <MenuItem value="">
                 <em>Tất cả vai trò</em>
               </MenuItem>
-              <MenuItem value={3}>Manager</MenuItem>
-              <MenuItem value={2}>Staff</MenuItem>
+              <MenuItem value={0}>Manager</MenuItem>
+              <MenuItem value={1}>Staff</MenuItem>
             </Select>
           </FormControl>
           

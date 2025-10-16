@@ -132,7 +132,7 @@ export const createUserSchema = yup.object({
   role: yup
     .number()
     .required('Vai trò là bắt buộc')
-    .oneOf([2, 3], 'Vai trò không hợp lệ (chỉ cho phép Manager hoặc Staff)')
+    .oneOf([0, 1], 'Vai trò không hợp lệ (chỉ cho phép Staff hoặc Teacher)')
 });
 
 // User validation schema for updating existing user (only fullName and phoneNumber)

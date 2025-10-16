@@ -35,12 +35,12 @@ const userService = {
   /**
    * Create new user (Admin creates account for user)
    * @param {Object} userData - User data { fullName, email, phoneNumber, password }
-   * @param {number} role - Role ID (0, 1, 2, 3, 4)
+   * @param {number} role - Role ID (0=Staff, 1=Teacher)
    * @returns {Promise} Created user
    */
   createUser: async (userData, role) => {
     try {
-      // Role must be sent as query parameter (0=Manager, 1=Staff only)
+      // Role must be sent as query parameter (0=Staff, 1=Teacher only)
       const response = await axiosInstance.post('/User/admin-create', userData, {
         params: { role }
       });
