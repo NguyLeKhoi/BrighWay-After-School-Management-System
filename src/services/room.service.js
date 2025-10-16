@@ -52,12 +52,12 @@ const roomService = {
   },
 
   // Get paginated rooms
-  getRoomsPaged: async (pageIndex = 1, pageSize = 10, keyword = '', facilityId = '', branchId = '') => {
+  getRoomsPaged: async (pageIndex = 1, pageSize = 10, roomName = '', facilityId = '', branchId = '') => {
     try {
       const params = {
         pageIndex,
         pageSize,
-        ...(keyword && { keyword }),
+        ...(roomName && { roomName }),
         ...(facilityId && { facilityId }),
         ...(branchId && { branchId })
       };

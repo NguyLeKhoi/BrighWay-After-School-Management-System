@@ -221,6 +221,11 @@
   z-index: 1000;
 }
 
+/* Select Field */
+.selectField {
+  min-height: 40px;
+}
+
 /* Responsive Design */
 @media (max-width: 960px) { /* Adjust breakpoint for 3 columns */
   .searchAndFilterGrid {

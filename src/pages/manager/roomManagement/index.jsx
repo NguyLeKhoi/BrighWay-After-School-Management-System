@@ -37,7 +37,7 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
 import styles from './RoomManagement.module.css';
 
-const RoomManagement = () => {
+const ManagerRoomManagement = () => {
   const [rooms, setRooms] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -276,7 +276,7 @@ const RoomManagement = () => {
     loadRooms();
   }, [page, rowsPerPage]);
 
-  // Auto filter when facility or branch filter changes (with debounce)
+  // Auto filter when facility, branch, or keyword filter changes (with debounce)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       loadRooms();
@@ -645,4 +645,4 @@ const RoomManagement = () => {
   );
 };
 
-export default RoomManagement;
+export default ManagerRoomManagement;

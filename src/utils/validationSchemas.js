@@ -153,6 +153,11 @@ export const updateUserSchema = yup.object({
 
 // Room validation schema
 export const roomSchema = yup.object({
+  roomName: yup
+    .string()
+    .required('Tên phòng là bắt buộc')
+    .min(2, 'Tên phòng phải có ít nhất 2 ký tự')
+    .max(100, 'Tên phòng không được quá 100 ký tự'),
   facilityId: yup
     .string()
     .required('Cơ sở vật chất là bắt buộc'),
