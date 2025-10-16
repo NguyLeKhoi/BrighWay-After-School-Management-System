@@ -3,7 +3,6 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
-  People as UsersIcon,
   Business as BranchIcon,
   Room as FacilityIcon,
   Person as UserIcon,
@@ -30,13 +29,8 @@ const AdminLayout = () => {
       icon: DashboardIcon
     },
     {
-      path: '/admin/roles',
-      label: 'Vai trò',
-      icon: UsersIcon
-    },
-    {
-      path: '/admin/users',
-      label: 'Người Dùng',
+      path: '/admin/staffAndManager',
+      label: 'Nhân Viên',
       icon: UserIcon
     },
     {

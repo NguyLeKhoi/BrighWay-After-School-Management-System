@@ -34,9 +34,9 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
-import styles from './UserManagement.module.css';
+import styles from './staffAndManagerManagement.module.css';
 
-const UserManagement = () => {
+const StaffAndManagerManagement = () => {
   const [users, setUsers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -46,6 +46,8 @@ const UserManagement = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
+  const [keyword, setKeyword] = useState('');
+  const [selectedRole, setSelectedRole] = useState(null); // null = all, 2 = Staff, 3 = Manager
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
@@ -70,14 +72,23 @@ const UserManagement = () => {
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
 
-  // Role options based on API documentation (0, 1, 2, 3, 4)
+  // Role options - only Manager and Staff allowed for admin-create endpoint
   const roleOptions = [
-    { value: 0, label: 'Admin' },
-    { value: 1, label: 'Manager' },
-    { value: 2, label: 'Staff' },
-    { value: 3, label: 'Parent' },
-    { value: 4, label: 'Student' }
+    { value: 3, label: 'Manager' },
+    { value: 2, label: 'Staff' }
   ];
+
+  // Map role string to number for form submission
+  const roleStringToNumber = (roleString) => {
+    switch (roleString) {
+      case 'Admin': return 0;
+      case 'Teacher': return 1;
+      case 'Staff': return 2;
+      case 'Manager': return 3;
+      case 'User': return 4;
+      default: return 0;
+    }
+  };
 
   // Define table columns
   const columns = [
@@ -126,18 +137,39 @@ const UserManagement = () => {
         if (Array.isArray(value)) {
           roles = value;
         } else if (value !== undefined && value !== null) {
-          // If it's a single value, try to map it to role name
-          const roleName = roleOptions.find(role => role.value === value)?.label;
-          roles = roleName ? [roleName] : ['Unknown'];
+          roles = [value];
         }
+        
+        // Map role string to display name
+        const getRoleDisplayName = (roleString) => {
+          switch (roleString) {
+            case 'Admin': return 'Admin';
+            case 'Teacher': return 'Teacher';
+            case 'Staff': return 'Staff';
+            case 'Manager': return 'Manager';
+            case 'User': return 'User';
+            default: return roleString || 'Unknown';
+          }
+        };
+        
+        const getRoleColor = (roleString) => {
+          switch (roleString) {
+            case 'Admin': return 'error';
+            case 'Manager': return 'warning';
+            case 'Teacher': return 'success';
+            case 'Staff': return 'info';
+            case 'User': return 'primary';
+            default: return 'default';
+          }
+        };
         
         return (
           <Box display="flex" flexWrap="wrap" gap={0.5}>
             {roles.map((role, index) => (
               <Chip 
                 key={index}
-                label={role} 
-                color={role === 'Admin' ? 'error' : role === 'Manager' ? 'warning' : 'info'} 
+                label={getRoleDisplayName(role)} 
+                color={getRoleColor(role)} 
                 size="small"
                 variant="outlined"
                 icon={<RoleIcon fontSize="small" />}
@@ -158,15 +190,28 @@ const UserManagement = () => {
     }
   ];
 
-  // Load users with pagination
+
+  // Load users with pagination, keyword search, and role filter
   const loadUsers = async () => {
     showLoading();
     setError(null);
     try {
-      const response = await userService.getUsersPaged({
-        page: page + 1, // Backend uses 1-based indexing
+      const params = {
+        pageIndex: page + 1, // Backend uses 1-based indexing
         pageSize: rowsPerPage
-      });
+      };
+      
+      // Add keyword if provided
+      if (keyword.trim()) {
+        params.Keyword = keyword.trim();
+      }
+      
+      // Add role filter if selected
+      if (selectedRole !== null) {
+        params.Role = selectedRole;
+      }
+      
+      const response = await userService.getUsersPaged(params);
       
       // Handle both paginated and non-paginated responses
       if (response.items) {
@@ -187,16 +232,52 @@ const UserManagement = () => {
     }
   };
 
-  // Load users when page or rowsPerPage changes
+  // Load users when component mounts
   useEffect(() => {
     loadUsers();
-  }, [page, rowsPerPage]);
+  }, []);
 
-  // Use search result if available, otherwise use paginated users
-  const displayUsers = searchResult ? [searchResult] : users;
+  // Load users when page, rowsPerPage, or selectedRole changes
+  useEffect(() => {
+    loadUsers();
+  }, [page, rowsPerPage, selectedRole]);
+
+  // Filter users to only show Manager and Staff roles (for employee management)
+  const filterEmployeesOnly = (userList) => {
+    return userList.filter(user => {
+      if (!user.roles || !Array.isArray(user.roles)) return false;
+      return user.roles.some(role => role === 'Manager' || role === 'Staff');
+    });
+  };
+
+  // Use search result if available, otherwise use filtered paginated users
+  const displayUsers = searchResult ? [searchResult] : filterEmployeesOnly(users);
   const paginatedUsers = displayUsers;
 
   // Event handlers
+  const handleKeywordSearch = () => {
+    setPage(0); // Reset to first page when searching
+    setSearchResult(null); // Clear search result
+    loadUsers(); // Trigger search with current keyword
+  };
+
+  const handleKeywordChange = (e) => {
+    setKeyword(e.target.value);
+    // If keyword is cleared, reset search immediately
+    if (e.target.value.trim() === '') {
+      setPage(0);
+      setSearchResult(null);
+      loadUsers();
+    }
+  };
+
+  const handleRoleFilter = (role) => {
+    setSelectedRole(role);
+    setPage(0); // Reset to first page when filtering
+    setSearchResult(null); // Clear search result
+  };
+
+
   const handleSearchById = async () => {
     if (!searchId.trim()) {
       setSearchResult(null);
@@ -227,15 +308,6 @@ const UserManagement = () => {
     }
   };
 
-  const handleClearSearch = () => {
-    setSearchId('');
-    setSearchResult(null);
-    setPage(0);
-  };
-
-  const handleSearchIdChange = (event) => {
-    setSearchId(event.target.value);
-  };
 
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
@@ -412,7 +484,7 @@ const UserManagement = () => {
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.title}>
-          Quản lý Người Dùng
+          Quản lý Nhân Viên
         </h1>
         <Button
           variant="contained"
@@ -424,37 +496,52 @@ const UserManagement = () => {
         </Button>
       </div>
 
-      {/* Search by ID */}
+
+      {/* Search and Filter Section */}
       <Paper className={styles.searchSection}>
         <div className={styles.searchContainer}>
+          {/* Keyword Search */}
           <TextField
-            placeholder="Nhập ID người dùng để tìm kiếm..."
-            value={searchId}
-            onChange={handleSearchIdChange}
+            placeholder="Tìm kiếm theo tên, email..."
+            value={keyword}
+            onChange={handleKeywordChange}
             className={styles.searchField}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                handleSearchById();
+                handleKeywordSearch();
               }
             }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
           />
+          
+          {/* Role Filter Select */}
+          <FormControl className={styles.roleSelect}>
+            <Select
+              value={selectedRole === null ? '' : selectedRole}
+              onChange={(e) => handleRoleFilter(e.target.value === '' ? null : e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="">
+                <em>Tất cả vai trò</em>
+              </MenuItem>
+              <MenuItem value={3}>Manager</MenuItem>
+              <MenuItem value={2}>Staff</MenuItem>
+            </Select>
+          </FormControl>
+          
           <Button
             variant="contained"
-            onClick={handleSearchById}
-            disabled={!searchId.trim() || searchLoading}
+            onClick={handleKeywordSearch}
             className={styles.searchButton}
           >
-            {searchLoading ? 'Đang tìm...' : 'Tìm theo ID'}
+            Tìm kiếm
           </Button>
-          {searchResult && (
-            <Button
-              variant="outlined"
-              onClick={handleClearSearch}
-              className={styles.clearButton}
-            >
-              Xóa tìm kiếm
-            </Button>
-          )}
         </div>
       </Paper>
 
@@ -473,7 +560,7 @@ const UserManagement = () => {
           loading={isPageLoading}
           page={page}
           rowsPerPage={rowsPerPage}
-          totalCount={searchResult ? 1 : totalCount}
+          totalCount={searchResult ? 1 : displayUsers.length}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEditUser}
@@ -720,4 +807,4 @@ const UserManagement = () => {
   );
 };
 
-export default UserManagement;
+export default StaffAndManagerManagement;

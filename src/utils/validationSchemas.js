@@ -1,19 +1,5 @@
 import * as yup from 'yup';
 
-// Role validation schema
-export const roleSchema = yup.object({
-  name: yup
-    .string()
-    .required('Tên role là bắt buộc')
-    .min(2, 'Tên role phải có ít nhất 2 ký tự')
-    .max(50, 'Tên role không được quá 50 ký tự')
-    .matches(/^[a-zA-Z0-9\s]+$/, 'Tên role chỉ được chứa chữ cái, số và khoảng trắng'),
-  description: yup
-    .string()
-    .max(200, 'Mô tả không được quá 200 ký tự')
-    .nullable()
-});
-
 // Login validation schema
 export const loginSchema = yup.object({
   email: yup
@@ -146,7 +132,7 @@ export const createUserSchema = yup.object({
   role: yup
     .number()
     .required('Vai trò là bắt buộc')
-    .oneOf([0, 1, 2, 3, 4], 'Vai trò không hợp lệ')
+    .oneOf([2, 3], 'Vai trò không hợp lệ (chỉ cho phép Manager hoặc Staff)')
 });
 
 // User validation schema for updating existing user (only fullName and phoneNumber)

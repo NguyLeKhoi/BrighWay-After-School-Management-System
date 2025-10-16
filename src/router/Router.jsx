@@ -25,11 +25,10 @@ import Notifications from '../pages/parent/notifications';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
-import RoleManagement from '../pages/admin/roleManagement';
 import BranchManagement from '../pages/admin/branchManagement';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
-import UserManagement from '../pages/admin/userManagement';
+import StaffAndManagerManagement from '../pages/admin/staffAndManagerManagement';
 import CourseManagement from '../pages/admin/coursesManagement';
 import Reports from '../pages/admin/reports';
 import Settings from '../pages/admin/settings';
@@ -133,10 +132,6 @@ export const routes = createBrowserRouter([
         element: <AdminDashboard />,
       },
       {
-        path: 'roles',
-        element: <RoleManagement />,
-      },
-      {
         path: 'branches',
         element: <BranchManagement />,
       },
@@ -149,8 +144,8 @@ export const routes = createBrowserRouter([
         element: <RoomManagement />,
       },
       {
-        path: 'users',
-        element: <UserManagement />,
+        path: 'staffAndManager',
+        element: <StaffAndManagerManagement />,
       },
       {
         path: 'courses',

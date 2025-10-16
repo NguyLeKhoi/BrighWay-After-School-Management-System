@@ -40,7 +40,8 @@ const userService = {
    */
   createUser: async (userData, role) => {
     try {
-      const response = await axiosInstance.post('/User', userData, {
+      // Role must be sent as query parameter (0=Manager, 1=Staff only)
+      const response = await axiosInstance.post('/User/admin-create', userData, {
         params: { role }
       });
       return response.data;
@@ -92,14 +93,18 @@ const userService = {
    */
   getUsersPaged: async (params = {}) => {
     try {
-      const { page = 1, pageSize = 10, searchTerm = '' } = params;
+      const { pageIndex = 1, pageSize = 10, Keyword = '', Role = null } = params;
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
       
-      if (searchTerm) {
-        queryParams.append('searchTerm', searchTerm);
+      if (Keyword) {
+        queryParams.append('Keyword', Keyword);
+      }
+      
+      if (Role !== null && Role !== undefined) {
+        queryParams.append('Role', Role.toString());
       }
       
       const response = await axiosInstance.get(`/User/paged?${queryParams}`);
