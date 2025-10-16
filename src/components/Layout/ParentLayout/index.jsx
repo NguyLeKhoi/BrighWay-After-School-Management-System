@@ -14,8 +14,9 @@ const ParentLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 

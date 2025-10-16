@@ -41,11 +41,17 @@ const Login = () => {
         severity: 'success'
       });
       
-      // Redirect based on role
-      if (user.role === 'Admin') {
+      // Redirect based on role (handle both string and number roles)
+      const role = user.role;
+      console.log('🔍 Role type:', typeof role, 'Value:', role);
+      
+      if (role === 'Admin' || role === 0) {
         console.log('➡️ Redirecting to Admin dashboard...');
         navigate('/admin/dashboard');
-      } else if (user.role === 'Teacher') {
+      } else if (role === 'Manager' || role === 3) {
+        console.log('➡️ Redirecting to Manager dashboard...');
+        navigate('/manager/dashboard');
+      } else if (role === 'Teacher' || role === 1) {
         console.log('➡️ Redirecting to Teacher dashboard...');
         navigate('/teacher/dashboard');
       } else {
