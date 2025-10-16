@@ -51,6 +51,24 @@ const userService = {
   },
 
   /**
+   * Create new user (Manager creates account for staff/teacher)
+   * @param {Object} userData - User data { fullName, email, phoneNumber, password }
+   * @param {number} role - Role ID (0=Staff, 1=Teacher)
+   * @returns {Promise} Created user
+   */
+  createUserByManager: async (userData, role) => {
+    try {
+      // Role must be sent as query parameter (0=Staff, 1=Teacher only)
+      const response = await axiosInstance.post('/User/manager-create', userData, {
+        params: { role }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
    * Update user
    * @param {string} userId - User ID
    * @param {Object} userData - Updated user data (only fullName and phoneNumber)
