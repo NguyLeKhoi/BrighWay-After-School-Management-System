@@ -603,6 +603,12 @@ const ManagerRoomManagement = () => {
         onClose={() => !actionLoading && setOpenDialog(false)} 
         maxWidth="md" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
         <DialogTitle className={styles.dialogTitle}>
           <RoomIcon color="primary" />

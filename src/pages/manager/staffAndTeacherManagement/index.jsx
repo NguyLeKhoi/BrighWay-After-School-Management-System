@@ -574,6 +574,12 @@ const StaffAndTeacherManagement = () => {
         onClose={() => !actionLoading && setOpenDialog(false)} 
         maxWidth="sm" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
         <DialogTitle className={styles.dialogTitle}>
           <span className={styles.dialogTitleText}>
@@ -697,6 +703,12 @@ const StaffAndTeacherManagement = () => {
         onClose={handleCancelCreate} 
         maxWidth="md" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
         <DialogTitle>
           <Box display="flex" alignItems="center" gap={1}>

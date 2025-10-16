@@ -101,13 +101,15 @@
   align-items: center;
   gap: 8px;
   padding: 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 8px 8px 0 0;
 }
 
 .dialogTitleText {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1976d2;
+  color: white;
 }
 
 .dialogContent {
