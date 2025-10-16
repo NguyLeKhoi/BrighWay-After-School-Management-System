@@ -21,9 +21,10 @@ export const AuthProvider = ({ children }) => {
     const loadUser = () => {
       try {
         const userStr = localStorage.getItem('user');
-        const token = localStorage.getItem('accessToken');
+        const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
         
-        if (userStr && token) {
+        if (userStr && accessToken && refreshToken) {
           const userData = JSON.parse(userStr);
           setUser(userData);
           setIsAuthenticated(true);
@@ -32,6 +33,7 @@ export const AuthProvider = ({ children }) => {
         // Clear invalid data
         localStorage.removeItem('user');
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       } finally {
         setLoading(false);
       }
@@ -46,7 +48,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login(credentials);
       
       // Save to localStorage
-      localStorage.setItem('accessToken', response.token);
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       setUser(response.user);
@@ -64,6 +67,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Clear localStorage
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       
       // Clear state
@@ -85,13 +89,30 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify({ ...user, ...userData }));
   };
 
+  const refreshToken = async () => {
+    try {
+      const response = await authService.refreshToken();
+      
+      // Update tokens in localStorage
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
+      
+      return response;
+    } catch (error) {
+      // If refresh fails, logout user
+      logout();
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
     isAuthenticated,
     login,
     logout,
-    updateUser
+    updateUser,
+    refreshToken
   };
 
   return (

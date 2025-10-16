@@ -5,6 +5,7 @@
 
 const STORAGE_KEYS = {
   ACCESS_TOKEN: 'accessToken',
+  REFRESH_TOKEN: 'refreshToken',
   USER: 'user',
 };
 
@@ -15,7 +16,9 @@ const storageUtils = {
   clearAll: () => {
     try {
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);} catch (error) {}
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
+    } catch (error) {}
   },
 
   /**
@@ -32,7 +35,14 @@ const storageUtils = {
    * Check if user is authenticated
    */
   hasToken: () => {
-    return !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    return !!(localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) && localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN));
+  },
+
+  /**
+   * Get refresh token
+   */
+  getRefreshToken: () => {
+    return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
   },
 
   /**

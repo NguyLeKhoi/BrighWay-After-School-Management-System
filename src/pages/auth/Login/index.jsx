@@ -32,6 +32,8 @@ const Login = () => {
       // Log user info for debugging
       console.log('🚀 Login successful! User:', user);
       console.log('🎯 User role:', user.role);
+      console.log('🔑 Access Token:', result.accessToken ? 'Received' : 'Missing');
+      console.log('🔄 Refresh Token:', result.refreshToken ? 'Received' : 'Missing');
       
       // Show success notification
       addNotification({

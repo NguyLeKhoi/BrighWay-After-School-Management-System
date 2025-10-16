@@ -16,18 +16,19 @@ const authService = {
   /**
    * Login user
    * @param {Object} credentials - { email, password }
-   * @returns {Promise} Response with token and decoded user data
+   * @returns {Promise} Response with access_token, refresh_token and decoded user data
    */
   login: async (credentials) => {
     try {
       const response = await axiosInstance.post('/Auth/login', credentials);
       
-      if (response.data.token) {
-        // Save token
-        localStorage.setItem('accessToken', response.data.token);
+      if (response.data.access_token && response.data.refresh_token) {
+        // Save tokens
+        localStorage.setItem('accessToken', response.data.access_token);
+        localStorage.setItem('refreshToken', response.data.refresh_token);
         
         // Decode JWT to extract user info
-        const decoded = jwtDecode(response.data.token);
+        const decoded = jwtDecode(response.data.access_token);
         
         // Extract user info from JWT claims
         const userInfo = {
@@ -39,11 +40,53 @@ const authService = {
         // Save user info
         localStorage.setItem('user', JSON.stringify(userInfo));
         
-        return { token: response.data.token, user: userInfo };
+        return { 
+          accessToken: response.data.access_token, 
+          refreshToken: response.data.refresh_token,
+          user: userInfo 
+        };
       }
       
       return response.data;
     } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Refresh access token using refresh token
+   * @returns {Promise} New access and refresh tokens
+   */
+  refreshToken: async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      const response = await axiosInstance.post('/Auth/refresh', {
+        refreshToken: refreshToken
+      });
+      
+      if (response.data.accessToken && response.data.refreshToken) {
+        // Save new tokens
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        
+        return {
+          accessToken: response.data.accessToken,
+          refreshToken: response.data.refreshToken
+        };
+      }
+      
+      throw new Error('Invalid refresh response');
+    } catch (error) {
+      // If refresh fails, clear tokens and redirect to login
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
       throw error.response?.data || error.message;
     }
   },
@@ -56,6 +99,7 @@ const authService = {
     try {
       // Clear all auth data from localStorage
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       
       // Redirect to login
@@ -77,10 +121,10 @@ const authService = {
 
   /**
    * Check if user is authenticated
-   * @returns {boolean} True if user has valid token
+   * @returns {boolean} True if user has valid tokens
    */
   isAuthenticated: () => {
-    return !!localStorage.getItem('accessToken');
+    return !!(localStorage.getItem('accessToken') && localStorage.getItem('refreshToken'));
   },
 
 };
