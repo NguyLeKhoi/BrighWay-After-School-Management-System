@@ -15,7 +15,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -28,7 +30,7 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { createUserSchema, updateUserSchema } from '../../../utils/validationSchemas';
+import { createUserSchema, createUserByAdminSchema, updateUserSchema } from '../../../utils/validationSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -47,7 +49,7 @@ const StaffAndManagerManagement = () => {
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [keyword, setKeyword] = useState('');
-  const [selectedRole, setSelectedRole] = useState(null); // null = all, 3 = Manager, 2 = Staff
+  const [selectedRole, setSelectedRole] = useState(null); // null = all, 1 = Manager, 0 = Staff
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
@@ -62,11 +64,14 @@ const StaffAndManagerManagement = () => {
     onConfirm: null
   });
 
-  // User creation confirmation dialog states
-  const [confirmCreateDialog, setConfirmCreateDialog] = useState({
-    open: false,
-    userData: null
-  });
+      // User creation confirmation dialog states
+      const [confirmCreateDialog, setConfirmCreateDialog] = useState({
+        open: false,
+        title: '',
+        description: '',
+        userData: null,
+        onConfirm: null
+      });
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
@@ -76,18 +81,18 @@ const StaffAndManagerManagement = () => {
   const { user } = useApp();
   const currentUserRole = user?.roles?.[0] || 'User';
 
-  // Filter API role mapping: 0=Admin, 1=Teacher, 2=Staff, 3=Manager, 4=User
+  // Filter API role mapping: 0=Admin, 1=Manager, 2=Staff, 3=Teacher, 4=User
   const filterRoleMapping = {
     0: 'Admin',
-    1: 'Teacher',
+    1: 'Manager',
     2: 'Staff',
-    3: 'Manager',
+    3: 'Teacher',
     4: 'User'
   };
 
-  // Admin manages Manager and Staff
+  // Admin manages Manager and Staff (API uses 1=Manager, 2=Staff)
   const roleOptions = [
-    { value: 3, label: 'Manager' },
+    { value: 1, label: 'Manager' },
     { value: 2, label: 'Staff' }
   ];
 
@@ -95,9 +100,9 @@ const StaffAndManagerManagement = () => {
   const roleStringToNumber = (roleString) => {
     switch (roleString) {
       case 'Admin': return 0;
-      case 'Teacher': return 1;
+      case 'Manager': return 1;
       case 'Staff': return 2;
-      case 'Manager': return 3;
+      case 'Teacher': return 3;
       case 'User': return 4;
       default: return 0;
     }
@@ -260,6 +265,7 @@ const StaffAndManagerManagement = () => {
 
   // Load users when component mounts
   useEffect(() => {
+    setSearchResult(null); // Clear any existing search result
     loadUsers();
   }, []);
 
@@ -271,6 +277,7 @@ const StaffAndManagerManagement = () => {
   // Use search result if available, otherwise use loaded users (already filtered)
   const displayUsers = searchResult ? [searchResult] : users;
   const paginatedUsers = displayUsers;
+  
 
   // Event handlers
   const handleKeywordSearch = () => {
@@ -364,19 +371,8 @@ const StaffAndManagerManagement = () => {
     try {
       await userService.deleteUser(userId);
       
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setUsers(response);
-        setTotalCount(response.length);
-      }
+      // Reload data with proper filtering
+      await loadUsers();
       
       toast.success(`Xóa người dùng thành công!`, {
         position: "top-right",
@@ -397,10 +393,14 @@ const StaffAndManagerManagement = () => {
 
   const handleFormSubmit = async (data) => {
     if (dialogMode === 'create') {
-      // Show confirmation dialog for creating user
+      // Show confirmation dialog for creating user with detailed information
+      const roleLabel = roleOptions.find(role => role.value === data.role)?.label || 'Unknown';
       setConfirmCreateDialog({
         open: true,
-        userData: data
+        title: 'Xác nhận Tạo Tài Khoản',
+        description: `Vui lòng kiểm tra lại thông tin trước khi tạo tài khoản:`,
+        userData: data,
+        onConfirm: () => handleConfirmCreate(data)
       });
     } else {
       // Direct update for editing user
@@ -408,15 +408,18 @@ const StaffAndManagerManagement = () => {
     }
   };
 
-  const handleConfirmCreate = async () => {
+  const handleConfirmCreate = async (userData) => {
     setConfirmCreateDialog(prev => ({ ...prev, open: false }));
-    await performCreateUser(confirmCreateDialog.userData);
+    await performCreateUser(userData);
   };
 
   const handleCancelCreate = () => {
     setConfirmCreateDialog({
       open: false,
-      userData: null
+      title: '',
+      description: '',
+      userData: null,
+      onConfirm: null
     });
   };
 
@@ -430,19 +433,8 @@ const StaffAndManagerManagement = () => {
         autoClose: 3000,
       });
       
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setUsers(response);
-        setTotalCount(response.length);
-      }
+      // Reload data with proper filtering
+      await loadUsers();
       
       setOpenDialog(false);
     } catch (err) {
@@ -468,19 +460,8 @@ const StaffAndManagerManagement = () => {
         autoClose: 3000,
       });
       
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setUsers(response);
-        setTotalCount(response.length);
-      }
+      // Reload data with proper filtering
+      await loadUsers();
       
       setOpenDialog(false);
     } catch (err) {
@@ -548,8 +529,8 @@ const StaffAndManagerManagement = () => {
               <MenuItem value="">
                 <em>Tất cả vai trò</em>
               </MenuItem>
-              <MenuItem value={3}>Manager</MenuItem>
-              <MenuItem value={2}>Staff</MenuItem>
+              <MenuItem value={1}>Manager</MenuItem>
+              <MenuItem value={0}>Staff</MenuItem>
             </Select>
           </FormControl>
           
@@ -599,8 +580,18 @@ const StaffAndManagerManagement = () => {
           }
         }}
       >
-        <DialogTitle className={styles.dialogTitle}>
-          <span className={styles.dialogTitleText}>
+        <DialogTitle 
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            padding: '16px 24px'
+          }}
+        >
+          <PersonIcon />
+          <span>
             {dialogMode === 'create' ? 'Tạo Tài Khoản Mới' : 'Chỉnh sửa Thông Tin Người Dùng'}
           </span>
         </DialogTitle>
@@ -608,14 +599,14 @@ const StaffAndManagerManagement = () => {
           {dialogMode === 'edit' && (
             <Alert severity="info" style={{ marginBottom: '16px' }}>
               <span>
-                <strong>Lưu ý:</strong> Chỉ có thể cập nhật <strong>Họ và Tên</strong> và <strong>Số Điện Thoại</strong>. 
-                Email và Vai trò không thể thay đổi sau khi tạo tài khoản.
+                <strong>Lưu ý:</strong> Có thể cập nhật <strong>Họ và Tên</strong>, <strong>Email</strong>, <strong>Số Điện Thoại</strong>, 
+                <strong>Vai Trò</strong> và <strong>Trạng Thái</strong> của người dùng.
               </span>
             </Alert>
           )}
           <div style={{ paddingTop: '8px' }}>
             <Form
-              schema={dialogMode === 'create' ? createUserSchema : updateUserSchema}
+              schema={dialogMode === 'create' ? createUserByAdminSchema : updateUserSchema}
               defaultValues={{
                 fullName: selectedUser?.fullName || '',
                 ...(dialogMode === 'create' ? {
@@ -624,7 +615,10 @@ const StaffAndManagerManagement = () => {
                   password: '',
                   role: selectedUser?.role || 0
                 } : {
-                  phoneNumber: selectedUser?.phoneNumber || ''
+                  email: selectedUser?.email || '',
+                  phoneNumber: selectedUser?.phoneNumber || '',
+                  changeRoleTo: selectedUser?.role || 0,
+                  isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
                 })
               }}
               onSubmit={handleFormSubmit}
@@ -638,7 +632,8 @@ const StaffAndManagerManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: Nguyễn Văn A',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'email', 
@@ -646,7 +641,8 @@ const StaffAndManagerManagement = () => {
                   type: 'email', 
                   required: true, 
                   placeholder: 'Ví dụ: email@example.com',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'phoneNumber', 
@@ -654,7 +650,8 @@ const StaffAndManagerManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'password', 
@@ -662,7 +659,8 @@ const StaffAndManagerManagement = () => {
                   type: 'password', 
                   required: true, 
                   placeholder: 'Nhập mật khẩu cho người dùng',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'role', 
@@ -670,7 +668,8 @@ const StaffAndManagerManagement = () => {
                   type: 'select', 
                   required: true, 
                   options: roleOptions,
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 12
                 }
               ] : [
                 { 
@@ -679,7 +678,17 @@ const StaffAndManagerManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: Nguyễn Văn A',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'email', 
+                  label: 'Email', 
+                  type: 'email', 
+                  required: true, 
+                  placeholder: 'Ví dụ: email@example.com',
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'phoneNumber', 
@@ -687,7 +696,26 @@ const StaffAndManagerManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'changeRoleTo', 
+                  label: 'Vai Trò', 
+                  type: 'select', 
+                  required: true, 
+                  options: roleOptions,
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'isActive', 
+                  label: 'Trạng Thái', 
+                  type: 'switch', 
+                  switchLabel: 'Hoạt động',
+                  required: true, 
+                  disabled: actionLoading,
+                  gridSize: 12
                 }
               ]}
             />
@@ -721,14 +749,27 @@ const StaffAndManagerManagement = () => {
         onClose={handleCancelCreate} 
         maxWidth="md" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <PersonIcon color="primary" />
-            <Typography variant="h6" component="span">
-              Xác nhận tạo tài khoản
-            </Typography>
-          </Box>
+        <DialogTitle
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            padding: '16px 24px'
+          }}
+        >
+          <PersonIcon sx={{ color: 'white' }} />
+          <Typography variant="h6" component="span" sx={{ color: 'white' }}>
+            {confirmCreateDialog.title}
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -777,7 +818,7 @@ const StaffAndManagerManagement = () => {
                   </Typography>
                   <Chip 
                     label={roleOptions.find(role => role.value === confirmCreateDialog.userData.role)?.label || 'Unknown'}
-                    color={confirmCreateDialog.userData.role === 0 ? 'error' : confirmCreateDialog.userData.role === 1 ? 'warning' : 'info'} 
+                    color={confirmCreateDialog.userData.role === 1 ? 'warning' : 'info'} 
                     size="small"
                     variant="outlined"
                     icon={<RoleIcon fontSize="small" />}
@@ -816,7 +857,7 @@ const StaffAndManagerManagement = () => {
             Hủy
           </Button>
           <Button 
-            onClick={handleConfirmCreate}
+            onClick={confirmCreateDialog.onConfirm}
             variant="contained"
             color="primary"
             disabled={actionLoading}

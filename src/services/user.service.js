@@ -32,23 +32,23 @@ const userService = {
     }
   },
 
-  /**
-   * Create new user (Admin creates account for user)
-   * @param {Object} userData - User data { fullName, email, phoneNumber, password }
-   * @param {number} role - Role ID (0=Staff, 1=Teacher)
-   * @returns {Promise} Created user
-   */
-  createUser: async (userData, role) => {
-    try {
-      // Role must be sent as query parameter (0=Staff, 1=Teacher only)
-      const response = await axiosInstance.post('/User/admin-create', userData, {
-        params: { role }
-      });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
+   /**
+    * Create new user (Admin creates account for user)
+    * @param {Object} userData - User data { fullName, email, phoneNumber, password }
+    * @param {number} role - Role ID (0=Staff, 1=Manager)
+    * @returns {Promise} Created user
+    */
+   createUser: async (userData, role) => {
+     try {
+       // Role must be sent as query parameter (0=Staff, 1=Manager only)
+       const response = await axiosInstance.post('/User/admin-create', userData, {
+         params: { role }
+       });
+       return response.data;
+     } catch (error) {
+       throw error.response?.data || error.message;
+     }
+   },
 
   /**
    * Create new user (Manager creates account for staff/teacher)
@@ -69,21 +69,23 @@ const userService = {
   },
 
   /**
-   * Update user
+   * Update user (Admin updates Manager/Staff users)
    * @param {string} userId - User ID
-   * @param {Object} userData - Updated user data (only fullName and phoneNumber)
+   * @param {Object} userData - Updated user data { targetUserId, fullName, email, phoneNumber, changeRoleTo, isActive }
    * @returns {Promise} Updated user
    */
   updateUser: async (userId, userData) => {
     try {
-      // API only allows updating fullName and phoneNumber
       const updateData = {
-        id: userId,
+        targetUserId: userId,
         fullName: userData.fullName,
-        phoneNumber: userData.phoneNumber
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+        changeRoleTo: userData.changeRoleTo || 0,
+        isActive: userData.isActive !== undefined ? userData.isActive : true
       };
       
-      const response = await axiosInstance.put(`/User/${userId}`, updateData);
+      const response = await axiosInstance.put(`/User/admin-update/${userId}`, updateData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -91,13 +93,13 @@ const userService = {
   },
 
   /**
-   * Delete user
+   * Delete user (Admin soft deletes Manager/Staff users)
    * @param {string} userId - User ID
    * @returns {Promise} Deletion result
    */
   deleteUser: async (userId) => {
     try {
-      const response = await axiosInstance.delete(`/User/${userId}`);
+      const response = await axiosInstance.delete(`/User/admin-delete/${userId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -112,6 +114,86 @@ const userService = {
   createTeacherAccount: async (teacherData) => {
     try {
       const response = await axiosInstance.post('/User/teacher-account', teacherData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Update user (Manager updates Staff/Teacher users)
+   * @param {string} userId - User ID
+   * @param {Object} userData - Updated user data { targetUserId, fullName, email, phoneNumber, changeRoleTo, isActive }
+   * @returns {Promise} Updated user
+   */
+  updateUserByManager: async (userId, userData) => {
+    try {
+      const updateData = {
+        targetUserId: userId,
+        fullName: userData.fullName,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+        changeRoleTo: userData.changeRoleTo || 0,
+        isActive: userData.isActive !== undefined ? userData.isActive : true
+      };
+      
+      const response = await axiosInstance.put(`/User/manager-update/${userId}`, updateData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Delete user (Manager soft deletes Staff/Teacher users)
+   * @param {string} userId - User ID
+   * @returns {Promise} Deletion result
+   */
+  deleteUserByManager: async (userId) => {
+    try {
+      const response = await axiosInstance.delete(`/User/manager-delete/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Update teacher account (Manager/Staff updates teacher with profile)
+   * @param {string} teacherId - Teacher ID
+   * @param {Object} teacherData - Teacher data { teacherUserId, fullName, email, phoneNumber, teacherName, specialization, experienceYears, qualifications, bio, isActive }
+   * @returns {Promise} Updated teacher with user and profile
+   */
+  updateTeacherAccount: async (teacherId, teacherData) => {
+    try {
+      const updateData = {
+        teacherUserId: teacherId,
+        fullName: teacherData.fullName,
+        email: teacherData.email,
+        phoneNumber: teacherData.phoneNumber,
+        teacherName: teacherData.teacherName,
+        specialization: teacherData.specialization,
+        experienceYears: teacherData.experienceYears,
+        qualifications: teacherData.qualifications,
+        bio: teacherData.bio,
+        isActive: teacherData.isActive !== undefined ? teacherData.isActive : true
+      };
+      
+      const response = await axiosInstance.put(`/User/teacher-account/${teacherId}`, updateData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Delete teacher account (Manager/Staff soft deletes teacher)
+   * @param {string} teacherId - Teacher ID
+   * @returns {Promise} Deletion result
+   */
+  deleteTeacherAccount: async (teacherId) => {
+    try {
+      const response = await axiosInstance.delete(`/User/teacher-account/${teacherId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

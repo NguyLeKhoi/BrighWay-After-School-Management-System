@@ -32,7 +32,7 @@ import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import DialogWithTabs from '../../../components/Common/DialogWithTabs';
 import StaffAccountForm from '../../../components/Common/StaffAccountForm';
 import TeacherAccountForm from '../../../components/Common/TeacherAccountForm';
-import { createUserSchema, createTeacherAccountSchema, updateUserSchema } from '../../../utils/validationSchemas';
+import { createUserSchema, createTeacherAccountSchema, updateUserSchema, updateTeacherAccountSchema, updateManagerUserSchema } from '../../../utils/validationSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -77,12 +77,12 @@ const StaffAndTeacherManagement = () => {
   const { user } = useApp();
   const currentUserRole = user?.roles?.[0] || 'User';
 
-  // Filter API role mapping: 0=Admin, 1=Teacher, 2=Staff, 3=Manager, 4=User
+  // Filter API role mapping: 0=Admin, 1=Manager, 2=Staff, 3=Teacher, 4=User
   const filterRoleMapping = {
     0: 'Admin',
-    1: 'Teacher',
+    1: 'Manager',
     2: 'Staff',
-    3: 'Manager',
+    3: 'Teacher',
     4: 'User'
   };
 
@@ -91,13 +91,13 @@ const StaffAndTeacherManagement = () => {
     switch (currentUserRole) {
       case 'Admin':
         return [
-          { value: 3, label: 'Manager' },
+          { value: 1, label: 'Manager' },
           { value: 2, label: 'Staff' }
         ];
       case 'Manager':
         return [
           { value: 2, label: 'Staff' },
-          { value: 1, label: 'Teacher' }
+          { value: 3, label: 'Teacher' }
         ];
       case 'Staff':
         return [
@@ -107,7 +107,7 @@ const StaffAndTeacherManagement = () => {
         // If user role is not recognized, assume Manager for this page
         return [
           { value: 2, label: 'Staff' },
-          { value: 1, label: 'Teacher' }
+          { value: 3, label: 'Teacher' }
         ];
     }
   };
@@ -425,21 +425,23 @@ const StaffAndTeacherManagement = () => {
     setActionLoading(true);
     
     try {
-      await userService.deleteUser(userId);
+      // Find the user to determine their role
+      const userToDelete = users.find(user => user.id === userId);
       
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
+      if (userToDelete) {
+        // Check if it's a teacher (has 'Teacher' role)
+        if (userToDelete.roles && userToDelete.roles.includes('Teacher')) {
+          await userService.deleteTeacherAccount(userId);
+        } else {
+          // Staff user
+          await userService.deleteUserByManager(userId);
+        }
       } else {
-        setUsers(response);
-        setTotalCount(response.length);
+        throw new Error('Không tìm thấy người dùng để xóa');
       }
+      
+      // Reload data with current filters applied
+      await loadUsers();
       
       toast.success(`Xóa người dùng thành công!`, {
         position: "top-right",
@@ -467,25 +469,42 @@ const StaffAndTeacherManagement = () => {
     setActionLoading(true);
     
     try {
-      await userService.updateUser(selectedUser.id, data);
+      // Check if it's a teacher (has 'Teacher' role)
+      if (selectedUser.roles && selectedUser.roles.includes('Teacher')) {
+        // Update teacher account with profile data - use teacher-account endpoint
+        const teacherData = {
+          teacherUserId: selectedUser.id,
+          fullName: data.fullName,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          teacherName: data.teacherName,
+          specialization: data.specialization,
+          experienceYears: data.experienceYears,
+          qualifications: data.qualifications,
+          bio: data.bio,
+          isActive: data.isActive
+        };
+        await userService.updateTeacherAccount(selectedUser.id, teacherData);
+      } else {
+        // Update staff user - use manager-update endpoint with all fields
+        const staffData = {
+          targetUserId: selectedUser.id,
+          fullName: data.fullName,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          changeRoleTo: data.changeRoleTo || 0,
+          isActive: data.isActive
+        };
+        await userService.updateUserByManager(selectedUser.id, staffData);
+      }
+      
       toast.success(`Cập nhật người dùng "${data.fullName}" thành công!`, {
         position: "top-right",
         autoClose: 3000,
       });
       
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setUsers(response);
-        setTotalCount(response.length);
-      }
+      // Reload data with current filters applied
+      await loadUsers();
       
       setOpenDialog(false);
     } catch (err) {
@@ -671,29 +690,54 @@ const StaffAndTeacherManagement = () => {
         <DialogContent className={styles.dialogContent}>
           <Alert severity="info" style={{ marginBottom: '16px' }}>
             <span>
-              <strong>Lưu ý:</strong> Chỉ có thể cập nhật <strong>Họ và Tên</strong> và <strong>Số Điện Thoại</strong>. 
-              Email và Vai trò không thể thay đổi sau khi tạo tài khoản.
+              <strong>Lưu ý:</strong> {selectedUser?.roles && selectedUser.roles.includes('Teacher') ? 
+                'Có thể cập nhật tất cả thông tin giáo viên bao gồm thông tin cá nhân và hồ sơ chuyên môn.' :
+                'Có thể cập nhật thông tin cá nhân và vai trò của nhân viên.'
+              }
             </span>
           </Alert>
           <div style={{ paddingTop: '8px' }}>
             <Form
-              schema={updateUserSchema}
-              defaultValues={{
+              schema={selectedUser?.roles && selectedUser.roles.includes('Teacher') ? updateTeacherAccountSchema : updateManagerUserSchema}
+              defaultValues={selectedUser?.roles && selectedUser.roles.includes('Teacher') ? {
                 fullName: selectedUser?.fullName || '',
-                phoneNumber: selectedUser?.phoneNumber || ''
+                email: selectedUser?.email || '',
+                phoneNumber: selectedUser?.phoneNumber || '',
+                teacherName: selectedUser?.teacherName || selectedUser?.fullName || '',
+                specialization: selectedUser?.specialization || '',
+                experienceYears: selectedUser?.experienceYears || 0,
+                qualifications: selectedUser?.qualifications || '',
+                bio: selectedUser?.bio || '',
+                isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
+              } : {
+                fullName: selectedUser?.fullName || '',
+                email: selectedUser?.email || '',
+                phoneNumber: selectedUser?.phoneNumber || '',
+                changeRoleTo: selectedUser?.role === 'Teacher' ? 3 : 2,
+                isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
               }}
               onSubmit={handleFormSubmit}
               submitText="Cập nhật Thông Tin"
               loading={actionLoading}
               disabled={actionLoading}
-              fields={[
+              fields={selectedUser?.roles && selectedUser.roles.includes('Teacher') ? [
                 { 
                   name: 'fullName', 
                   label: 'Họ và Tên', 
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: Nguyễn Văn A',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'email', 
+                  label: 'Email', 
+                  type: 'email', 
+                  required: true, 
+                  placeholder: 'Ví dụ: email@example.com',
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'phoneNumber', 
@@ -701,7 +745,111 @@ const StaffAndTeacherManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'teacherName', 
+                  label: 'Tên Giáo Viên', 
+                  type: 'text', 
+                  required: true, 
+                  placeholder: 'Ví dụ: Thầy Nguyễn Văn A',
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'specialization', 
+                  label: 'Chuyên Môn', 
+                  type: 'text', 
+                  required: true, 
+                  placeholder: 'Ví dụ: Toán học',
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'experienceYears', 
+                  label: 'Số Năm Kinh Nghiệm', 
+                  type: 'number', 
+                  required: true, 
+                  placeholder: 'Ví dụ: 5',
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'qualifications', 
+                  label: 'Bằng Cấp', 
+                  type: 'text', 
+                  required: true, 
+                  placeholder: 'Ví dụ: Thạc sĩ Toán học',
+                  disabled: actionLoading,
+                  gridSize: 12
+                },
+                { 
+                  name: 'bio', 
+                  label: 'Tiểu Sử', 
+                  type: 'textarea', 
+                  required: true, 
+                  placeholder: 'Mô tả về bản thân, kinh nghiệm giảng dạy...',
+                  disabled: actionLoading,
+                  gridSize: 12
+                },
+                { 
+                  name: 'isActive', 
+                  label: 'Trạng Thái', 
+                  type: 'switch', 
+                  switchLabel: 'Hoạt động',
+                  required: true, 
+                  disabled: actionLoading,
+                  gridSize: 12
+                }
+              ] : [
+                { 
+                  name: 'fullName', 
+                  label: 'Họ và Tên', 
+                  type: 'text', 
+                  required: true, 
+                  placeholder: 'Ví dụ: Nguyễn Văn A',
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'email', 
+                  label: 'Email', 
+                  type: 'email', 
+                  required: true, 
+                  placeholder: 'Ví dụ: email@example.com',
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'phoneNumber', 
+                  label: 'Số Điện Thoại', 
+                  type: 'text', 
+                  required: true, 
+                  placeholder: 'Ví dụ: 0901234567',
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'changeRoleTo', 
+                  label: 'Vai Trò', 
+                  type: 'select', 
+                  required: true, 
+                  options: [
+                    { value: 2, label: 'Staff' },
+                    { value: 3, label: 'Teacher' }
+                  ],
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'isActive', 
+                  label: 'Trạng Thái', 
+                  type: 'switch', 
+                  switchLabel: 'Hoạt động',
+                  required: true, 
+                  disabled: actionLoading,
+                  gridSize: 12
                 }
               ]}
             />

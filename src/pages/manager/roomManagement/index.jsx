@@ -641,11 +641,13 @@ const ManagerRoomManagement = () => {
       {/* Confirm Dialog */}
       <ConfirmDialog
         open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        onConfirm={confirmDialog.onConfirm}
         title={confirmDialog.title}
         description={confirmDialog.description}
-        onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
-        loading={actionLoading}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        confirmColor="error"
       />
     </div>
   );
