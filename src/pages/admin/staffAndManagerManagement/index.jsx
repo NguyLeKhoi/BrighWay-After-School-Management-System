@@ -47,7 +47,7 @@ const StaffAndManagerManagement = () => {
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [keyword, setKeyword] = useState('');
-  const [selectedRole, setSelectedRole] = useState(null); // null = all, 0 = Staff, 1 = Teacher
+  const [selectedRole, setSelectedRole] = useState(null); // null = all, 3 = Manager, 2 = Staff
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
@@ -72,10 +72,23 @@ const StaffAndManagerManagement = () => {
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
 
-  // Role options - only Staff and ManagerManager allowed for admin-create endpoint
+  // Get current user role from context
+  const { user } = useApp();
+  const currentUserRole = user?.roles?.[0] || 'User';
+
+  // Filter API role mapping: 0=Admin, 1=Teacher, 2=Staff, 3=Manager, 4=User
+  const filterRoleMapping = {
+    0: 'Admin',
+    1: 'Teacher',
+    2: 'Staff',
+    3: 'Manager',
+    4: 'User'
+  };
+
+  // Admin manages Manager and Staff
   const roleOptions = [
-    { value: 0, label: 'Manager' },
-    { value: 1, label: 'Staff' }
+    { value: 3, label: 'Manager' },
+    { value: 2, label: 'Staff' }
   ];
 
   // Map role string to number for form submission
@@ -206,23 +219,36 @@ const StaffAndManagerManagement = () => {
         params.Keyword = keyword.trim();
       }
       
-      // Add role filter if selected
-      if (selectedRole !== null) {
-        params.Role = selectedRole;
-      }
-      
+      // Don't send role filter to API - filter on frontend instead
       const response = await userService.getUsersPaged(params);
       
       // Handle both paginated and non-paginated responses
+      let allUsers = [];
       if (response.items) {
         // Paginated response
-        setUsers(response.items);
+        allUsers = response.items;
         setTotalCount(response.totalCount || response.items.length);
       } else {
         // Non-paginated response (fallback)
-        setUsers(response);
+        allUsers = response;
         setTotalCount(response.length);
       }
+      
+      // Apply frontend filtering for Manager and Staff only
+      let filteredUsers = allUsers.filter(user => {
+        if (!user.roles || !Array.isArray(user.roles)) return false;
+        return user.roles.some(role => role === 'Manager' || role === 'Staff');
+      });
+      
+      // Apply role filter if selected
+      if (selectedRole !== null) {
+        const targetRole = filterRoleMapping[selectedRole];
+        filteredUsers = filteredUsers.filter(user => 
+          user.roles && user.roles.includes(targetRole)
+        );
+      }
+      
+      setUsers(filteredUsers);
     } catch (err) {
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
       setError(errorMessage);
@@ -242,16 +268,8 @@ const StaffAndManagerManagement = () => {
     loadUsers();
   }, [page, rowsPerPage, selectedRole]);
 
-  // Filter users to only show Staff and Teacher roles (for employee management)
-  const filterEmployeesOnly = (userList) => {
-    return userList.filter(user => {
-      if (!user.roles || !Array.isArray(user.roles)) return false;
-      return user.roles.some(role => role === 'Manager' || role === 'Staff');
-    });
-  };
-
-  // Use search result if available, otherwise use filtered paginated users
-  const displayUsers = searchResult ? [searchResult] : filterEmployeesOnly(users);
+  // Use search result if available, otherwise use loaded users (already filtered)
+  const displayUsers = searchResult ? [searchResult] : users;
   const paginatedUsers = displayUsers;
 
   // Event handlers
@@ -530,8 +548,8 @@ const StaffAndManagerManagement = () => {
               <MenuItem value="">
                 <em>Tất cả vai trò</em>
               </MenuItem>
-              <MenuItem value={0}>Manager</MenuItem>
-              <MenuItem value={1}>Staff</MenuItem>
+              <MenuItem value={3}>Manager</MenuItem>
+              <MenuItem value={2}>Staff</MenuItem>
             </Select>
           </FormControl>
           
@@ -560,7 +578,7 @@ const StaffAndManagerManagement = () => {
           loading={isPageLoading}
           page={page}
           rowsPerPage={rowsPerPage}
-          totalCount={searchResult ? 1 : displayUsers.length}
+          totalCount={searchResult ? 1 : totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEditUser}

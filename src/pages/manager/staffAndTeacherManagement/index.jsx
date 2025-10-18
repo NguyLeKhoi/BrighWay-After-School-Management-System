@@ -23,12 +23,16 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   Lock as LockIcon,
-  AssignmentInd as RoleIcon
+  AssignmentInd as RoleIcon,
+  School as SchoolIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { createUserSchema, updateUserSchema } from '../../../utils/validationSchemas';
+import DialogWithTabs from '../../../components/Common/DialogWithTabs';
+import StaffAccountForm from '../../../components/Common/StaffAccountForm';
+import TeacherAccountForm from '../../../components/Common/TeacherAccountForm';
+import { createUserSchema, createTeacherAccountSchema, updateUserSchema } from '../../../utils/validationSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -37,6 +41,7 @@ import { toast } from 'react-toastify';
 import styles from './staffAndTeacherManagement.module.css';
 
 const StaffAndTeacherManagement = () => {
+  console.log('=== StaffAndTeacherManagement Component Loaded ===');
   const [users, setUsers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -51,8 +56,9 @@ const StaffAndTeacherManagement = () => {
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
-  const [dialogMode, setDialogMode] = useState('create');
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -62,21 +68,57 @@ const StaffAndTeacherManagement = () => {
     onConfirm: null
   });
 
-  // User creation confirmation dialog states
-  const [confirmCreateDialog, setConfirmCreateDialog] = useState({
-    open: false,
-    userData: null
-  });
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
 
-  // Role options - only Staff and Teacher allowed for manager-create endpoint
-  const roleOptions = [
-    { value: 0, label: 'Staff' },
-    { value: 1, label: 'Teacher' }
-  ];
+  // Get current user role from context
+  const { user } = useApp();
+  const currentUserRole = user?.roles?.[0] || 'User';
+
+  // Filter API role mapping: 0=Admin, 1=Teacher, 2=Staff, 3=Manager, 4=User
+  const filterRoleMapping = {
+    0: 'Admin',
+    1: 'Teacher',
+    2: 'Staff',
+    3: 'Manager',
+    4: 'User'
+  };
+
+  // Get manageable roles based on current user role
+  const getManageableRoles = () => {
+    switch (currentUserRole) {
+      case 'Admin':
+        return [
+          { value: 3, label: 'Manager' },
+          { value: 2, label: 'Staff' }
+        ];
+      case 'Manager':
+        return [
+          { value: 2, label: 'Staff' },
+          { value: 1, label: 'Teacher' }
+        ];
+      case 'Staff':
+        return [
+          { value: 4, label: 'User' }
+        ];
+      default:
+        // If user role is not recognized, assume Manager for this page
+        return [
+          { value: 2, label: 'Staff' },
+          { value: 1, label: 'Teacher' }
+        ];
+    }
+  };
+
+  const roleOptions = getManageableRoles();
+
+  // Create API role mapping: 0=Staff, 1=Teacher (for manager-create endpoint)
+  const createRoleMapping = {
+    0: 'Staff',
+    1: 'Teacher'
+  };
 
   // Map role string to number for form submission
   const roleStringToNumber = (roleString) => {
@@ -86,7 +128,7 @@ const StaffAndTeacherManagement = () => {
       case 'Staff': return 2;
       case 'Manager': return 3;
       case 'User': return 4;
-      default: return 0;
+      default: return 2; // Default to Staff
     }
   };
 
@@ -206,24 +248,52 @@ const StaffAndTeacherManagement = () => {
         params.Keyword = keyword.trim();
       }
       
-      // Add role filter if selected
-      if (selectedRole !== null) {
-        params.Role = selectedRole;
-      }
-      
+      // Don't send role filter to API - filter on frontend instead
       const response = await userService.getUsersPaged(params);
       
       // Handle both paginated and non-paginated responses
+      let allUsers = [];
       if (response.items) {
         // Paginated response
-        setUsers(response.items);
+        allUsers = response.items;
         setTotalCount(response.totalCount || response.items.length);
       } else {
         // Non-paginated response (fallback)
-        setUsers(response);
+        allUsers = response;
         setTotalCount(response.length);
       }
+      
+      // Apply frontend filtering
+      let filteredUsers = filterManageableUsers(allUsers);
+      console.log('After manageable filter:', filteredUsers);
+      
+      // Apply role filter if selected
+      if (selectedRole !== null) {
+        const targetRole = filterRoleMapping[selectedRole];
+        console.log('Filtering by role:', selectedRole, '->', targetRole);
+        filteredUsers = filteredUsers.filter(user => 
+          user.roles && user.roles.includes(targetRole)
+        );
+        console.log('After role filter:', filteredUsers);
+      }
+      
+      setUsers(filteredUsers);
     } catch (err) {
+      console.error('API Error:', err);
+      
+      // Fallback: try getAllUsers if paged API fails
+      try {
+        const allUsers = await userService.getAllUsers();
+        
+        // Apply filtering
+        const filteredUsers = filterManageableUsers(allUsers);
+        setUsers(filteredUsers);
+        setTotalCount(filteredUsers.length);
+        return;
+      } catch (fallbackErr) {
+        console.error('Fallback also failed:', fallbackErr);
+      }
+      
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
       setError(errorMessage);
       showGlobalError(errorMessage);
@@ -242,16 +312,30 @@ const StaffAndTeacherManagement = () => {
     loadUsers();
   }, [page, rowsPerPage, selectedRole]);
 
-  // Filter users to only show Staff and Teacher roles (for employee management)
-  const filterEmployeesOnly = (userList) => {
-    return userList.filter(user => {
-      if (!user.roles || !Array.isArray(user.roles)) return false;
-      return user.roles.some(role => role === 'Staff' || role === 'Teacher');
+  // Filter users based on current user's manageable roles
+  const filterManageableUsers = (userList) => {
+    const manageableRoleNumbers = roleOptions.map(option => option.value);
+    const manageableRoleStrings = manageableRoleNumbers.map(num => filterRoleMapping[num]);
+    
+    console.log('Filtering manageable users:', {
+      userList,
+      manageableRoleNumbers,
+      manageableRoleStrings,
+      currentUserRole,
+      roleOptions
     });
+    
+    const filtered = userList.filter(user => {
+      if (!user.roles || !Array.isArray(user.roles)) return false;
+      return user.roles.some(role => manageableRoleStrings.includes(role));
+    });
+    
+    console.log('Filtered manageable users:', filtered);
+    return filtered;
   };
 
-  // Use search result if available, otherwise use filtered paginated users
-  const displayUsers = searchResult ? [searchResult] : filterEmployeesOnly(users);
+  // Use search result if available, otherwise use loaded users (already filtered)
+  const displayUsers = searchResult ? [searchResult] : users;
   const paginatedUsers = displayUsers;
 
   // Event handlers
@@ -319,13 +403,10 @@ const StaffAndTeacherManagement = () => {
   };
 
   const handleCreateUser = () => {
-    setDialogMode('create');
-    setSelectedUser(null);
-    setOpenDialog(true);
+    setOpenCreateDialog(true);
   };
 
   const handleEditUser = (user) => {
-    setDialogMode('edit');
     setSelectedUser(user);
     setOpenDialog(true);
   };
@@ -378,66 +459,8 @@ const StaffAndTeacherManagement = () => {
   };
 
   const handleFormSubmit = async (data) => {
-    if (dialogMode === 'create') {
-      // Show confirmation dialog for creating user
-      setConfirmCreateDialog({
-        open: true,
-        userData: data
-      });
-    } else {
-      // Direct update for editing user
-      await performUpdateUser(data);
-    }
-  };
-
-  const handleConfirmCreate = async () => {
-    setConfirmCreateDialog(prev => ({ ...prev, open: false }));
-    await performCreateUser(confirmCreateDialog.userData);
-  };
-
-  const handleCancelCreate = () => {
-    setConfirmCreateDialog({
-      open: false,
-      userData: null
-    });
-  };
-
-  const performCreateUser = async (data) => {
-    setActionLoading(true);
-    
-    try {
-      await userService.createUserByManager(data, data.role);
-      toast.success(`Tạo tài khoản "${data.fullName}" thành công!`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setUsers(response);
-        setTotalCount(response.length);
-      }
-      
-      setOpenDialog(false);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
+    // Direct update for editing user
+    await performUpdateUser(data);
   };
 
   const performUpdateUser = async (data) => {
@@ -478,13 +501,69 @@ const StaffAndTeacherManagement = () => {
     }
   };
 
+
+  const handleStaffSubmit = async (data) => {
+    setIsSubmitting(true);
+    try {
+      await userService.createUserByManager(data, data.role);
+      
+      toast.success(`Tạo tài khoản "${data.fullName}" thành công!`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      
+      // Reload data
+      loadUsers();
+      setOpenCreateDialog(false);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản';
+      setError(errorMessage);
+      showGlobalError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTeacherSubmit = async (data) => {
+    setIsSubmitting(true);
+    try {
+      await userService.createTeacherAccount(data);
+      
+      toast.success(`Tạo tài khoản giáo viên "${data.user.fullName}" thành công!`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      
+      // Reload data
+      loadUsers();
+      setOpenCreateDialog(false);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản giáo viên';
+      setError(errorMessage);
+      showGlobalError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.title}>
-          Quản lý Nhân Viên & Giáo Viên
+          {currentUserRole === 'Admin' && 'Quản lý Manager & Staff'}
+          {currentUserRole === 'Manager' && 'Quản lý Staff & Giáo Viên'}
+          {currentUserRole === 'Staff' && 'Quản lý User'}
+          {!['Admin', 'Manager', 'Staff'].includes(currentUserRole) && 'Quản lý Người Dùng'}
         </h1>
         <Button
           variant="contained"
@@ -530,8 +609,11 @@ const StaffAndTeacherManagement = () => {
               <MenuItem value="">
                 <em>Tất cả vai trò</em>
               </MenuItem>
-              <MenuItem value={0}>Staff</MenuItem>
-              <MenuItem value={1}>Teacher</MenuItem>
+              {roleOptions.map(option => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
           
@@ -560,7 +642,7 @@ const StaffAndTeacherManagement = () => {
           loading={isPageLoading}
           page={page}
           rowsPerPage={rowsPerPage}
-          totalCount={searchResult ? 1 : displayUsers.length}
+          totalCount={searchResult ? 1 : totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEditUser}
@@ -568,7 +650,7 @@ const StaffAndTeacherManagement = () => {
         emptyMessage={searchResult ? "Không có người dùng nào." : "Không có người dùng nào. Hãy tạo tài khoản đầu tiên để bắt đầu."}
       />
 
-      {/* Create/Edit Dialog */}
+      {/* Edit Dialog */}
       <Dialog 
         open={openDialog} 
         onClose={() => !actionLoading && setOpenDialog(false)} 
@@ -583,78 +665,28 @@ const StaffAndTeacherManagement = () => {
       >
         <DialogTitle className={styles.dialogTitle}>
           <span className={styles.dialogTitleText}>
-            {dialogMode === 'create' ? 'Tạo Tài Khoản Mới' : 'Chỉnh sửa Thông Tin Người Dùng'}
+            Chỉnh sửa Thông Tin Người Dùng
           </span>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
-          {dialogMode === 'edit' && (
-            <Alert severity="info" style={{ marginBottom: '16px' }}>
-              <span>
-                <strong>Lưu ý:</strong> Chỉ có thể cập nhật <strong>Họ và Tên</strong> và <strong>Số Điện Thoại</strong>. 
-                Email và Vai trò không thể thay đổi sau khi tạo tài khoản.
-              </span>
-            </Alert>
-          )}
+          <Alert severity="info" style={{ marginBottom: '16px' }}>
+            <span>
+              <strong>Lưu ý:</strong> Chỉ có thể cập nhật <strong>Họ và Tên</strong> và <strong>Số Điện Thoại</strong>. 
+              Email và Vai trò không thể thay đổi sau khi tạo tài khoản.
+            </span>
+          </Alert>
           <div style={{ paddingTop: '8px' }}>
             <Form
-              schema={dialogMode === 'create' ? createUserSchema : updateUserSchema}
+              schema={updateUserSchema}
               defaultValues={{
                 fullName: selectedUser?.fullName || '',
-                ...(dialogMode === 'create' ? {
-                  email: selectedUser?.email || '',
-                  phoneNumber: selectedUser?.phoneNumber || '',
-                  password: '',
-                  role: selectedUser?.role || 0
-                } : {
-                  phoneNumber: selectedUser?.phoneNumber || ''
-                })
+                phoneNumber: selectedUser?.phoneNumber || ''
               }}
               onSubmit={handleFormSubmit}
-              submitText={dialogMode === 'create' ? 'Tạo Tài Khoản' : 'Cập nhật Thông Tin'}
+              submitText="Cập nhật Thông Tin"
               loading={actionLoading}
               disabled={actionLoading}
-              fields={dialogMode === 'create' ? [
-                { 
-                  name: 'fullName', 
-                  label: 'Họ và Tên', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Ví dụ: Nguyễn Văn A',
-                  disabled: actionLoading
-                },
-                { 
-                  name: 'email', 
-                  label: 'Email', 
-                  type: 'email', 
-                  required: true, 
-                  placeholder: 'Ví dụ: email@example.com',
-                  disabled: actionLoading
-                },
-                { 
-                  name: 'phoneNumber', 
-                  label: 'Số Điện Thoại', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading
-                },
-                { 
-                  name: 'password', 
-                  label: 'Mật Khẩu', 
-                  type: 'password', 
-                  required: true, 
-                  placeholder: 'Nhập mật khẩu cho người dùng',
-                  disabled: actionLoading
-                },
-                { 
-                  name: 'role', 
-                  label: 'Vai Trò', 
-                  type: 'select', 
-                  required: true, 
-                  options: roleOptions,
-                  disabled: actionLoading
-                }
-              ] : [
+              fields={[
                 { 
                   name: 'fullName', 
                   label: 'Họ và Tên', 
@@ -697,123 +729,38 @@ const StaffAndTeacherManagement = () => {
         confirmColor="error"
       />
 
-      {/* User Creation Confirmation Dialog */}
-      <Dialog 
-        open={confirmCreateDialog.open} 
-        onClose={handleCancelCreate} 
-        maxWidth="md" 
-        fullWidth
-        sx={{
-          '& .MuiDialog-paper': {
-            borderRadius: '8px',
-            overflow: 'hidden'
+      {/* Create Account Dialog */}
+      <DialogWithTabs
+        open={openCreateDialog}
+        onClose={() => setOpenCreateDialog(false)}
+        onSuccess={loadUsers}
+        title="Tạo Tài Khoản Mới"
+        tabs={[
+          {
+            label: 'Tài Khoản Nhân Viên',
+            icon: <PersonIcon />
+          },
+          {
+            label: 'Tài Khoản Giáo Viên',
+            icon: <SchoolIcon />
           }
-        }}
-      >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <PersonIcon color="primary" />
-            <Typography variant="h6" component="span">
-              Xác nhận tạo tài khoản
-            </Typography>
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <Alert severity="info" className={styles.infoAlert}>
-            <Typography variant="body2">
-              <strong>Vui lòng kiểm tra lại thông tin trước khi tạo tài khoản:</strong>
-            </Typography>
-          </Alert>
-          
-          {confirmCreateDialog.userData && (
-            <Paper elevation={1} className={styles.userInfoPaper}>
-              <Typography variant="h6" gutterBottom color="primary">
-                Thông tin tài khoản
-              </Typography>
-              
-              <div className={styles.userInfoGrid}>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Họ và Tên:
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium">
-                    {confirmCreateDialog.userData.fullName}
-                  </Typography>
-                </Box>
-                
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Email:
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium">
-                    {confirmCreateDialog.userData.email}
-                  </Typography>
-                </Box>
-                
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Số Điện Thoại:
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium">
-                    {confirmCreateDialog.userData.phoneNumber}
-                  </Typography>
-                </Box>
-                
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Vai Trò:
-                  </Typography>
-                  <Chip 
-                    label={roleOptions.find(role => role.value === confirmCreateDialog.userData.role)?.label || 'Unknown'}
-                    color={confirmCreateDialog.userData.role === 0 ? 'info' : confirmCreateDialog.userData.role === 1 ? 'success' : 'default'} 
-                    size="small"
-                    variant="outlined"
-                    icon={<RoleIcon fontSize="small" />}
-                  />
-                </Box>
-              </div>
-              
-              <div className={styles.passwordSection}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Mật Khẩu:
-                </Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {'•'.repeat(confirmCreateDialog.userData.password?.length || 0)}
-                </Typography>
-              </div>
-            </Paper>
-          )}
-          
-          <Alert severity="warning" className={styles.warningAlert}>
-            <Typography variant="body2">
-              <strong>Lưu ý quan trọng:</strong>
-              <br />
-              • Email và Vai trò không thể thay đổi sau khi tạo tài khoản
-              <br />
-              • Người dùng sẽ có thể đăng nhập bằng email và mật khẩu này
-              <br />
-              • Hãy đảm bảo thông tin chính xác trước khi xác nhận
-            </Typography>
-          </Alert>
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={handleCancelCreate}
-            disabled={actionLoading}
-          >
-            Hủy
-          </Button>
-          <Button 
-            onClick={handleConfirmCreate}
-            variant="contained"
-            color="primary"
-            disabled={actionLoading}
-            startIcon={actionLoading ? null : <PersonIcon />}
-          >
-            {actionLoading ? 'Đang tạo...' : 'Xác nhận tạo tài khoản'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        ]}
+        tabContents={[
+          <StaffAccountForm 
+            key="staff-form"
+            onStaffSubmit={handleStaffSubmit}
+            roleOptions={[
+              { value: 0, label: 'Staff' },
+              { value: 1, label: 'Teacher' }
+            ]}
+          />,
+          <TeacherAccountForm 
+            key="teacher-form"
+            onTeacherSubmit={handleTeacherSubmit}
+          />
+        ]}
+        loading={isSubmitting}
+      />
       </div>
     </div>
   );

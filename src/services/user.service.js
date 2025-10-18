@@ -105,6 +105,20 @@ const userService = {
   },
 
   /**
+   * Create teacher account (Manager/Staff creates teacher with profile)
+   * @param {Object} teacherData - Teacher data { user: { fullName, email, phoneNumber, password }, profile: { teacherName, specialization, experienceYears, qualifications, bio } }
+   * @returns {Promise} Created teacher with user and profile
+   */
+  createTeacherAccount: async (teacherData) => {
+    try {
+      const response = await axiosInstance.post('/User/teacher-account', teacherData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
    * Get paginated users
    * @param {Object} params - Pagination parameters { page, pageSize, searchTerm }
    * @returns {Promise} Paginated user list
