@@ -41,7 +41,6 @@ import { toast } from 'react-toastify';
 import styles from './staffAndTeacherManagement.module.css';
 
 const StaffAndTeacherManagement = () => {
-  console.log('=== StaffAndTeacherManagement Component Loaded ===');
   const [users, setUsers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -130,6 +129,12 @@ const StaffAndTeacherManagement = () => {
       case 'User': return 4;
       default: return 2; // Default to Staff
     }
+  };
+
+  // Helper function to check if user is teacher
+  const isTeacher = (user) => {
+    // Check both roles (array) and role (string) for compatibility
+    return (user?.roles && user.roles.includes('Teacher')) || user?.role === 'Teacher';
   };
 
   // Define table columns
@@ -265,22 +270,17 @@ const StaffAndTeacherManagement = () => {
       
       // Apply frontend filtering
       let filteredUsers = filterManageableUsers(allUsers);
-      console.log('After manageable filter:', filteredUsers);
       
       // Apply role filter if selected
       if (selectedRole !== null) {
         const targetRole = filterRoleMapping[selectedRole];
-        console.log('Filtering by role:', selectedRole, '->', targetRole);
         filteredUsers = filteredUsers.filter(user => 
           user.roles && user.roles.includes(targetRole)
         );
-        console.log('After role filter:', filteredUsers);
       }
       
       setUsers(filteredUsers);
     } catch (err) {
-      console.error('API Error:', err);
-      
       // Fallback: try getAllUsers if paged API fails
       try {
         const allUsers = await userService.getAllUsers();
@@ -291,7 +291,7 @@ const StaffAndTeacherManagement = () => {
         setTotalCount(filteredUsers.length);
         return;
       } catch (fallbackErr) {
-        console.error('Fallback also failed:', fallbackErr);
+        // Fallback failed
       }
       
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
@@ -317,20 +317,11 @@ const StaffAndTeacherManagement = () => {
     const manageableRoleNumbers = roleOptions.map(option => option.value);
     const manageableRoleStrings = manageableRoleNumbers.map(num => filterRoleMapping[num]);
     
-    console.log('Filtering manageable users:', {
-      userList,
-      manageableRoleNumbers,
-      manageableRoleStrings,
-      currentUserRole,
-      roleOptions
-    });
-    
     const filtered = userList.filter(user => {
       if (!user.roles || !Array.isArray(user.roles)) return false;
       return user.roles.some(role => manageableRoleStrings.includes(role));
     });
     
-    console.log('Filtered manageable users:', filtered);
     return filtered;
   };
 
@@ -370,8 +361,17 @@ const StaffAndTeacherManagement = () => {
 
     setSearchLoading(true);
     try {
+      // First get basic user info
       const result = await userService.getUserById(searchId.trim());
-      setSearchResult(result);
+      
+      // If it's a teacher, get expanded details
+      if (isTeacher(result)) {
+        const expandedResult = await userService.getUserById(searchId.trim(), true);
+        setSearchResult(expandedResult);
+      } else {
+        setSearchResult(result);
+      }
+      
       setPage(0);
       
       toast.success(`Tìm thấy người dùng: ${result.fullName}`, {
@@ -406,9 +406,29 @@ const StaffAndTeacherManagement = () => {
     setOpenCreateDialog(true);
   };
 
-  const handleEditUser = (user) => {
-    setSelectedUser(user);
-    setOpenDialog(true);
+  const handleEditUser = async (user) => {
+    setActionLoading(true);
+    
+    try {
+      // Check if user is a teacher and fetch expanded details
+      if (isTeacher(user)) {
+        const expandedUser = await userService.getUserById(user.id, true);
+        setSelectedUser(expandedUser);
+      } else {
+        setSelectedUser(user);
+      }
+      setOpenDialog(true);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi lấy thông tin người dùng';
+      setError(errorMessage);
+      showGlobalError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleDeleteUser = (user) => {
@@ -470,20 +490,24 @@ const StaffAndTeacherManagement = () => {
     
     try {
       // Check if it's a teacher (has 'Teacher' role)
-      if (selectedUser.roles && selectedUser.roles.includes('Teacher')) {
+      if (isTeacher(selectedUser)) {
         // Update teacher account with profile data - use teacher-account endpoint
         const teacherData = {
           teacherUserId: selectedUser.id,
           fullName: data.fullName,
           email: data.email,
           phoneNumber: data.phoneNumber,
-          teacherName: data.teacherName,
           specialization: data.specialization,
           experienceYears: data.experienceYears,
           qualifications: data.qualifications,
           bio: data.bio,
           isActive: data.isActive
         };
+        
+        // Add password if provided
+        if (data.password && data.password.trim()) {
+          teacherData.password = data.password;
+        }
         await userService.updateTeacherAccount(selectedUser.id, teacherData);
       } else {
         // Update staff user - use manager-update endpoint with all fields
@@ -495,6 +519,11 @@ const StaffAndTeacherManagement = () => {
           changeRoleTo: data.changeRoleTo || 0,
           isActive: data.isActive
         };
+        
+        // Add password if provided
+        if (data.password && data.password.trim()) {
+          staffData.password = data.password;
+        }
         await userService.updateUserByManager(selectedUser.id, staffData);
       }
       
@@ -688,39 +717,32 @@ const StaffAndTeacherManagement = () => {
           </span>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
-          <Alert severity="info" style={{ marginBottom: '16px' }}>
-            <span>
-              <strong>Lưu ý:</strong> {selectedUser?.roles && selectedUser.roles.includes('Teacher') ? 
-                'Có thể cập nhật tất cả thông tin giáo viên bao gồm thông tin cá nhân và hồ sơ chuyên môn.' :
-                'Có thể cập nhật thông tin cá nhân và vai trò của nhân viên.'
-              }
-            </span>
-          </Alert>
           <div style={{ paddingTop: '8px' }}>
             <Form
-              schema={selectedUser?.roles && selectedUser.roles.includes('Teacher') ? updateTeacherAccountSchema : updateManagerUserSchema}
-              defaultValues={selectedUser?.roles && selectedUser.roles.includes('Teacher') ? {
-                fullName: selectedUser?.fullName || '',
-                email: selectedUser?.email || '',
-                phoneNumber: selectedUser?.phoneNumber || '',
-                teacherName: selectedUser?.teacherName || selectedUser?.fullName || '',
-                specialization: selectedUser?.specialization || '',
-                experienceYears: selectedUser?.experienceYears || 0,
-                qualifications: selectedUser?.qualifications || '',
-                bio: selectedUser?.bio || '',
-                isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
+              schema={isTeacher(selectedUser) ? updateTeacherAccountSchema : updateManagerUserSchema}
+              defaultValues={isTeacher(selectedUser) ? {
+                fullName: selectedUser?.user?.fullName || selectedUser?.fullName || '',
+                email: selectedUser?.user?.email || selectedUser?.email || '',
+                phoneNumber: selectedUser?.user?.phoneNumber || selectedUser?.phoneNumber || '',
+                specialization: selectedUser?.teacherProfile?.specialization || '',
+                experienceYears: selectedUser?.teacherProfile?.experienceYears || 0,
+                qualifications: selectedUser?.teacherProfile?.qualifications || '',
+                bio: selectedUser?.teacherProfile?.bio || '',
+                password: '',
+                isActive: selectedUser?.user?.isActive !== undefined ? selectedUser.user.isActive : (selectedUser?.isActive !== undefined ? selectedUser.isActive : true)
               } : {
                 fullName: selectedUser?.fullName || '',
                 email: selectedUser?.email || '',
                 phoneNumber: selectedUser?.phoneNumber || '',
-                changeRoleTo: selectedUser?.role === 'Teacher' ? 3 : 2,
+                changeRoleTo: roleStringToNumber(selectedUser?.roles?.[0]) || 2,
+                password: '',
                 isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
               }}
               onSubmit={handleFormSubmit}
               submitText="Cập nhật Thông Tin"
               loading={actionLoading}
               disabled={actionLoading}
-              fields={selectedUser?.roles && selectedUser.roles.includes('Teacher') ? [
+              fields={isTeacher(selectedUser) ? [
                 { 
                   name: 'fullName', 
                   label: 'Họ và Tên', 
@@ -745,15 +767,6 @@ const StaffAndTeacherManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading,
-                  gridSize: 6
-                },
-                { 
-                  name: 'teacherName', 
-                  label: 'Tên Giáo Viên', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Ví dụ: Thầy Nguyễn Văn A',
                   disabled: actionLoading,
                   gridSize: 6
                 },
@@ -792,6 +805,16 @@ const StaffAndTeacherManagement = () => {
                   placeholder: 'Mô tả về bản thân, kinh nghiệm giảng dạy...',
                   disabled: actionLoading,
                   gridSize: 12
+                },
+                { 
+                  name: 'password', 
+                  label: 'Mật Khẩu Mới', 
+                  type: 'password', 
+                  required: false,
+                  placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
+                  disabled: actionLoading,
+                  gridSize: 6,
+                  helperText: 'Lưu ý: Mật khẩu sẽ được thay đổi ngay lập tức, không cần xác nhận từ người dùng'
                 },
                 { 
                   name: 'isActive', 
@@ -841,6 +864,16 @@ const StaffAndTeacherManagement = () => {
                   ],
                   disabled: actionLoading,
                   gridSize: 6
+                },
+                { 
+                  name: 'password', 
+                  label: 'Mật Khẩu Mới', 
+                  type: 'password', 
+                  required: false,
+                  placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
+                  disabled: actionLoading,
+                  gridSize: 6,
+                  helperText: 'Lưu ý: Mật khẩu sẽ được thay đổi ngay lập tức, không cần xác nhận từ người dùng'
                 },
                 { 
                   name: 'isActive', 

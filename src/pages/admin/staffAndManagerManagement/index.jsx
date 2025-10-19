@@ -311,8 +311,17 @@ const StaffAndManagerManagement = () => {
 
     setSearchLoading(true);
     try {
+      // First get basic user info
       const result = await userService.getUserById(searchId.trim());
-      setSearchResult(result);
+      
+      // If it's a teacher, get expanded details
+      if (result.roles && result.roles.includes('Teacher')) {
+        const expandedResult = await userService.getUserById(searchId.trim(), true);
+        setSearchResult(expandedResult);
+      } else {
+        setSearchResult(result);
+      }
+      
       setPage(0);
       
       toast.success(`Tìm thấy người dùng: ${result.fullName}`, {
@@ -349,9 +358,32 @@ const StaffAndManagerManagement = () => {
     setOpenDialog(true);
   };
 
-  const handleEditUser = (user) => {
+  const handleEditUser = async (user) => {
     setDialogMode('edit');
-    setSelectedUser(user);
+    
+    // Check if user is a teacher and fetch expanded details
+    if (user.roles && user.roles.includes('Teacher')) {
+      setActionLoading(true);
+      try {
+        const expandedUser = await userService.getUserById(user.id, true);
+        setSelectedUser(expandedUser);
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi lấy thông tin người dùng';
+        setError(errorMessage);
+        showGlobalError(errorMessage);
+        toast.error(errorMessage, {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        setActionLoading(false);
+        return;
+      } finally {
+        setActionLoading(false);
+      }
+    } else {
+      setSelectedUser(user);
+    }
+    
     setOpenDialog(true);
   };
 
@@ -596,14 +628,6 @@ const StaffAndManagerManagement = () => {
           </span>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
-          {dialogMode === 'edit' && (
-            <Alert severity="info" style={{ marginBottom: '16px' }}>
-              <span>
-                <strong>Lưu ý:</strong> Có thể cập nhật <strong>Họ và Tên</strong>, <strong>Email</strong>, <strong>Số Điện Thoại</strong>, 
-                <strong>Vai Trò</strong> và <strong>Trạng Thái</strong> của người dùng.
-              </span>
-            </Alert>
-          )}
           <div style={{ paddingTop: '8px' }}>
             <Form
               schema={dialogMode === 'create' ? createUserByAdminSchema : updateUserSchema}
@@ -617,7 +641,8 @@ const StaffAndManagerManagement = () => {
                 } : {
                   email: selectedUser?.email || '',
                   phoneNumber: selectedUser?.phoneNumber || '',
-                  changeRoleTo: selectedUser?.role || 0,
+                  changeRoleTo: roleStringToNumber(selectedUser?.roles?.[0]) || 0,
+                  password: '',
                   isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
                 })
               }}
@@ -707,6 +732,16 @@ const StaffAndManagerManagement = () => {
                   options: roleOptions,
                   disabled: actionLoading,
                   gridSize: 6
+                },
+                { 
+                  name: 'password', 
+                  label: 'Mật Khẩu Mới', 
+                  type: 'password', 
+                  required: false,
+                  placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
+                  disabled: actionLoading,
+                  gridSize: 6,
+                  helperText: 'Lưu ý: Mật khẩu sẽ được thay đổi ngay lập tức, không cần xác nhận từ người dùng'
                 },
                 { 
                   name: 'isActive', 

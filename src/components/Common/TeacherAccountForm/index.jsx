@@ -312,17 +312,6 @@ const TeacherAccountForm = ({
             </Box>
           )}
           
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            <Typography variant="body2">
-              <strong>Lưu ý quan trọng:</strong>
-              <br />
-              • Email và Vai trò không thể thay đổi sau khi tạo tài khoản
-              <br />
-              • Giáo viên sẽ có thể đăng nhập bằng email và mật khẩu này
-              <br />
-              • Hãy đảm bảo thông tin chính xác trước khi xác nhận
-            </Typography>
-          </Alert>
         </DialogContent>
         <DialogActions>
           <Button 

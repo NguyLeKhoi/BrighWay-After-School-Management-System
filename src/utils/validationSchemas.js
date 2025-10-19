@@ -188,7 +188,18 @@ export const updateUserSchema = yup.object({
     .oneOf([1, 2], 'Vai trò không hợp lệ (chỉ cho phép Manager hoặc Staff)'),
   isActive: yup
     .boolean()
-    .default(true)
+    .default(true),
+  password: yup
+    .string()
+    .optional()
+    .test('password-length', 'Mật khẩu phải có ít nhất 6 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length >= 6;
+    })
+    .test('password-max', 'Mật khẩu không được quá 50 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length <= 50;
+    })
 });
 
 // Manager update validation schema (for Manager updating Staff/Teacher)
@@ -215,7 +226,18 @@ export const updateManagerUserSchema = yup.object({
     .oneOf([2, 3], 'Vai trò không hợp lệ (chỉ cho phép Staff hoặc Teacher)'),
   isActive: yup
     .boolean()
-    .default(true)
+    .default(true),
+  password: yup
+    .string()
+    .optional()
+    .test('password-length', 'Mật khẩu phải có ít nhất 6 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length >= 6;
+    })
+    .test('password-max', 'Mật khẩu không được quá 50 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length <= 50;
+    })
 });
 
 // Room validation schema
@@ -314,12 +336,6 @@ export const updateTeacherAccountSchema = yup.object({
     .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
     .min(10, 'Số điện thoại phải có ít nhất 10 số')
     .max(15, 'Số điện thoại không được quá 15 số'),
-  teacherName: yup
-    .string()
-    .required('Tên giáo viên là bắt buộc')
-    .min(2, 'Tên giáo viên phải có ít nhất 2 ký tự')
-    .max(100, 'Tên giáo viên không được quá 100 ký tự')
-    .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Tên giáo viên chỉ được chứa chữ cái và khoảng trắng'),
   specialization: yup
     .string()
     .required('Chuyên môn là bắt buộc')
@@ -344,7 +360,18 @@ export const updateTeacherAccountSchema = yup.object({
     .max(500, 'Tiểu sử không được quá 500 ký tự'),
   isActive: yup
     .boolean()
-    .default(true)
+    .default(true),
+  password: yup
+    .string()
+    .optional()
+    .test('password-length', 'Mật khẩu phải có ít nhất 6 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length >= 6;
+    })
+    .test('password-max', 'Mật khẩu không được quá 50 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length <= 50;
+    })
 });
 
 // Generic validation helpers

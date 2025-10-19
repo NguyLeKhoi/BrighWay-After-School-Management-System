@@ -21,11 +21,18 @@ const userService = {
   /**
    * Get user by ID
    * @param {string} userId - User ID
+   * @param {boolean} expandRoleDetails - Whether to expand role-specific details (Family/TeacherProfile)
    * @returns {Promise} User details
    */
-  getUserById: async (userId) => {
+  getUserById: async (userId, expandRoleDetails = false) => {
     try {
-      const response = await axiosInstance.get(`/User/${userId}`);
+      const params = new URLSearchParams();
+      if (expandRoleDetails) {
+        params.append('expandRoleDetails', 'true');
+      }
+      
+      const url = `/User/${userId}${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await axiosInstance.get(url);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -85,6 +92,11 @@ const userService = {
         isActive: userData.isActive !== undefined ? userData.isActive : true
       };
       
+      // Add password if provided
+      if (userData.password && userData.password.trim()) {
+        updateData.password = userData.password;
+      }
+      
       const response = await axiosInstance.put(`/User/admin-update/${userId}`, updateData);
       return response.data;
     } catch (error) {
@@ -137,6 +149,11 @@ const userService = {
         isActive: userData.isActive !== undefined ? userData.isActive : true
       };
       
+      // Add password if provided
+      if (userData.password && userData.password.trim()) {
+        updateData.password = userData.password;
+      }
+      
       const response = await axiosInstance.put(`/User/manager-update/${userId}`, updateData);
       return response.data;
     } catch (error) {
@@ -178,6 +195,11 @@ const userService = {
         bio: teacherData.bio,
         isActive: teacherData.isActive !== undefined ? teacherData.isActive : true
       };
+      
+      // Add password if provided
+      if (teacherData.password && teacherData.password.trim()) {
+        updateData.password = teacherData.password;
+      }
       
       const response = await axiosInstance.put(`/User/teacher-account/${teacherId}`, updateData);
       return response.data;

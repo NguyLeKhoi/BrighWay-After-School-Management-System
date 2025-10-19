@@ -132,6 +132,12 @@ const Form = ({
           />
         )}
         
+        {field.helperText && (
+          <div className={styles.helperText}>
+            {field.helperText}
+          </div>
+        )}
+        
         {error && (
           <div className={styles.errorMessage}>
             {error.message}
