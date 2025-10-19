@@ -3,6 +3,7 @@ import MainLayout from '../components/Layout/MainLayout';
 import AuthLayout from '../components/Layout/AuthLayout';
 import ParentLayout from '../components/Layout/ParentLayout';
 import AdminLayout from '../components/Layout/AdminLayout';
+import ManagerLayout from '../components/Layout/ManagerLayout';
 import TeacherLayout from '../components/Layout/TeacherLayout';
 
 // Main Pages
@@ -25,14 +26,18 @@ import Notifications from '../pages/parent/notifications';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
-import RoleManagement from '../pages/admin/roleManagement';
 import BranchManagement from '../pages/admin/branchManagement';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
-import UserManagement from '../pages/admin/userManagement';
+import StaffAndManagerManagement from '../pages/admin/staffAndManagerManagement';
 import CourseManagement from '../pages/admin/coursesManagement';
 import Reports from '../pages/admin/reports';
 import Settings from '../pages/admin/settings';
+
+// Manager Pages
+import ManagerDashboard from '../pages/manager/dashboard';
+import ManagerRoomManagement from '../pages/manager/roomManagement';
+import StaffAndTeacherManagement from '../pages/manager/staffAndTeacherManagement';
 
 // Teacher Pages
 import TeacherDashboard from '../pages/teacher/dashboard';
@@ -133,10 +138,6 @@ export const routes = createBrowserRouter([
         element: <AdminDashboard />,
       },
       {
-        path: 'roles',
-        element: <RoleManagement />,
-      },
-      {
         path: 'branches',
         element: <BranchManagement />,
       },
@@ -149,8 +150,8 @@ export const routes = createBrowserRouter([
         element: <RoomManagement />,
       },
       {
-        path: 'users',
-        element: <UserManagement />,
+        path: 'staffAndManager',
+        element: <StaffAndManagerManagement />,
       },
       {
         path: 'courses',
@@ -163,6 +164,30 @@ export const routes = createBrowserRouter([
       {
         path: 'settings',
         element: <Settings />,
+      },
+    ],
+  },
+  
+  // Manager Layout Routes (Manager Portal)
+  {
+    path: '/manager',
+    element: <ManagerLayout />,
+    children: [
+      {
+        index: true,
+        element: <ManagerDashboard />,
+      },
+      {
+        path: 'dashboard',
+        element: <ManagerDashboard />,
+      },
+      {
+        path: 'staffAndTeacher',
+        element: <StaffAndTeacherManagement />,
+      },
+      {
+        path: 'rooms',
+        element: <ManagerRoomManagement />,
       },
     ],
   },

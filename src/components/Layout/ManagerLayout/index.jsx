@@ -3,48 +3,40 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
-  Person as PersonIcon,
-  ChildCare as ChildIcon,
-  AccountBalanceWallet as WalletIcon,
-  School as BookIcon,
-  Notifications as BellIcon
+  Business as BranchIcon,
+  Room as FacilityIcon,
+  Person as UserIcon,
+  School as CoursesIcon,
+  Assessment as ReportsIcon,
+  Settings as SettingsIcon,
+  Dashboard as DashboardIcon,
+  MeetingRoom as RoomIcon
 } from '@mui/icons-material';
 
-const ParentLayout = () => {
+const ManagerLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     navigate('/login');
   };
 
   const menuItems = [
     {
-      path: '/parent/profile',
-      label: 'Hồ sơ',
-      icon: PersonIcon
+      path: '/manager/dashboard',
+      label: 'Dashboard',
+      icon: DashboardIcon
     },
     {
-      path: '/parent/children',
-      label: 'Con cái',
-      icon: ChildIcon
+      path: '/manager/staffAndTeacher',
+      label: 'Nhân Viên & Giáo Viên',
+      icon: UserIcon
     },
     {
-      path: '/parent/wallet',
-      label: 'Ví',
-      icon: WalletIcon
-    },
-    {
-      path: '/parent/courses',
-      label: 'Khóa học',
-      icon: BookIcon
-    },
-    {
-      path: '/parent/notifications',
-      label: 'Thông báo',
-      icon: BellIcon
+      path: '/manager/rooms',
+      label: 'Phòng Học',
+      icon: RoomIcon
     }
   ];
 
@@ -53,7 +45,7 @@ const ParentLayout = () => {
       {/* Generic Drawer */}
       <GenericDrawer
         title="BRIGHWAY"
-        subtitle="Parent Portal"
+        subtitle="Manager Portal"
         menuItems={menuItems}
         onLogout={handleLogout}
       />
@@ -74,4 +66,4 @@ const ParentLayout = () => {
   );
 };
 
-export default ParentLayout;
+export default ManagerLayout;

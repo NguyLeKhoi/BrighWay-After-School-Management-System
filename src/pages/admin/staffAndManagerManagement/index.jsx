@@ -15,7 +15,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -28,15 +30,15 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { createUserSchema, updateUserSchema } from '../../../utils/validationSchemas';
+import { createUserSchema, createUserByAdminSchema, updateUserSchema } from '../../../utils/validationSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
-import styles from './UserManagement.module.css';
+import styles from './staffAndManagerManagement.module.css';
 
-const UserManagement = () => {
+const StaffAndManagerManagement = () => {
   const [users, setUsers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -46,6 +48,8 @@ const UserManagement = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
+  const [keyword, setKeyword] = useState('');
+  const [selectedRole, setSelectedRole] = useState(null); // null = all, 1 = Manager, 0 = Staff
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
@@ -60,24 +64,49 @@ const UserManagement = () => {
     onConfirm: null
   });
 
-  // User creation confirmation dialog states
-  const [confirmCreateDialog, setConfirmCreateDialog] = useState({
-    open: false,
-    userData: null
-  });
+      // User creation confirmation dialog states
+      const [confirmCreateDialog, setConfirmCreateDialog] = useState({
+        open: false,
+        title: '',
+        description: '',
+        userData: null,
+        onConfirm: null
+      });
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
 
-  // Role options based on API documentation (0, 1, 2, 3, 4)
+  // Get current user role from context
+  const { user } = useApp();
+  const currentUserRole = user?.roles?.[0] || 'User';
+
+  // Filter API role mapping: 0=Admin, 1=Manager, 2=Staff, 3=Teacher, 4=User
+  const filterRoleMapping = {
+    0: 'Admin',
+    1: 'Manager',
+    2: 'Staff',
+    3: 'Teacher',
+    4: 'User'
+  };
+
+  // Admin manages Manager and Staff (API uses 1=Manager, 2=Staff)
   const roleOptions = [
-    { value: 0, label: 'Admin' },
     { value: 1, label: 'Manager' },
-    { value: 2, label: 'Staff' },
-    { value: 3, label: 'Parent' },
-    { value: 4, label: 'Student' }
+    { value: 2, label: 'Staff' }
   ];
+
+  // Map role string to number for form submission
+  const roleStringToNumber = (roleString) => {
+    switch (roleString) {
+      case 'Admin': return 0;
+      case 'Manager': return 1;
+      case 'Staff': return 2;
+      case 'Teacher': return 3;
+      case 'User': return 4;
+      default: return 0;
+    }
+  };
 
   // Define table columns
   const columns = [
@@ -118,18 +147,53 @@ const UserManagement = () => {
       )
     },
     {
-      key: 'role',
+      key: 'roles',
       header: 'Vai Trò',
       render: (value, item) => {
-        const roleName = roleOptions.find(role => role.value === value)?.label || 'Unknown';
+        // Handle both array format (from API) and single value format
+        let roles = [];
+        if (Array.isArray(value)) {
+          roles = value;
+        } else if (value !== undefined && value !== null) {
+          roles = [value];
+        }
+        
+        // Map role string to display name
+        const getRoleDisplayName = (roleString) => {
+          switch (roleString) {
+            case 'Admin': return 'Admin';
+            case 'Teacher': return 'Teacher';
+            case 'Staff': return 'Staff';
+            case 'Manager': return 'Manager';
+            case 'User': return 'User';
+            default: return roleString || 'Unknown';
+          }
+        };
+        
+        const getRoleColor = (roleString) => {
+          switch (roleString) {
+            case 'Admin': return 'error';
+            case 'Manager': return 'warning';
+            case 'Teacher': return 'success';
+            case 'Staff': return 'info';
+            case 'User': return 'primary';
+            default: return 'default';
+          }
+        };
+        
         return (
-          <Chip 
-            label={roleName} 
-            color="info" 
-            size="small"
-            variant="outlined"
-            icon={<RoleIcon fontSize="small" />}
-          />
+          <Box display="flex" flexWrap="wrap" gap={0.5}>
+            {roles.map((role, index) => (
+              <Chip 
+                key={index}
+                label={getRoleDisplayName(role)} 
+                color={getRoleColor(role)} 
+                size="small"
+                variant="outlined"
+                icon={<RoleIcon fontSize="small" />}
+              />
+            ))}
+          </Box>
         );
       }
     },
@@ -144,26 +208,52 @@ const UserManagement = () => {
     }
   ];
 
-  // Load users with pagination
+
+  // Load users with pagination, keyword search, and role filter
   const loadUsers = async () => {
     showLoading();
     setError(null);
     try {
-      const response = await userService.getUsersPaged({
-        page: page + 1, // Backend uses 1-based indexing
+      const params = {
+        pageIndex: page + 1, // Backend uses 1-based indexing
         pageSize: rowsPerPage
-      });
+      };
+      
+      // Add keyword if provided
+      if (keyword.trim()) {
+        params.Keyword = keyword.trim();
+      }
+      
+      // Don't send role filter to API - filter on frontend instead
+      const response = await userService.getUsersPaged(params);
       
       // Handle both paginated and non-paginated responses
+      let allUsers = [];
       if (response.items) {
         // Paginated response
-        setUsers(response.items);
+        allUsers = response.items;
         setTotalCount(response.totalCount || response.items.length);
       } else {
         // Non-paginated response (fallback)
-        setUsers(response);
+        allUsers = response;
         setTotalCount(response.length);
       }
+      
+      // Apply frontend filtering for Manager and Staff only
+      let filteredUsers = allUsers.filter(user => {
+        if (!user.roles || !Array.isArray(user.roles)) return false;
+        return user.roles.some(role => role === 'Manager' || role === 'Staff');
+      });
+      
+      // Apply role filter if selected
+      if (selectedRole !== null) {
+        const targetRole = filterRoleMapping[selectedRole];
+        filteredUsers = filteredUsers.filter(user => 
+          user.roles && user.roles.includes(targetRole)
+        );
+      }
+      
+      setUsers(filteredUsers);
     } catch (err) {
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
       setError(errorMessage);
@@ -173,16 +263,46 @@ const UserManagement = () => {
     }
   };
 
-  // Load users when page or rowsPerPage changes
+  // Load users when component mounts
+  useEffect(() => {
+    setSearchResult(null); // Clear any existing search result
+    loadUsers();
+  }, []);
+
+  // Load users when page, rowsPerPage, or selectedRole changes
   useEffect(() => {
     loadUsers();
-  }, [page, rowsPerPage]);
+  }, [page, rowsPerPage, selectedRole]);
 
-  // Use search result if available, otherwise use paginated users
+  // Use search result if available, otherwise use loaded users (already filtered)
   const displayUsers = searchResult ? [searchResult] : users;
   const paginatedUsers = displayUsers;
+  
 
   // Event handlers
+  const handleKeywordSearch = () => {
+    setPage(0); // Reset to first page when searching
+    setSearchResult(null); // Clear search result
+    loadUsers(); // Trigger search with current keyword
+  };
+
+  const handleKeywordChange = (e) => {
+    setKeyword(e.target.value);
+    // If keyword is cleared, reset search immediately
+    if (e.target.value.trim() === '') {
+      setPage(0);
+      setSearchResult(null);
+      loadUsers();
+    }
+  };
+
+  const handleRoleFilter = (role) => {
+    setSelectedRole(role);
+    setPage(0); // Reset to first page when filtering
+    setSearchResult(null); // Clear search result
+  };
+
+
   const handleSearchById = async () => {
     if (!searchId.trim()) {
       setSearchResult(null);
@@ -191,8 +311,17 @@ const UserManagement = () => {
 
     setSearchLoading(true);
     try {
+      // First get basic user info
       const result = await userService.getUserById(searchId.trim());
-      setSearchResult(result);
+      
+      // If it's a teacher, get expanded details
+      if (result.roles && result.roles.includes('Teacher')) {
+        const expandedResult = await userService.getUserById(searchId.trim(), true);
+        setSearchResult(expandedResult);
+      } else {
+        setSearchResult(result);
+      }
+      
       setPage(0);
       
       toast.success(`Tìm thấy người dùng: ${result.fullName}`, {
@@ -213,15 +342,6 @@ const UserManagement = () => {
     }
   };
 
-  const handleClearSearch = () => {
-    setSearchId('');
-    setSearchResult(null);
-    setPage(0);
-  };
-
-  const handleSearchIdChange = (event) => {
-    setSearchId(event.target.value);
-  };
 
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
@@ -238,9 +358,32 @@ const UserManagement = () => {
     setOpenDialog(true);
   };
 
-  const handleEditUser = (user) => {
+  const handleEditUser = async (user) => {
     setDialogMode('edit');
-    setSelectedUser(user);
+    
+    // Check if user is a teacher and fetch expanded details
+    if (user.roles && user.roles.includes('Teacher')) {
+      setActionLoading(true);
+      try {
+        const expandedUser = await userService.getUserById(user.id, true);
+        setSelectedUser(expandedUser);
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi lấy thông tin người dùng';
+        setError(errorMessage);
+        showGlobalError(errorMessage);
+        toast.error(errorMessage, {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        setActionLoading(false);
+        return;
+      } finally {
+        setActionLoading(false);
+      }
+    } else {
+      setSelectedUser(user);
+    }
+    
     setOpenDialog(true);
   };
 
@@ -260,19 +403,8 @@ const UserManagement = () => {
     try {
       await userService.deleteUser(userId);
       
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setUsers(response);
-        setTotalCount(response.length);
-      }
+      // Reload data with proper filtering
+      await loadUsers();
       
       toast.success(`Xóa người dùng thành công!`, {
         position: "top-right",
@@ -293,10 +425,14 @@ const UserManagement = () => {
 
   const handleFormSubmit = async (data) => {
     if (dialogMode === 'create') {
-      // Show confirmation dialog for creating user
+      // Show confirmation dialog for creating user with detailed information
+      const roleLabel = roleOptions.find(role => role.value === data.role)?.label || 'Unknown';
       setConfirmCreateDialog({
         open: true,
-        userData: data
+        title: 'Xác nhận Tạo Tài Khoản',
+        description: `Vui lòng kiểm tra lại thông tin trước khi tạo tài khoản:`,
+        userData: data,
+        onConfirm: () => handleConfirmCreate(data)
       });
     } else {
       // Direct update for editing user
@@ -304,15 +440,18 @@ const UserManagement = () => {
     }
   };
 
-  const handleConfirmCreate = async () => {
+  const handleConfirmCreate = async (userData) => {
     setConfirmCreateDialog(prev => ({ ...prev, open: false }));
-    await performCreateUser(confirmCreateDialog.userData);
+    await performCreateUser(userData);
   };
 
   const handleCancelCreate = () => {
     setConfirmCreateDialog({
       open: false,
-      userData: null
+      title: '',
+      description: '',
+      userData: null,
+      onConfirm: null
     });
   };
 
@@ -326,19 +465,8 @@ const UserManagement = () => {
         autoClose: 3000,
       });
       
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setUsers(response);
-        setTotalCount(response.length);
-      }
+      // Reload data with proper filtering
+      await loadUsers();
       
       setOpenDialog(false);
     } catch (err) {
@@ -364,19 +492,8 @@ const UserManagement = () => {
         autoClose: 3000,
       });
       
-      // Reload data without showing loading page
-      const response = await userService.getUsersPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setUsers(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setUsers(response);
-        setTotalCount(response.length);
-      }
+      // Reload data with proper filtering
+      await loadUsers();
       
       setOpenDialog(false);
     } catch (err) {
@@ -398,7 +515,7 @@ const UserManagement = () => {
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.title}>
-          Quản lý Người Dùng
+          Quản lý Nhân Viên
         </h1>
         <Button
           variant="contained"
@@ -410,37 +527,52 @@ const UserManagement = () => {
         </Button>
       </div>
 
-      {/* Search by ID */}
+
+      {/* Search and Filter Section */}
       <Paper className={styles.searchSection}>
         <div className={styles.searchContainer}>
+          {/* Keyword Search */}
           <TextField
-            placeholder="Nhập ID người dùng để tìm kiếm..."
-            value={searchId}
-            onChange={handleSearchIdChange}
+            placeholder="Tìm kiếm theo tên, email..."
+            value={keyword}
+            onChange={handleKeywordChange}
             className={styles.searchField}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                handleSearchById();
+                handleKeywordSearch();
               }
             }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
           />
+          
+          {/* Role Filter Select */}
+          <FormControl className={styles.roleSelect}>
+            <Select
+              value={selectedRole === null ? '' : selectedRole}
+              onChange={(e) => handleRoleFilter(e.target.value === '' ? null : e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="">
+                <em>Tất cả vai trò</em>
+              </MenuItem>
+              <MenuItem value={1}>Manager</MenuItem>
+              <MenuItem value={0}>Staff</MenuItem>
+            </Select>
+          </FormControl>
+          
           <Button
             variant="contained"
-            onClick={handleSearchById}
-            disabled={!searchId.trim() || searchLoading}
+            onClick={handleKeywordSearch}
             className={styles.searchButton}
           >
-            {searchLoading ? 'Đang tìm...' : 'Tìm theo ID'}
+            Tìm kiếm
           </Button>
-          {searchResult && (
-            <Button
-              variant="outlined"
-              onClick={handleClearSearch}
-              className={styles.clearButton}
-            >
-              Xóa tìm kiếm
-            </Button>
-          )}
         </div>
       </Paper>
 
@@ -473,24 +605,32 @@ const UserManagement = () => {
         onClose={() => !actionLoading && setOpenDialog(false)} 
         maxWidth="sm" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle className={styles.dialogTitle}>
-          <span className={styles.dialogTitleText}>
+        <DialogTitle 
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            padding: '16px 24px'
+          }}
+        >
+          <PersonIcon />
+          <span>
             {dialogMode === 'create' ? 'Tạo Tài Khoản Mới' : 'Chỉnh sửa Thông Tin Người Dùng'}
           </span>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
-          {dialogMode === 'edit' && (
-            <Alert severity="info" style={{ marginBottom: '16px' }}>
-              <span>
-                <strong>Lưu ý:</strong> Chỉ có thể cập nhật <strong>Họ và Tên</strong> và <strong>Số Điện Thoại</strong>. 
-                Email và Vai trò không thể thay đổi sau khi tạo tài khoản.
-              </span>
-            </Alert>
-          )}
           <div style={{ paddingTop: '8px' }}>
             <Form
-              schema={dialogMode === 'create' ? createUserSchema : updateUserSchema}
+              schema={dialogMode === 'create' ? createUserByAdminSchema : updateUserSchema}
               defaultValues={{
                 fullName: selectedUser?.fullName || '',
                 ...(dialogMode === 'create' ? {
@@ -499,7 +639,11 @@ const UserManagement = () => {
                   password: '',
                   role: selectedUser?.role || 0
                 } : {
-                  phoneNumber: selectedUser?.phoneNumber || ''
+                  email: selectedUser?.email || '',
+                  phoneNumber: selectedUser?.phoneNumber || '',
+                  changeRoleTo: roleStringToNumber(selectedUser?.roles?.[0]) || 0,
+                  password: '',
+                  isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
                 })
               }}
               onSubmit={handleFormSubmit}
@@ -513,7 +657,8 @@ const UserManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: Nguyễn Văn A',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'email', 
@@ -521,7 +666,8 @@ const UserManagement = () => {
                   type: 'email', 
                   required: true, 
                   placeholder: 'Ví dụ: email@example.com',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'phoneNumber', 
@@ -529,7 +675,8 @@ const UserManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'password', 
@@ -537,7 +684,8 @@ const UserManagement = () => {
                   type: 'password', 
                   required: true, 
                   placeholder: 'Nhập mật khẩu cho người dùng',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'role', 
@@ -545,7 +693,8 @@ const UserManagement = () => {
                   type: 'select', 
                   required: true, 
                   options: roleOptions,
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 12
                 }
               ] : [
                 { 
@@ -554,7 +703,17 @@ const UserManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: Nguyễn Văn A',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'email', 
+                  label: 'Email', 
+                  type: 'email', 
+                  required: true, 
+                  placeholder: 'Ví dụ: email@example.com',
+                  disabled: actionLoading,
+                  gridSize: 6
                 },
                 { 
                   name: 'phoneNumber', 
@@ -562,7 +721,36 @@ const UserManagement = () => {
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'changeRoleTo', 
+                  label: 'Vai Trò', 
+                  type: 'select', 
+                  required: true, 
+                  options: roleOptions,
+                  disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'password', 
+                  label: 'Mật Khẩu Mới', 
+                  type: 'password', 
+                  required: false,
+                  placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
+                  disabled: actionLoading,
+                  gridSize: 6,
+                  helperText: 'Lưu ý: Mật khẩu sẽ được thay đổi ngay lập tức, không cần xác nhận từ người dùng'
+                },
+                { 
+                  name: 'isActive', 
+                  label: 'Trạng Thái', 
+                  type: 'switch', 
+                  switchLabel: 'Hoạt động',
+                  required: true, 
+                  disabled: actionLoading,
+                  gridSize: 12
                 }
               ]}
             />
@@ -596,14 +784,27 @@ const UserManagement = () => {
         onClose={handleCancelCreate} 
         maxWidth="md" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <PersonIcon color="primary" />
-            <Typography variant="h6" component="span">
-              Xác nhận tạo tài khoản
-            </Typography>
-          </Box>
+        <DialogTitle
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            padding: '16px 24px'
+          }}
+        >
+          <PersonIcon sx={{ color: 'white' }} />
+          <Typography variant="h6" component="span" sx={{ color: 'white' }}>
+            {confirmCreateDialog.title}
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -652,7 +853,7 @@ const UserManagement = () => {
                   </Typography>
                   <Chip 
                     label={roleOptions.find(role => role.value === confirmCreateDialog.userData.role)?.label || 'Unknown'}
-                    color="primary" 
+                    color={confirmCreateDialog.userData.role === 1 ? 'warning' : 'info'} 
                     size="small"
                     variant="outlined"
                     icon={<RoleIcon fontSize="small" />}
@@ -691,7 +892,7 @@ const UserManagement = () => {
             Hủy
           </Button>
           <Button 
-            onClick={handleConfirmCreate}
+            onClick={confirmCreateDialog.onConfirm}
             variant="contained"
             color="primary"
             disabled={actionLoading}
@@ -706,4 +907,4 @@ const UserManagement = () => {
   );
 };
 
-export default UserManagement;
+export default StaffAndManagerManagement;

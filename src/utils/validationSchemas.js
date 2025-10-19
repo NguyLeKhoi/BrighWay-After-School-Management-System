@@ -1,19 +1,5 @@
 import * as yup from 'yup';
 
-// Role validation schema
-export const roleSchema = yup.object({
-  name: yup
-    .string()
-    .required('Tên role là bắt buộc')
-    .min(2, 'Tên role phải có ít nhất 2 ký tự')
-    .max(50, 'Tên role không được quá 50 ký tự')
-    .matches(/^[a-zA-Z0-9\s]+$/, 'Tên role chỉ được chứa chữ cái, số và khoảng trắng'),
-  description: yup
-    .string()
-    .max(200, 'Mô tả không được quá 200 ký tự')
-    .nullable()
-});
-
 // Login validation schema
 export const loginSchema = yup.object({
   email: yup
@@ -146,10 +132,39 @@ export const createUserSchema = yup.object({
   role: yup
     .number()
     .required('Vai trò là bắt buộc')
-    .oneOf([0, 1, 2, 3, 4], 'Vai trò không hợp lệ')
+    .oneOf([0, 1], 'Vai trò không hợp lệ (chỉ cho phép Staff hoặc Teacher)')
 });
 
-// User validation schema for updating existing user (only fullName and phoneNumber)
+// User validation schema for admin creating Manager and Staff accounts
+export const createUserByAdminSchema = yup.object({
+  fullName: yup
+    .string()
+    .required('Họ và tên là bắt buộc')
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự')
+    .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ'),
+  phoneNumber: yup
+    .string()
+    .required('Số điện thoại là bắt buộc')
+    .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
+    .min(10, 'Số điện thoại phải có ít nhất 10 số')
+    .max(15, 'Số điện thoại không được quá 15 số'),
+  password: yup
+    .string()
+    .required('Mật khẩu là bắt buộc')
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(50, 'Mật khẩu không được quá 50 ký tự'),
+  role: yup
+    .number()
+    .required('Vai trò là bắt buộc')
+    .oneOf([1, 2], 'Vai trò không hợp lệ (chỉ cho phép Manager hoặc Staff)')
+});
+
+// User validation schema for updating existing user (Admin updates Manager/Staff)
 export const updateUserSchema = yup.object({
   fullName: yup
     .string()
@@ -157,16 +172,81 @@ export const updateUserSchema = yup.object({
     .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
     .max(100, 'Họ và tên không được quá 100 ký tự')
     .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ'),
   phoneNumber: yup
     .string()
     .required('Số điện thoại là bắt buộc')
     .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
     .min(10, 'Số điện thoại phải có ít nhất 10 số')
-    .max(15, 'Số điện thoại không được quá 15 số')
+    .max(15, 'Số điện thoại không được quá 15 số'),
+  changeRoleTo: yup
+    .number()
+    .required('Vai trò là bắt buộc')
+    .oneOf([1, 2], 'Vai trò không hợp lệ (chỉ cho phép Manager hoặc Staff)'),
+  isActive: yup
+    .boolean()
+    .default(true),
+  password: yup
+    .string()
+    .optional()
+    .test('password-length', 'Mật khẩu phải có ít nhất 6 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length >= 6;
+    })
+    .test('password-max', 'Mật khẩu không được quá 50 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length <= 50;
+    })
+});
+
+// Manager update validation schema (for Manager updating Staff/Teacher)
+export const updateManagerUserSchema = yup.object({
+  fullName: yup
+    .string()
+    .required('Họ và tên là bắt buộc')
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự')
+    .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ'),
+  phoneNumber: yup
+    .string()
+    .required('Số điện thoại là bắt buộc')
+    .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
+    .min(10, 'Số điện thoại phải có ít nhất 10 số')
+    .max(15, 'Số điện thoại không được quá 15 số'),
+  changeRoleTo: yup
+    .number()
+    .required('Vai trò là bắt buộc')
+    .oneOf([2, 3], 'Vai trò không hợp lệ (chỉ cho phép Staff hoặc Teacher)'),
+  isActive: yup
+    .boolean()
+    .default(true),
+  password: yup
+    .string()
+    .optional()
+    .test('password-length', 'Mật khẩu phải có ít nhất 6 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length >= 6;
+    })
+    .test('password-max', 'Mật khẩu không được quá 50 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length <= 50;
+    })
 });
 
 // Room validation schema
 export const roomSchema = yup.object({
+  roomName: yup
+    .string()
+    .required('Tên phòng là bắt buộc')
+    .min(2, 'Tên phòng phải có ít nhất 2 ký tự')
+    .max(100, 'Tên phòng không được quá 100 ký tự'),
   facilityId: yup
     .string()
     .required('Cơ sở vật chất là bắt buộc'),
@@ -179,6 +259,119 @@ export const roomSchema = yup.object({
     .min(1, 'Sức chứa phải lớn hơn 0')
     .max(1000, 'Sức chứa không được quá 1000')
     .integer('Sức chứa phải là số nguyên')
+});
+
+// Teacher account validation schema (for creating teacher with profile)
+export const createTeacherAccountSchema = yup.object({
+  user: yup.object({
+    fullName: yup
+      .string()
+      .required('Họ và tên là bắt buộc')
+      .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+      .max(100, 'Họ và tên không được quá 100 ký tự')
+      .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
+    email: yup
+      .string()
+      .required('Email là bắt buộc')
+      .email('Email không hợp lệ'),
+    phoneNumber: yup
+      .string()
+      .required('Số điện thoại là bắt buộc')
+      .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
+      .min(10, 'Số điện thoại phải có ít nhất 10 số')
+      .max(15, 'Số điện thoại không được quá 15 số'),
+    password: yup
+      .string()
+      .required('Mật khẩu là bắt buộc')
+      .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+      .max(50, 'Mật khẩu không được quá 50 ký tự')
+  }),
+  profile: yup.object({
+    teacherName: yup
+      .string()
+      .required('Tên giáo viên là bắt buộc')
+      .min(2, 'Tên giáo viên phải có ít nhất 2 ký tự')
+      .max(100, 'Tên giáo viên không được quá 100 ký tự')
+      .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Tên giáo viên chỉ được chứa chữ cái và khoảng trắng'),
+    specialization: yup
+      .string()
+      .required('Chuyên môn là bắt buộc')
+      .min(2, 'Chuyên môn phải có ít nhất 2 ký tự')
+      .max(100, 'Chuyên môn không được quá 100 ký tự'),
+    experienceYears: yup
+      .number()
+      .required('Số năm kinh nghiệm là bắt buộc')
+      .min(0, 'Số năm kinh nghiệm không được âm')
+      .max(50, 'Số năm kinh nghiệm không được quá 50 năm')
+      .integer('Số năm kinh nghiệm phải là số nguyên')
+      .typeError('Số năm kinh nghiệm phải là số'),
+    qualifications: yup
+      .string()
+      .required('Bằng cấp là bắt buộc')
+      .min(2, 'Bằng cấp phải có ít nhất 2 ký tự')
+      .max(200, 'Bằng cấp không được quá 200 ký tự'),
+    bio: yup
+      .string()
+      .required('Tiểu sử là bắt buộc')
+      .min(10, 'Tiểu sử phải có ít nhất 10 ký tự')
+      .max(500, 'Tiểu sử không được quá 500 ký tự')
+  })
+});
+
+// Teacher account update validation schema (for updating teacher with profile)
+export const updateTeacherAccountSchema = yup.object({
+  fullName: yup
+    .string()
+    .required('Họ và tên là bắt buộc')
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự')
+    .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ'),
+  phoneNumber: yup
+    .string()
+    .required('Số điện thoại là bắt buộc')
+    .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
+    .min(10, 'Số điện thoại phải có ít nhất 10 số')
+    .max(15, 'Số điện thoại không được quá 15 số'),
+  specialization: yup
+    .string()
+    .required('Chuyên môn là bắt buộc')
+    .min(2, 'Chuyên môn phải có ít nhất 2 ký tự')
+    .max(100, 'Chuyên môn không được quá 100 ký tự'),
+  experienceYears: yup
+    .number()
+    .required('Số năm kinh nghiệm là bắt buộc')
+    .min(0, 'Số năm kinh nghiệm không được âm')
+    .max(50, 'Số năm kinh nghiệm không được quá 50 năm')
+    .integer('Số năm kinh nghiệm phải là số nguyên')
+    .typeError('Số năm kinh nghiệm phải là số'),
+  qualifications: yup
+    .string()
+    .required('Bằng cấp là bắt buộc')
+    .min(2, 'Bằng cấp phải có ít nhất 2 ký tự')
+    .max(200, 'Bằng cấp không được quá 200 ký tự'),
+  bio: yup
+    .string()
+    .required('Tiểu sử là bắt buộc')
+    .min(10, 'Tiểu sử phải có ít nhất 10 ký tự')
+    .max(500, 'Tiểu sử không được quá 500 ký tự'),
+  isActive: yup
+    .boolean()
+    .default(true),
+  password: yup
+    .string()
+    .optional()
+    .test('password-length', 'Mật khẩu phải có ít nhất 6 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length >= 6;
+    })
+    .test('password-max', 'Mật khẩu không được quá 50 ký tự', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      return value.length <= 50;
+    })
 });
 
 // Generic validation helpers

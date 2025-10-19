@@ -357,6 +357,12 @@ const FacilityManagement = () => {
         onClose={() => !actionLoading && setOpenDialog(false)} 
         maxWidth="sm" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
         <DialogTitle className={styles.dialogTitle}>
           <span className={styles.dialogTitleText}>

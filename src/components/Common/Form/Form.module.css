@@ -4,6 +4,13 @@
   gap: 24px;
 }
 
+.helperText {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 .errorMessage {
   background: #fee;
   color: #c53030;
