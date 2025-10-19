@@ -1,0 +1,300 @@
+/* Courses Management Styles */
+.coursesPage {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 20px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 30px;
+  text-align: center;
+}
+
+.tabContainer {
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #666;
+}
+
+.tab.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.tab:hover:not(.active) {
+  background-color: #f8f9fa;
+}
+
+.coursesSection {
+  margin-bottom: 30px;
+}
+
+.coursesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.courseCard,
+.availableCourseCard {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.courseCard:hover,
+.availableCourseCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.courseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.courseName {
+  font-size: 20px;
+  font-weight: 600;
+  color: #000;
+  margin: 0;
+  flex: 1;
+  margin-right: 15px;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusBadge.active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.statusBadge.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.priceTag {
+  background-color: #007bff;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.courseDescription {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.courseInfo {
+  margin-bottom: 20px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 4px 0;
+}
+
+.infoRow:last-child {
+  margin-bottom: 0;
+}
+
+.infoLabel {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.infoValue {
+  font-size: 14px;
+  color: #000;
+  font-weight: 500;
+}
+
+.courseActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.viewScheduleButton,
+.registerButton {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.viewScheduleButton:hover,
+.registerButton:hover {
+  background-color: #0056b3;
+}
+
+.cancelRegistrationButton {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.cancelRegistrationButton:hover {
+  background-color: #c82333;
+}
+
+.detailsButton {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.detailsButton:hover {
+  background-color: #5a6268;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.emptyIcon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.emptyState h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 10px;
+}
+
+.emptyState p {
+  color: #666;
+  font-size: 16px;
+  margin: 0 0 30px;
+}
+
+.browseButton {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.browseButton:hover {
+  background-color: #0056b3;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+  
+  .coursesGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .courseHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .courseName {
+    margin-right: 0;
+  }
+  
+  .courseActions {
+    flex-direction: column;
+  }
+  
+  .courseCard,
+  .availableCourseCard {
+    padding: 20px;
+  }
+  
+  .tabContainer {
+    flex-direction: column;
+  }
+  
+  .tab {
+    text-align: center;
+  }
+}

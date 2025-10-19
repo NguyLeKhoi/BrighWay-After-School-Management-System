@@ -1,0 +1,240 @@
+/* Content Loading Styles - Same as Loading.module.css */
+.loadingContainer {
+  text-align: center;
+  color: #333333;
+  max-width: 400px;
+  width: 100%;
+  padding: 2rem;
+}
+
+/* Logo Styles */
+.logoContainer {
+  margin-bottom: 3rem;
+}
+
+.logo {
+  display: inline-block;
+  margin-bottom: 1rem;
+  animation: pulse 2s infinite;
+}
+
+.logoIcon {
+  width: 80px;
+  height: 80px;
+  background: #f8f9fa;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333333;
+  margin: 0 auto;
+  border: 2px solid #e9ecef;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.logoText {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #333333;
+  letter-spacing: 2px;
+}
+
+/* Loading Animation */
+.loadingAnimation {
+  margin-bottom: 2rem;
+}
+
+.spinner {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+}
+
+.spinnerRing {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1.5s linear infinite;
+}
+
+.spinnerRing:nth-child(2) {
+  width: 60px;
+  height: 60px;
+  top: 10px;
+  left: 10px;
+  border-top-color: #764ba2;
+  animation-duration: 1.2s;
+  animation-direction: reverse;
+}
+
+.spinnerRing:nth-child(3) {
+  width: 40px;
+  height: 40px;
+  top: 20px;
+  left: 20px;
+  border-top-color: #667eea;
+  animation-duration: 0.9s;
+}
+
+/* Loading Text */
+.loadingText {
+  margin-bottom: 2rem;
+}
+
+.loadingTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #333333;
+}
+
+.loadingSubtitle {
+  font-size: 1rem;
+  margin: 0;
+  opacity: 0.7;
+  font-weight: 300;
+  color: #666666;
+}
+
+/* Dots Animation */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #667eea;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .loadingContainer {
+    padding: 1.5rem;
+    max-width: 300px;
+  }
+  
+  .logoIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+  
+  .logoText {
+    font-size: 1.5rem;
+  }
+  
+  .spinner {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .spinnerRing:nth-child(2) {
+    width: 45px;
+    height: 45px;
+    top: 7.5px;
+    left: 7.5px;
+  }
+  
+  .spinnerRing:nth-child(3) {
+    width: 30px;
+    height: 30px;
+    top: 15px;
+    left: 15px;
+  }
+  
+  .loadingTitle {
+    font-size: 1.25rem;
+  }
+  
+  .loadingSubtitle {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .loadingContainer {
+    padding: 1rem;
+    max-width: 250px;
+  }
+  
+  .logoIcon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.75rem;
+  }
+  
+  .logoText {
+    font-size: 1.25rem;
+  }
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .spinnerRing:nth-child(2) {
+    width: 37.5px;
+    height: 37.5px;
+    top: 6.25px;
+    left: 6.25px;
+  }
+  
+  .spinnerRing:nth-child(3) {
+    width: 25px;
+    height: 25px;
+    top: 12.5px;
+    left: 12.5px;
+  }
+}

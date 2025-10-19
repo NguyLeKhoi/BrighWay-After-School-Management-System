@@ -1,0 +1,266 @@
+/* Room Management Page Styles */
+.container {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0;
+}
+
+.addButton {
+  background-color: #1976d2;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.addButton:hover {
+  background-color: #1565c0;
+}
+
+/* Filter Section */
+.filterSection {
+  padding: 16px;
+  margin-bottom: 24px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Combined Search and Filter Section */
+.searchAndFilterSection {
+  padding: 16px;
+  margin-bottom: 24px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.searchAndFilterGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto; /* Search field (2fr), Facility (1fr), Branch (1fr), Clear button (auto) */
+  gap: 16px;
+  align-items: end; /* Align items to the bottom */
+}
+
+/* Search Field (re-using existing styles for the TextField itself) */
+.searchField .MuiOutlinedInput-root {
+  border-radius: 8px;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.searchField .MuiOutlinedInput-root:hover {
+  background-color: #f0f0f0;
+}
+
+.searchField .MuiOutlinedInput-root.Mui-focused {
+  background-color: white;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.filterGroupItem {
+  /* No specific styles needed here for now, just a container */
+}
+
+.filterLabel {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.filterButton {
+  min-height: 40px; /* Ensure button height matches select/text fields */
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterLabel {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.formControl {
+  min-width: 180px;
+}
+
+.searchField {
+  min-width: 180px;
+}
+
+.filterButton {
+  background-color: #1976d2;
+  color: white;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.filterButton:hover {
+  background-color: #1565c0;
+}
+
+.filterButton:disabled {
+  background-color: #e0e0e0;
+  color: #9e9e9e;
+}
+
+/* Error Alert */
+.errorAlert {
+  margin-bottom: 24px;
+}
+
+/* Data Table Container */
+.tableContainer {
+  position: relative;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Dialog Styles */
+.dialogTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.dialogTitleText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+}
+
+.dialogContent {
+  padding: 24px;
+}
+
+.dialogActions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Table Cell Styles */
+.facilityCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.facilityIcon {
+  color: #1976d2;
+}
+
+.facilityName {
+  font-weight: 500;
+  color: #333;
+}
+
+.capacityText {
+  color: #666;
+}
+
+.actionsCell {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  padding: 4px;
+}
+
+.actionButton.edit {
+  color: #1976d2;
+}
+
+.actionButton.edit:hover {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+.actionButton.delete {
+  color: #d32f2f;
+}
+
+.actionButton.delete:hover {
+  background-color: rgba(211, 47, 47, 0.08);
+}
+
+/* Loading States */
+.loadingContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(245, 245, 245, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Responsive Design */
+@media (max-width: 960px) { /* Adjust breakpoint for 3 columns */
+  .searchAndFilterGrid {
+    grid-template-columns: 1fr 1fr auto; /* Search, one select, other select, clear button */
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .searchAndFilterGrid {
+    grid-template-columns: 1fr; /* Stack all items */
+    gap: 12px;
+  }
+  .filterButton {
+    width: 100%; /* Full width button */
+  }
+  
+  .formControl,
+  .searchField {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.5rem;
+  }
+  
+  .filterContainer {
+    gap: 12px;
+  }
+}
