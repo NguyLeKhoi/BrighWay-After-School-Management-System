@@ -48,12 +48,15 @@ const Login = () => {
       if (role === 'Admin' || role === 0) {
         console.log('➡️ Redirecting to Admin dashboard...');
         navigate('/admin/dashboard');
-      } else if (role === 'Manager' || role === 3) {
+      } else if (role === 'Manager' || role === 1) {
         console.log('➡️ Redirecting to Manager dashboard...');
         navigate('/manager/dashboard');
-      } else if (role === 'Teacher' || role === 1) {
+      } else if (role === 'Teacher' || role === 3) {
         console.log('➡️ Redirecting to Teacher dashboard...');
         navigate('/teacher/dashboard');
+      } else if (role === 'Staff' || role === 2) {
+        console.log('➡️ Redirecting to Staff users...');
+        navigate('/staff/users');
       } else {
         console.log('➡️ Redirecting to Parent profile...');
         navigate('/parent/profile');

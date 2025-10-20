@@ -5,6 +5,7 @@ import ParentLayout from '../components/Layout/ParentLayout';
 import AdminLayout from '../components/Layout/AdminLayout';
 import ManagerLayout from '../components/Layout/ManagerLayout';
 import TeacherLayout from '../components/Layout/TeacherLayout';
+import StaffLayout from '../components/Layout/StaffLayout';
 
 // Main Pages
 import Homepage from '../pages/main/Homepage';
@@ -47,6 +48,10 @@ import PerformanceReviews from '../pages/teacher/performance';
 import TeacherSchedule from '../pages/teacher/schedule';
 import StudentRoster from '../pages/teacher/students';
 import TeacherMaterials from '../pages/teacher/materials';
+
+// Staff Pages
+import StaffDashboard from '../pages/staff/dashboard';
+import UserManagement from '../pages/staff/userManagement';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -228,6 +233,22 @@ export const routes = createBrowserRouter([
       {
         path: 'materials',
         element: <TeacherMaterials />,
+      },
+    ],
+  },
+  
+  // Staff Layout Routes (Staff Portal)
+  {
+    path: '/staff',
+    element: <StaffLayout />,
+    children: [
+      {
+        index: true,
+        element: <UserManagement />,
+      },
+      {
+        path: 'users',
+        element: <UserManagement />,
       },
     ],
   },
