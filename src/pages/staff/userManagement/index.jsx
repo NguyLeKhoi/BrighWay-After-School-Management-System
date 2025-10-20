@@ -272,7 +272,8 @@ const UserManagement = () => {
 
     setSearchLoading(true);
     try {
-      const result = await userService.getUserById(searchId.trim());
+      // Get expanded user details with family and parent information
+      const result = await userService.getUserById(searchId.trim(), true);
       
       // Check if it's a User role
       if (result.roles && result.roles.includes('User')) {
@@ -317,15 +318,40 @@ const UserManagement = () => {
 
   const handleEditUser = async (user) => {
     setDialogMode('editFamily');
-    setSelectedUser(user);
-    setOpenDialog(true);
+    setActionLoading(true);
+    
+    try {
+      // Get expanded user details with family and parent information
+      const expandedUser = await userService.getUserById(user.id, true);
+      console.log('🔍 Expanded User Data:', expandedUser);
+      console.log('🔍 User fields:', {
+        user: expandedUser?.user,
+        fullName: expandedUser?.user?.fullName || expandedUser?.fullName,
+        email: expandedUser?.user?.email || expandedUser?.email,
+        phoneNumber: expandedUser?.user?.phoneNumber || expandedUser?.phoneNumber,
+        family: expandedUser?.family,
+        parents: expandedUser?.parents
+      });
+      setSelectedUser(expandedUser);
+      setOpenDialog(true);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi lấy thông tin người dùng';
+      setError(errorMessage);
+      showGlobalError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleDeleteUser = (user) => {
     setConfirmDialog({
       open: true,
-      title: 'Xác nhận xóa người dùng',
-      description: `Bạn có chắc chắn muốn xóa người dùng "${user.fullName}"? Hành động này không thể hoàn tác.`,
+      title: 'Xác nhận xóa tài khoản gia đình',
+      description: `Bạn có chắc chắn muốn xóa tài khoản gia đình "${user.fullName}"? Hành động này không thể hoàn tác.`,
       onConfirm: () => performDeleteUser(user.id)
     });
   };
@@ -335,12 +361,17 @@ const UserManagement = () => {
     setActionLoading(true);
     
     try {
-      // Note: This would need to be implemented in the backend
-      // For now, we'll show a message that this feature is not available
-      toast.error('Chức năng xóa tài khoản User chưa được hỗ trợ', {
+      // Call the delete family account service
+      await userService.deleteFamilyAccount(userId);
+      
+      toast.success('Xóa tài khoản gia đình thành công!', {
         position: "top-right",
-        autoClose: 4000,
+        autoClose: 3000,
       });
+      
+      // Reload the user list
+      await loadUsers();
+      
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa người dùng';
       setError(errorMessage);
@@ -598,9 +629,9 @@ const UserManagement = () => {
                 loading={actionLoading}
                 defaultValues={{
                   user: {
-                    fullName: selectedUser?.fullName || '',
-                    email: selectedUser?.email || '',
-                    phoneNumber: selectedUser?.phoneNumber || '',
+                    fullName: selectedUser?.user?.fullName || selectedUser?.fullName || '',
+                    email: selectedUser?.user?.email || selectedUser?.email || '',
+                    phoneNumber: selectedUser?.user?.phoneNumber || selectedUser?.phoneNumber || '',
                     password: ''
                   },
                   family: {

@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Alert,
   Chip,
   FormControl,
@@ -314,8 +313,10 @@ const StaffAndManagerManagement = () => {
       // First get basic user info
       const result = await userService.getUserById(searchId.trim());
       
-      // If it's a teacher, get expanded details
-      if (result.roles && result.roles.includes('Teacher')) {
+      // Check if user is teacher or user role for expanded details
+      const isTeacherOrUser = result.roles && (result.roles.includes('Teacher') || result.roles.includes('User'));
+      
+      if (isTeacherOrUser) {
         const expandedResult = await userService.getUserById(searchId.trim(), true);
         setSearchResult(expandedResult);
       } else {
@@ -361,8 +362,10 @@ const StaffAndManagerManagement = () => {
   const handleEditUser = async (user) => {
     setDialogMode('edit');
     
-    // Check if user is a teacher and fetch expanded details
-    if (user.roles && user.roles.includes('Teacher')) {
+    // Check if user is a teacher or user role and fetch expanded details
+    const isTeacherOrUser = user.roles && (user.roles.includes('Teacher') || user.roles.includes('User'));
+    
+    if (isTeacherOrUser) {
       setActionLoading(true);
       try {
         const expandedUser = await userService.getUserById(user.id, true);
@@ -618,14 +621,31 @@ const StaffAndManagerManagement = () => {
             color: 'white',
             display: 'flex',
             alignItems: 'center',
-            gap: 1,
-            padding: '16px 24px'
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            position: 'relative'
           }}
         >
-          <PersonIcon />
-          <span>
-            {dialogMode === 'create' ? 'Tạo Tài Khoản Mới' : 'Chỉnh sửa Thông Tin Người Dùng'}
-          </span>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PersonIcon />
+            <span>
+              {dialogMode === 'create' ? 'Tạo Tài Khoản Mới' : 'Chỉnh sửa Thông Tin Người Dùng'}
+            </span>
+          </Box>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            disabled={actionLoading}
+            sx={{
+              color: 'white',
+              minWidth: 'auto',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            ✕
+          </Button>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
           <div style={{ paddingTop: '8px' }}>
@@ -756,14 +776,6 @@ const StaffAndManagerManagement = () => {
             />
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setOpenDialog(false)} 
-            disabled={actionLoading}
-          >
-            Hủy
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Confirm Dialog */}
@@ -797,14 +809,31 @@ const StaffAndManagerManagement = () => {
             color: 'white',
             display: 'flex',
             alignItems: 'center',
-            gap: 1,
-            padding: '16px 24px'
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            position: 'relative'
           }}
         >
-          <PersonIcon sx={{ color: 'white' }} />
-          <Typography variant="h6" component="span" sx={{ color: 'white' }}>
-            {confirmCreateDialog.title}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PersonIcon sx={{ color: 'white' }} />
+            <Typography variant="h6" component="span" sx={{ color: 'white' }}>
+              {confirmCreateDialog.title}
+            </Typography>
+          </Box>
+          <Button
+            onClick={handleCancelCreate}
+            disabled={actionLoading}
+            sx={{
+              color: 'white',
+              minWidth: 'auto',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            ✕
+          </Button>
         </DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -884,23 +913,19 @@ const StaffAndManagerManagement = () => {
             </Typography>
           </Alert>
         </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={handleCancelCreate}
-            disabled={actionLoading}
-          >
-            Hủy
-          </Button>
+        <Box sx={{ p: 3, backgroundColor: '#f5f5f5', display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
             onClick={confirmCreateDialog.onConfirm}
             variant="contained"
             color="primary"
             disabled={actionLoading}
             startIcon={actionLoading ? null : <PersonIcon />}
+            size="large"
+            sx={{ minWidth: 200 }}
           >
             {actionLoading ? 'Đang tạo...' : 'Xác nhận tạo tài khoản'}
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
       </div>
     </div>

@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Alert,
   Chip,
   FormControl,
@@ -364,8 +363,10 @@ const StaffAndTeacherManagement = () => {
       // First get basic user info
       const result = await userService.getUserById(searchId.trim());
       
-      // If it's a teacher, get expanded details
-      if (isTeacher(result)) {
+      // Check if user is teacher or user role for expanded details
+      const isTeacherOrUser = isTeacher(result) || (result.roles && result.roles.includes('User'));
+      
+      if (isTeacherOrUser) {
         const expandedResult = await userService.getUserById(searchId.trim(), true);
         setSearchResult(expandedResult);
       } else {
@@ -410,8 +411,10 @@ const StaffAndTeacherManagement = () => {
     setActionLoading(true);
     
     try {
-      // Check if user is a teacher and fetch expanded details
-      if (isTeacher(user)) {
+      // Check if user is a teacher or user role and fetch expanded details
+      const isTeacherOrUser = isTeacher(user) || (user.roles && user.roles.includes('User'));
+      
+      if (isTeacherOrUser) {
         const expandedUser = await userService.getUserById(user.id, true);
         setSelectedUser(expandedUser);
       } else {
@@ -711,10 +714,36 @@ const StaffAndTeacherManagement = () => {
           }
         }}
       >
-        <DialogTitle className={styles.dialogTitle}>
-          <span className={styles.dialogTitleText}>
-            Chỉnh sửa Thông Tin Người Dùng
-          </span>
+        <DialogTitle 
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            position: 'relative'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <span>
+              Chỉnh sửa Thông Tin Người Dùng
+            </span>
+          </Box>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            disabled={actionLoading}
+            sx={{
+              color: 'white',
+              minWidth: 'auto',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            ✕
+          </Button>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
           <div style={{ paddingTop: '8px' }}>
@@ -888,14 +917,6 @@ const StaffAndTeacherManagement = () => {
             />
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setOpenDialog(false)} 
-            disabled={actionLoading}
-          >
-            Hủy
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Confirm Dialog */}
