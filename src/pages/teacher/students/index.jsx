@@ -18,7 +18,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -461,8 +460,8 @@ const StudentRoster = () => {
           )}
         </DialogContent>
         
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>
+        <Box sx={{ p: 3, backgroundColor: '#f5f5f5', display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          <Button onClick={handleCloseDialog} variant="outlined">
             Đóng
           </Button>
           <Button 
@@ -474,7 +473,7 @@ const StudentRoster = () => {
           >
             Đánh giá học sinh
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
     </div>
   );

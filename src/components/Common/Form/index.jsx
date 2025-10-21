@@ -38,11 +38,11 @@ const Form = ({
   };
 
   const renderField = (field) => {
-    const { name, label, type = 'text', options = [], ...fieldProps } = field;
+    const { name, label, type = 'text', options = [], className = '', ...fieldProps } = field;
     const error = errors[name];
 
     return (
-      <div key={name} className={`${styles.formGroup} ${field.fullWidth ? styles.fullWidth : ''}`}>
+      <div key={name} className={`${styles.formGroup} ${field.fullWidth ? styles.fullWidth : ''} ${className ? styles[className] : ''}`}>
         <label htmlFor={name} className={styles.formLabel}>
           {label}
         </label>

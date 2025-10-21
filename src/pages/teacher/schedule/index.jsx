@@ -18,7 +18,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -397,8 +396,8 @@ const TeacherSchedule = () => {
           </div>
         </DialogContent>
         
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>
+        <Box sx={{ p: 3, backgroundColor: '#f5f5f5', display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          <Button onClick={handleCloseDialog} variant="outlined">
             Đóng
           </Button>
           {selectedClass && (
@@ -423,7 +422,7 @@ const TeacherSchedule = () => {
               Quản lý lớp
             </Button>
           )}
-        </DialogActions>
+        </Box>
       </Dialog>
     </div>
   );

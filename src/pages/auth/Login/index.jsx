@@ -5,7 +5,7 @@ import { Home as HomeIcon } from '@mui/icons-material';
 import AuthCard from '@components/Common/AuthCard';
 import Form from '../../../components/Common/Form';
 import Loading from '../../../components/Common/Loading';
-import { loginSchema } from '../../../utils/validationSchemas';
+import { loginSchema } from '../../../utils/validationSchemas/authSchemas';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
@@ -48,12 +48,18 @@ const Login = () => {
       if (role === 'Admin' || role === 0) {
         console.log('➡️ Redirecting to Admin dashboard...');
         navigate('/admin/dashboard');
-      } else if (role === 'Manager' || role === 3) {
+      } else if (role === 'Manager' || role === 1) {
         console.log('➡️ Redirecting to Manager dashboard...');
         navigate('/manager/dashboard');
-      } else if (role === 'Teacher' || role === 1) {
+      } else if (role === 'Teacher' || role === 3) {
         console.log('➡️ Redirecting to Teacher dashboard...');
         navigate('/teacher/dashboard');
+      } else if (role === 'Staff' || role === 2) {
+        console.log('➡️ Redirecting to Staff users...');
+        navigate('/staff/users');
+      } else if (role === 'User' || role === 4) {
+        console.log('➡️ Redirecting to Family profile...');
+        navigate('/family/profile');
       } else {
         console.log('➡️ Redirecting to Parent profile...');
         navigate('/parent/profile');

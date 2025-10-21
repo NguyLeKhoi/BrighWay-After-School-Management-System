@@ -75,7 +75,6 @@ const EditableField = ({
           onClick={handleFieldClick}
         >
           {type === 'date' && value ? new Date(value).toLocaleDateString('vi-VN') : value}
-          <span className={styles.editIcon}>✏️</span>
         </div>
       )}
     </div>

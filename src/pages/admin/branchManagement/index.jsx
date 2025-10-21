@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Alert,
   Chip
 } from '@mui/material';
@@ -20,7 +19,7 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { branchSchema } from '../../../utils/validationSchemas';
+import { branchSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -372,10 +371,36 @@ const BranchManagement = () => {
           }
         }}
       >
-        <DialogTitle className={styles.dialogTitle}>
-          <span className={styles.dialogTitleText}>
-            {dialogMode === 'create' ? 'Thêm Chi Nhánh mới' : 'Chỉnh sửa Chi Nhánh'}
-          </span>
+        <DialogTitle 
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            position: 'relative'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <span>
+              {dialogMode === 'create' ? 'Thêm Chi Nhánh mới' : 'Chỉnh sửa Chi Nhánh'}
+            </span>
+          </Box>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            disabled={actionLoading}
+            sx={{
+              color: 'white',
+              minWidth: 'auto',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            ✕
+          </Button>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
           <div style={{ paddingTop: '8px' }}>
@@ -419,14 +444,6 @@ const BranchManagement = () => {
             />
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setOpenDialog(false)} 
-            disabled={actionLoading}
-          >
-            Hủy
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Confirm Dialog */}

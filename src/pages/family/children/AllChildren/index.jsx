@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '@components/Common/Card';
 import Form from '@components/Common/Form';
-import { childSchema } from '../../../../utils/validationSchemas';
+import { childSchema } from '../../../../utils/validationSchemas/childSchemas';
 import { useApp } from '../../../../contexts/AppContext';
 import styles from './Children.module.css';
 

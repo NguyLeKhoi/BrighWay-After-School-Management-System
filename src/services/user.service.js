@@ -229,7 +229,7 @@ const userService = {
    */
   getUsersPaged: async (params = {}) => {
     try {
-      const { pageIndex = 1, pageSize = 10, Keyword = '', Role = null } = params;
+      const { pageIndex = 1, pageSize = 10, Keyword = '', Role = null, expandRoleDetails = false } = params;
       const queryParams = new URLSearchParams({
         pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
@@ -243,7 +243,98 @@ const userService = {
         queryParams.append('Role', Role.toString());
       }
       
+      if (expandRoleDetails) {
+        queryParams.append('expandRoleDetails', 'true');
+      }
+      
       const response = await axiosInstance.get(`/User/paged?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // ===== FAMILY ACCOUNT METHODS (for Staff) =====
+
+  /**
+   * Create new family account (Staff creates User + Family + Parents)
+   * @param {Object} familyData - Family account data
+   * @returns {Promise} Created family account
+   */
+  createFamilyAccount: async (familyData) => {
+    try {
+      const response = await axiosInstance.post('/User/family-account', familyData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Update family account
+   * @param {string} id - Family account ID
+   * @param {Object} familyData - Updated family account data
+   * @returns {Promise} Updated family account
+   */
+  updateFamilyAccount: async (id, familyData) => {
+    try {
+      const response = await axiosInstance.put(`/User/family-account/${id}`, familyData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Delete family account
+   * @param {string} id - Family account ID
+   * @returns {Promise} Deletion result
+   */
+  deleteFamilyAccount: async (id) => {
+    try {
+      const response = await axiosInstance.delete(`/User/family-account/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get family account by ID
+   * @param {string} id - Family account ID
+   * @returns {Promise} Family account data
+   */
+  getFamilyAccountById: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/User/family-account/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get paged family accounts
+   * @param {Object} params - Query parameters
+   * @returns {Promise} Paged family accounts
+   */
+  getFamilyAccountsPaged: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (params.PageNumber !== undefined) {
+        queryParams.append('PageNumber', params.PageNumber.toString());
+      }
+      
+      if (params.PageSize !== undefined) {
+        queryParams.append('PageSize', params.PageSize.toString());
+      }
+      
+      if (params.Keyword) {
+        queryParams.append('Keyword', params.Keyword);
+      }
+      
+      const response = await axiosInstance.get(`/User/family-accounts/paged?${queryParams}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
