@@ -119,6 +119,45 @@
   background: #5a6268 !important;
 }
 
+/* Highlight field styles */
+.highlightField {
+  background-color: #f8f9fa;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.highlightField::before {
+  content: "⭐";
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  background-color: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.highlightField .formLabel {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.highlightField .formInput {
+  border-color: #007bff;
+  background-color: white;
+}
+
+.highlightField .formInput:focus {
+  border-color: #0056b3;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
 @media (max-width: 768px) {
   .submitButton {
     width: 100%;

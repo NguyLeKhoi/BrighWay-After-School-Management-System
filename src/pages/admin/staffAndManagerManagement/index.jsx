@@ -29,7 +29,7 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { createUserSchema, createUserByAdminSchema, updateUserSchema } from '../../../utils/validationSchemas';
+import { createUserSchema, createUserByAdminSchema, updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';

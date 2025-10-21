@@ -25,7 +25,7 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import { createFamilyAccountSchema } from '../../../utils/validationSchemas';
+import { createFamilyAccountSchema } from '../../../utils/validationSchemas/familySchemas';
 
 const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, isEditMode = false, onCancel = null }) => {
   console.log('🔍 FamilyAccountForm defaultValues:', defaultValues);

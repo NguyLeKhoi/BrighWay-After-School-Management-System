@@ -21,7 +21,7 @@ import {
   AssignmentInd as RoleIcon
 } from '@mui/icons-material';
 import Form from '../Form';
-import { createUserSchema } from '../../../utils/validationSchemas';
+import { createUserSchema } from '../../../utils/validationSchemas/userSchemas';
 
 const StaffAccountForm = ({ 
   isSubmitting, 

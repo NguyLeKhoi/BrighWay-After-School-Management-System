@@ -27,7 +27,7 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { roomSchema } from '../../../utils/validationSchemas';
+import { roomSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import roomService from '../../../services/room.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import { useApp } from '../../../contexts/AppContext';

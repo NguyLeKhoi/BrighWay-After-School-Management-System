@@ -10,7 +10,7 @@ import {
   Notifications as BellIcon
 } from '@mui/icons-material';
 
-const ParentLayout = () => {
+const FamilyLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -22,27 +22,27 @@ const ParentLayout = () => {
 
   const menuItems = [
     {
-      path: '/parent/profile',
-      label: 'Hồ sơ',
+      path: '/family/profile',
+      label: 'Hồ sơ gia đình',
       icon: PersonIcon
     },
     {
-      path: '/parent/children',
+      path: '/family/children',
       label: 'Con cái',
       icon: ChildIcon
     },
     {
-      path: '/parent/wallet',
+      path: '/family/wallet',
       label: 'Ví',
       icon: WalletIcon
     },
     {
-      path: '/parent/courses',
+      path: '/family/courses',
       label: 'Khóa học',
       icon: BookIcon
     },
     {
-      path: '/parent/notifications',
+      path: '/family/notifications',
       label: 'Thông báo',
       icon: BellIcon
     }
@@ -53,7 +53,7 @@ const ParentLayout = () => {
       {/* Generic Drawer */}
       <GenericDrawer
         title="BRIGHWAY"
-        subtitle="Parent Portal"
+        subtitle="Family Portal"
         menuItems={menuItems}
         onLogout={handleLogout}
       />
@@ -74,4 +74,4 @@ const ParentLayout = () => {
   );
 };
 
-export default ParentLayout;
+export default FamilyLayout;

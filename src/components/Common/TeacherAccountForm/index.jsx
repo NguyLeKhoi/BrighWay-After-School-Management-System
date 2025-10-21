@@ -26,7 +26,7 @@ import {
   Description as BioIcon
 } from '@mui/icons-material';
 import Form from '../Form';
-import { createTeacherAccountSchema } from '../../../utils/validationSchemas';
+import { createTeacherAccountSchema } from '../../../utils/validationSchemas/teacherSchemas';
 
 const TeacherAccountForm = ({ 
   isSubmitting, 

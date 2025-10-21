@@ -19,7 +19,7 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { branchSchema } from '../../../utils/validationSchemas';
+import { branchSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
