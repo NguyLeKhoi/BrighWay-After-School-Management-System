@@ -1,6 +1,5 @@
 import React from 'react';
 import Form from '../Form';
-import { addParentSchema } from '../../../utils/validationSchemas/familySchemas';
 
 const ParentForm = ({ 
   isSubmitting, 
@@ -69,7 +68,7 @@ const ParentForm = ({
 
   return (
     <Form
-      schema={addParentSchema}
+    
       defaultValues={defaultValues}
       onSubmit={onParentSubmit}
       submitText="Thêm Phụ Huynh"
