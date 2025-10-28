@@ -11,33 +11,34 @@ import {
   DialogContent,
   Alert,
   Chip,
+  Switch,
+  FormControlLabel,
+  Grid,
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
-  Switch,
-  FormControlLabel
+  MenuItem
 } from '@mui/material';
 import {
   Add as AddIcon,
   Person as PersonIcon,
   Email as EmailIcon,
-  Phone as PhoneIcon,
   Lock as LockIcon,
   AssignmentInd as RoleIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { createUserSchema, createUserByAdminSchema, updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
+import { createManagerSchema, updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
+import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
 import styles from './staffAndManagerManagement.module.css';
 
-const StaffAndManagerManagement = () => {
+const ManagerManagement = () => {
   const [users, setUsers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -48,12 +49,18 @@ const StaffAndManagerManagement = () => {
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [keyword, setKeyword] = useState('');
-  const [selectedRole, setSelectedRole] = useState(null); // null = all, 1 = Manager, 0 = Staff
+  
+  // Branch selection state
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState('create');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userRoleType, setUserRoleType] = useState(null); // 'staff' or 'manager'
+  
+  // Fetch branch data
+  const { branches, getBranchOptions, isLoading: branchLoading } = useFacilityBranchData();
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -76,38 +83,6 @@ const StaffAndManagerManagement = () => {
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
 
-  // Get current user role from context
-  const { user } = useApp();
-  const currentUserRole = user?.roles?.[0] || 'User';
-
-  // Filter API role mapping: 0=Admin, 1=Manager, 2=Staff, 3=Teacher, 4=User
-  const filterRoleMapping = {
-    0: 'Admin',
-    1: 'Manager',
-    2: 'Staff',
-    3: 'Teacher',
-    4: 'User'
-  };
-
-  // Admin manages Manager and Staff (API uses 1=Manager, 2=Staff)
-  const roleOptions = [
-    { value: 1, label: 'Manager' },
-    { value: 2, label: 'Staff' }
-  ];
-
-  // Map role string to number for form submission
-  const roleStringToNumber = (roleString) => {
-    switch (roleString) {
-      case 'Admin': return 0;
-      case 'Manager': return 1;
-      case 'Staff': return 2;
-      case 'Teacher': return 3;
-      case 'User': return 4;
-      default: return 0;
-    }
-  };
-
-  // Define table columns
   const columns = [
     {
       key: 'fullName',
@@ -149,12 +124,24 @@ const StaffAndManagerManagement = () => {
       key: 'roles',
       header: 'Vai Trò',
       render: (value, item) => {
-        // Handle both array format (from API) and single value format
-        let roles = [];
-        if (Array.isArray(value)) {
-          roles = value;
-        } else if (value !== undefined && value !== null) {
-          roles = [value];
+        // Get roleName or roles from item
+        let roleNames = [];
+        
+        if (item.roleName) {
+          // Single roleName (string)
+          roleNames = [item.roleName];
+        } else if (Array.isArray(item.roles) && item.roles.length > 0) {
+          // Multiple roles (array)
+          roleNames = item.roles;
+        } else if (value && Array.isArray(value)) {
+          // Fallback: use value if it's an array
+          roleNames = value;
+        } else if (value) {
+          // Fallback: single value
+          roleNames = [value];
+        } else {
+          // If no role data, show "Unknown"
+          roleNames = ['Unknown'];
         }
         
         // Map role string to display name
@@ -182,7 +169,7 @@ const StaffAndManagerManagement = () => {
         
         return (
           <Box display="flex" flexWrap="wrap" gap={0.5}>
-            {roles.map((role, index) => (
+            {roleNames.map((role, index) => (
               <Chip 
                 key={index}
                 label={getRoleDisplayName(role)} 
@@ -238,19 +225,23 @@ const StaffAndManagerManagement = () => {
         setTotalCount(response.length);
       }
       
-      // Apply frontend filtering for Manager and Staff only
+      // Apply frontend filtering for Manager only
+      // Backend returns roleName: null, but filter by checking if user should be shown
       let filteredUsers = allUsers.filter(user => {
-        if (!user.roles || !Array.isArray(user.roles)) return false;
-        return user.roles.some(role => role === 'Manager' || role === 'Staff');
+        // Check roleName first if available
+        if (user.roleName && user.roleName === 'Manager') {
+          return true;
+        }
+        
+        // Fallback to roles array if roleName is null
+        const roles = user.roles || [];
+        if (Array.isArray(roles) && roles.length > 0) {
+          return roles.includes('Manager');
+        }
+        
+        // Don't include if no role data
+        return false;
       });
-      
-      // Apply role filter if selected
-      if (selectedRole !== null) {
-        const targetRole = filterRoleMapping[selectedRole];
-        filteredUsers = filteredUsers.filter(user => 
-          user.roles && user.roles.includes(targetRole)
-        );
-      }
       
       setUsers(filteredUsers);
     } catch (err) {
@@ -268,10 +259,10 @@ const StaffAndManagerManagement = () => {
     loadUsers();
   }, []);
 
-  // Load users when page, rowsPerPage, or selectedRole changes
+  // Load users when page or rowsPerPage changes
   useEffect(() => {
     loadUsers();
-  }, [page, rowsPerPage, selectedRole]);
+  }, [page, rowsPerPage]);
 
   // Use search result if available, otherwise use loaded users (already filtered)
   const displayUsers = searchResult ? [searchResult] : users;
@@ -294,13 +285,6 @@ const StaffAndManagerManagement = () => {
       loadUsers();
     }
   };
-
-  const handleRoleFilter = (role) => {
-    setSelectedRole(role);
-    setPage(0); // Reset to first page when filtering
-    setSearchResult(null); // Clear search result
-  };
-
 
   const handleSearchById = async () => {
     if (!searchId.trim()) {
@@ -353,9 +337,10 @@ const StaffAndManagerManagement = () => {
     setPage(0);
   };
 
-  const handleCreateUser = () => {
+  const handleCreateManager = () => {
     setDialogMode('create');
     setSelectedUser(null);
+    setUserRoleType('manager');
     setOpenDialog(true);
   };
 
@@ -428,14 +413,20 @@ const StaffAndManagerManagement = () => {
 
   const handleFormSubmit = async (data) => {
     if (dialogMode === 'create') {
-      // Show confirmation dialog for creating user with detailed information
-      const roleLabel = roleOptions.find(role => role.value === data.role)?.label || 'Unknown';
+      // Form already uses 'name' field, just pass data
+      const submitData = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        branchId: data.branchId || ''
+      };
+      
       setConfirmCreateDialog({
         open: true,
         title: 'Xác nhận Tạo Tài Khoản',
         description: `Vui lòng kiểm tra lại thông tin trước khi tạo tài khoản:`,
-        userData: data,
-        onConfirm: () => handleConfirmCreate(data)
+        userData: submitData,
+        onConfirm: () => handleConfirmCreate(submitData)
       });
     } else {
       // Direct update for editing user
@@ -462,8 +453,19 @@ const StaffAndManagerManagement = () => {
     setActionLoading(true);
     
     try {
-      await userService.createUser(data, data.role);
-      toast.success(`Tạo tài khoản "${data.fullName}" thành công!`, {
+      // Call appropriate API based on userRoleType
+      let createdUser;
+      if (userRoleType === 'staff') {
+        createdUser = await userService.createStaff(data);
+      } else if (userRoleType === 'manager') {
+        createdUser = await userService.createManager(data);
+      } else {
+        // Fallback
+        createdUser = await userService.createUser(data, data.role);
+      }
+      
+      const roleLabel = userRoleType === 'manager' ? 'Manager' : 'Staff';
+      toast.success(`Tạo tài khoản ${roleLabel} "${data.name}" thành công!`, {
         position: "top-right",
         autoClose: 3000,
       });
@@ -518,15 +520,16 @@ const StaffAndManagerManagement = () => {
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.title}>
-          Quản lý Nhân Viên
+          Quản lý Manager
         </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleCreateUser}
+          onClick={handleCreateManager}
           className={styles.addButton}
+          sx={{ backgroundColor: '#1976d2' }}
         >
-         Tạo Tài Khoản Mới
+          Tạo Manager
         </Button>
       </div>
 
@@ -553,21 +556,6 @@ const StaffAndManagerManagement = () => {
               ),
             }}
           />
-          
-          {/* Role Filter Select */}
-          <FormControl className={styles.roleSelect}>
-            <Select
-              value={selectedRole === null ? '' : selectedRole}
-              onChange={(e) => handleRoleFilter(e.target.value === '' ? null : e.target.value)}
-              displayEmpty
-            >
-              <MenuItem value="">
-                <em>Tất cả vai trò</em>
-              </MenuItem>
-              <MenuItem value={1}>Manager</MenuItem>
-              <MenuItem value={0}>Staff</MenuItem>
-            </Select>
-          </FormControl>
           
           <Button
             variant="contained"
@@ -629,7 +617,9 @@ const StaffAndManagerManagement = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <PersonIcon />
             <span>
-              {dialogMode === 'create' ? 'Tạo Tài Khoản Mới' : 'Chỉnh sửa Thông Tin Người Dùng'}
+              {dialogMode === 'create' 
+                ? `Tạo Tài Khoản ${userRoleType === 'staff' ? 'Staff' : 'Manager'}` 
+                : 'Chỉnh sửa Thông Tin Người Dùng'}
             </span>
           </Box>
           <Button
@@ -650,34 +640,42 @@ const StaffAndManagerManagement = () => {
         <DialogContent className={styles.dialogContent}>
           <div style={{ paddingTop: '8px' }}>
             <Form
-              schema={dialogMode === 'create' ? createUserByAdminSchema : updateUserSchema}
+              schema={dialogMode === 'create' ? createManagerSchema : updateUserSchema}
               defaultValues={{
-                fullName: selectedUser?.fullName || '',
+                name: selectedUser?.name || '',
                 ...(dialogMode === 'create' ? {
                   email: selectedUser?.email || '',
-                  phoneNumber: selectedUser?.phoneNumber || '',
                   password: '',
-                  role: selectedUser?.role || 0
+                  branchId: ''
                 } : {
                   email: selectedUser?.email || '',
-                  phoneNumber: selectedUser?.phoneNumber || '',
-                  changeRoleTo: roleStringToNumber(selectedUser?.roles?.[0]) || 0,
                   password: '',
                   isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
                 })
               }}
               onSubmit={handleFormSubmit}
-              submitText={dialogMode === 'create' ? 'Tạo Tài Khoản' : 'Cập nhật Thông Tin'}
+              submitText={dialogMode === 'create' 
+                ? `Tạo ${userRoleType === 'staff' ? 'Staff' : 'Manager'}` 
+                : 'Cập nhật Thông Tin'}
               loading={actionLoading}
               disabled={actionLoading}
               fields={dialogMode === 'create' ? [
                 { 
-                  name: 'fullName', 
+                  name: 'name', 
                   label: 'Họ và Tên', 
                   type: 'text', 
                   required: true, 
                   placeholder: 'Ví dụ: Nguyễn Văn A',
                   disabled: actionLoading,
+                  gridSize: 6
+                },
+                { 
+                  name: 'branchId', 
+                  label: 'Chi Nhánh', 
+                  type: 'select', 
+                  required: false, 
+                  options: getBranchOptions(),
+                  disabled: actionLoading || branchLoading,
                   gridSize: 6
                 },
                 { 
@@ -687,16 +685,7 @@ const StaffAndManagerManagement = () => {
                   required: true, 
                   placeholder: 'Ví dụ: email@example.com',
                   disabled: actionLoading,
-                  gridSize: 6
-                },
-                { 
-                  name: 'phoneNumber', 
-                  label: 'Số Điện Thoại', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading,
-                  gridSize: 6
+                  gridSize: 12
                 },
                 { 
                   name: 'password', 
@@ -705,20 +694,11 @@ const StaffAndManagerManagement = () => {
                   required: true, 
                   placeholder: 'Nhập mật khẩu cho người dùng',
                   disabled: actionLoading,
-                  gridSize: 6
-                },
-                { 
-                  name: 'role', 
-                  label: 'Vai Trò', 
-                  type: 'select', 
-                  required: true, 
-                  options: roleOptions,
-                  disabled: actionLoading,
                   gridSize: 12
                 }
               ] : [
                 { 
-                  name: 'fullName', 
+                  name: 'name', 
                   label: 'Họ và Tên', 
                   type: 'text', 
                   required: true, 
@@ -732,24 +712,6 @@ const StaffAndManagerManagement = () => {
                   type: 'email', 
                   required: true, 
                   placeholder: 'Ví dụ: email@example.com',
-                  disabled: actionLoading,
-                  gridSize: 6
-                },
-                { 
-                  name: 'phoneNumber', 
-                  label: 'Số Điện Thoại', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Ví dụ: 0901234567',
-                  disabled: actionLoading,
-                  gridSize: 6
-                },
-                { 
-                  name: 'changeRoleTo', 
-                  label: 'Vai Trò', 
-                  type: 'select', 
-                  required: true, 
-                  options: roleOptions,
                   disabled: actionLoading,
                   gridSize: 6
                 },
@@ -761,7 +723,7 @@ const StaffAndManagerManagement = () => {
                   placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
                   disabled: actionLoading,
                   gridSize: 6,
-                  helperText: 'Lưu ý: Mật khẩu sẽ được thay đổi ngay lập tức, không cần xác nhận từ người dùng'
+                  helperText: 'Để trống nếu không muốn thay đổi mật khẩu'
                 },
                 { 
                   name: 'isActive', 
@@ -770,7 +732,7 @@ const StaffAndManagerManagement = () => {
                   switchLabel: 'Hoạt động',
                   required: true, 
                   disabled: actionLoading,
-                  gridSize: 12
+                  gridSize: 6
                 }
               ]}
             />
@@ -932,4 +894,4 @@ const StaffAndManagerManagement = () => {
   );
 };
 
-export default StaffAndManagerManagement;
+export default ManagerManagement;

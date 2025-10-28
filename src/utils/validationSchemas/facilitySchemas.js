@@ -18,7 +18,10 @@ export const branchSchema = yup.object({
     .required('Số điện thoại là bắt buộc')
     .matches(/^[0-9+\-\s()]+$/, 'Số điện thoại không hợp lệ')
     .min(10, 'Số điện thoại phải có ít nhất 10 số')
-    .max(15, 'Số điện thoại không được quá 15 số')
+    .max(15, 'Số điện thoại không được quá 15 số'),
+  districtId: yup
+    .string()
+    .required('Quận/Huyện là bắt buộc')
 });
 
 // Facility validation schema

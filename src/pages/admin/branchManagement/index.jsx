@@ -10,17 +10,21 @@ import {
   DialogTitle,
   DialogContent,
   Alert,
-  Chip
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid
 } from '@mui/material';
 import {
   Add as AddIcon,
   Business as BusinessIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
-import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { branchSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import branchService from '../../../services/branch.service';
+import useLocationData from '../../../hooks/useLocationData';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
@@ -54,6 +58,32 @@ const BranchManagement = () => {
   // Global state
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
+  
+  // Location data
+  const {
+    provinces,
+    districts,
+    selectedProvinceId,
+    isLoading: locationLoading,
+    error: locationError,
+    handleProvinceChange,
+    getProvinceOptions,
+    getDistrictOptions
+  } = useLocationData();
+
+  const [provinceId, setProvinceId] = useState('');
+  const [districtId, setDistrictId] = useState('');
+
+  // Handle province change
+  useEffect(() => {
+    if (provinceId) {
+      handleProvinceChange(provinceId);
+      // Only clear districtId if it's not from edit mode (selectedBranch)
+      if (!selectedBranch) {
+        setDistrictId(''); // Clear district when province changes
+      }
+    }
+  }, [provinceId, handleProvinceChange, selectedBranch]);
 
   // Define table columns
   const columns = [
@@ -72,11 +102,19 @@ const BranchManagement = () => {
     {
       key: 'address',
       header: 'Địa Chỉ',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {value}
-        </Typography>
-      )
+      render: (value, item) => {
+        const fullAddress = [
+          item.address,
+          item.districtName,
+          item.provinceName
+        ].filter(Boolean).join(', ');
+        
+        return (
+          <Typography variant="body2" color="text.secondary">
+            {fullAddress || value}
+          </Typography>
+        );
+      }
     },
     {
       key: 'phone',
@@ -181,12 +219,32 @@ const BranchManagement = () => {
   const handleCreateBranch = () => {
     setDialogMode('create');
     setSelectedBranch(null);
+    setProvinceId('');
+    setDistrictId('');
     setOpenDialog(true);
   };
 
   const handleEditBranch = (branch) => {
     setDialogMode('edit');
     setSelectedBranch(branch);
+    
+    // Find provinceId from districtId
+    if (branch?.districtId) {
+      // Search through all provinces to find which one contains this district
+      let foundProvinceId = '';
+      for (const province of provinces) {
+        if (province.districts && province.districts.some(d => d.id === branch.districtId)) {
+          foundProvinceId = province.id;
+          break;
+        }
+      }
+      setProvinceId(foundProvinceId);
+      setDistrictId(branch.districtId);
+    } else {
+      setProvinceId('');
+      setDistrictId('');
+    }
+    
     setOpenDialog(true);
   };
 
@@ -241,14 +299,22 @@ const BranchManagement = () => {
     setActionLoading(true);
     
     try {
+      // Only send districtId to API, not provinceId
+      const submitData = {
+        branchName: data.branchName,
+        address: data.address,
+        phone: data.phone,
+        districtId: data.districtId
+      };
+      
       if (dialogMode === 'create') {
-        await branchService.createBranch(data);
+        await branchService.createBranch(submitData);
         toast.success(`Tạo chi nhánh "${data.branchName}" thành công!`, {
           position: "top-right",
           autoClose: 3000,
         });
       } else {
-        await branchService.updateBranch(selectedBranch.id, data);
+        await branchService.updateBranch(selectedBranch.id, submitData);
         toast.success(`Cập nhật chi nhánh "${data.branchName}" thành công!`, {
           position: "top-right",
           autoClose: 3000,
@@ -362,12 +428,13 @@ const BranchManagement = () => {
       <Dialog 
         open={openDialog} 
         onClose={() => !actionLoading && setOpenDialog(false)} 
-        maxWidth="sm" 
+        maxWidth="md" 
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
             borderRadius: '8px',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            maxWidth: '800px'
           }
         }}
       >
@@ -402,47 +469,148 @@ const BranchManagement = () => {
             ✕
           </Button>
         </DialogTitle>
-        <DialogContent className={styles.dialogContent}>
-          <div style={{ paddingTop: '8px' }}>
-            <Form
-              schema={branchSchema}
-              defaultValues={{
-                branchName: selectedBranch?.branchName || '',
-                address: selectedBranch?.address || '',
-                phone: selectedBranch?.phone || ''
-              }}
-              onSubmit={handleFormSubmit}
-              submitText={dialogMode === 'create' ? 'Tạo Chi Nhánh' : 'Cập nhật Chi Nhánh'}
-              loading={actionLoading}
-              disabled={actionLoading}
-              fields={[
-                { 
-                  name: 'branchName', 
-                  label: 'Tên Chi Nhánh', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Ví dụ: Chi nhánh Quận 1, Chi nhánh Thủ Đức',
-                  disabled: actionLoading
-                },
-                { 
-                  name: 'address', 
-                  label: 'Địa Chỉ', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Địa chỉ đầy đủ của chi nhánh',
-                  disabled: actionLoading
-                },
-                { 
-                  name: 'phone', 
-                  label: 'Số Điện Thoại', 
-                  type: 'text', 
-                  required: true, 
-                  placeholder: 'Ví dụ: 0123456789',
-                  disabled: actionLoading
-                }
-              ]}
-            />
-          </div>
+        <DialogContent 
+          className={styles.dialogContent}
+          sx={{ 
+            padding: '24px !important',
+            paddingTop: '32px !important'
+          }}
+        >
+          <Box component="form" id="branch-form">
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              {/* Branch Name */}
+              <Grid item xs={12}>
+                <TextField
+                  name="branchName"
+                  label="Tên Chi Nhánh"
+                  required
+                  fullWidth
+                  placeholder="Ví dụ: Chi nhánh Quận 1, Chi nhánh Thủ Đức"
+                  defaultValue={selectedBranch?.branchName || ''}
+                  disabled={actionLoading}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
+                  }}
+                />
+              </Grid>
+
+              {/* Province */}
+              <Grid item xs={12}>
+                <FormControl fullWidth required>
+                  <InputLabel sx={{ fontSize: '14px' }}>Tỉnh/Thành Phố</InputLabel>
+                  <Select
+                    value={provinceId}
+                    onChange={(e) => setProvinceId(e.target.value)}
+                    label="Tỉnh/Thành Phố"
+                    disabled={actionLoading || locationLoading}
+                    sx={{ fontSize: '14px' }}
+                    MenuProps={{
+                      PaperProps: {
+                        style: { maxHeight: 250 }
+                      }
+                    }}
+                  >
+                    <MenuItem value="">Chọn tỉnh/thành phố</MenuItem>
+                    {getProvinceOptions().map(option => (
+                      <MenuItem key={option.value} value={option.value} sx={{ fontSize: '14px' }}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* District */}
+              <Grid item xs={12}>
+                <FormControl fullWidth required disabled={!provinceId}>
+                  <InputLabel sx={{ fontSize: '14px' }}>Quận/Huyện</InputLabel>
+                  <Select
+                    value={districtId}
+                    onChange={(e) => setDistrictId(e.target.value)}
+                    label="Quận/Huyện"
+                    disabled={actionLoading || locationLoading || !provinceId}
+                    sx={{ fontSize: '14px' }}
+                    MenuProps={{
+                      PaperProps: {
+                        style: { maxHeight: 250 }
+                      }
+                    }}
+                  >
+                    <MenuItem value="" sx={{ fontSize: '14px' }}>Chọn quận/huyện</MenuItem>
+                    {getDistrictOptions().map(option => (
+                      <MenuItem key={option.value} value={option.value} sx={{ fontSize: '14px' }}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Address */}
+              <Grid item xs={12}>
+                <TextField
+                  name="address"
+                  label="Địa Chỉ"
+                  required
+                  fullWidth
+                  placeholder="Địa chỉ đầy đủ của chi nhánh"
+                  defaultValue={selectedBranch?.address || ''}
+                  disabled={actionLoading}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
+                  }}
+                />
+              </Grid>
+
+              {/* Phone */}
+              <Grid item xs={12}>
+                <TextField
+                  name="phone"
+                  label="Số Điện Thoại"
+                  required
+                  fullWidth
+                  placeholder="Ví dụ: 0123456789"
+                  defaultValue={selectedBranch?.phone || ''}
+                  disabled={actionLoading}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
+                  }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Buttons */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setOpenDialog(false);
+                  setProvinceId('');
+                  setDistrictId('');
+                }}
+                disabled={actionLoading}
+              >
+                Hủy
+              </Button>
+              <Button
+                variant="contained"
+                disabled={actionLoading}
+                onClick={async () => {
+                  const formElement = document.getElementById('branch-form');
+                  const formData = new FormData(formElement);
+                  const data = {
+                    branchName: formData.get('branchName'),
+                    address: formData.get('address'),
+                    phone: formData.get('phone'),
+                    districtId: districtId
+                  };
+                  await handleFormSubmit(data);
+                }}
+              >
+                {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Chi Nhánh' : 'Cập nhật Chi Nhánh'}
+              </Button>
+            </Box>
+          </Box>
         </DialogContent>
       </Dialog>
 

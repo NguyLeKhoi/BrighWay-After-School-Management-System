@@ -30,10 +30,7 @@ import AdminDashboard from '../pages/admin/dashboard';
 import BranchManagement from '../pages/admin/branchManagement';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
-import StaffAndManagerManagement from '../pages/admin/staffAndManagerManagement';
-import CourseManagement from '../pages/admin/coursesManagement';
-import Reports from '../pages/admin/reports';
-import Settings from '../pages/admin/settings';
+import ManagerManagement from '../pages/admin/managerManagement';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
@@ -155,19 +152,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'staffAndManager',
-        element: <StaffAndManagerManagement />,
-      },
-      {
-        path: 'courses',
-        element: <CourseManagement />,
-      },
-      {
-        path: 'reports',
-        element: <Reports />,
-      },
-      {
-        path: 'settings',
-        element: <Settings />,
+        element: <ManagerManagement />,
       },
     ],
   },

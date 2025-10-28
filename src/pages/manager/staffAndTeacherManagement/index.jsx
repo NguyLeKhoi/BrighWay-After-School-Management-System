@@ -312,14 +312,23 @@ const StaffAndTeacherManagement = () => {
     loadUsers();
   }, [page, rowsPerPage, selectedRole]);
 
-  // Filter users based on current user's manageable roles
+  // Filter users based on current user's manageable roles (Manager manages Staff)
   const filterManageableUsers = (userList) => {
-    const manageableRoleNumbers = roleOptions.map(option => option.value);
-    const manageableRoleStrings = manageableRoleNumbers.map(num => filterRoleMapping[num]);
+    // Manager manages Staff (role 2) and Teacher (role 3)
+    const manageableRoleStrings = roleOptions.map(option => filterRoleMapping[option.value]);
     
     const filtered = userList.filter(user => {
-      if (!user.roles || !Array.isArray(user.roles)) return false;
-      return user.roles.some(role => manageableRoleStrings.includes(role));
+      // Check roleName first if available
+      if (user.roleName && manageableRoleStrings.includes(user.roleName)) {
+        return true;
+      }
+      
+      // Fallback to roles array if roleName is null
+      if (user.roles && Array.isArray(user.roles)) {
+        return user.roles.some(role => manageableRoleStrings.includes(role));
+      }
+      
+      return false;
     });
     
     return filtered;
@@ -557,9 +566,10 @@ const StaffAndTeacherManagement = () => {
   const handleStaffSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      await userService.createUserByManager(data, data.role);
+      // Manager creates Staff using the /User/staff API
+      await userService.createStaff(data);
       
-      toast.success(`Tạo tài khoản "${data.fullName}" thành công!`, {
+      toast.success(`Tạo tài khoản Staff thành công!`, {
         position: "top-right",
         autoClose: 3000,
       });
