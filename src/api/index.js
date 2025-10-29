@@ -10,6 +10,7 @@ export { default as facilityService } from '../services/facility.service';
 export { default as userService } from '../services/user.service';
 export { default as roomService } from '../services/room.service';
 export { default as familyService } from '../services/family.service';
+export { default as benefitService } from '../services/benefit.service';
 
 // You can add more services here as you create them
 // export { default as userService } from '../services/user.service';

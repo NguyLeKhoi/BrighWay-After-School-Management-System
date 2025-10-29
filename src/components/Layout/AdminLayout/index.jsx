@@ -11,7 +11,8 @@ import {
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
   Dashboard as DashboardIcon,
-  MeetingRoom as RoomIcon
+  MeetingRoom as RoomIcon,
+  CardGiftcard as BenefitIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -48,6 +49,11 @@ const AdminLayout = () => {
       path: '/admin/rooms',
       label: 'Phòng Học',
       icon: RoomIcon
+    },
+    {
+      path: '/admin/benefits',
+      label: 'Lợi Ích',
+      icon: BenefitIcon
     }
   ];
 

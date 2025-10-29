@@ -31,6 +31,7 @@ import BranchManagement from '../pages/admin/branchManagement';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
 import ManagerManagement from '../pages/admin/managerManagement';
+import BenefitManagement from '../pages/admin/benefitManagement';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
@@ -153,6 +154,10 @@ export const routes = createBrowserRouter([
       {
         path: 'staffAndManager',
         element: <ManagerManagement />,
+      },
+      {
+        path: 'benefits',
+        element: <BenefitManagement />,
       },
     ],
   },
