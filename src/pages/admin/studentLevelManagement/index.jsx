@@ -10,31 +10,24 @@ import {
   DialogTitle,
   DialogContent,
   Alert,
-  Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-  Switch,
-  FormControlLabel
+  Grid
 } from '@mui/material';
 import {
   Add as AddIcon,
   Search as SearchIcon,
-  CardGiftcard as BenefitIcon
+  School as StudentLevelIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import benefitService from '../../../services/benefit.service';
+import studentLevelService from '../../../services/studentLevel.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { toast } from 'react-toastify';
-import styles from './BenefitManagement.module.css';
+import styles from './StudentLevelManagement.module.css';
 
-const BenefitManagement = () => {
-  const [benefits, setBenefits] = useState([]);
+const StudentLevelManagement = () => {
+  const [studentLevels, setStudentLevels] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -42,12 +35,11 @@ const BenefitManagement = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState('create');
-  const [selectedBenefit, setSelectedBenefit] = useState(null);
+  const [selectedStudentLevel, setSelectedStudentLevel] = useState(null);
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -65,10 +57,10 @@ const BenefitManagement = () => {
   const columns = [
     {
       key: 'name',
-      header: 'Tên Lợi Ích',
+      header: 'Tên Cấp Độ',
       render: (value, item) => (
         <Box display="flex" alignItems="center" gap={1}>
-          <BenefitIcon fontSize="small" color="primary" />
+          <StudentLevelIcon fontSize="small" color="primary" />
           <Typography variant="subtitle2" fontWeight="medium">
             {value}
           </Typography>
@@ -79,20 +71,9 @@ const BenefitManagement = () => {
       key: 'description',
       header: 'Mô Tả',
       render: (value) => (
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
           {value || 'Không có mô tả'}
         </Typography>
-      )
-    },
-    {
-      key: 'status',
-      header: 'Trạng Thái',
-      render: (value) => (
-        <Chip
-          label={value ? 'Hoạt động' : 'Không hoạt động'}
-          color={value ? 'success' : 'default'}
-          size="small"
-        />
       )
     },
     {
@@ -106,27 +87,26 @@ const BenefitManagement = () => {
     }
   ];
 
-  // Load benefits with pagination
-  const loadBenefits = async () => {
+  // Load student levels with pagination
+  const loadStudentLevels = async () => {
     showLoading();
     setError(null);
     try {
-      const response = await benefitService.getBenefitsPaged({
+      const response = await studentLevelService.getStudentLevelsPaged({
         page: page + 1,
         pageSize: rowsPerPage,
-        searchTerm: searchTerm,
-        status: statusFilter || null
+        keyword: searchTerm
       });
       
       if (response.items) {
-        setBenefits(response.items);
+        setStudentLevels(response.items);
         setTotalCount(response.totalCount || response.items.length);
       } else {
-        setBenefits(response);
+        setStudentLevels(response);
         setTotalCount(response.length);
       }
     } catch (err) {
-      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách lợi ích';
+      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách cấp độ học sinh';
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
@@ -134,20 +114,19 @@ const BenefitManagement = () => {
     }
   };
 
-  // Load benefits when page, rowsPerPage, searchTerm, or statusFilter changes
+  // Load student levels when page, rowsPerPage, or searchTerm changes
   useEffect(() => {
-    loadBenefits();
-  }, [page, rowsPerPage, searchTerm, statusFilter]);
+    loadStudentLevels();
+  }, [page, rowsPerPage, searchTerm]);
 
   // Event handlers
   const handleSearch = () => {
     setPage(0);
-    loadBenefits();
+    loadStudentLevels();
   };
 
   const handleClearSearch = () => {
     setSearchTerm('');
-    setStatusFilter('');
     setPage(0);
   };
 
@@ -160,42 +139,42 @@ const BenefitManagement = () => {
     setPage(0);
   };
 
-  const handleCreateBenefit = () => {
+  const handleCreateStudentLevel = () => {
     setDialogMode('create');
-    setSelectedBenefit(null);
+    setSelectedStudentLevel(null);
     setOpenDialog(true);
   };
 
-  const handleEditBenefit = (benefit) => {
+  const handleEditStudentLevel = (studentLevel) => {
     setDialogMode('edit');
-    setSelectedBenefit(benefit);
+    setSelectedStudentLevel(studentLevel);
     setOpenDialog(true);
   };
 
-  const handleDeleteBenefit = (benefit) => {
+  const handleDeleteStudentLevel = (studentLevel) => {
     setConfirmDialog({
       open: true,
-      title: 'Xác nhận xóa lợi ích',
-      description: `Bạn có chắc chắn muốn xóa lợi ích "${benefit.name}"? Hành động này không thể hoàn tác.`,
-      onConfirm: () => performDeleteBenefit(benefit.id)
+      title: 'Xác nhận xóa cấp độ học sinh',
+      description: `Bạn có chắc chắn muốn xóa cấp độ học sinh "${studentLevel.name}"? Hành động này không thể hoàn tác.`,
+      onConfirm: () => performDeleteStudentLevel(studentLevel.id)
     });
   };
 
-  const performDeleteBenefit = async (benefitId) => {
+  const performDeleteStudentLevel = async (studentLevelId) => {
     setConfirmDialog(prev => ({ ...prev, open: false }));
     setActionLoading(true);
     
     try {
-      await benefitService.deleteBenefit(benefitId);
+      await studentLevelService.deleteStudentLevel(studentLevelId);
       
-      toast.success('Xóa lợi ích thành công!', {
+      toast.success('Xóa cấp độ học sinh thành công!', {
         position: "top-right",
         autoClose: 3000,
       });
       
-      loadBenefits();
+      loadStudentLevels();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa lợi ích';
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa cấp độ học sinh';
       setError(errorMessage);
       showGlobalError(errorMessage);
       toast.error(errorMessage, {
@@ -213,29 +192,28 @@ const BenefitManagement = () => {
     try {
       const submitData = {
         name: data.name,
-        description: data.description,
-        status: data.status
+        description: data.description
       };
       
       if (dialogMode === 'create') {
-        await benefitService.createBenefit(submitData);
-        toast.success(`Tạo lợi ích "${data.name}" thành công!`, {
+        await studentLevelService.createStudentLevel(submitData);
+        toast.success(`Tạo cấp độ học sinh "${data.name}" thành công!`, {
           position: "top-right",
           autoClose: 3000,
         });
       } else {
-        await benefitService.updateBenefit(selectedBenefit.id, submitData);
-        toast.success(`Cập nhật lợi ích "${data.name}" thành công!`, {
+        await studentLevelService.updateStudentLevel(selectedStudentLevel.id, submitData);
+        toast.success(`Cập nhật cấp độ học sinh "${data.name}" thành công!`, {
           position: "top-right",
           autoClose: 3000,
         });
       }
       
       setOpenDialog(false);
-      loadBenefits();
+      loadStudentLevels();
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 
-        (dialogMode === 'create' ? 'Có lỗi xảy ra khi tạo lợi ích' : 'Có lỗi xảy ra khi cập nhật lợi ích');
+        (dialogMode === 'create' ? 'Có lỗi xảy ra khi tạo cấp độ học sinh' : 'Có lỗi xảy ra khi cập nhật cấp độ học sinh');
       setError(errorMessage);
       showGlobalError(errorMessage);
       toast.error(errorMessage, {
@@ -254,15 +232,15 @@ const BenefitManagement = () => {
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.title}>
-          Quản lý Lợi Ích
+          Quản lý Cấp Độ Học Sinh
         </h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleCreateBenefit}
+          onClick={handleCreateStudentLevel}
           className={styles.addButton}
         >
-          Thêm Lợi Ích
+          Thêm Cấp Độ
         </Button>
       </div>
 
@@ -270,7 +248,7 @@ const BenefitManagement = () => {
       <Paper className={styles.searchSection}>
         <div className={styles.searchContainer}>
           <TextField
-            placeholder="Tìm kiếm theo tên lợi ích..."
+            placeholder="Tìm kiếm theo tên cấp độ học sinh..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchField}
@@ -287,18 +265,6 @@ const BenefitManagement = () => {
               }
             }}
           />
-          <FormControl className={styles.statusFilter}>
-            <InputLabel>Trạng thái</InputLabel>
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              label="Trạng thái"
-            >
-              <MenuItem value="">Tất cả</MenuItem>
-              <MenuItem value="true">Hoạt động</MenuItem>
-              <MenuItem value="false">Không hoạt động</MenuItem>
-            </Select>
-          </FormControl>
           <Button
             variant="contained"
             onClick={handleSearch}
@@ -307,12 +273,12 @@ const BenefitManagement = () => {
           >
             {searchLoading ? 'Đang tìm...' : 'Tìm kiếm'}
           </Button>
-          {(searchTerm || statusFilter) && (
+          {searchTerm && (
             <Button
               variant="outlined"
               onClick={handleClearSearch}
             >
-              Xóa bộ lọc
+              Xóa tìm kiếm
             </Button>
           )}
         </div>
@@ -328,7 +294,7 @@ const BenefitManagement = () => {
       {/* Table */}
       <div className={styles.tableContainer}>
         <DataTable
-          data={benefits}
+          data={studentLevels}
           columns={columns}
           loading={isPageLoading}
           page={page}
@@ -336,9 +302,9 @@ const BenefitManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          onEdit={handleEditBenefit}
-          onDelete={handleDeleteBenefit}
-          emptyMessage="Không có lợi ích nào. Hãy thêm lợi ích đầu tiên để bắt đầu."
+          onEdit={handleEditStudentLevel}
+          onDelete={handleDeleteStudentLevel}
+          emptyMessage="Không có cấp độ học sinh nào. Hãy thêm cấp độ đầu tiên để bắt đầu."
         />
       </div>
 
@@ -368,9 +334,9 @@ const BenefitManagement = () => {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <BenefitIcon />
+            <StudentLevelIcon />
             <span>
-              {dialogMode === 'create' ? 'Thêm Lợi Ích mới' : 'Chỉnh sửa Lợi Ích'}
+              {dialogMode === 'create' ? 'Thêm Cấp Độ Học Sinh mới' : 'Chỉnh sửa Cấp Độ Học Sinh'}
             </span>
           </Box>
           <Button
@@ -397,29 +363,27 @@ const BenefitManagement = () => {
         >
           <Box 
             component="form" 
-            id="benefit-form"
+            id="studentlevel-form"
             onSubmit={async (e) => {
               e.preventDefault();
               const formData = new FormData(e.target);
-              const statusSwitch = e.target.querySelector('input[name="status"]');
               const data = {
                 name: formData.get('name'),
-                description: formData.get('description'),
-                status: statusSwitch ? statusSwitch.checked : true
+                description: formData.get('description')
               };
               await handleFormSubmit(data);
             }}
           >
             <Grid container spacing={2} sx={{ mb: 2 }}>
-              {/* Benefit Name */}
+              {/* Student Level Name */}
               <Grid item xs={12}>
                 <TextField
                   name="name"
-                  label="Tên Lợi Ích"
+                  label="Tên Cấp Độ"
                   required
                   fullWidth
-                  placeholder="Ví dụ: Giảm giá học phí, Tặng đồ dùng học tập"
-                  defaultValue={selectedBenefit?.name || ''}
+                  placeholder="Ví dụ: Mầm Non, Tiểu Học, Trung Học Cơ Sở"
+                  defaultValue={selectedStudentLevel?.name || ''}
                   disabled={actionLoading}
                   sx={{ 
                     '& .MuiOutlinedInput-root': { fontSize: '14px' }
@@ -435,26 +399,12 @@ const BenefitManagement = () => {
                   fullWidth
                   multiline
                   rows={3}
-                  placeholder="Mô tả chi tiết về lợi ích..."
-                  defaultValue={selectedBenefit?.description || ''}
+                  placeholder="Mô tả chi tiết về cấp độ học sinh..."
+                  defaultValue={selectedStudentLevel?.description || ''}
                   disabled={actionLoading}
                   sx={{ 
                     '& .MuiOutlinedInput-root': { fontSize: '14px' }
                   }}
-                />
-              </Grid>
-
-              {/* Status */}
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      name="status"
-                      defaultChecked={selectedBenefit?.status !== false}
-                      disabled={actionLoading}
-                    />
-                  }
-                  label="Trạng thái hoạt động"
                 />
               </Grid>
             </Grid>
@@ -474,7 +424,7 @@ const BenefitManagement = () => {
                 variant="contained"
                 disabled={actionLoading}
               >
-                {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Lợi Ích' : 'Cập nhật Lợi Ích'}
+                {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Cấp Độ' : 'Cập nhật Cấp Độ'}
               </Button>
             </Box>
           </Box>
@@ -496,4 +446,4 @@ const BenefitManagement = () => {
   );
 };
 
-export default BenefitManagement;
+export default StudentLevelManagement;

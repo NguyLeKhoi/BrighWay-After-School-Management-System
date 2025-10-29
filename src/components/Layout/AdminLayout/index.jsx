@@ -12,7 +12,8 @@ import {
   Settings as SettingsIcon,
   Dashboard as DashboardIcon,
   MeetingRoom as RoomIcon,
-  CardGiftcard as BenefitIcon
+  CardGiftcard as BenefitIcon,
+  School as StudentLevelIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -54,6 +55,11 @@ const AdminLayout = () => {
       path: '/admin/benefits',
       label: 'Lợi Ích',
       icon: BenefitIcon
+    },
+    {
+      path: '/admin/student-levels',
+      label: 'Cấp Độ Học Sinh',
+      icon: StudentLevelIcon
     }
   ];
 

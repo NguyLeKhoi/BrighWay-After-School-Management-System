@@ -32,6 +32,7 @@ import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
 import ManagerManagement from '../pages/admin/managerManagement';
 import BenefitManagement from '../pages/admin/benefitManagement';
+import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
@@ -158,6 +159,10 @@ export const routes = createBrowserRouter([
       {
         path: 'benefits',
         element: <BenefitManagement />,
+      },
+      {
+        path: 'student-levels',
+        element: <StudentLevelManagement />,
       },
     ],
   },

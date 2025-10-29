@@ -476,7 +476,21 @@ const BranchManagement = () => {
             paddingTop: '32px !important'
           }}
         >
-          <Box component="form" id="branch-form">
+          <Box 
+            component="form" 
+            id="branch-form"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target);
+              const data = {
+                branchName: formData.get('branchName'),
+                address: formData.get('address'),
+                phone: formData.get('phone'),
+                districtId: districtId
+              };
+              await handleFormSubmit(data);
+            }}
+          >
             <Grid container spacing={2} sx={{ mb: 2 }}>
               {/* Branch Name */}
               <Grid item xs={12}>
@@ -582,6 +596,7 @@ const BranchManagement = () => {
             {/* Buttons */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
+                type="button"
                 variant="outlined"
                 onClick={() => {
                   setOpenDialog(false);
@@ -593,19 +608,9 @@ const BranchManagement = () => {
                 Hủy
               </Button>
               <Button
+                type="submit"
                 variant="contained"
                 disabled={actionLoading}
-                onClick={async () => {
-                  const formElement = document.getElementById('branch-form');
-                  const formData = new FormData(formElement);
-                  const data = {
-                    branchName: formData.get('branchName'),
-                    address: formData.get('address'),
-                    phone: formData.get('phone'),
-                    districtId: districtId
-                  };
-                  await handleFormSubmit(data);
-                }}
               >
                 {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Chi Nhánh' : 'Cập nhật Chi Nhánh'}
               </Button>
