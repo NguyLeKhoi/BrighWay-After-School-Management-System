@@ -26,7 +26,6 @@ import {
   Add as AddIcon,
   Person as PersonIcon,
   Email as EmailIcon,
-  Phone as PhoneIcon,
   Lock as LockIcon,
   AssignmentInd as RoleIcon,
   Home as HomeIcon,
@@ -89,7 +88,7 @@ const UserManagement = () => {
   // Define table columns
   const columns = [
     {
-      key: 'fullName',
+      key: 'name',
       header: 'Họ và Tên',
       render: (value, item) => (
         <Box display="flex" alignItems="center" gap={1}>
@@ -106,18 +105,6 @@ const UserManagement = () => {
       render: (value) => (
         <Box display="flex" alignItems="center" gap={1}>
           <EmailIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'phoneNumber',
-      header: 'Số Điện Thoại',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PhoneIcon fontSize="small" color="action" />
           <Typography variant="body2" color="text.secondary">
             {value}
           </Typography>
@@ -187,14 +174,16 @@ const UserManagement = () => {
   ];
 
   // Load users with pagination and keyword search, filter for User role only
-  const loadUsers = async () => {
-    showLoading();
+  const loadUsers = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) {
+      showLoading();
+    }
     setError(null);
     try {
       const params = {
         pageIndex: page + 1, // Backend uses 1-based indexing
         pageSize: rowsPerPage,
-        Role: 4 // Filter for User role only (4 = User)
+        Role: 'User' // Staff only views User accounts
       };
       
       // Add keyword if provided
@@ -202,7 +191,8 @@ const UserManagement = () => {
         params.Keyword = keyword.trim();
       }
       
-      const response = await userService.getUsersPaged(params);
+      // Use new endpoint that automatically filters by role
+      const response = await userService.getUsersPagedByRole(params);
       
       // Handle both paginated and non-paginated responses
       let allUsers = [];
@@ -216,19 +206,15 @@ const UserManagement = () => {
         setTotalCount(response.length);
       }
       
-      // Additional frontend filtering to ensure only User role
-      const filteredUsers = allUsers.filter(user => {
-        if (!user.roles || !Array.isArray(user.roles)) return false;
-        return user.roles.includes('User');
-      });
-      
-      setUsers(filteredUsers);
+      setUsers(allUsers);
     } catch (err) {
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
@@ -243,6 +229,16 @@ const UserManagement = () => {
     loadUsers();
   }, [page, rowsPerPage]);
 
+  // Load users when keyword changes (debounced search while typing)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setSearchResult(null); // Clear search result when keyword changes
+      loadUsers(false); // Don't show loading indicator for debounced search
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [keyword]);
+
   // Use search result if available, otherwise use loaded users
   const displayUsers = searchResult ? [searchResult] : users;
   const paginatedUsers = displayUsers;
@@ -256,12 +252,7 @@ const UserManagement = () => {
 
   const handleKeywordChange = (e) => {
     setKeyword(e.target.value);
-    // If keyword is cleared, reset search immediately
-    if (e.target.value.trim() === '') {
-      setPage(0);
-      setSearchResult(null);
-      loadUsers();
-    }
+    setPage(0); // Reset to first page when keyword changes
   };
 
   const handleSearchById = async () => {
