@@ -20,7 +20,6 @@ import {
   Add as AddIcon,
   Person as PersonIcon,
   Email as EmailIcon,
-  Phone as PhoneIcon,
   Lock as LockIcon,
   AssignmentInd as RoleIcon,
   School as SchoolIcon
@@ -140,7 +139,7 @@ const StaffAndTeacherManagement = () => {
   // Define table columns
   const columns = [
     {
-      key: 'fullName',
+      key: 'name',
       header: 'Họ và Tên',
       render: (value, item) => (
         <Box display="flex" alignItems="center" gap={1}>
@@ -157,18 +156,6 @@ const StaffAndTeacherManagement = () => {
       render: (value) => (
         <Box display="flex" alignItems="center" gap={1}>
           <EmailIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'phoneNumber',
-      header: 'Số Điện Thoại',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PhoneIcon fontSize="small" color="action" />
           <Typography variant="body2" color="text.secondary">
             {value}
           </Typography>
@@ -239,8 +226,10 @@ const StaffAndTeacherManagement = () => {
 
 
   // Load users with pagination, keyword search, and role filter
-  const loadUsers = async () => {
-    showLoading();
+  const loadUsers = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) {
+      showLoading();
+    }
     setError(null);
     try {
       const params = {
@@ -253,8 +242,14 @@ const StaffAndTeacherManagement = () => {
         params.Keyword = keyword.trim();
       }
       
-      // Don't send role filter to API - filter on frontend instead
-      const response = await userService.getUsersPaged(params);
+      // Add role filter if selected (Manager views Staff and Teacher)
+      if (selectedRole !== null) {
+        const targetRole = filterRoleMapping[selectedRole];
+        params.Role = targetRole;
+      }
+      
+      // Use new endpoint that automatically filters by role
+      const response = await userService.getUsersPagedByRole(params);
       
       // Handle both paginated and non-paginated responses
       let allUsers = [];
@@ -268,37 +263,16 @@ const StaffAndTeacherManagement = () => {
         setTotalCount(response.length);
       }
       
-      // Apply frontend filtering
-      let filteredUsers = filterManageableUsers(allUsers);
-      
-      // Apply role filter if selected
-      if (selectedRole !== null) {
-        const targetRole = filterRoleMapping[selectedRole];
-        filteredUsers = filteredUsers.filter(user => 
-          user.roles && user.roles.includes(targetRole)
-        );
-      }
-      
-      setUsers(filteredUsers);
+      // Backend already filters by role, no additional filtering needed
+      setUsers(allUsers);
     } catch (err) {
-      // Fallback: try getAllUsers if paged API fails
-      try {
-        const allUsers = await userService.getAllUsers();
-        
-        // Apply filtering
-        const filteredUsers = filterManageableUsers(allUsers);
-        setUsers(filteredUsers);
-        setTotalCount(filteredUsers.length);
-        return;
-      } catch (fallbackErr) {
-        // Fallback failed
-      }
-      
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
@@ -312,18 +286,15 @@ const StaffAndTeacherManagement = () => {
     loadUsers();
   }, [page, rowsPerPage, selectedRole]);
 
-  // Filter users based on current user's manageable roles
-  const filterManageableUsers = (userList) => {
-    const manageableRoleNumbers = roleOptions.map(option => option.value);
-    const manageableRoleStrings = manageableRoleNumbers.map(num => filterRoleMapping[num]);
-    
-    const filtered = userList.filter(user => {
-      if (!user.roles || !Array.isArray(user.roles)) return false;
-      return user.roles.some(role => manageableRoleStrings.includes(role));
-    });
-    
-    return filtered;
-  };
+  // Load users when keyword changes (debounced search while typing)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setSearchResult(null); // Clear search result when keyword changes
+      loadUsers(false); // Don't show loading indicator for debounced search
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [keyword]);
 
   // Use search result if available, otherwise use loaded users (already filtered)
   const displayUsers = searchResult ? [searchResult] : users;
@@ -338,12 +309,7 @@ const StaffAndTeacherManagement = () => {
 
   const handleKeywordChange = (e) => {
     setKeyword(e.target.value);
-    // If keyword is cleared, reset search immediately
-    if (e.target.value.trim() === '') {
-      setPage(0);
-      setSearchResult(null);
-      loadUsers();
-    }
+    setPage(0); // Reset to first page when keyword changes
   };
 
   const handleRoleFilter = (role) => {
@@ -557,9 +523,10 @@ const StaffAndTeacherManagement = () => {
   const handleStaffSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      await userService.createUserByManager(data, data.role);
+      // Manager creates Staff using the /User/staff API
+      await userService.createStaff(data);
       
-      toast.success(`Tạo tài khoản "${data.fullName}" thành công!`, {
+      toast.success(`Tạo tài khoản Staff thành công!`, {
         position: "top-right",
         autoClose: 3000,
       });

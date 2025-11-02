@@ -103,6 +103,11 @@
   padding: 24px;
 }
 
+.dialogContent select {
+  max-height: 300px;
+  font-size: 14px;
+}
+
 .dialogActions {
   padding: 16px 24px;
   border-top: 1px solid #e0e0e0;

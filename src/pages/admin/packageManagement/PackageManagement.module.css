@@ -1,0 +1,138 @@
+.container {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  background: white;
+  padding: 20px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0;
+}
+
+.addButton {
+  background-color: #1976d2 !important;
+  color: white !important;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-transform: none;
+  font-size: 14px;
+}
+
+.addButton:hover {
+  background-color: #1565c0 !important;
+}
+
+.searchSection {
+  margin-bottom: 24px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.searchContainer {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.searchField {
+  flex: 1;
+  min-width: 250px;
+}
+
+.statusFilter {
+  width: 180px;
+  min-width: 180px;
+}
+
+.searchButton {
+  background-color: #1976d2 !important;
+  color: white !important;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-transform: none;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.searchButton:hover {
+  background-color: #1565c0 !important;
+}
+
+.errorAlert {
+  margin-bottom: 24px;
+  border-radius: 8px;
+}
+
+.tableContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.dialogContent {
+  background: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .title {
+    font-size: 24px;
+    text-align: center;
+  }
+  
+  .searchContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchField,
+  .statusFilter {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .header {
+    padding: 16px;
+  }
+  
+  .title {
+    font-size: 20px;
+  }
+  
+  .searchSection {
+    padding: 16px;
+  }
+}

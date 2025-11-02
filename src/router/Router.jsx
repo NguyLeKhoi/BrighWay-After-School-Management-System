@@ -30,10 +30,10 @@ import AdminDashboard from '../pages/admin/dashboard';
 import BranchManagement from '../pages/admin/branchManagement';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
-import StaffAndManagerManagement from '../pages/admin/staffAndManagerManagement';
-import CourseManagement from '../pages/admin/coursesManagement';
-import Reports from '../pages/admin/reports';
-import Settings from '../pages/admin/settings';
+import ManagerManagement from '../pages/admin/managerManagement';
+import BenefitManagement from '../pages/admin/benefitManagement';
+import StudentLevelManagement from '../pages/admin/studentLevelManagement';
+import PackageManagement from '../pages/admin/packageManagement';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
@@ -155,19 +155,19 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'staffAndManager',
-        element: <StaffAndManagerManagement />,
+        element: <ManagerManagement />,
       },
       {
-        path: 'courses',
-        element: <CourseManagement />,
+        path: 'benefits',
+        element: <BenefitManagement />,
       },
       {
-        path: 'reports',
-        element: <Reports />,
+        path: 'student-levels',
+        element: <StudentLevelManagement />,
       },
       {
-        path: 'settings',
-        element: <Settings />,
+        path: 'packages',
+        element: <PackageManagement />,
       },
     ],
   },

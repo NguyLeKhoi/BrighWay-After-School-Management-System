@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
+import ManagerStaffHeader from '../../Common/Headers/ManagerStaffHeader';
 import {
   Business as BranchIcon,
   Room as FacilityIcon,
@@ -10,7 +11,10 @@ import {
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
   Dashboard as DashboardIcon,
-  MeetingRoom as RoomIcon
+  MeetingRoom as RoomIcon,
+  CardGiftcard as BenefitIcon,
+  School as StudentLevelIcon,
+  ShoppingCart as PackageIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -49,43 +53,48 @@ const AdminLayout = () => {
       icon: RoomIcon
     },
     {
-      path: '/admin/courses',
-      label: 'Khóa học',
-      icon: CoursesIcon
+      path: '/admin/benefits',
+      label: 'Lợi Ích',
+      icon: BenefitIcon
     },
     {
-      path: '/admin/reports',
-      label: 'Báo cáo',
-      icon: ReportsIcon
+      path: '/admin/student-levels',
+      label: 'Cấp Độ Học Sinh',
+      icon: StudentLevelIcon
     },
     {
-      path: '/admin/settings',
-      label: 'Cài đặt',
-      icon: SettingsIcon
+      path: '/admin/packages',
+      label: 'Gói Bán',
+      icon: PackageIcon
     }
   ];
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* Generic Drawer */}
-      <GenericDrawer
-        title="BRIGHWAY"
-        subtitle="Admin Portal"
-        menuItems={menuItems}
-        onLogout={handleLogout}
-      />
+    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <ManagerStaffHeader />
 
-      {/* Main Content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          backgroundColor: '#f5f5f5',
-          minHeight: '100vh'
-        }}
-      >
-        <Outlet />
+      <Box sx={{ display: 'flex' }}>
+        {/* Generic Drawer */}
+        <GenericDrawer
+          title="BRIGHWAY"
+          subtitle="Admin Portal"
+          menuItems={menuItems}
+          onLogout={handleLogout}
+        />
+
+        {/* Main Content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            backgroundColor: '#f5f5f5',
+            minHeight: 'calc(100vh - 64px)'
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );

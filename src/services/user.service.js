@@ -19,6 +19,19 @@ const userService = {
   },
 
   /**
+   * Get current logged-in user info
+   * @returns {Promise} Current user details
+   */
+  getCurrentUser: async () => {
+    try {
+      const response = await axiosInstance.get('/User/current-user');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
    * Get user by ID
    * @param {string} userId - User ID
    * @param {boolean} expandRoleDetails - Whether to expand role-specific details (Family/TeacherProfile)
@@ -40,7 +53,53 @@ const userService = {
   },
 
    /**
-    * Create new user (Admin creates account for user)
+    * Create new staff account
+    * @param {Object} userData - User data { name, email, password }
+    * @returns {Promise} Created staff user
+    */
+   createStaff: async (userData) => {
+     try {
+       // Backend expects { name, email, password }
+       const payload = {
+         name: userData.fullName || userData.name,
+         email: userData.email,
+         password: userData.password
+       };
+       const response = await axiosInstance.post('/User/staff', payload);
+       return response.data;
+     } catch (error) {
+       throw error.response?.data || error.message;
+     }
+   },
+
+   /**
+    * Create new manager account
+    * @param {Object} userData - User data { name, email, password, branchId? }
+    * @returns {Promise} Created manager user
+    */
+   createManager: async (userData) => {
+     try {
+       // Backend expects { name, email, password, branchId }
+       const payload = {
+         name: userData.name,
+         email: userData.email,
+         password: userData.password
+       };
+       
+       // Add branchId if provided
+       if (userData.branchId) {
+         payload.branchId = userData.branchId;
+       }
+       
+       const response = await axiosInstance.post('/User/manager', payload);
+       return response.data;
+     } catch (error) {
+       throw error.response?.data || error.message;
+     }
+   },
+
+   /**
+    * Create new user (Admin creates account for user) - DEPRECATED: Use createStaff or createManager
     * @param {Object} userData - User data { fullName, email, phoneNumber, password }
     * @param {number} role - Role ID (0=Staff, 1=Manager)
     * @returns {Promise} Created user
@@ -78,17 +137,14 @@ const userService = {
   /**
    * Update user (Admin updates Manager/Staff users)
    * @param {string} userId - User ID
-   * @param {Object} userData - Updated user data { targetUserId, fullName, email, phoneNumber, changeRoleTo, isActive }
+   * @param {Object} userData - Updated user data { name, email, password?, isActive }
    * @returns {Promise} Updated user
    */
   updateUser: async (userId, userData) => {
     try {
       const updateData = {
-        targetUserId: userId,
-        fullName: userData.fullName,
+        name: userData.fullName || userData.name,
         email: userData.email,
-        phoneNumber: userData.phoneNumber,
-        changeRoleTo: userData.changeRoleTo || 0,
         isActive: userData.isActive !== undefined ? userData.isActive : true
       };
       
@@ -248,6 +304,34 @@ const userService = {
       }
       
       const response = await axiosInstance.get(`/User/paged?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get paginated users filtered by role (with automatic keyword filtering by role)
+   * @param {Object} params - Pagination parameters { pageIndex, pageSize, Keyword, Role }
+   * @returns {Promise} Paginated user list filtered by role
+   */
+  getUsersPagedByRole: async (params = {}) => {
+    try {
+      const { pageIndex = 1, pageSize = 10, Keyword = '', Role = null } = params;
+      const queryParams = new URLSearchParams({
+        pageIndex: pageIndex.toString(),
+        pageSize: pageSize.toString()
+      });
+      
+      if (Keyword) {
+        queryParams.append('Keyword', Keyword);
+      }
+      
+      if (Role !== null && Role !== undefined) {
+        queryParams.append('Role', Role.toString());
+      }
+      
+      const response = await axiosInstance.get(`/User/paged-by-role?${queryParams}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

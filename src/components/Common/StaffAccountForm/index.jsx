@@ -21,7 +21,7 @@ import {
   AssignmentInd as RoleIcon
 } from '@mui/icons-material';
 import Form from '../Form';
-import { createUserSchema } from '../../../utils/validationSchemas/userSchemas';
+import { createUserByAdminSchema } from '../../../utils/validationSchemas/userSchemas';
 
 const StaffAccountForm = ({ 
   isSubmitting, 
@@ -59,11 +59,11 @@ const StaffAccountForm = ({
   return (
     <Box>
       <Form
-        schema={createUserSchema}
+        schema={createUserByAdminSchema}
         onSubmit={handleFormSubmit}
-        submitText="Tạo Tài Khoản"
+        submitText="Tạo Staff"
         loading={isSubmitting}
-        defaultValues={{ role: 0 }}
+        defaultValues={{}}
         fields={[
           { 
             name: 'fullName', 
@@ -84,28 +84,14 @@ const StaffAccountForm = ({
             gridSize: 6
           },
           { 
-            name: 'phoneNumber', 
-            label: 'Số Điện Thoại', 
-            type: 'text', 
-            required: true, 
-            placeholder: 'Ví dụ: 0901234567',
-            disabled: isSubmitting,
-            gridSize: 6
-          },
-          { 
             name: 'password', 
             label: 'Mật Khẩu', 
             type: 'password', 
             required: true, 
             placeholder: 'Nhập mật khẩu cho người dùng',
             disabled: isSubmitting,
-            gridSize: 6
-          },
-              // Role field hidden - always Staff (0 in create API mapping)
-              { 
-                name: 'role', 
-                type: 'hidden'
-              }
+            gridSize: 12
+          }
         ]}
       />
 
@@ -166,15 +152,6 @@ const StaffAccountForm = ({
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">
                     {confirmDialog.userData.email}
-                  </Typography>
-                </Box>
-                
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Số Điện Thoại:
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium">
-                    {confirmDialog.userData.phoneNumber}
                   </Typography>
                 </Box>
                 
