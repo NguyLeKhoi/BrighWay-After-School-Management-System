@@ -89,7 +89,7 @@ const studentLevelService = {
       });
       
       if (keyword) {
-        queryParams.append('keyword', keyword);
+        queryParams.append('filter.Keyword', keyword);
       }
       
       const response = await axiosInstance.get(`/StudentLevel/paged?${queryParams}`);
