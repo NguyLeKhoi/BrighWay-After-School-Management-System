@@ -98,7 +98,7 @@ const branchService = {
       });
       
       if (searchTerm) {
-        queryParams.append('searchTerm', searchTerm);
+        queryParams.append('filter.Keyword', searchTerm);
       }
       
       const response = await axiosInstance.get(`/Branch/paged?${queryParams}`);

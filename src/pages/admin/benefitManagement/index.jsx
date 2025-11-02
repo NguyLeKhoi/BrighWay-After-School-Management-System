@@ -107,8 +107,10 @@ const BenefitManagement = () => {
   ];
 
   // Load benefits with pagination
-  const loadBenefits = async () => {
-    showLoading();
+  const loadBenefits = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) {
+      showLoading();
+    }
     setError(null);
     try {
       const response = await benefitService.getBenefitsPaged({
@@ -130,14 +132,25 @@ const BenefitManagement = () => {
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
-  // Load benefits when page, rowsPerPage, searchTerm, or statusFilter changes
+  // Load benefits when page, rowsPerPage, or statusFilter changes
   useEffect(() => {
     loadBenefits();
-  }, [page, rowsPerPage, searchTerm, statusFilter]);
+  }, [page, rowsPerPage, statusFilter]);
+
+  // Load benefits when keyword changes (debounced search while typing)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      loadBenefits(false); // Don't show loading indicator for debounced search
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
 
   // Event handlers
   const handleSearch = () => {

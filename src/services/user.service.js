@@ -310,6 +310,34 @@ const userService = {
     }
   },
 
+  /**
+   * Get paginated users filtered by role (with automatic keyword filtering by role)
+   * @param {Object} params - Pagination parameters { pageIndex, pageSize, Keyword, Role }
+   * @returns {Promise} Paginated user list filtered by role
+   */
+  getUsersPagedByRole: async (params = {}) => {
+    try {
+      const { pageIndex = 1, pageSize = 10, Keyword = '', Role = null } = params;
+      const queryParams = new URLSearchParams({
+        pageIndex: pageIndex.toString(),
+        pageSize: pageSize.toString()
+      });
+      
+      if (Keyword) {
+        queryParams.append('Keyword', Keyword);
+      }
+      
+      if (Role !== null && Role !== undefined) {
+        queryParams.append('Role', Role.toString());
+      }
+      
+      const response = await axiosInstance.get(`/User/paged-by-role?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // ===== FAMILY ACCOUNT METHODS (for Staff) =====
 
   /**

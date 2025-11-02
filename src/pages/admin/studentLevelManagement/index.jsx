@@ -88,8 +88,10 @@ const StudentLevelManagement = () => {
   ];
 
   // Load student levels with pagination
-  const loadStudentLevels = async () => {
-    showLoading();
+  const loadStudentLevels = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) {
+      showLoading();
+    }
     setError(null);
     try {
       const response = await studentLevelService.getStudentLevelsPaged({
@@ -110,14 +112,25 @@ const StudentLevelManagement = () => {
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
-  // Load student levels when page, rowsPerPage, or searchTerm changes
+  // Load student levels when page or rowsPerPage changes
   useEffect(() => {
     loadStudentLevels();
-  }, [page, rowsPerPage, searchTerm]);
+  }, [page, rowsPerPage]);
+
+  // Load student levels when keyword changes (debounced search while typing)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      loadStudentLevels(false); // Don't show loading indicator for debounced search
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
 
   // Event handlers
   const handleSearch = () => {

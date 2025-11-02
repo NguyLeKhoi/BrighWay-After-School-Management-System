@@ -89,14 +89,42 @@ const benefitService = {
       });
       
       if (searchTerm) {
-        queryParams.append('searchTerm', searchTerm);
+        queryParams.append('filter.Name', searchTerm);
       }
       
       if (status !== null && status !== undefined) {
-        queryParams.append('status', status.toString());
+        queryParams.append('filter.Status', status.toString());
       }
       
       const response = await axiosInstance.get(`/Benefit/paged?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Assign benefits to a branch
+   * @param {Object} assignmentData - Assignment data { branchId, benefitIds }
+   * @returns {Promise} Assignment result
+   */
+  assignBenefitsToBranch: async (assignmentData) => {
+    try {
+      const response = await axiosInstance.post('/Benefit/assign-to-branch', assignmentData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get all benefits assigned to a specific branch
+   * @param {string} branchId - Branch ID
+   * @returns {Promise} List of assigned benefits
+   */
+  getBenefitsByBranchId: async (branchId) => {
+    try {
+      const response = await axiosInstance.get(`/Benefit/branch/${branchId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
