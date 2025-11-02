@@ -15,15 +15,41 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Grid
+  Grid,
+  Checkbox,
+  ListItemText,
+  FormControlLabel,
+  Divider,
+  List,
+  ListItem,
+  Autocomplete,
+  CircularProgress,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Collapse,
+  Tooltip
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  Search as SearchIcon,
+  CardGiftcard as BenefitIcon,
+  Assignment as AssignIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import branchService from '../../../services/branch.service';
+import benefitService from '../../../services/benefit.service';
 import useLocationData from '../../../hooks/useLocationData';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -39,13 +65,24 @@ const BranchManagement = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchId, setSearchId] = useState('');
-  const [searchResult, setSearchResult] = useState(null);
+  const [keyword, setKeyword] = useState('');
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState('create');
   const [selectedBranch, setSelectedBranch] = useState(null);
+  
+  // Assign benefits dialog states
+  const [openAssignDialog, setOpenAssignDialog] = useState(false);
+  const [selectedBranchForAssign, setSelectedBranchForAssign] = useState(null);
+  const [availableBenefits, setAvailableBenefits] = useState([]);
+  const [assignedBenefits, setAssignedBenefits] = useState([]);
+  const [selectedBenefits, setSelectedBenefits] = useState([]);
+  const [loadingBenefits, setLoadingBenefits] = useState(false);
+  
+  // Expanded rows state
+  const [expandedRows, setExpandedRows] = useState(new Set());
+  const [rowBenefits, setRowBenefits] = useState({});
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -85,6 +122,28 @@ const BranchManagement = () => {
     }
   }, [provinceId, handleProvinceChange, selectedBranch]);
 
+  // Handle expand/collapse row
+  const handleToggleExpand = async (branchId) => {
+    const newExpanded = new Set(expandedRows);
+    const isCurrentlyExpanded = expandedRows.has(branchId);
+    
+    if (isCurrentlyExpanded) {
+      newExpanded.delete(branchId);
+    } else {
+      newExpanded.add(branchId);
+      // Load benefits if not already loaded
+      if (!rowBenefits[branchId]) {
+        try {
+          const benefits = await benefitService.getBenefitsByBranchId(branchId);
+          setRowBenefits(prev => ({ ...prev, [branchId]: benefits }));
+        } catch (err) {
+          setRowBenefits(prev => ({ ...prev, [branchId]: [] }));
+        }
+      }
+    }
+    setExpandedRows(newExpanded);
+  };
+
   // Define table columns
   const columns = [
     {
@@ -92,6 +151,13 @@ const BranchManagement = () => {
       header: 'Tên Chi Nhánh',
       render: (value, item) => (
         <Box display="flex" alignItems="center" gap={1}>
+          <IconButton
+            size="small"
+            onClick={() => handleToggleExpand(item.id)}
+            sx={{ padding: '4px', ml: -1 }}
+          >
+            {expandedRows.has(item.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
           <BusinessIcon fontSize="small" color="primary" />
           <Typography variant="subtitle2" fontWeight="medium">
             {value}
@@ -124,17 +190,53 @@ const BranchManagement = () => {
           {value}
         </Typography>
       )
+    },
+    {
+      key: 'actions',
+      header: 'Thao tác',
+      align: 'center',
+      render: (value, item) => (
+        <Box display="flex" gap={0.5} justifyContent="center">
+          <IconButton
+            size="small"
+            color="info"
+            onClick={() => handleAssignBenefits(item)}
+            title="Gán lợi ích"
+          >
+            <AssignIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="primary"
+            onClick={() => handleEditBranch(item)}
+            title="Sửa"
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => handleDeleteBranch(item)}
+            title="Xóa"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )
     }
   ];
 
   // Load branches with pagination
-  const loadBranches = async () => {
-    showLoading();
+  const loadBranches = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) {
+      showLoading();
+    }
     setError(null);
     try {
       const response = await branchService.getBranchesPaged({
         page: page + 1, // Backend uses 1-based indexing
-        pageSize: rowsPerPage
+        pageSize: rowsPerPage,
+        searchTerm: keyword.trim()
       });
       
       // Handle both paginated and non-paginated responses
@@ -152,59 +254,39 @@ const BranchManagement = () => {
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
   // Load branches when page or rowsPerPage changes
   useEffect(() => {
-
     loadBranches();
   }, [page, rowsPerPage]);
 
-  // Use search result if available, otherwise use paginated branches
-  const displayBranches = searchResult ? [searchResult] : branches;
+  // Load branches when keyword changes (debounced search while typing)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      loadBranches(false); // Don't show loading indicator for debounced search
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [keyword]);
+
+  // Use loaded branches
+  const displayBranches = branches;
   const paginatedBranches = displayBranches;
 
   // Event handlers
-  const handleSearchById = async () => {
-    if (!searchId.trim()) {
-      setSearchResult(null);
-      return;
-    }
-
-    setSearchLoading(true);
-    try {
-      const result = await branchService.getBranchById(searchId.trim());
-      setSearchResult(result);
-      setPage(0);
-      
-      toast.success(`Tìm thấy chi nhánh: ${result.branchName}`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Không tìm thấy chi nhánh với ID này';
-      setError(errorMessage);
-      setSearchResult(null);
-      
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const handleClearSearch = () => {
-    setSearchId('');
-    setSearchResult(null);
+  const handleKeywordSearch = () => {
     setPage(0);
+    loadBranches();
   };
 
-  const handleSearchIdChange = (event) => {
-    setSearchId(event.target.value);
+  const handleKeywordChange = (e) => {
+    setKeyword(e.target.value);
+    setPage(0);
   };
 
   const handlePageChange = (event, newPage) => {
@@ -350,6 +432,65 @@ const BranchManagement = () => {
     }
   };
 
+  // Handle assign benefits
+  const handleAssignBenefits = async (branch) => {
+    setSelectedBranchForAssign(branch);
+    setLoadingBenefits(true);
+    setOpenAssignDialog(true);
+    
+    try {
+      // Load all available benefits and assigned benefits in parallel
+      const [allBenefits, assigned] = await Promise.all([
+        benefitService.getAllBenefits(),
+        benefitService.getBenefitsByBranchId(branch.id).catch(() => []) // Return empty array if no benefits assigned
+      ]);
+      
+      setAvailableBenefits(allBenefits);
+      setAssignedBenefits(assigned);
+      // Pre-select already assigned benefits
+      setSelectedBenefits(assigned.map(b => b.id));
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tải danh sách lợi ích';
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setLoadingBenefits(false);
+    }
+  };
+
+  // Handle submit assignment
+  const handleSubmitAssignment = async () => {
+    if (!selectedBranchForAssign) return;
+    
+    setActionLoading(true);
+    try {
+      await benefitService.assignBenefitsToBranch({
+        branchId: selectedBranchForAssign.id,
+        benefitIds: selectedBenefits
+      });
+      
+      toast.success(`Gán lợi ích cho "${selectedBranchForAssign.branchName}" thành công!`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      
+      setOpenAssignDialog(false);
+      setSelectedBranchForAssign(null);
+      setSelectedBenefits([]);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gán lợi ích';
+      showGlobalError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
@@ -368,32 +509,39 @@ const BranchManagement = () => {
         </Button>
       </div>
 
-      {/* Search by ID */}
+      {/* Search Section */}
       <Paper className={styles.searchSection}>
         <div className={styles.searchContainer}>
           <TextField
-            placeholder="Nhập ID chi nhánh để tìm kiếm..."
-            value={searchId}
-            onChange={handleSearchIdChange}
+            placeholder="Tìm kiếm theo tên, địa chỉ..."
+            value={keyword}
+            onChange={handleKeywordChange}
             className={styles.searchField}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                handleSearchById();
+                handleKeywordSearch();
               }
             }}
           />
           <Button
             variant="contained"
-            onClick={handleSearchById}
-            disabled={!searchId.trim() || searchLoading}
+            onClick={handleKeywordSearch}
+            disabled={searchLoading}
             className={styles.searchButton}
           >
-            {searchLoading ? 'Đang tìm...' : 'Tìm theo ID'}
+            {searchLoading ? 'Đang tìm...' : 'Tìm kiếm'}
           </Button>
-          {searchResult && (
+          {keyword && (
             <Button
               variant="outlined"
-              onClick={handleClearSearch}
+              onClick={() => setKeyword('')}
             >
               Xóa tìm kiếm
             </Button>
@@ -410,19 +558,133 @@ const BranchManagement = () => {
 
       {/* Table */}
       <div className={styles.tableContainer}>
-        <DataTable
-          data={paginatedBranches}
-          columns={columns}
-          loading={isPageLoading}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          totalCount={searchResult ? 1 : totalCount}
-          onPageChange={handlePageChange}
-          onRowsPerPageChange={handleRowsPerPageChange}
-          onEdit={handleEditBranch}
-          onDelete={handleDeleteBranch}
-        emptyMessage={searchResult ? "Không có chi nhánh nào." : "Không có chi nhánh nào. Hãy thêm chi nhánh đầu tiên để bắt đầu."}
-      />
+        <Paper>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell key={column.key} align={column.align || 'left'}>
+                      {column.header}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isPageLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} align="center">
+                      <CircularProgress />
+                    </TableCell>
+                  </TableRow>
+                ) : !paginatedBranches || paginatedBranches.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} align="center">
+                      <Typography variant="h6" color="text.secondary">
+                        Không có chi nhánh nào. Hãy thêm chi nhánh đầu tiên để bắt đầu.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedBranches.map((branch, index) => (
+                    <React.Fragment key={branch.id || index}>
+                      <TableRow hover>
+                        {columns.map((column) => (
+                          <TableCell key={column.key} align={column.align || 'left'}>
+                            {column.render ? column.render(branch[column.key], branch) : branch[column.key]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                      {/* Expanded row showing benefits */}
+                      {expandedRows.has(branch.id) && (
+                        <>
+                          {rowBenefits[branch.id] === undefined ? (
+                            <TableRow>
+                              <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
+                                <CircularProgress size={24} />
+                              </TableCell>
+                            </TableRow>
+                          ) : rowBenefits[branch.id] && rowBenefits[branch.id].length > 0 ? (
+                            <>
+                              {/* Header row for benefits */}
+                              <TableRow sx={{ backgroundColor: 'grey.100' }}>
+                                <TableCell colSpan={columns.length} sx={{ fontWeight: 600, py: 1.5, borderBottom: '1px solid', borderBottomColor: 'divider', pl: 4 }}>
+                                  Danh sách Lợi Ích
+                                </TableCell>
+                              </TableRow>
+                              {/* Benefit rows */}
+                              {rowBenefits[branch.id].map((benefit, idx) => (
+                                <TableRow 
+                                  key={benefit.id} 
+                                  hover
+                                  sx={{
+                                    backgroundColor: benefit.status ? 'success.50' : 'transparent',
+                                    '&:hover': {
+                                      backgroundColor: benefit.status ? 'success.100' : 'grey.50'
+                                    }
+                                  }}
+                                >
+                                  <TableCell sx={{ pl: 4 }}>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                      <BenefitIcon fontSize="small" color={benefit.status ? 'success' : 'inherit'} />
+                                      <Typography variant="body2" fontWeight={500}>
+                                        {benefit.name}
+                                      </Typography>
+                                    </Box>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography variant="body2" color="text.secondary">
+                                      {benefit.description || 'Không có mô tả'}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell></TableCell>
+                                  <TableCell>
+                                    <Box display="flex" justifyContent="flex-end">
+                                      <Chip
+                                        label={benefit.status ? 'Hoạt động' : 'Không hoạt động'}
+                                        color={benefit.status ? 'success' : 'default'}
+                                        size="small"
+                                        sx={{ fontWeight: 500 }}
+                                      />
+                                    </Box>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </>
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={columns.length} align="center" sx={{ py: 3, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Chi nhánh này chưa có lợi ích nào được gán.
+                                </Typography>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </>
+                      )}
+                    </React.Fragment>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+          {/* Pagination */}
+          <TablePagination
+            component="div"
+            count={totalCount}
+            page={page}
+            onPageChange={(e, newPage) => handlePageChange(e, newPage)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => handleRowsPerPageChange(e)}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage="Số dòng mỗi trang:"
+            labelDisplayedRows={({ from, to, count }) => 
+              `${from}-${to} của ${count !== -1 ? count : `nhiều hơn ${to}`}`
+            }
+          />
+        </Paper>
+      </div>
 
       {/* Create/Edit Dialog */}
       <Dialog 
@@ -630,7 +892,152 @@ const BranchManagement = () => {
         cancelText="Hủy"
         confirmColor="error"
       />
-      </div>
+
+      {/* Assign Benefits Dialog */}
+      <Dialog 
+        open={openAssignDialog} 
+        onClose={() => !loadingBenefits && setOpenAssignDialog(false)} 
+        maxWidth="md" 
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden',
+            maxWidth: '700px'
+          }
+        }}
+      >
+        <DialogTitle 
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 24px'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <BenefitIcon />
+            <span>
+              Gán Lợi Ích cho "{selectedBranchForAssign?.branchName}"
+            </span>
+          </Box>
+          <Button
+            onClick={() => setOpenAssignDialog(false)}
+            disabled={loadingBenefits}
+            sx={{
+              color: 'white',
+              minWidth: 'auto',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            ✕
+          </Button>
+        </DialogTitle>
+        <DialogContent 
+          sx={{ 
+            padding: '24px !important',
+            paddingTop: '32px !important'
+          }}
+        >
+          {loadingBenefits ? (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Grid container spacing={2}>
+              {/* List of available benefits */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Chọn lợi ích
+                </Typography>
+                <FormControl fullWidth>
+                  <Autocomplete
+                    multiple
+                    options={availableBenefits}
+                    getOptionLabel={(option) => option.name}
+                    value={availableBenefits.filter(b => selectedBenefits.includes(b.id))}
+                    onChange={(event, newValue) => {
+                      setSelectedBenefits(newValue.map(b => b.id));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Tìm kiếm và chọn lợi ích..."
+                        variant="outlined"
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props}>
+                        <Checkbox checked={selectedBenefits.includes(option.id)} />
+                        <ListItemText
+                          primary={option.name}
+                          secondary={option.description || 'Không có mô tả'}
+                        />
+                      </Box>
+                    )}
+                    disabled={loadingBenefits}
+                  />
+                </FormControl>
+              </Grid>
+
+              {/* Display assigned benefits count */}
+              <Grid item xs={12}>
+                <Divider />
+                <Box mt={2}>
+                  <Typography variant="body2" color="text.secondary">
+                    Đã chọn: <strong>{selectedBenefits.length}</strong> lợi ích
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/* List of currently assigned benefits */}
+              {assignedBenefits.length > 0 && (
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle2" gutterBottom color="primary">
+                    Lợi ích hiện tại:
+                  </Typography>
+                  <List dense>
+                    {assignedBenefits.map((benefit) => (
+                      <ListItem key={benefit.id}>
+                        <BenefitIcon fontSize="small" color="primary" sx={{ mr: 1 }} />
+                        <ListItemText
+                          primary={benefit.name}
+                          secondary={benefit.description || 'Không có mô tả'}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Grid>
+              )}
+            </Grid>
+          )}
+
+          {/* Buttons */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setOpenAssignDialog(false)}
+              disabled={loadingBenefits || actionLoading}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSubmitAssignment}
+              disabled={loadingBenefits || actionLoading}
+              startIcon={<AssignIcon />}
+            >
+              {actionLoading ? 'Đang xử lý...' : 'Gán Lợi Ích'}
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

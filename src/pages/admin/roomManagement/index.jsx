@@ -154,9 +154,11 @@ const RoomManagement = () => {
   ];
 
   // Load rooms data
-  const loadRooms = async () => {
+  const loadRooms = async (showLoadingIndicator = true) => {
     try {
-      showLoading();
+      if (showLoadingIndicator) {
+        showLoading();
+      }
       setError(null);
       
       // Convert page to pageIndex (API uses 1-based indexing)
@@ -266,7 +268,9 @@ const RoomManagement = () => {
         showGlobalError(errorMessage);
       }
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
@@ -278,7 +282,7 @@ const RoomManagement = () => {
   // Auto filter when facility or branch filter changes (with debounce)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      loadRooms();
+      loadRooms(false); // Don't show loading indicator for debounced search
     }, 300); // 300ms debounce to avoid too many API calls
 
     return () => clearTimeout(timeoutId);

@@ -85,7 +85,7 @@ const ManagerManagement = () => {
 
   const columns = [
     {
-      key: 'fullName',
+      key: 'name',
       header: 'Họ và Tên',
       render: (value, item) => (
         <Box display="flex" alignItems="center" gap={1}>
@@ -102,18 +102,6 @@ const ManagerManagement = () => {
       render: (value) => (
         <Box display="flex" alignItems="center" gap={1}>
           <EmailIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'phoneNumber',
-      header: 'Số Điện Thoại',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PhoneIcon fontSize="small" color="action" />
           <Typography variant="body2" color="text.secondary">
             {value}
           </Typography>
@@ -196,13 +184,16 @@ const ManagerManagement = () => {
 
 
   // Load users with pagination, keyword search, and role filter
-  const loadUsers = async () => {
-    showLoading();
+  const loadUsers = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) {
+      showLoading();
+    }
     setError(null);
     try {
       const params = {
         pageIndex: page + 1, // Backend uses 1-based indexing
-        pageSize: rowsPerPage
+        pageSize: rowsPerPage,
+        Role: 'Manager' // Admin only views Manager accounts
       };
       
       // Add keyword if provided
@@ -210,8 +201,8 @@ const ManagerManagement = () => {
         params.Keyword = keyword.trim();
       }
       
-      // Don't send role filter to API - filter on frontend instead
-      const response = await userService.getUsersPaged(params);
+      // Use new endpoint that automatically filters by role
+      const response = await userService.getUsersPagedByRole(params);
       
       // Handle both paginated and non-paginated responses
       let allUsers = [];
@@ -225,31 +216,15 @@ const ManagerManagement = () => {
         setTotalCount(response.length);
       }
       
-      // Apply frontend filtering for Manager only
-      // Backend returns roleName: null, but filter by checking if user should be shown
-      let filteredUsers = allUsers.filter(user => {
-        // Check roleName first if available
-        if (user.roleName && user.roleName === 'Manager') {
-          return true;
-        }
-        
-        // Fallback to roles array if roleName is null
-        const roles = user.roles || [];
-        if (Array.isArray(roles) && roles.length > 0) {
-          return roles.includes('Manager');
-        }
-        
-        // Don't include if no role data
-        return false;
-      });
-      
-      setUsers(filteredUsers);
+      setUsers(allUsers);
     } catch (err) {
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
@@ -263,6 +238,16 @@ const ManagerManagement = () => {
   useEffect(() => {
     loadUsers();
   }, [page, rowsPerPage]);
+
+  // Load users when keyword changes (debounced search while typing)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setSearchResult(null); // Clear search result when keyword changes
+      loadUsers(false); // Don't show loading indicator for debounced search
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [keyword]);
 
   // Use search result if available, otherwise use loaded users (already filtered)
   const displayUsers = searchResult ? [searchResult] : users;
@@ -278,12 +263,7 @@ const ManagerManagement = () => {
 
   const handleKeywordChange = (e) => {
     setKeyword(e.target.value);
-    // If keyword is cleared, reset search immediately
-    if (e.target.value.trim() === '') {
-      setPage(0);
-      setSearchResult(null);
-      loadUsers();
-    }
+    setPage(0); // Reset to first page when keyword changes
   };
 
   const handleSearchById = async () => {

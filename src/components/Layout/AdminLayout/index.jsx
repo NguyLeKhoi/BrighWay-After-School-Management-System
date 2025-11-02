@@ -13,7 +13,8 @@ import {
   Dashboard as DashboardIcon,
   MeetingRoom as RoomIcon,
   CardGiftcard as BenefitIcon,
-  School as StudentLevelIcon
+  School as StudentLevelIcon,
+  ShoppingCart as PackageIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -60,6 +61,11 @@ const AdminLayout = () => {
       path: '/admin/student-levels',
       label: 'Cấp Độ Học Sinh',
       icon: StudentLevelIcon
+    },
+    {
+      path: '/admin/packages',
+      label: 'Gói Bán',
+      icon: PackageIcon
     }
   ];
 
