@@ -15,7 +15,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { addNotification, showGlobalError } = useApp();
-  const { isLoading, showLoading, hideLoading } = useLoading(1500);
+  const { isLoading, showLoading, hideLoading } = useLoading(300);
 
   const handleSubmit = async (data) => {
     showLoading();

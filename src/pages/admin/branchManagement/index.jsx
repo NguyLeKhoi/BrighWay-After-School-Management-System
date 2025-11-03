@@ -94,7 +94,7 @@ const BranchManagement = () => {
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(300); // Only for page load
   
   // Location data
   const {
@@ -476,6 +476,15 @@ const BranchManagement = () => {
         autoClose: 3000,
       });
       
+      // Refresh assigned benefits list
+      const updated = await benefitService.getBenefitsByBranchId(selectedBranchForAssign.id);
+      setAssignedBenefits(updated);
+      
+      // Refresh row benefits if branch is expanded
+      if (expandedRows.has(selectedBranchForAssign.id)) {
+        setRowBenefits(prev => ({ ...prev, [selectedBranchForAssign.id]: updated }));
+      }
+      
       setOpenAssignDialog(false);
       setSelectedBranchForAssign(null);
       setSelectedBenefits([]);
@@ -489,6 +498,50 @@ const BranchManagement = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  // Handle remove benefit from branch
+  const handleRemoveBenefit = async (branchId, benefitId, benefitName) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Xác nhận gỡ lợi ích',
+      description: `Bạn có chắc chắn muốn gỡ lợi ích "${benefitName}" khỏi chi nhánh này không?`,
+      onConfirm: async () => {
+        setActionLoading(true);
+        try {
+          await benefitService.removeBenefitFromBranch(branchId, benefitId);
+          
+          toast.success(`Đã gỡ lợi ích "${benefitName}" khỏi chi nhánh thành công!`, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+          
+          // Refresh benefits list for this branch
+          const updated = await benefitService.getBenefitsByBranchId(branchId);
+          setRowBenefits(prev => ({ ...prev, [branchId]: updated }));
+          
+          // If dialog is open for this branch, update assigned benefits
+          if (selectedBranchForAssign?.id === branchId) {
+            setAssignedBenefits(updated);
+          }
+        } catch (err) {
+          const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gỡ lợi ích';
+          showGlobalError(errorMessage);
+          toast.error(errorMessage, {
+            position: "top-right",
+            autoClose: 4000,
+          });
+        } finally {
+          setActionLoading(false);
+          setConfirmDialog({
+            open: false,
+            title: '',
+            description: '',
+            onConfirm: null
+          });
+        }
+      }
+    });
   };
 
   return (
@@ -639,13 +692,24 @@ const BranchManagement = () => {
                                   </TableCell>
                                   <TableCell></TableCell>
                                   <TableCell>
-                                    <Box display="flex" justifyContent="flex-end">
+                                    <Box display="flex" justifyContent="flex-end" gap={1} alignItems="center">
                                       <Chip
                                         label={benefit.status ? 'Hoạt động' : 'Không hoạt động'}
                                         color={benefit.status ? 'success' : 'default'}
                                         size="small"
                                         sx={{ fontWeight: 500 }}
                                       />
+                                      <Tooltip title="Gỡ lợi ích khỏi chi nhánh">
+                                        <IconButton
+                                          size="small"
+                                          color="error"
+                                          onClick={() => handleRemoveBenefit(branch.id, benefit.id, benefit.name)}
+                                          disabled={actionLoading}
+                                          sx={{ ml: 1 }}
+                                        >
+                                          <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
                                     </Box>
                                   </TableCell>
                                 </TableRow>
@@ -1004,7 +1068,22 @@ const BranchManagement = () => {
                   </Typography>
                   <List dense>
                     {assignedBenefits.map((benefit) => (
-                      <ListItem key={benefit.id}>
+                      <ListItem 
+                        key={benefit.id}
+                        secondaryAction={
+                          <Tooltip title="Gỡ lợi ích">
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              color="error"
+                              onClick={() => handleRemoveBenefit(selectedBranchForAssign.id, benefit.id, benefit.name)}
+                              disabled={actionLoading}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        }
+                      >
                         <BenefitIcon fontSize="small" color="primary" sx={{ mr: 1 }} />
                         <ListItemText
                           primary={benefit.name}

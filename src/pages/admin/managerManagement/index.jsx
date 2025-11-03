@@ -81,7 +81,7 @@ const ManagerManagement = () => {
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(300); // Only for page load
 
   const columns = [
     {

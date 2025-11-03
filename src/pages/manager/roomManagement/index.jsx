@@ -65,7 +65,7 @@ const ManagerRoomManagement = () => {
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500);
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(300);
   
   // Facility and Branch data
   const {

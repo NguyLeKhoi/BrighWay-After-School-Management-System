@@ -69,7 +69,7 @@ const StaffAndTeacherManagement = () => {
   
   // Global state
   const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500); // Only for page load
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(300); // Only for page load
 
   // Get current user role from context
   const { user } = useApp();
@@ -263,8 +263,13 @@ const StaffAndTeacherManagement = () => {
         setTotalCount(response.length);
       }
       
-      // Backend already filters by role, no additional filtering needed
-      setUsers(allUsers);
+      // Filter to only show Staff and Teacher (Manager is not allowed to see other Managers or Admins)
+      const filteredUsers = allUsers.filter(user => {
+        const roles = user.roles || (user.roleName ? [user.roleName] : []);
+        return roles.includes('Staff') || roles.includes('Teacher');
+      });
+      
+      setUsers(filteredUsers);
     } catch (err) {
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
       setError(errorMessage);
