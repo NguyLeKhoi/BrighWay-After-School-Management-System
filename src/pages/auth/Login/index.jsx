@@ -5,7 +5,7 @@ import { Home as HomeIcon } from '@mui/icons-material';
 import AuthCard from '@components/Common/AuthCard';
 import Form from '../../../components/Common/Form';
 import Loading from '../../../components/Common/Loading';
-import { loginSchema } from '../../../utils/validationSchemas';
+import { loginSchema } from '../../../utils/validationSchemas/authSchemas';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
@@ -32,6 +32,8 @@ const Login = () => {
       // Log user info for debugging
       console.log('🚀 Login successful! User:', user);
       console.log('🎯 User role:', user.role);
+      console.log('🔑 Access Token:', result.accessToken ? 'Received' : 'Missing');
+      console.log('🔄 Refresh Token:', result.refreshToken ? 'Received' : 'Missing');
       
       // Show success notification
       addNotification({
@@ -39,13 +41,25 @@ const Login = () => {
         severity: 'success'
       });
       
-      // Redirect based on role
-      if (user.role === 'Admin') {
+      // Redirect based on role (handle both string and number roles)
+      const role = user.role;
+      console.log('🔍 Role type:', typeof role, 'Value:', role);
+      
+      if (role === 'Admin' || role === 0) {
         console.log('➡️ Redirecting to Admin dashboard...');
         navigate('/admin/dashboard');
-      } else if (user.role === 'Teacher') {
+      } else if (role === 'Manager' || role === 1) {
+        console.log('➡️ Redirecting to Manager dashboard...');
+        navigate('/manager/dashboard');
+      } else if (role === 'Teacher' || role === 3) {
         console.log('➡️ Redirecting to Teacher dashboard...');
         navigate('/teacher/dashboard');
+      } else if (role === 'Staff' || role === 2) {
+        console.log('➡️ Redirecting to Staff users...');
+        navigate('/staff/users');
+      } else if (role === 'User' || role === 4) {
+        console.log('➡️ Redirecting to Family profile...');
+        navigate('/family/profile');
       } else {
         console.log('➡️ Redirecting to Parent profile...');
         navigate('/parent/profile');

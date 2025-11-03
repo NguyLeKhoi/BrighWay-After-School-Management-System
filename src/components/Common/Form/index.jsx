@@ -1,6 +1,7 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Grid, Switch, FormControlLabel, Box, Typography } from '@mui/material';
 import styles from './Form.module.css';
 
 const Form = ({
@@ -20,7 +21,9 @@ const Form = ({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset
+    reset,
+    control,
+    watch
   } = useForm({
     resolver: schema ? yupResolver(schema) : undefined,
     defaultValues
@@ -35,11 +38,11 @@ const Form = ({
   };
 
   const renderField = (field) => {
-    const { name, label, type = 'text', options = [], ...fieldProps } = field;
+    const { name, label, type = 'text', options = [], className = '', ...fieldProps } = field;
     const error = errors[name];
 
     return (
-      <div key={name} className={`${styles.formGroup} ${field.fullWidth ? styles.fullWidth : ''}`}>
+      <div key={name} className={`${styles.formGroup} ${field.fullWidth ? styles.fullWidth : ''} ${className ? styles[className] : ''}`}>
         <label htmlFor={name} className={styles.formLabel}>
           {label}
         </label>
@@ -81,6 +84,42 @@ const Form = ({
               {label}
             </label>
           </div>
+        ) : type === 'switch' ? (
+          <Controller
+            name={name}
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {label}:
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: value ? 'success.main' : 'text.disabled',
+                      fontWeight: 'medium'
+                    }}
+                  >
+                    {value ? 'Hoạt động' : 'Không hoạt động'}
+                  </Typography>
+                  <Switch
+                    checked={value || false}
+                    onChange={onChange}
+                    color="primary"
+                    sx={{
+                      '& .MuiSwitch-thumb': {
+                        backgroundColor: value ? '#4caf50' : '#f5f5f5'
+                      },
+                      '& .MuiSwitch-track': {
+                        backgroundColor: value ? '#81c784' : '#e0e0e0'
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
+          />
         ) : (
           <input
             {...register(name)}
@@ -91,6 +130,12 @@ const Form = ({
             placeholder={field.placeholder}
             required={field.required}
           />
+        )}
+        
+        {field.helperText && (
+          <div className={styles.helperText}>
+            {field.helperText}
+          </div>
         )}
         
         {error && (
@@ -111,7 +156,13 @@ const Form = ({
       )}
       
       <div className={styles.formFields}>
-        {fields.map(renderField)}
+        <Grid container spacing={2}>
+          {fields.map((field, index) => (
+            <Grid item xs={field.gridSize || 12} key={field.name || index}>
+              {renderField(field)}
+            </Grid>
+          ))}
+        </Grid>
       </div>
       
       {children}

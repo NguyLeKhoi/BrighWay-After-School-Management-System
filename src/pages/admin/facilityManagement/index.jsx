@@ -9,18 +9,18 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Alert,
   Chip
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Room as RoomIcon
+  Room as RoomIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { facilitySchema } from '../../../utils/validationSchemas';
+import { facilitySchema } from '../../../utils/validationSchemas/facilitySchemas';
 import facilityService from '../../../services/facility.service';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -36,8 +36,7 @@ const FacilityManagement = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchId, setSearchId] = useState('');
-  const [searchResult, setSearchResult] = useState(null);
+  const [keyword, setKeyword] = useState('');
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
@@ -82,13 +81,16 @@ const FacilityManagement = () => {
   ];
 
   // Load facilities with pagination
-  const loadFacilities = async () => {
-    showLoading();
+  const loadFacilities = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) {
+      showLoading();
+    }
     setError(null);
     try {
       const response = await facilityService.getFacilitiesPaged({
         page: page + 1, // Backend uses 1-based indexing
-        pageSize: rowsPerPage
+        pageSize: rowsPerPage,
+        searchTerm: keyword.trim()
       });
       
       // Handle both paginated and non-paginated responses
@@ -106,59 +108,39 @@ const FacilityManagement = () => {
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
   // Load facilities when page or rowsPerPage changes
   useEffect(() => {
-
     loadFacilities();
   }, [page, rowsPerPage]);
 
-  // Use search result if available, otherwise use paginated facilities
-  const displayFacilities = searchResult ? [searchResult] : facilities;
+  // Load facilities when keyword changes (debounced search while typing)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      loadFacilities(false); // Don't show loading indicator for debounced search
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [keyword]);
+
+  // Use loaded facilities
+  const displayFacilities = facilities;
   const paginatedFacilities = displayFacilities;
 
   // Event handlers
-  const handleSearchById = async () => {
-    if (!searchId.trim()) {
-      setSearchResult(null);
-      return;
-    }
-
-    setSearchLoading(true);
-    try {
-      const result = await facilityService.getFacilityById(searchId.trim());
-      setSearchResult(result);
-      setPage(0);
-      
-      toast.success(`Tìm thấy cơ sở vật chất: ${result.facilityName}`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Không tìm thấy cơ sở vật chất với ID này';
-      setError(errorMessage);
-      setSearchResult(null);
-      
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const handleClearSearch = () => {
-    setSearchId('');
-    setSearchResult(null);
+  const handleKeywordSearch = () => {
     setPage(0);
+    loadFacilities();
   };
 
-  const handleSearchIdChange = (event) => {
-    setSearchId(event.target.value);
+  const handleKeywordChange = (e) => {
+    setKeyword(e.target.value);
+    setPage(0);
   };
 
   const handlePageChange = (event, newPage) => {
@@ -294,32 +276,39 @@ const FacilityManagement = () => {
         </Button>
       </div>
 
-      {/* Search by ID */}
+      {/* Search Section */}
       <Paper className={styles.searchSection}>
         <div className={styles.searchContainer}>
           <TextField
-            placeholder="Nhập ID cơ sở vật chất để tìm kiếm..."
-            value={searchId}
-            onChange={handleSearchIdChange}
+            placeholder="Tìm kiếm theo tên..."
+            value={keyword}
+            onChange={handleKeywordChange}
             className={styles.searchField}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                handleSearchById();
+                handleKeywordSearch();
               }
             }}
           />
           <Button
             variant="contained"
-            onClick={handleSearchById}
-            disabled={!searchId.trim() || searchLoading}
+            onClick={handleKeywordSearch}
+            disabled={searchLoading}
             className={styles.searchButton}
           >
-            {searchLoading ? 'Đang tìm...' : 'Tìm theo ID'}
+            {searchLoading ? 'Đang tìm...' : 'Tìm kiếm'}
           </Button>
-          {searchResult && (
+          {keyword && (
             <Button
               variant="outlined"
-              onClick={handleClearSearch}
+              onClick={() => setKeyword('')}
               className={styles.clearButton}
             >
               Xóa tìm kiếm
@@ -343,13 +332,13 @@ const FacilityManagement = () => {
           loading={isPageLoading}
           page={page}
           rowsPerPage={rowsPerPage}
-          totalCount={searchResult ? 1 : totalCount}
+          totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEditFacility}
           onDelete={handleDeleteFacility}
-          emptyMessage={searchResult ? "Không có cơ sở vật chất nào." : "Không có cơ sở vật chất nào. Hãy thêm cơ sở vật chất đầu tiên để bắt đầu."}
-      />
+          emptyMessage="Không có cơ sở vật chất nào. Hãy thêm cơ sở vật chất đầu tiên để bắt đầu."
+        />
 
       {/* Create/Edit Dialog */}
       <Dialog 
@@ -357,11 +346,43 @@ const FacilityManagement = () => {
         onClose={() => !actionLoading && setOpenDialog(false)} 
         maxWidth="sm" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle className={styles.dialogTitle}>
-          <span className={styles.dialogTitleText}>
-            {dialogMode === 'create' ? 'Thêm Cơ Sở Vật Chất mới' : 'Chỉnh sửa Cơ Sở Vật Chất'}
-          </span>
+        <DialogTitle 
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            position: 'relative'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <span>
+              {dialogMode === 'create' ? 'Thêm Cơ Sở Vật Chất mới' : 'Chỉnh sửa Cơ Sở Vật Chất'}
+            </span>
+          </Box>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            disabled={actionLoading}
+            sx={{
+              color: 'white',
+              minWidth: 'auto',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            ✕
+          </Button>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
           <div style={{ paddingTop: '8px' }}>
@@ -396,14 +417,6 @@ const FacilityManagement = () => {
             />
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setOpenDialog(false)} 
-            disabled={actionLoading}
-          >
-            Hủy
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Confirm Dialog */}

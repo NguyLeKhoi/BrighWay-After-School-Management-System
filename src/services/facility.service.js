@@ -96,7 +96,7 @@ const facilityService = {
       });
       
       if (searchTerm) {
-        queryParams.append('searchTerm', searchTerm);
+        queryParams.append('filter.Keyword', searchTerm);
       }
       
       const response = await axiosInstance.get(`/Facility/paged?${queryParams}`);

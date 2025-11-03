@@ -1,9 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../components/Layout/MainLayout';
 import AuthLayout from '../components/Layout/AuthLayout';
-import ParentLayout from '../components/Layout/ParentLayout';
+import FamilyLayout from '../components/Layout/FamilyLayout';
 import AdminLayout from '../components/Layout/AdminLayout';
+import ManagerLayout from '../components/Layout/ManagerLayout';
 import TeacherLayout from '../components/Layout/TeacherLayout';
+import StaffLayout from '../components/Layout/StaffLayout';
 
 // Main Pages
 import Homepage from '../pages/main/Homepage';
@@ -14,25 +16,29 @@ import Contact from '../pages/main/Contact';
 // Auth Pages
 import Login from '../pages/auth/Login';
 
-// Parent Pages
-import ParentProfile from '../pages/parent/profile';
-import ChildrenList from '../pages/parent/children/AllChildren';
-import ChildProfile from '../pages/parent/children/ChildProfile';
-import ChildSchedule from '../pages/parent/children/ChildSchedule';
-import MyWallet from '../pages/parent/wallet';
-import MyCourses from '../pages/parent/courses';
-import Notifications from '../pages/parent/notifications';
+// family Pages
+import FamilyProfile from '../pages/family/profile';
+import ChildrenList from '../pages/family/children/AllChildren';
+import ChildProfile from '../pages/family/children/ChildProfile';
+import ChildSchedule from '../pages/family/children/ChildSchedule';
+import MyWallet from '../pages/family/wallet';
+import MyCourses from '../pages/family/courses';
+import Notifications from '../pages/family/notifications';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
-import RoleManagement from '../pages/admin/roleManagement';
 import BranchManagement from '../pages/admin/branchManagement';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
-import UserManagement from '../pages/admin/userManagement';
-import CourseManagement from '../pages/admin/coursesManagement';
-import Reports from '../pages/admin/reports';
-import Settings from '../pages/admin/settings';
+import ManagerManagement from '../pages/admin/managerManagement';
+import BenefitManagement from '../pages/admin/benefitManagement';
+import StudentLevelManagement from '../pages/admin/studentLevelManagement';
+import PackageManagement from '../pages/admin/packageManagement';
+
+// Manager Pages
+import ManagerDashboard from '../pages/manager/dashboard';
+import ManagerRoomManagement from '../pages/manager/roomManagement';
+import StaffAndTeacherManagement from '../pages/manager/staffAndTeacherManagement';
 
 // Teacher Pages
 import TeacherDashboard from '../pages/teacher/dashboard';
@@ -42,6 +48,9 @@ import PerformanceReviews from '../pages/teacher/performance';
 import TeacherSchedule from '../pages/teacher/schedule';
 import StudentRoster from '../pages/teacher/students';
 import TeacherMaterials from '../pages/teacher/materials';
+
+// Staff Pages
+import UserManagement from '../pages/staff/userManagement';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -85,12 +94,12 @@ export const routes = createBrowserRouter([
   
   // Parent Layout Routes (Parent Portal)
   {
-    path: '/parent',
-    element: <ParentLayout />,
+    path: '/family',
+    element: <FamilyLayout />,
     children: [
       {
         path: 'profile',
-        element: <ParentProfile />,
+        element: <FamilyProfile />,
       },
       {
         path: 'children',
@@ -133,10 +142,6 @@ export const routes = createBrowserRouter([
         element: <AdminDashboard />,
       },
       {
-        path: 'roles',
-        element: <RoleManagement />,
-      },
-      {
         path: 'branches',
         element: <BranchManagement />,
       },
@@ -149,20 +154,44 @@ export const routes = createBrowserRouter([
         element: <RoomManagement />,
       },
       {
-        path: 'users',
-        element: <UserManagement />,
+        path: 'staffAndManager',
+        element: <ManagerManagement />,
       },
       {
-        path: 'courses',
-        element: <CourseManagement />,
+        path: 'benefits',
+        element: <BenefitManagement />,
       },
       {
-        path: 'reports',
-        element: <Reports />,
+        path: 'student-levels',
+        element: <StudentLevelManagement />,
       },
       {
-        path: 'settings',
-        element: <Settings />,
+        path: 'packages',
+        element: <PackageManagement />,
+      },
+    ],
+  },
+  
+  // Manager Layout Routes (Manager Portal)
+  {
+    path: '/manager',
+    element: <ManagerLayout />,
+    children: [
+      {
+        index: true,
+        element: <ManagerDashboard />,
+      },
+      {
+        path: 'dashboard',
+        element: <ManagerDashboard />,
+      },
+      {
+        path: 'staffAndTeacher',
+        element: <StaffAndTeacherManagement />,
+      },
+      {
+        path: 'rooms',
+        element: <ManagerRoomManagement />,
       },
     ],
   },
@@ -203,6 +232,22 @@ export const routes = createBrowserRouter([
       {
         path: 'materials',
         element: <TeacherMaterials />,
+      },
+    ],
+  },
+  
+  // Staff Layout Routes (Staff Portal)
+  {
+    path: '/staff',
+    element: <StaffLayout />,
+    children: [
+      {
+        index: true,
+        element: <UserManagement />,
+      },
+      {
+        path: 'users',
+        element: <UserManagement />,
       },
     ],
   },

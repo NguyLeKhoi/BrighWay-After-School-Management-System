@@ -8,7 +8,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Alert,
   Chip,
   IconButton,
@@ -21,12 +20,14 @@ import {
   Add as AddIcon,
   MeetingRoom as RoomIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import { roomSchema } from '../../../utils/validationSchemas';
+import { roomSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import roomService from '../../../services/room.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import { useApp } from '../../../contexts/AppContext';
@@ -43,11 +44,11 @@ const RoomManagement = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
   
   // Filter states
   const [facilityFilter, setFacilityFilter] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
+  const [roomNameFilter, setRoomNameFilter] = useState('');
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
@@ -80,6 +81,16 @@ const RoomManagement = () => {
 
   // Define table columns
   const columns = [
+    {
+      key: 'roomName',
+      header: 'Tên Phòng',
+      sortable: true,
+      render: (value, row) => (
+        <Typography variant="body2" fontWeight="medium">
+          {row.roomName || 'N/A'}
+        </Typography>
+      )
+    },
     {
       key: 'facilityName',
       header: 'Cơ Sở Vật Chất',
@@ -143,39 +154,144 @@ const RoomManagement = () => {
   ];
 
   // Load rooms data
-  const loadRooms = async () => {
+  const loadRooms = async (showLoadingIndicator = true) => {
     try {
-      showLoading();
+      if (showLoadingIndicator) {
+        showLoading();
+      }
+      setError(null);
       
       // Convert page to pageIndex (API uses 1-based indexing)
       const pageIndex = page + 1;
-      const response = await roomService.getRoomsPaged(pageIndex, rowsPerPage, searchTerm, facilityFilter, branchFilter);
+      const response = await roomService.getRoomsPaged(pageIndex, rowsPerPage, roomNameFilter, facilityFilter, branchFilter);
+      
+      let roomsData = [];
+      let totalCount = 0;
       
       // Handle API response structure: { items, pageIndex, totalPages, totalCount, pageSize, hasPreviousPage, hasNextPage }
       if (response && response.items) {
-        setRooms(response.items || []);
-        setTotalCount(response.totalCount || 0);
+        roomsData = response.items || [];
+        totalCount = response.totalCount || 0;
       } else if (Array.isArray(response)) {
         // Fallback: if response is directly an array
-        setRooms(response);
-        setTotalCount(response.length);
-      } else {
-        // Fallback: empty data
-        setRooms([]);
-        setTotalCount(0);
+        roomsData = response;
+        totalCount = response.length;
       }
+      
+      // Filter rooms on frontend if backend doesn't filter properly
+      let filteredRooms = roomsData;
+      if (facilityFilter || branchFilter) {
+        filteredRooms = roomsData.filter(room => {
+          let matchesFacility = true;
+          let matchesBranch = true;
+          
+          if (facilityFilter) {
+            matchesFacility = room.facilityId === facilityFilter;
+          }
+          
+          if (branchFilter) {
+            matchesBranch = room.branchId === branchFilter;
+          }
+          
+          return matchesFacility && matchesBranch;
+        });
+        
+        // If no rooms match the filter, show message and clear data
+        if (filteredRooms.length === 0) {
+          let filterMessage = '';
+          if (facilityFilter && branchFilter) {
+            const facilityName = getFacilityById(facilityFilter)?.facilityName || 'cơ sở vật chất đã chọn';
+            const branchName = getBranchById(branchFilter)?.branchName || 'chi nhánh đã chọn';
+            filterMessage = `Không tìm thấy phòng học nào thuộc "${facilityName}" tại "${branchName}"`;
+          } else if (facilityFilter) {
+            const facilityName = getFacilityById(facilityFilter)?.facilityName || 'cơ sở vật chất đã chọn';
+            filterMessage = `Không tìm thấy phòng học nào thuộc "${facilityName}"`;
+          } else if (branchFilter) {
+            const branchName = getBranchById(branchFilter)?.branchName || 'chi nhánh đã chọn';
+            filterMessage = `Không tìm thấy phòng học nào tại "${branchName}"`;
+          }
+          setError(filterMessage);
+          setRooms([]);
+          setTotalCount(0);
+          return;
+        }
+      }
+      
+      // Set filtered data
+      setRooms(filteredRooms);
+      setTotalCount(filteredRooms.length);
+      setError(null); // Clear any previous errors
+      
     } catch (err) {
       console.error('Error loading rooms:', err);
-      showGlobalError('Không thể tải danh sách phòng học');
+      
+      // Handle 404 error when no rooms found with filters
+      // Check multiple possible error structures
+      const is404Error = err.response?.status === 404 || 
+                        err.status === 404 || 
+                        err.statusCode === 404 ||
+                        err.code === 404;
+      
+      const isRoomNotFound = err.response?.data?.code === 'room_not_found' ||
+                            err.code === 'room_not_found' ||
+                            err.message?.includes('No rooms found') ||
+                            err.response?.data?.message?.includes('No rooms found');
+      
+      if (is404Error && isRoomNotFound) {
+        // This is expected when filtering returns no results
+        if (facilityFilter || branchFilter) {
+          let filterMessage = '';
+          if (facilityFilter && branchFilter) {
+            const facilityName = getFacilityById(facilityFilter)?.facilityName || 'cơ sở vật chất đã chọn';
+            const branchName = getBranchById(branchFilter)?.branchName || 'chi nhánh đã chọn';
+            filterMessage = `Không tìm thấy phòng học nào thuộc "${facilityName}" tại "${branchName}"`;
+          } else if (facilityFilter) {
+            const facilityName = getFacilityById(facilityFilter)?.facilityName || 'cơ sở vật chất đã chọn';
+            filterMessage = `Không tìm thấy phòng học nào thuộc "${facilityName}"`;
+          } else if (branchFilter) {
+            const branchName = getBranchById(branchFilter)?.branchName || 'chi nhánh đã chọn';
+            filterMessage = `Không tìm thấy phòng học nào tại "${branchName}"`;
+          }
+          setError(filterMessage);
+          setRooms([]);
+          setTotalCount(0);
+        } else {
+          // No filter but still 404 - this might be a real error
+          setError('Không tìm thấy phòng học nào');
+          setRooms([]);
+          setTotalCount(0);
+        }
+      } else {
+        // Handle other errors
+        const errorMessage = err.response?.data?.message || err.message || 'Không thể tải danh sách phòng học';
+        setError(errorMessage);
+        showGlobalError(errorMessage);
+      }
     } finally {
-      hideLoading();
+      if (showLoadingIndicator) {
+        hideLoading();
+      }
     }
   };
 
-  // Load data on component mount and when dependencies change
+  // Load data on component mount and when page/rowsPerPage changes
   useEffect(() => {
     loadRooms();
-  }, [page, rowsPerPage, searchTerm, facilityFilter, branchFilter]);
+  }, [page, rowsPerPage]);
+
+  // Auto filter when facility or branch filter changes (with debounce)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadRooms(false); // Don't show loading indicator for debounced search
+    }, 300); // 300ms debounce to avoid too many API calls
+
+    return () => clearTimeout(timeoutId);
+  }, [facilityFilter, branchFilter, roomNameFilter]);
+
+  // Load data on initial mount only
+  useEffect(() => {
+    loadRooms();
+  }, []);
 
   // Handle search
   const handleSearch = async () => {
@@ -258,6 +374,13 @@ const RoomManagement = () => {
   const getFormFields = () => {
     const baseFields = [
       {
+        name: 'roomName',
+        label: 'Tên Phòng',
+        type: 'text',
+        placeholder: 'Nhập tên phòng học',
+        required: true
+      },
+      {
         name: 'facilityId',
         label: 'Cơ Sở Vật Chất',
         type: 'select',
@@ -275,6 +398,7 @@ const RoomManagement = () => {
         name: 'capacity',
         label: 'Sức Chứa',
         type: 'number',
+        placeholder: 'Sức chứa: 10',
         required: true
       }
     ];
@@ -300,68 +424,158 @@ const RoomManagement = () => {
         </Button>
       </div>
 
-      {/* Filter Section */}
-      <Paper className={styles.filterSection}>
-        <div className={styles.filterContainer}>
-          <FormControl className={styles.formControl}>
-            <InputLabel>Cơ Sở Vật Chất</InputLabel>
-            <Select
-              value={facilityFilter}
-              onChange={(e) => setFacilityFilter(e.target.value)}
-              label="Cơ Sở Vật Chất"
-            >
-              <MenuItem value="">Tất cả</MenuItem>
-              {getFacilityOptions().map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          <FormControl className={styles.formControl}>
-            <InputLabel>Chi Nhánh</InputLabel>
-            <Select
-              value={branchFilter}
-              onChange={(e) => setBranchFilter(e.target.value)}
-              label="Chi Nhánh"
-            >
-              <MenuItem value="">Tất cả</MenuItem>
-              {getBranchOptions().map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
+      {/* Combined Search and Filter Section */}
+      <Paper className={styles.searchAndFilterSection}>
+        <div className={styles.searchAndFilterGrid}>
+          {/* Search Field */}
           <TextField
-            placeholder="Tìm kiếm theo tên..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            fullWidth
+            placeholder="Tìm kiếm theo tên phòng học..."
+            value={roomNameFilter}
+            onChange={(e) => setRoomNameFilter(e.target.value)}
+            disabled={isDataLoading}
             className={styles.searchField}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
+            InputProps={{
+              startAdornment: (
+                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                  <SearchIcon color="action" />
+                </Box>
+              ),
+              endAdornment: roomNameFilter && (
+                <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                  <IconButton onClick={() => setRoomNameFilter('')} edge="end" size="small">
+                    <ClearIcon />
+                  </IconButton>
+                </Box>
+              ),
             }}
           />
+
+          {/* Facility Filter */}
+          <div className={styles.filterGroupItem}>
+            <Typography variant="subtitle2" className={styles.filterLabel}>
+              Cơ Sở Vật Chất
+            </Typography>
+            <FormControl fullWidth className={styles.formControl}>
+              <Select
+                value={facilityFilter}
+                onChange={(e) => {
+                  setFacilityFilter(e.target.value);
+                  // Error will be cleared when new data loads
+                }}
+                displayEmpty
+                disabled={isDataLoading}
+                sx={{ minHeight: '40px' }}
+              >
+                <MenuItem value="">
+                  <em>Tất cả cơ sở vật chất</em>
+                </MenuItem>
+                {isDataLoading ? (
+                  <MenuItem disabled>
+                    <em>Đang tải dữ liệu...</em>
+                  </MenuItem>
+                ) : dataError ? (
+                  <MenuItem disabled>
+                    <em>❌ Lỗi tải dữ liệu</em>
+                  </MenuItem>
+                ) : getFacilityOptions().length === 0 ? (
+                  <MenuItem disabled>
+                    <em>📭 Không có dữ liệu</em>
+                  </MenuItem>
+                ) : (
+                  getFacilityOptions().map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            </FormControl>
+          </div>
           
+          {/* Branch Filter */}
+          <div className={styles.filterGroupItem}>
+            <Typography variant="subtitle2" className={styles.filterLabel}>
+              Chi Nhánh
+            </Typography>
+            <FormControl fullWidth className={styles.formControl}>
+              <Select
+                value={branchFilter}
+                onChange={(e) => {
+                  setBranchFilter(e.target.value);
+                  // Error will be cleared when new data loads
+                }}
+                displayEmpty
+                disabled={isDataLoading}
+                sx={{ minHeight: '40px' }}
+              >
+                <MenuItem value="">
+                  <em>Tất cả chi nhánh</em>
+                </MenuItem>
+                {isDataLoading ? (
+                  <MenuItem disabled>
+                    <em>Đang tải dữ liệu...</em>
+                  </MenuItem>
+                ) : dataError ? (
+                  <MenuItem disabled>
+                    <em>Lỗi tải dữ liệu</em>
+                  </MenuItem>
+                ) : getBranchOptions().length === 0 ? (
+                  <MenuItem disabled>
+                    <em>Không có dữ liệu</em>
+                  </MenuItem>
+                ) : (
+                  getBranchOptions().map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            </FormControl>
+          </div>
+          
+          {/* Clear Filter Button */}
           <Button
             variant="contained"
-            onClick={handleSearch}
-            disabled={searchLoading}
+            onClick={() => {
+              setRoomNameFilter('');
+              setFacilityFilter('');
+              setBranchFilter('');
+            }}
+            disabled={isDataLoading}
             className={styles.filterButton}
+            sx={{ minHeight: '40px' }}
           >
-            {searchLoading ? 'Đang tìm...' : 'Lọc'}
+            Xóa bộ lọc
           </Button>
         </div>
       </Paper>
 
-      {/* Error Alert */}
+      {/* Error/Info Alert */}
       {error && (
-        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
-          {error}
+        <Alert 
+          severity={error.includes('Không tìm thấy') ? "info" : "error"} 
+          className={styles.errorAlert} 
+          onClose={() => setError(null)}
+          icon={error.includes('Không tìm thấy') ? null : undefined}
+        >
+          {error.includes('Không tìm thấy') ? (
+            <Typography variant="body2">
+              ℹ️ {error}
+            </Typography>
+          ) : (
+            error
+          )}
+        </Alert>
+      )}
+
+      {/* Data Loading Error Alert */}
+      {dataError && (
+        <Alert severity="warning" className={styles.errorAlert}>
+          <Typography variant="body2">
+            <strong>Lưu ý:</strong> {dataError}. Một số tính năng có thể bị hạn chế.
+          </Typography>
         </Alert>
       )}
 
@@ -378,6 +592,11 @@ const RoomManagement = () => {
           onRowsPerPageChange={setRowsPerPage}
           loading={isPageLoading}
           showActions={false}
+          emptyMessage={
+            error && error.includes('Không tìm thấy') 
+              ? "Không có phòng học nào phù hợp với bộ lọc đã chọn" 
+              : "Không có phòng học nào. Hãy thêm phòng học đầu tiên để bắt đầu."
+          }
         />
       </div>
 
@@ -387,12 +606,44 @@ const RoomManagement = () => {
         onClose={() => !actionLoading && setOpenDialog(false)} 
         maxWidth="md" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle className={styles.dialogTitle}>
-          <RoomIcon color="primary" />
-          <span className={styles.dialogTitleText}>
-            {dialogMode === 'create' ? 'Thêm Phòng Học Mới' : 'Chỉnh Sửa Phòng Học'}
-          </span>
+        <DialogTitle 
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            position: 'relative'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <RoomIcon color="inherit" />
+            <span>
+              {dialogMode === 'create' ? 'Thêm Phòng Học Mới' : 'Chỉnh Sửa Phòng Học'}
+            </span>
+          </Box>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            disabled={actionLoading}
+            sx={{
+              color: 'white',
+              minWidth: 'auto',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            ✕
+          </Button>
         </DialogTitle>
         <DialogContent className={styles.dialogContent}>
           {isDataLoading ? (
@@ -419,11 +670,13 @@ const RoomManagement = () => {
       {/* Confirm Dialog */}
       <ConfirmDialog
         open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        onConfirm={confirmDialog.onConfirm}
         title={confirmDialog.title}
         description={confirmDialog.description}
-        onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
-        loading={actionLoading}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        confirmColor="error"
       />
     </div>
   );

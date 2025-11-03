@@ -39,19 +39,70 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.filterContainer {
-  display: flex;
+/* Combined Search and Filter Section */
+.searchAndFilterSection {
+  padding: 16px;
+  margin-bottom: 24px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.searchAndFilterGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto; /* Search field (2fr), Facility (1fr), Branch (1fr), Clear button (auto) */
   gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: end; /* Align items to the bottom */
+}
+
+/* Search Field (re-using existing styles for the TextField itself) */
+.searchField .MuiOutlinedInput-root {
+  border-radius: 8px;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.searchField .MuiOutlinedInput-root:hover {
+  background-color: #f0f0f0;
+}
+
+.searchField .MuiOutlinedInput-root.Mui-focused {
+  background-color: white;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.filterGroupItem {
+  /* No specific styles needed here for now, just a container */
+}
+
+.filterLabel {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.filterButton {
+  min-height: 40px; /* Ensure button height matches select/text fields */
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterLabel {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
 }
 
 .formControl {
-  min-width: 200px;
+  min-width: 180px;
 }
 
 .searchField {
-  min-width: 200px;
+  min-width: 180px;
 }
 
 .filterButton {
@@ -90,13 +141,15 @@
   align-items: center;
   gap: 8px;
   padding: 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 8px 8px 0 0;
 }
 
 .dialogTitleText {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1976d2;
+  color: white;
 }
 
 .dialogContent {
@@ -171,6 +224,12 @@
 }
 
 /* Responsive Design */
+@media (max-width: 960px) { /* Adjust breakpoint for 3 columns */
+  .searchAndFilterGrid {
+    grid-template-columns: 1fr 1fr auto; /* Search, one select, other select, clear button */
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 16px;
@@ -182,9 +241,12 @@
     align-items: stretch;
   }
   
-  .filterContainer {
-    flex-direction: column;
-    align-items: stretch;
+  .searchAndFilterGrid {
+    grid-template-columns: 1fr; /* Stack all items */
+    gap: 12px;
+  }
+  .filterButton {
+    width: 100%; /* Full width button */
   }
   
   .formControl,
