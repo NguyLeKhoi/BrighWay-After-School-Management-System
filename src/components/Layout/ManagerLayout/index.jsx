@@ -30,8 +30,8 @@ const ManagerLayout = () => {
       icon: DashboardIcon
     },
     {
-      path: '/manager/staffAndTeacher',
-      label: 'Nhân Viên & Giáo Viên',
+      path: '/manager/staffAndParent',
+      label: 'Nhân Viên & ParentParent',
       icon: UserIcon
     },
     {

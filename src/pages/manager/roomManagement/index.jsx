@@ -29,6 +29,7 @@ import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import { roomSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import roomService from '../../../services/room.service';
+import userService from '../../../services/user.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -49,6 +50,7 @@ const ManagerRoomManagement = () => {
   const [facilityFilter, setFacilityFilter] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const [roomNameFilter, setRoomNameFilter] = useState('');
+  const [managerBranchId, setManagerBranchId] = useState(null);
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
@@ -164,7 +166,9 @@ const ManagerRoomManagement = () => {
       
       // Convert page to pageIndex (API uses 1-based indexing)
       const pageIndex = page + 1;
-      const response = await roomService.getRoomsPaged(pageIndex, rowsPerPage, roomNameFilter, facilityFilter, branchFilter);
+      // Manager can only see rooms in their branch
+      const effectiveBranchFilter = managerBranchId || branchFilter;
+      const response = await roomService.getRoomsPaged(pageIndex, rowsPerPage, roomNameFilter, facilityFilter, effectiveBranchFilter);
       
       let roomsData = [];
       let totalCount = 0;
@@ -290,9 +294,28 @@ const ManagerRoomManagement = () => {
   }, [facilityFilter, branchFilter, roomNameFilter]);
 
   // Load data on initial mount only
+  // Load manager's branch ID on mount
   useEffect(() => {
-    loadRooms();
+    const fetchManagerBranch = async () => {
+      try {
+        const currentUser = await userService.getCurrentUser();
+        if (currentUser?.branchId) {
+          setManagerBranchId(currentUser.branchId);
+          setBranchFilter(currentUser.branchId); // Auto-set filter to manager's branch
+        }
+      } catch (err) {
+        console.error('Error fetching manager branch:', err);
+      }
+    };
+    fetchManagerBranch();
   }, []);
+
+  // Load rooms when component mounts or when branch filter is set
+  useEffect(() => {
+    if (managerBranchId && branchFilter === managerBranchId) {
+      loadRooms();
+    }
+  }, [managerBranchId]);
 
   // Handle search
   const handleSearch = async () => {
@@ -308,9 +331,14 @@ const ManagerRoomManagement = () => {
 
   // Handle create
   const handleCreate = async () => {
-    // Fetch facility and branch data when opening dialog
-    if (facilities.length === 0 && branches.length === 0) {
-      await fetchAllData();
+    try {
+      // Fetch facility and branch data when opening dialog
+      if (facilities.length === 0 && branches.length === 0) {
+        await fetchAllData();
+      }
+    } catch (err) {
+      console.error('Error fetching facility/branch data:', err);
+      // Continue to open dialog even if fetch fails - user can see error message in dialog
     }
     setSelectedRoom(null);
     setDialogMode('create');
@@ -319,9 +347,14 @@ const ManagerRoomManagement = () => {
 
   // Handle edit
   const handleEdit = async (room) => {
-    // Fetch facility and branch data when opening dialog
-    if (facilities.length === 0 && branches.length === 0) {
-      await fetchAllData();
+    try {
+      // Fetch facility and branch data when opening dialog
+      if (facilities.length === 0 && branches.length === 0) {
+        await fetchAllData();
+      }
+    } catch (err) {
+      console.error('Error fetching facility/branch data:', err);
+      // Continue to open dialog even if fetch fails - user can see error message in dialog
     }
     setSelectedRoom(room);
     setDialogMode('edit');
@@ -369,6 +402,11 @@ const ManagerRoomManagement = () => {
   const handleFormSubmit = async (data) => {
     setActionLoading(true);
     try {
+      // Ensure manager can only create/edit rooms in their branch
+      if (managerBranchId) {
+        data.branchId = managerBranchId;
+      }
+      
       if (dialogMode === 'create') {
         await roomService.createRoom(data);
         toast.success('Tạo phòng học thành công!');
@@ -412,7 +450,10 @@ const ManagerRoomManagement = () => {
         label: 'Chi Nhánh',
         type: 'select',
         required: true,
-        options: getBranchOptions()
+        disabled: dialogMode === 'create' && managerBranchId ? false : (dialogMode === 'edit'),
+        options: managerBranchId 
+          ? getBranchOptions().filter(opt => opt.value === managerBranchId) // Only show manager's branch
+          : getBranchOptions()
       },
       {
         name: 'capacity',
@@ -513,47 +554,29 @@ const ManagerRoomManagement = () => {
             </FormControl>
           </div>
           
-          {/* Branch Filter */}
-          <div className={styles.filterGroupItem}>
-            <Typography variant="subtitle2" className={styles.filterLabel}>
-              Chi Nhánh
-            </Typography>
-            <FormControl fullWidth className={styles.formControl}>
-              <Select
-                value={branchFilter}
-                onChange={(e) => {
-                  setBranchFilter(e.target.value);
-                  // Error will be cleared when new data loads
-                }}
-                displayEmpty
-                disabled={isDataLoading}
-                sx={{ minHeight: '40px' }}
-              >
-                <MenuItem value="">
-                  <em>Tất cả chi nhánh</em>
-                </MenuItem>
-                {isDataLoading ? (
-                  <MenuItem disabled>
-                    <em>Đang tải dữ liệu...</em>
-                  </MenuItem>
-                ) : dataError ? (
-                  <MenuItem disabled>
-                    <em>Lỗi tải dữ liệu</em>
-                  </MenuItem>
-                ) : getBranchOptions().length === 0 ? (
-                  <MenuItem disabled>
-                    <em>Không có dữ liệu</em>
-                  </MenuItem>
-                ) : (
-                  getBranchOptions().map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
-          </div>
+          {/* Branch Filter - Read-only for Manager, showing their branch */}
+          {managerBranchId && (
+            <div className={styles.filterGroupItem}>
+              <Typography variant="subtitle2" className={styles.filterLabel}>
+                Chi Nhánh
+              </Typography>
+              <FormControl fullWidth className={styles.formControl}>
+                <TextField
+                  value={getBranchById(managerBranchId)?.branchName || 'Chi nhánh của bạn'}
+                  disabled
+                  sx={{ 
+                    minHeight: '40px',
+                    '& .MuiInputBase-root': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                  InputProps={{
+                    readOnly: true
+                  }}
+                />
+              </FormControl>
+            </div>
+          )}
           
           {/* Clear Filter Button */}
           <Button

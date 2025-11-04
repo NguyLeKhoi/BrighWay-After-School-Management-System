@@ -38,7 +38,7 @@ import PackageManagement from '../pages/admin/packageManagement';
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
-import StaffAndTeacherManagement from '../pages/manager/staffAndTeacherManagement';
+import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
 
 // Teacher Pages
 import TeacherDashboard from '../pages/teacher/dashboard';
@@ -186,8 +186,8 @@ export const routes = createBrowserRouter([
         element: <ManagerDashboard />,
       },
       {
-        path: 'staffAndTeacher',
-        element: <StaffAndTeacherManagement />,
+        path: 'staffAndParent',
+        element: <StaffAndParentManagement />,
       },
       {
         path: 'rooms',

@@ -30,10 +30,13 @@ const Form = ({
   });
 
   const handleFormSubmit = async (data) => {
+    console.log('Form - handleFormSubmit called with data:', data);
     try {
       await onSubmit(data);
+      console.log('Form - onSubmit completed successfully');
     } catch (error) {
       console.error('Form submission error:', error);
+      throw error; // Re-throw to let form handle it
     }
   };
 

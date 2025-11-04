@@ -338,6 +338,22 @@ const userService = {
     }
   },
 
+  // ===== PARENT/USER ACCOUNT METHODS =====
+
+  /**
+   * Create new parent/user account (Manager creates User/Parent account)
+   * @param {Object} userData - User data { email, password, name }
+   * @returns {Promise} Created user account
+   */
+  createParent: async (userData) => {
+    try {
+      const response = await axiosInstance.post('/User/parent', userData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // ===== FAMILY ACCOUNT METHODS (for Staff) =====
 
   /**

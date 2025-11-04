@@ -76,7 +76,8 @@ const RoomManagement = () => {
     getFacilityOptions,
     getBranchOptions,
     getFacilityById,
-    getBranchById
+    getBranchById,
+    fetchAllData
   } = useFacilityBranchData();
 
   // Define table columns
@@ -307,9 +308,14 @@ const RoomManagement = () => {
 
   // Handle create
   const handleCreate = async () => {
-    // Fetch facility and branch data when opening dialog
-    if (facilities.length === 0 && branches.length === 0) {
-      await fetchAllData();
+    try {
+      // Fetch facility and branch data when opening dialog
+      if (facilities.length === 0 && branches.length === 0) {
+        await fetchAllData();
+      }
+    } catch (err) {
+      console.error('Error fetching facility/branch data:', err);
+      // Continue to open dialog even if fetch fails - user can see error message in dialog
     }
     setSelectedRoom(null);
     setDialogMode('create');
@@ -318,9 +324,14 @@ const RoomManagement = () => {
 
   // Handle edit
   const handleEdit = async (room) => {
-    // Fetch facility and branch data when opening dialog
-    if (facilities.length === 0 && branches.length === 0) {
-      await fetchAllData();
+    try {
+      // Fetch facility and branch data when opening dialog
+      if (facilities.length === 0 && branches.length === 0) {
+        await fetchAllData();
+      }
+    } catch (err) {
+      console.error('Error fetching facility/branch data:', err);
+      // Continue to open dialog even if fetch fails - user can see error message in dialog
     }
     setSelectedRoom(room);
     setDialogMode('edit');
