@@ -294,7 +294,7 @@ const ManagerRoomManagement = () => {
   }, [facilityFilter, branchFilter, roomNameFilter]);
 
   // Load data on initial mount only
-  // Load manager's branch ID on mount
+  // Load manager's branch ID and facility/branch data on mount
   useEffect(() => {
     const fetchManagerBranch = async () => {
       try {
@@ -303,6 +303,8 @@ const ManagerRoomManagement = () => {
           setManagerBranchId(currentUser.branchId);
           setBranchFilter(currentUser.branchId); // Auto-set filter to manager's branch
         }
+        // Also fetch facility and branch data for form dropdowns
+        await fetchAllData();
       } catch (err) {
         console.error('Error fetching manager branch:', err);
       }

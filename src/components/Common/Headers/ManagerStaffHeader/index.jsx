@@ -24,6 +24,9 @@ const ManagerStaffHeader = () => {
         setUserInfo(user);
       } catch (error) {
         console.error('Error fetching current user:', error);
+        // Don't show error in header - it's not critical for page functionality
+        // Just set userInfo to null so header still renders
+        setUserInfo(null);
       } finally {
         setLoading(false);
       }

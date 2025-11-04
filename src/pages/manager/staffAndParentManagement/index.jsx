@@ -19,7 +19,6 @@ import {
   Person as PersonIcon,
   Email as EmailIcon,
   Lock as LockIcon,
-  AssignmentInd as RoleIcon,
   Groups as GroupsIcon,
   FamilyRestroom as FamilyIcon
 } from '@mui/icons-material';
@@ -120,57 +119,6 @@ const StaffAndParentManagement = () => {
           </Typography>
         </Box>
       )
-    },
-    {
-      key: 'roles',
-      header: 'Vai Trò',
-      render: (value, item) => {
-        // Handle both array format (from API) and single value format
-        let roles = [];
-        if (Array.isArray(value)) {
-          roles = value;
-        } else if (value !== undefined && value !== null) {
-          roles = [value];
-        }
-        
-        // Map role string to display name
-        const getRoleDisplayName = (roleString) => {
-          switch (roleString) {
-            case 'Admin': return 'Admin';
-            case 'Teacher': return 'Teacher';
-            case 'Staff': return 'Staff';
-            case 'Manager': return 'Manager';
-            case 'User': return 'User';
-            default: return roleString || 'Unknown';
-          }
-        };
-        
-        const getRoleColor = (roleString) => {
-          switch (roleString) {
-            case 'Admin': return 'error';
-            case 'Manager': return 'warning';
-            case 'Teacher': return 'success';
-            case 'Staff': return 'info';
-            case 'User': return 'primary';
-            default: return 'default';
-          }
-        };
-        
-        return (
-          <Box display="flex" flexWrap="wrap" gap={0.5}>
-            {roles.map((role, index) => (
-              <Chip 
-                key={index}
-                label={getRoleDisplayName(role)} 
-                color={getRoleColor(role)} 
-                size="small"
-                variant="outlined"
-                icon={<RoleIcon fontSize="small" />}
-              />
-            ))}
-          </Box>
-        );
-      }
     },
     {
       key: 'createdAt',
