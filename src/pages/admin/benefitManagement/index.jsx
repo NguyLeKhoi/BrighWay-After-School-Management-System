@@ -206,7 +206,12 @@ const BenefitManagement = () => {
         autoClose: 3000,
       });
       
-      loadBenefits();
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (benefits.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
+      loadBenefits(false);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa lợi ích';
       setError(errorMessage);

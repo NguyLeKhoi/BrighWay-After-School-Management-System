@@ -180,6 +180,11 @@ const FacilityManagement = () => {
     try {
       await facilityService.deleteFacility(facilityId);
       
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (facilities.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
       // Reload data without showing loading page
       const response = await facilityService.getFacilitiesPaged({
         page: page + 1,

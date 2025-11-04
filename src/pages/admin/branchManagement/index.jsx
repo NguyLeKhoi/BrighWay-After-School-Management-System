@@ -96,7 +96,7 @@ const BranchManagement = () => {
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(300); // Only for page load
   
-  // Location data
+  // Location data (lazy loading - only fetch when dialog opens)
   const {
     provinces,
     districts,
@@ -105,7 +105,8 @@ const BranchManagement = () => {
     error: locationError,
     handleProvinceChange,
     getProvinceOptions,
-    getDistrictOptions
+    getDistrictOptions,
+    fetchProvinces
   } = useLocationData();
 
   const [provinceId, setProvinceId] = useState('');
@@ -298,7 +299,11 @@ const BranchManagement = () => {
     setPage(0);
   };
 
-  const handleCreateBranch = () => {
+  const handleCreateBranch = async () => {
+    // Fetch provinces when opening dialog
+    if (provinces.length === 0) {
+      await fetchProvinces();
+    }
     setDialogMode('create');
     setSelectedBranch(null);
     setProvinceId('');
@@ -306,7 +311,11 @@ const BranchManagement = () => {
     setOpenDialog(true);
   };
 
-  const handleEditBranch = (branch) => {
+  const handleEditBranch = async (branch) => {
+    // Fetch provinces when opening dialog
+    if (provinces.length === 0) {
+      await fetchProvinces();
+    }
     setDialogMode('edit');
     setSelectedBranch(branch);
     
@@ -345,6 +354,11 @@ const BranchManagement = () => {
     
     try {
       await branchService.deleteBranch(branchId);
+      
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (branches.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
       
       // Reload data without showing loading page
       const response = await branchService.getBranchesPaged({

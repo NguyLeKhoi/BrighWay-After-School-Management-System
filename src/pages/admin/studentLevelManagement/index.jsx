@@ -185,7 +185,12 @@ const StudentLevelManagement = () => {
         autoClose: 3000,
       });
       
-      loadStudentLevels();
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (studentLevels.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
+      loadStudentLevels(false);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa cấp độ học sinh';
       setError(errorMessage);

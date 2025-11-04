@@ -59,8 +59,8 @@ const ManagerManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userRoleType, setUserRoleType] = useState(null); // 'staff' or 'manager'
   
-  // Fetch branch data
-  const { branches, getBranchOptions, isLoading: branchLoading } = useFacilityBranchData();
+  // Fetch branch data (lazy loading - only fetch when dialog opens)
+  const { branches, getBranchOptions, isLoading: branchLoading, fetchAllData } = useFacilityBranchData();
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -317,7 +317,11 @@ const ManagerManagement = () => {
     setPage(0);
   };
 
-  const handleCreateManager = () => {
+  const handleCreateManager = async () => {
+    // Fetch branches when opening dialog
+    if (branches.length === 0) {
+      await fetchAllData();
+    }
     setDialogMode('create');
     setSelectedUser(null);
     setUserRoleType('manager');
@@ -371,8 +375,13 @@ const ManagerManagement = () => {
     try {
       await userService.deleteUser(userId);
       
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (users.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
       // Reload data with proper filtering
-      await loadUsers();
+      await loadUsers(false);
       
       toast.success(`Xóa người dùng thành công!`, {
         position: "top-right",
@@ -796,7 +805,7 @@ const ManagerManagement = () => {
                     Họ và Tên:
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">
-                    {confirmCreateDialog.userData.fullName}
+                    {confirmCreateDialog.userData.name}
                   </Typography>
                 </Box>
                 
@@ -811,10 +820,12 @@ const ManagerManagement = () => {
                 
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
-                    Số Điện Thoại:
+                    Chi Nhánh:
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">
-                    {confirmCreateDialog.userData.phoneNumber}
+                    {confirmCreateDialog.userData.branchId 
+                      ? branches.find(b => b.id === confirmCreateDialog.userData.branchId)?.name || confirmCreateDialog.userData.branchId
+                      : 'Chưa chọn'}
                   </Typography>
                 </Box>
                 
@@ -823,8 +834,8 @@ const ManagerManagement = () => {
                     Vai Trò:
                   </Typography>
                   <Chip 
-                    label={roleOptions.find(role => role.value === confirmCreateDialog.userData.role)?.label || 'Unknown'}
-                    color={confirmCreateDialog.userData.role === 1 ? 'warning' : 'info'} 
+                    label="Manager"
+                    color="warning" 
                     size="small"
                     variant="outlined"
                     icon={<RoleIcon fontSize="small" />}
@@ -842,18 +853,6 @@ const ManagerManagement = () => {
               </div>
             </Paper>
           )}
-          
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            <Typography variant="body2">
-              <strong>Lưu ý quan trọng:</strong>
-              <br />
-              • Email và Vai trò không thể thay đổi sau khi tạo tài khoản
-              <br />
-              • Người dùng sẽ có thể đăng nhập bằng email và mật khẩu này
-              <br />
-              • Hãy đảm bảo thông tin chính xác trước khi xác nhận
-            </Typography>
-          </Alert>
         </DialogContent>
         <Box sx={{ p: 3, backgroundColor: '#f5f5f5', display: 'flex', justifyContent: 'flex-end' }}>
           <Button 

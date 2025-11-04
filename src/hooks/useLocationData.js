@@ -61,10 +61,8 @@ const useLocationData = (options = {}) => {
     }
   }, []);
 
-  // Load provinces on mount
-  useEffect(() => {
-    fetchProvinces();
-  }, [fetchProvinces]);
+  // Don't auto-fetch provinces on mount - only fetch when explicitly called
+  // This prevents unnecessary API calls when the hook is used but data isn't needed yet
 
   // Fetch districts when province is selected
   useEffect(() => {

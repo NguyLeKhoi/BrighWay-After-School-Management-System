@@ -360,8 +360,13 @@ const UserManagement = () => {
         autoClose: 3000,
       });
       
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (users.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
       // Reload the user list
-      await loadUsers();
+      await loadUsers(false);
       
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa người dùng';

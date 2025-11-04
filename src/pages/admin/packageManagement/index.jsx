@@ -74,13 +74,14 @@ const PackageManagement = () => {
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(300);
   
-  // Package dependencies
+  // Package dependencies (lazy loading - only fetch when dialog opens)
   const { 
     benefitOptions, 
     studentLevelOptions, 
     branchOptions, 
     loading: dependenciesLoading,
-    error: dependenciesError 
+    error: dependenciesError,
+    fetchDependencies
   } = usePackageDependencies();
 
   // Define table columns
@@ -286,7 +287,11 @@ const PackageManagement = () => {
     setPage(0);
   };
 
-  const handleCreatePackage = () => {
+  const handleCreatePackage = async () => {
+    // Fetch dependencies when opening dialog
+    if (benefitOptions.length === 0 && studentLevelOptions.length === 0 && branchOptions.length === 0) {
+      await fetchDependencies();
+    }
     setDialogMode('create');
     setSelectedPackage(null);
     setSelectedBenefits([]);
@@ -295,7 +300,11 @@ const PackageManagement = () => {
     setOpenDialog(true);
   };
 
-  const handleEditPackage = (packageItem) => {
+  const handleEditPackage = async (packageItem) => {
+    // Fetch dependencies when opening dialog
+    if (benefitOptions.length === 0 && studentLevelOptions.length === 0 && branchOptions.length === 0) {
+      await fetchDependencies();
+    }
     setDialogMode('edit');
     setSelectedPackage(packageItem);
     setSelectedBenefits(packageItem?.benefits?.map(b => b.id) || []);
@@ -324,7 +333,13 @@ const PackageManagement = () => {
         autoClose: 3000,
       });
       
-      loadPackages();
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (packages.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
+      // Reload data after delete
+      await loadPackages(false);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa gói bán';
       setError(errorMessage);
@@ -458,13 +473,6 @@ const PackageManagement = () => {
       {error && (
         <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
           {error}
-        </Alert>
-      )}
-
-      {/* Dependencies Error Alert */}
-      {dependenciesError && (
-        <Alert severity="warning" className={styles.errorAlert}>
-          Cảnh báo: {dependenciesError}. Một số tính năng có thể không hoạt động đúng.
         </Alert>
       )}
 

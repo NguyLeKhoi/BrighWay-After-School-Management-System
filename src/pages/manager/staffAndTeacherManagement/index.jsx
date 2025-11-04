@@ -435,8 +435,13 @@ const StaffAndTeacherManagement = () => {
         throw new Error('Không tìm thấy người dùng để xóa');
       }
       
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (users.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
       // Reload data with current filters applied
-      await loadUsers();
+      await loadUsers(false);
       
       toast.success(`Xóa người dùng thành công!`, {
         position: "top-right",

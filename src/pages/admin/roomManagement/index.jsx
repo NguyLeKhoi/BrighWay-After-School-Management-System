@@ -306,14 +306,22 @@ const RoomManagement = () => {
   };
 
   // Handle create
-  const handleCreate = () => {
+  const handleCreate = async () => {
+    // Fetch facility and branch data when opening dialog
+    if (facilities.length === 0 && branches.length === 0) {
+      await fetchAllData();
+    }
     setSelectedRoom(null);
     setDialogMode('create');
     setOpenDialog(true);
   };
 
   // Handle edit
-  const handleEdit = (room) => {
+  const handleEdit = async (room) => {
+    // Fetch facility and branch data when opening dialog
+    if (facilities.length === 0 && branches.length === 0) {
+      await fetchAllData();
+    }
     setSelectedRoom(room);
     setDialogMode('edit');
     setOpenDialog(true);
@@ -331,17 +339,28 @@ const RoomManagement = () => {
 
   // Perform delete
   const performDelete = async (roomId) => {
+    setConfirmDialog(prev => ({ ...prev, open: false }));
     setActionLoading(true);
     try {
       await roomService.deleteRoom(roomId);
       toast.success('Xóa phòng học thành công!');
-      await loadRooms();
+      
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (rooms.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
+      // Reload data after delete
+      await loadRooms(false);
     } catch (err) {
       console.error('Delete error:', err);
       showGlobalError('Không thể xóa phòng học');
+      toast.error('Không thể xóa phòng học', {
+        position: "top-right",
+        autoClose: 4000,
+      });
     } finally {
       setActionLoading(false);
-      setConfirmDialog({ ...confirmDialog, open: false });
     }
   };
 
@@ -567,15 +586,6 @@ const RoomManagement = () => {
           ) : (
             error
           )}
-        </Alert>
-      )}
-
-      {/* Data Loading Error Alert */}
-      {dataError && (
-        <Alert severity="warning" className={styles.errorAlert}>
-          <Typography variant="body2">
-            <strong>Lưu ý:</strong> {dataError}. Một số tính năng có thể bị hạn chế.
-          </Typography>
         </Alert>
       )}
 
