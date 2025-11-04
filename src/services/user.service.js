@@ -167,7 +167,7 @@ const userService = {
    */
   deleteUser: async (userId) => {
     try {
-      const response = await axiosInstance.delete(`/User/admin-delete/${userId}`);
+      const response = await axiosInstance.delete(`/User/${userId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -224,7 +224,7 @@ const userService = {
    */
   deleteUserByManager: async (userId) => {
     try {
-      const response = await axiosInstance.delete(`/User/manager-delete/${userId}`);
+      const response = await axiosInstance.delete(`/User/${userId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -266,12 +266,12 @@ const userService = {
 
   /**
    * Delete teacher account (Manager/Staff soft deletes teacher)
-   * @param {string} teacherId - Teacher ID
+   * @param {string} teacherId - Teacher ID (User ID)
    * @returns {Promise} Deletion result
    */
   deleteTeacherAccount: async (teacherId) => {
     try {
-      const response = await axiosInstance.delete(`/User/teacher-account/${teacherId}`);
+      const response = await axiosInstance.delete(`/User/${teacherId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

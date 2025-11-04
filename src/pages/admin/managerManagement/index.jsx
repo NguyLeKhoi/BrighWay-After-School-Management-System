@@ -407,10 +407,12 @@ const ManagerManagement = () => {
   };
 
   const handleDeleteUser = (user) => {
+    const userName = user.name || user.fullName || user.email || 'người dùng này';
     setConfirmDialog({
       open: true,
       title: 'Xác nhận xóa người dùng',
-      description: `Bạn có chắc chắn muốn xóa người dùng "${user.fullName}"? Hành động này không thể hoàn tác.`,
+      description: `Bạn có chắc chắn muốn xóa người dùng "${userName}"? Hành động này không thể hoàn tác.`,
+      highlightText: userName,
       onConfirm: () => performDeleteUser(user.id)
     });
   };

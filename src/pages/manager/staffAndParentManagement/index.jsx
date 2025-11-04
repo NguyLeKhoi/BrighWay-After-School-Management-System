@@ -349,10 +349,12 @@ const StaffAndParentManagement = () => {
 
   const handleDeleteUser = (user) => {
     const userRole = user.roles?.includes('Staff') ? 'Staff' : 'User';
+    const userName = user.name || user.fullName || user.email || 'người dùng này';
     setConfirmDialog({
       open: true,
       title: 'Xác nhận xóa người dùng',
-      description: `Bạn có chắc chắn muốn xóa người dùng "${user.fullName || user.name}"? Hành động này không thể hoàn tác.`,
+      description: `Bạn có chắc chắn muốn xóa người dùng "${userName}"? Hành động này không thể hoàn tác.`,
+      highlightText: userName,
       onConfirm: () => performDeleteUser(user.id, userRole)
     });
   };
