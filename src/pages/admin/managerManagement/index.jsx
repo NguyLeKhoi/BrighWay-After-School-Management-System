@@ -24,7 +24,8 @@ import {
   Person as PersonIcon,
   Email as EmailIcon,
   Lock as LockIcon,
-  AssignmentInd as RoleIcon
+  AssignmentInd as RoleIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -104,6 +105,18 @@ const ManagerManagement = () => {
           <EmailIcon fontSize="small" color="action" />
           <Typography variant="body2" color="text.secondary">
             {value}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      key: 'branchName',
+      header: 'Chi Nhánh',
+      render: (value, item) => (
+        <Box display="flex" alignItems="center" gap={1}>
+          <BusinessIcon fontSize="small" color={value ? "primary" : "disabled"} />
+          <Typography variant="body2" color={value ? "text.primary" : "text.secondary"}>
+            {value || item.branchName || 'Chưa có chi nhánh'}
           </Typography>
         </Box>
       )
@@ -202,7 +215,9 @@ const ManagerManagement = () => {
       }
       
       // Use new endpoint that automatically filters by role
+      console.log('Loading managers with params:', params);
       const response = await userService.getUsersPagedByRole(params);
+      console.log('Managers response:', response);
       
       // Handle both paginated and non-paginated responses
       let allUsers = [];
@@ -210,17 +225,49 @@ const ManagerManagement = () => {
         // Paginated response
         allUsers = response.items;
         setTotalCount(response.totalCount || response.items.length);
-      } else {
+        console.log(`Loaded ${response.items.length} managers, total: ${response.totalCount || response.items.length}`);
+      } else if (Array.isArray(response)) {
         // Non-paginated response (fallback)
         allUsers = response;
         setTotalCount(response.length);
+        console.log(`Loaded ${response.length} managers (array format)`);
+      } else {
+        console.warn('Unexpected response format:', response);
+        allUsers = [];
+        setTotalCount(0);
       }
       
       setUsers(allUsers);
     } catch (err) {
-      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách người dùng';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
+      console.error('Error loading managers:', err);
+      
+      // Extract error message from various possible structures
+      let errorMessage = 'Có lỗi xảy ra khi tải danh sách người dùng';
+      
+      if (err.response?.data) {
+        // Backend error response
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.data.error) {
+          errorMessage = err.response.data.error;
+        } else if (err.response.data.detail) {
+          errorMessage = err.response.data.detail;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      // Only show error if it's not related to "Current user not found" (which is from header)
+      // This is likely a separate issue with authentication/header
+      if (!errorMessage.toLowerCase().includes('current user not found')) {
+        setError(errorMessage);
+        showGlobalError(errorMessage);
+      }
+      
+      setUsers([]);
+      setTotalCount(0);
     } finally {
       if (showLoadingIndicator) {
         hideLoading();

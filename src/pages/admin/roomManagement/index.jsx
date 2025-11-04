@@ -289,6 +289,11 @@ const RoomManagement = () => {
     return () => clearTimeout(timeoutId);
   }, [facilityFilter, branchFilter, roomNameFilter]);
 
+  // Load facility and branch data on mount (needed for filter dropdowns)
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
   // Load data on initial mount only
   useEffect(() => {
     loadRooms();
