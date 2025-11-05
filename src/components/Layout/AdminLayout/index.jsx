@@ -14,7 +14,8 @@ import {
   MeetingRoom as RoomIcon,
   CardGiftcard as BenefitIcon,
   School as StudentLevelIcon,
-  ShoppingCart as PackageIcon
+  ShoppingCart as PackageIcon,
+  AccountBalance as SchoolIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -66,6 +67,11 @@ const AdminLayout = () => {
       path: '/admin/packages',
       label: 'Gói Bán',
       icon: PackageIcon
+    },
+    {
+      path: '/admin/schools',
+      label: 'Trường',
+      icon: SchoolIcon
     }
   ];
 

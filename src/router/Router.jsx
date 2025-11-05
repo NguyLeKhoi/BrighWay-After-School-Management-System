@@ -34,6 +34,7 @@ import ManagerManagement from '../pages/admin/managerManagement';
 import BenefitManagement from '../pages/admin/benefitManagement';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 import PackageManagement from '../pages/admin/packageManagement';
+import SchoolManagement from '../pages/admin/schoolManagement';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
@@ -168,6 +169,10 @@ export const routes = createBrowserRouter([
       {
         path: 'packages',
         element: <PackageManagement />,
+      },
+      {
+        path: 'schools',
+        element: <SchoolManagement />,
       },
     ],
   },
