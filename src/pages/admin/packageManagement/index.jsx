@@ -2,13 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  TextField,
-  InputAdornment,
-  Button,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   Alert,
   Chip,
   FormControl,
@@ -16,16 +9,12 @@ import {
   Select,
   MenuItem,
   Grid,
-  FormControlLabel,
-  Switch,
   Autocomplete,
   Checkbox,
   ListItemText,
   CircularProgress
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Search as SearchIcon,
   ShoppingCart as PackageIcon,
   AttachMoney as PriceIcon,
   Schedule as DurationIcon,
@@ -33,48 +22,19 @@ import {
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
+import AdminPageHeader from '../../../components/Common/AdminPageHeader';
+import AdminSearchSection from '../../../components/Common/AdminSearchSection';
+import AdminFormDialog from '../../../components/Common/AdminFormDialog';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import packageService from '../../../services/package.service';
 import benefitService from '../../../services/benefit.service';
 import usePackageDependencies from '../../../hooks/usePackageDependencies';
-import { useApp } from '../../../contexts/AppContext';
-import useContentLoading from '../../../hooks/useContentLoading';
-import ContentLoading from '../../../components/Common/ContentLoading';
+import useAdminCRUD from '../../../hooks/useAdminCRUD';
 import { toast } from 'react-toastify';
 import styles from './PackageManagement.module.css';
 
 const PackageManagement = () => {
-  const [packages, setPackages] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  
-  // Dialog states
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogMode, setDialogMode] = useState('create');
-  const [selectedPackage, setSelectedPackage] = useState(null);
-  const [selectedBenefits, setSelectedBenefits] = useState([]);
-  const [selectedBranchId, setSelectedBranchId] = useState('');
-  const [availableBenefits, setAvailableBenefits] = useState([]);
-  const [loadingBenefits, setLoadingBenefits] = useState(false);
-  
-  // Confirm dialog states
-  const [confirmDialog, setConfirmDialog] = useState({
-    open: false,
-    title: '',
-    description: '',
-    onConfirm: null
-  });
-  
-  // Global state
-  const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(300);
-  
-  // Package dependencies (lazy loading - only fetch when dialog opens)
+  // Package dependencies
   const { 
     benefitOptions, 
     studentLevelOptions, 
@@ -83,6 +43,56 @@ const PackageManagement = () => {
     error: dependenciesError,
     fetchDependencies
   } = usePackageDependencies();
+
+  // Benefit selection state (keep this special feature)
+  const [selectedBenefits, setSelectedBenefits] = useState([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
+  const [availableBenefits, setAvailableBenefits] = useState([]);
+  const [loadingBenefits, setLoadingBenefits] = useState(false);
+
+  // Use shared CRUD hook for basic operations
+  const {
+    data: packages,
+    totalCount,
+    page,
+    rowsPerPage,
+    keyword: searchTerm,
+    filters,
+    error,
+    actionLoading,
+    isPageLoading,
+    loadingText,
+    openDialog,
+    setOpenDialog,
+    dialogMode,
+    selectedItem: selectedPackage,
+    confirmDialog,
+    setConfirmDialog,
+    handleCreate,
+    handleEdit,
+    handleDelete,
+    handleFormSubmit: baseHandleFormSubmit,
+    handleKeywordSearch,
+    handleKeywordChange,
+    handleClearSearch,
+    handlePageChange,
+    handleRowsPerPageChange,
+    updateFilter
+  } = useAdminCRUD({
+    loadFunction: async (params) => {
+      const response = await packageService.getPackagesPaged({
+        page: params.page,
+        pageSize: params.pageSize,
+        searchTerm: params.searchTerm || params.Keyword || '',
+        status: params.status === '' ? null : params.status === 'true'
+      });
+      return response;
+    },
+    createFunction: packageService.createPackage,
+    updateFunction: packageService.updatePackage,
+    deleteFunction: packageService.deletePackage,
+    defaultFilters: { status: '' }
+  });
 
   // Define table columns
   const columns = [
@@ -197,53 +207,7 @@ const PackageManagement = () => {
     }
   ];
 
-  // Load packages with pagination and filters
-  const loadPackages = async (showLoadingIndicator = true) => {
-    if (showLoadingIndicator) {
-      showLoading();
-    }
-    setError(null);
-    try {
-      const response = await packageService.getPackagesPaged({
-        page: page + 1,
-        pageSize: rowsPerPage,
-        searchTerm: searchTerm,
-        status: statusFilter === '' ? null : statusFilter === 'true'
-      });
-      
-      if (response.items) {
-        setPackages(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setPackages(response);
-        setTotalCount(response.length);
-      }
-    } catch (err) {
-      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách gói bán';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-    } finally {
-      if (showLoadingIndicator) {
-        hideLoading();
-      }
-    }
-  };
-
-  // Load packages when page, rowsPerPage, or filters change
-  useEffect(() => {
-    loadPackages();
-  }, [page, rowsPerPage, statusFilter]);
-
-  // Load packages when keyword changes (debounced search while typing)
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      loadPackages(false); // Don't show loading indicator for debounced search
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
-
-  // Load benefits when branch is selected in dialog
+  // Load benefits when branch is selected in dialog (keep this special feature)
   useEffect(() => {
     const loadBenefitsForBranch = async () => {
       if (!selectedBranchId || !openDialog) {
@@ -256,7 +220,6 @@ const PackageManagement = () => {
         const benefits = await benefitService.getBenefitsByBranchId(selectedBranchId);
         setAvailableBenefits(benefits || []);
       } catch (err) {
-        console.error('Error loading benefits for branch:', err);
         setAvailableBenefits([]);
       } finally {
         setLoadingBenefits(false);
@@ -266,136 +229,43 @@ const PackageManagement = () => {
     loadBenefitsForBranch();
   }, [selectedBranchId, openDialog]);
 
-  // Event handlers
-  const handleSearch = () => {
-    setPage(0);
-    loadPackages();
-  };
-
-  const handleClearSearch = () => {
-    setSearchTerm('');
-    setStatusFilter('');
-    setPage(0);
-  };
-
-  const handlePageChange = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleCreatePackage = async () => {
-    // Fetch dependencies when opening dialog
+  // Override handleCreate to ensure dependencies are loaded
+  const handleCreateWithData = async () => {
     if (benefitOptions.length === 0 && studentLevelOptions.length === 0 && branchOptions.length === 0) {
       await fetchDependencies();
     }
-    setDialogMode('create');
-    setSelectedPackage(null);
     setSelectedBenefits([]);
     setSelectedBranchId('');
     setAvailableBenefits([]);
-    setOpenDialog(true);
+    handleCreate();
   };
 
-  const handleEditPackage = async (packageItem) => {
-    // Fetch dependencies when opening dialog
+  // Override handleEdit to ensure dependencies are loaded
+  const handleEditWithData = async (packageItem) => {
     if (benefitOptions.length === 0 && studentLevelOptions.length === 0 && branchOptions.length === 0) {
       await fetchDependencies();
     }
-    setDialogMode('edit');
-    setSelectedPackage(packageItem);
     setSelectedBenefits(packageItem?.benefits?.map(b => b.id) || []);
     setSelectedBranchId(packageItem?.branchId || '');
-    setOpenDialog(true);
+    handleEdit(packageItem);
   };
 
-  const handleDeletePackage = (packageItem) => {
-    setConfirmDialog({
-      open: true,
-      title: 'Xác nhận xóa gói bán',
-      description: `Bạn có chắc chắn muốn xóa gói bán "${packageItem.name}"? Hành động này không thể hoàn tác.`,
-      onConfirm: () => performDeletePackage(packageItem.id)
-    });
-  };
-
-  const performDeletePackage = async (packageId) => {
-    setConfirmDialog(prev => ({ ...prev, open: false }));
-    setActionLoading(true);
-    
-    try {
-      await packageService.deletePackage(packageId);
-      
-      toast.success('Xóa gói bán thành công!', {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      
-      // If we're deleting the last item on current page and not on first page, go to previous page
-      if (packages.length === 1 && page > 0) {
-        setPage(page - 1);
-      }
-      
-      // Reload data after delete
-      await loadPackages(false);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa gói bán';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
+  // Custom form submit handler (need to include benefitIds and parse numbers)
   const handleFormSubmit = async (data) => {
-    setActionLoading(true);
-    
-    try {
-      const submitData = {
-        name: data.name,
-        desc: data.desc,
-        durationInMonths: parseInt(data.durationInMonths),
-        totalSlots: parseInt(data.totalSlots),
-        price: parseInt(data.price),
-        studentLevelId: data.studentLevelId,
-        branchId: data.branchId,
-        benefitIds: data.benefitIds || []
-      };
-      
-      if (dialogMode === 'create') {
-        await packageService.createPackage(submitData);
-        toast.success(`Tạo gói bán "${data.name}" thành công!`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      } else {
-        await packageService.updatePackage(selectedPackage.id, submitData);
-        toast.success(`Cập nhật gói bán "${data.name}" thành công!`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-      
-      setOpenDialog(false);
-      loadPackages();
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 
-        (dialogMode === 'create' ? 'Có lỗi xảy ra khi tạo gói bán' : 'Có lỗi xảy ra khi cập nhật gói bán');
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
+    const submitData = {
+      name: data.name,
+      desc: data.desc,
+      durationInMonths: parseInt(data.durationInMonths),
+      totalSlots: parseInt(data.totalSlots),
+      price: parseFloat(data.price),
+      studentLevelId: data.studentLevelId,
+      branchId: data.branchId,
+      benefitIds: selectedBenefits
+    };
+    await baseHandleFormSubmit(submitData);
+    setSelectedBenefits([]);
+    setSelectedBranchId('');
+    setAvailableBenefits([]);
   };
 
   return (
@@ -403,75 +273,40 @@ const PackageManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <div className={styles.header}>
-        <h1 className={styles.title}>
-          Quản lý Gói Bán
-        </h1>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreatePackage}
-          className={styles.addButton}
-        >
-          Thêm Gói Bán
-        </Button>
-      </div>
+      <AdminPageHeader
+        title="Quản lý Gói Bán"
+        createButtonText="Thêm Gói Bán"
+        onCreateClick={handleCreateWithData}
+      />
 
-      {/* Search Section */}
-      <Paper className={styles.searchSection}>
-        <div className={styles.searchContainer}>
-          <TextField
-            placeholder="Tìm kiếm theo tên gói bán..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchField}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
-            }}
-          />
-          <FormControl variant="outlined" className={styles.statusFilter}>
-            <InputLabel>Trạng thái</InputLabel>
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              label="Trạng thái"
-            >
-              <MenuItem value="">Tất cả</MenuItem>
-              <MenuItem value="true">Hoạt động</MenuItem>
-              <MenuItem value="false">Không hoạt động</MenuItem>
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            onClick={handleSearch}
-            disabled={searchLoading}
-            className={styles.searchButton}
+      {/* Search Section with Status Filter */}
+      <AdminSearchSection
+        keyword={searchTerm}
+        onKeywordChange={handleKeywordChange}
+        onSearch={handleKeywordSearch}
+        onClear={() => {
+          handleClearSearch();
+          updateFilter('status', '');
+        }}
+        placeholder="Tìm kiếm theo tên gói bán..."
+      >
+        <FormControl className={styles.statusFilter}>
+          <InputLabel>Trạng thái</InputLabel>
+          <Select
+            value={filters.status || ''}
+            onChange={(e) => updateFilter('status', e.target.value)}
+            label="Trạng thái"
           >
-            {searchLoading ? 'Đang tìm...' : 'Tìm kiếm'}
-          </Button>
-          {(searchTerm || statusFilter) && (
-            <Button
-              variant="outlined"
-              onClick={handleClearSearch}
-            >
-              Xóa tìm kiếm
-            </Button>
-          )}
-        </div>
-      </Paper>
+            <MenuItem value="">Tất cả</MenuItem>
+            <MenuItem value="true">Hoạt động</MenuItem>
+            <MenuItem value="false">Không hoạt động</MenuItem>
+          </Select>
+        </FormControl>
+      </AdminSearchSection>
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
+        <Alert severity="error" className={styles.errorAlert} onClose={() => {}}>
           {error}
         </Alert>
       )}
@@ -487,85 +322,44 @@ const PackageManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          onEdit={handleEditPackage}
-          onDelete={handleDeletePackage}
+          onEdit={handleEditWithData}
+          onDelete={handleDelete}
           emptyMessage="Không có gói bán nào. Hãy thêm gói bán đầu tiên để bắt đầu."
         />
       </div>
 
-      {/* Create/Edit Dialog */}
-      <Dialog 
-        open={openDialog} 
-        onClose={() => !actionLoading && setOpenDialog(false)} 
-        maxWidth="lg" 
-        fullWidth
-        sx={{
-          '& .MuiDialog-paper': {
-            borderRadius: '8px',
-            overflow: 'hidden',
-            maxWidth: '800px'
-          }
+      {/* Form Dialog with Benefit Selection */}
+      <AdminFormDialog
+        open={openDialog}
+        onClose={() => {
+          setOpenDialog(false);
+          setSelectedBenefits([]);
+          setSelectedBranchId('');
+          setAvailableBenefits([]);
         }}
+        mode={dialogMode}
+        title="Gói Bán"
+        icon={PackageIcon}
+        loading={actionLoading || dependenciesLoading}
+        maxWidth="lg"
       >
-        <DialogTitle 
-          sx={{
-            backgroundColor: '#1976d2',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 24px',
-            position: 'relative'
+        <Box 
+          component="form" 
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+              name: formData.get('name'),
+              desc: formData.get('desc'),
+              durationInMonths: formData.get('durationInMonths'),
+              totalSlots: formData.get('totalSlots'),
+              price: formData.get('price'),
+              studentLevelId: formData.get('studentLevelId'),
+              branchId: formData.get('branchId')
+            };
+            await handleFormSubmit(data);
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <PackageIcon />
-            <span>
-              {dialogMode === 'create' ? 'Thêm Gói Bán mới' : 'Chỉnh sửa Gói Bán'}
-            </span>
-          </Box>
-          <Button
-            onClick={() => setOpenDialog(false)}
-            disabled={actionLoading}
-            sx={{
-              color: 'white',
-              minWidth: 'auto',
-              padding: '8px',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            ✕
-          </Button>
-        </DialogTitle>
-        <DialogContent 
-          className={styles.dialogContent}
-          sx={{ 
-            padding: '24px !important',
-            paddingTop: '32px !important'
-          }}
-        >
-          <Box 
-            component="form" 
-            id="package-form"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target);
-              
-              const data = {
-                name: formData.get('name'),
-                desc: formData.get('desc'),
-                durationInMonths: formData.get('durationInMonths'),
-                totalSlots: formData.get('totalSlots'),
-                price: formData.get('price'),
-                studentLevelId: formData.get('studentLevelId'),
-                branchId: formData.get('branchId'),
-                benefitIds: selectedBenefits
-              };
-              await handleFormSubmit(data);
-            }}
-          >
             <Grid container spacing={3} sx={{ mb: 3 }}>
               {/* Package Name */}
               <Grid item xs={12} md={6}>
@@ -769,8 +563,7 @@ const PackageManagement = () => {
               </Button>
             </Box>
           </Box>
-        </DialogContent>
-      </Dialog>
+        </AdminFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

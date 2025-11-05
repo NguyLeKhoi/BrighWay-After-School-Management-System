@@ -2,13 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  TextField,
-  InputAdornment,
-  Button,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   Alert,
   Chip,
   FormControl,
@@ -18,7 +11,6 @@ import {
   Grid,
   Checkbox,
   ListItemText,
-  FormControlLabel,
   Divider,
   List,
   ListItem,
@@ -32,13 +24,12 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-  Collapse,
-  Tooltip
+  Tooltip,
+  TextField,
+  Button
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Business as BusinessIcon,
-  Search as SearchIcon,
   CardGiftcard as BenefitIcon,
   Assignment as AssignIcon,
   ExpandMore as ExpandMoreIcon,
@@ -46,63 +37,24 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
+import AdminPageHeader from '../../../components/Common/AdminPageHeader';
+import AdminSearchSection from '../../../components/Common/AdminSearchSection';
+import AdminFormDialog from '../../../components/Common/AdminFormDialog';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import branchService from '../../../services/branch.service';
 import benefitService from '../../../services/benefit.service';
 import useLocationData from '../../../hooks/useLocationData';
-import { useApp } from '../../../contexts/AppContext';
-import useContentLoading from '../../../hooks/useContentLoading';
-import ContentLoading from '../../../components/Common/ContentLoading';
+import useAdminCRUD from '../../../hooks/useAdminCRUD';
 import { toast } from 'react-toastify';
 import styles from './BranchManagement.module.css';
 
 const BranchManagement = () => {
-  const [branches, setBranches] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [keyword, setKeyword] = useState('');
-  
-  // Dialog states
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogMode, setDialogMode] = useState('create');
-  const [selectedBranch, setSelectedBranch] = useState(null);
-  
-  // Assign benefits dialog states
-  const [openAssignDialog, setOpenAssignDialog] = useState(false);
-  const [selectedBranchForAssign, setSelectedBranchForAssign] = useState(null);
-  const [availableBenefits, setAvailableBenefits] = useState([]);
-  const [assignedBenefits, setAssignedBenefits] = useState([]);
-  const [selectedBenefits, setSelectedBenefits] = useState([]);
-  const [loadingBenefits, setLoadingBenefits] = useState(false);
-  
-  // Expanded rows state
-  const [expandedRows, setExpandedRows] = useState(new Set());
-  const [rowBenefits, setRowBenefits] = useState({});
-  
-  // Confirm dialog states
-  const [confirmDialog, setConfirmDialog] = useState({
-    open: false,
-    title: '',
-    description: '',
-    onConfirm: null
-  });
-  
-  // Global state
-  const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(300); // Only for page load
-  
-  // Location data (lazy loading - only fetch when dialog opens)
+  // Location data
   const {
     provinces,
     districts,
-    selectedProvinceId,
     isLoading: locationLoading,
-    error: locationError,
     handleProvinceChange,
     getProvinceOptions,
     getDistrictOptions,
@@ -112,18 +64,122 @@ const BranchManagement = () => {
   const [provinceId, setProvinceId] = useState('');
   const [districtId, setDistrictId] = useState('');
 
+  // Expanded rows state (keep this special feature)
+  const [expandedRows, setExpandedRows] = useState(new Set());
+  const [rowBenefits, setRowBenefits] = useState({});
+
+  // Assign benefits dialog states (keep this special feature)
+  const [openAssignDialog, setOpenAssignDialog] = useState(false);
+  const [selectedBranchForAssign, setSelectedBranchForAssign] = useState(null);
+  const [availableBenefits, setAvailableBenefits] = useState([]);
+  const [assignedBenefits, setAssignedBenefits] = useState([]);
+  const [selectedBenefits, setSelectedBenefits] = useState([]);
+  const [loadingBenefits, setLoadingBenefits] = useState(false);
+
+  // Use shared CRUD hook for basic operations
+  const {
+    data: branches,
+    totalCount,
+    page,
+    rowsPerPage,
+    keyword,
+    error,
+    actionLoading,
+    isPageLoading,
+    loadingText,
+    openDialog,
+    setOpenDialog,
+    dialogMode,
+    selectedItem: selectedBranch,
+    confirmDialog,
+    setConfirmDialog,
+    handleCreate,
+    handleEdit,
+    handleDelete,
+    handleFormSubmit: baseHandleFormSubmit,
+    handleKeywordSearch,
+    handleKeywordChange,
+    handleClearSearch,
+    handlePageChange,
+    handleRowsPerPageChange
+  } = useAdminCRUD({
+    loadFunction: async (params) => {
+      const response = await branchService.getBranchesPaged({
+        page: params.page,
+        pageSize: params.pageSize,
+        searchTerm: params.searchTerm || params.Keyword || ''
+      });
+      return response;
+    },
+    createFunction: branchService.createBranch,
+    updateFunction: branchService.updateBranch,
+    deleteFunction: branchService.deleteBranch
+  });
+
   // Handle province change
   useEffect(() => {
     if (provinceId) {
       handleProvinceChange(provinceId);
-      // Only clear districtId if it's not from edit mode (selectedBranch)
       if (!selectedBranch) {
-        setDistrictId(''); // Clear district when province changes
+        setDistrictId('');
       }
     }
   }, [provinceId, handleProvinceChange, selectedBranch]);
 
-  // Handle expand/collapse row
+  // Load provinces when dialog opens
+  useEffect(() => {
+    if (openDialog && provinces.length === 0) {
+      fetchProvinces();
+    }
+  }, [openDialog]);
+
+  // Sync districtId when editing
+  useEffect(() => {
+    if (selectedBranch?.districtId && !districtId && provinces.length > 0) {
+      let foundProvinceId = '';
+      for (const province of provinces) {
+        if (province.districts && province.districts.some(d => d.id === selectedBranch.districtId)) {
+          foundProvinceId = province.id;
+          break;
+        }
+      }
+      if (foundProvinceId) {
+        setProvinceId(foundProvinceId);
+        setDistrictId(selectedBranch.districtId);
+      }
+    }
+  }, [selectedBranch, provinces, districtId]);
+
+  // Override handleCreate to ensure provinces are loaded
+  const handleCreateWithData = async () => {
+    if (provinces.length === 0) {
+      await fetchProvinces();
+    }
+    setProvinceId('');
+    setDistrictId('');
+    handleCreate();
+  };
+
+  // Override handleEdit to ensure provinces are loaded
+  const handleEditWithData = async (branch) => {
+    if (provinces.length === 0) {
+      await fetchProvinces();
+    }
+    handleEdit(branch);
+  };
+
+  // Custom form submit handler (need to include districtId)
+  const handleFormSubmit = async (data) => {
+    const submitData = {
+      ...data,
+      districtId: districtId
+    };
+    await baseHandleFormSubmit(submitData);
+    setProvinceId('');
+    setDistrictId('');
+  };
+
+  // Handle expand/collapse row (keep this special feature)
   const handleToggleExpand = async (branchId) => {
     const newExpanded = new Set(expandedRows);
     const isCurrentlyExpanded = expandedRows.has(branchId);
@@ -132,7 +188,6 @@ const BranchManagement = () => {
       newExpanded.delete(branchId);
     } else {
       newExpanded.add(branchId);
-      // Load benefits if not already loaded
       if (!rowBenefits[branchId]) {
         try {
           const benefits = await benefitService.getBenefitsByBranchId(branchId);
@@ -143,6 +198,82 @@ const BranchManagement = () => {
       }
     }
     setExpandedRows(newExpanded);
+  };
+
+  // Handle assign benefits (keep this special feature)
+  const handleAssignBenefits = async (branch) => {
+    setSelectedBranchForAssign(branch);
+    setLoadingBenefits(true);
+    setOpenAssignDialog(true);
+    
+    try {
+      const [allBenefits, assigned] = await Promise.all([
+        benefitService.getAllBenefits(),
+        benefitService.getBenefitsByBranchId(branch.id).catch(() => [])
+      ]);
+      
+      setAvailableBenefits(allBenefits);
+      setAssignedBenefits(assigned);
+      setSelectedBenefits(assigned.map(b => b.id));
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tải danh sách lợi ích');
+    } finally {
+      setLoadingBenefits(false);
+    }
+  };
+
+  // Handle submit assignment (keep this special feature)
+  const handleSubmitAssignment = async () => {
+    if (!selectedBranchForAssign) return;
+    
+    try {
+      await benefitService.assignBenefitsToBranch({
+        branchId: selectedBranchForAssign.id,
+        benefitIds: selectedBenefits
+      });
+      
+      toast.success(`Gán lợi ích cho "${selectedBranchForAssign.branchName}" thành công!`);
+      
+      const updated = await benefitService.getBenefitsByBranchId(selectedBranchForAssign.id);
+      setAssignedBenefits(updated);
+      
+      if (expandedRows.has(selectedBranchForAssign.id)) {
+        setRowBenefits(prev => ({ ...prev, [selectedBranchForAssign.id]: updated }));
+      }
+      
+      setOpenAssignDialog(false);
+      setSelectedBranchForAssign(null);
+      setSelectedBenefits([]);
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gán lợi ích');
+    }
+  };
+
+  // Handle remove benefit (keep this special feature)
+  const handleRemoveBenefit = async (branchId, benefitId, benefitName) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Xác nhận gỡ lợi ích',
+      description: `Bạn có chắc chắn muốn gỡ lợi ích "${benefitName}" khỏi chi nhánh này không?`,
+      onConfirm: async () => {
+        try {
+          await benefitService.removeBenefitFromBranch(branchId, benefitId);
+          toast.success(`Đã gỡ lợi ích "${benefitName}" khỏi chi nhánh thành công!`);
+          
+          const updated = await benefitService.getBenefitsByBranchId(branchId);
+          setRowBenefits(prev => ({ ...prev, [branchId]: updated }));
+          
+          if (selectedBranchForAssign?.id === branchId) {
+            setAssignedBenefits(updated);
+          }
+          
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        } catch (err) {
+          toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gỡ lợi ích');
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }
+      }
+    });
   };
 
   // Define table columns
@@ -206,445 +337,78 @@ const BranchManagement = () => {
           >
             <AssignIcon fontSize="small" />
           </IconButton>
-          <IconButton
-            size="small"
-            color="primary"
-            onClick={() => handleEditBranch(item)}
-            title="Sửa"
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            color="error"
-            onClick={() => handleDeleteBranch(item)}
-            title="Xóa"
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
+          <Tooltip title="Sửa">
+            <IconButton
+              size="small"
+              color="primary"
+              onClick={() => handleEditWithData(item)}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => handleDelete(item)}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
       )
     }
   ];
 
-  // Load branches with pagination
-  const loadBranches = async (showLoadingIndicator = true) => {
-    if (showLoadingIndicator) {
-      showLoading();
-    }
-    setError(null);
-    try {
-      const response = await branchService.getBranchesPaged({
-        page: page + 1, // Backend uses 1-based indexing
-        pageSize: rowsPerPage,
-        searchTerm: keyword.trim()
-      });
-      
-      // Handle both paginated and non-paginated responses
-      if (response.items) {
-        // Paginated response
-        setBranches(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        // Non-paginated response (fallback)
-        setBranches(response);
-        setTotalCount(response.length);
-      }
-    } catch (err) {
-      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách chi nhánh';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-    } finally {
-      if (showLoadingIndicator) {
-        hideLoading();
-      }
-    }
-  };
-
-  // Load branches when page or rowsPerPage changes
-  useEffect(() => {
-    loadBranches();
-  }, [page, rowsPerPage]);
-
-  // Load branches when keyword changes (debounced search while typing)
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      loadBranches(false); // Don't show loading indicator for debounced search
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(debounceTimer);
-  }, [keyword]);
-
-  // Use loaded branches
-  const displayBranches = branches;
-  const paginatedBranches = displayBranches;
-
-  // Event handlers
-  const handleKeywordSearch = () => {
-    setPage(0);
-    loadBranches();
-  };
-
-  const handleKeywordChange = (e) => {
-    setKeyword(e.target.value);
-    setPage(0);
-  };
-
-  const handlePageChange = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleCreateBranch = async () => {
-    // Fetch provinces when opening dialog
-    if (provinces.length === 0) {
-      await fetchProvinces();
-    }
-    setDialogMode('create');
-    setSelectedBranch(null);
-    setProvinceId('');
-    setDistrictId('');
-    setOpenDialog(true);
-  };
-
-  const handleEditBranch = async (branch) => {
-    // Fetch provinces when opening dialog
-    if (provinces.length === 0) {
-      await fetchProvinces();
-    }
-    setDialogMode('edit');
-    setSelectedBranch(branch);
-    
-    // Find provinceId from districtId
-    if (branch?.districtId) {
-      // Search through all provinces to find which one contains this district
-      let foundProvinceId = '';
-      for (const province of provinces) {
-        if (province.districts && province.districts.some(d => d.id === branch.districtId)) {
-          foundProvinceId = province.id;
-          break;
-        }
-      }
-      setProvinceId(foundProvinceId);
-      setDistrictId(branch.districtId);
-    } else {
-      setProvinceId('');
-      setDistrictId('');
-    }
-    
-    setOpenDialog(true);
-  };
-
-  const handleDeleteBranch = (branch) => {
-    setConfirmDialog({
-      open: true,
-      title: 'Xác nhận xóa chi nhánh',
-      description: `Bạn có chắc chắn muốn xóa chi nhánh "${branch.branchName}"? Hành động này không thể hoàn tác.`,
-      onConfirm: () => performDeleteBranch(branch.id)
-    });
-  };
-
-  const performDeleteBranch = async (branchId) => {
-    setConfirmDialog(prev => ({ ...prev, open: false }));
-    setActionLoading(true);
-    
-    try {
-      await branchService.deleteBranch(branchId);
-      
-      // If we're deleting the last item on current page and not on first page, go to previous page
-      if (branches.length === 1 && page > 0) {
-        setPage(page - 1);
-      }
-      
-      // Reload data without showing loading page
-      const response = await branchService.getBranchesPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setBranches(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setBranches(response);
-        setTotalCount(response.length);
-      }
-      
-      toast.success(`Xóa chi nhánh thành công!`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa chi nhánh';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleFormSubmit = async (data) => {
-    setActionLoading(true);
-    
-    try {
-      // Only send districtId to API, not provinceId
-      const submitData = {
-        branchName: data.branchName,
-        address: data.address,
-        phone: data.phone,
-        districtId: data.districtId
-      };
-      
-      if (dialogMode === 'create') {
-        await branchService.createBranch(submitData);
-        toast.success(`Tạo chi nhánh "${data.branchName}" thành công!`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      } else {
-        await branchService.updateBranch(selectedBranch.id, submitData);
-        toast.success(`Cập nhật chi nhánh "${data.branchName}" thành công!`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-      
-      // Reload data without showing loading page
-      const response = await branchService.getBranchesPaged({
-        page: page + 1,
-        pageSize: rowsPerPage
-      });
-      
-      if (response.items) {
-        setBranches(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setBranches(response);
-        setTotalCount(response.length);
-      }
-      
-      setOpenDialog(false);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 
-        (dialogMode === 'create' ? 'Có lỗi xảy ra khi tạo chi nhánh' : 'Có lỗi xảy ra khi cập nhật chi nhánh');
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Handle assign benefits
-  const handleAssignBenefits = async (branch) => {
-    setSelectedBranchForAssign(branch);
-    setLoadingBenefits(true);
-    setOpenAssignDialog(true);
-    
-    try {
-      // Load all available benefits and assigned benefits in parallel
-      const [allBenefits, assigned] = await Promise.all([
-        benefitService.getAllBenefits(),
-        benefitService.getBenefitsByBranchId(branch.id).catch(() => []) // Return empty array if no benefits assigned
-      ]);
-      
-      setAvailableBenefits(allBenefits);
-      setAssignedBenefits(assigned);
-      // Pre-select already assigned benefits
-      setSelectedBenefits(assigned.map(b => b.id));
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tải danh sách lợi ích';
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setLoadingBenefits(false);
-    }
-  };
-
-  // Handle submit assignment
-  const handleSubmitAssignment = async () => {
-    if (!selectedBranchForAssign) return;
-    
-    setActionLoading(true);
-    try {
-      await benefitService.assignBenefitsToBranch({
-        branchId: selectedBranchForAssign.id,
-        benefitIds: selectedBenefits
-      });
-      
-      toast.success(`Gán lợi ích cho "${selectedBranchForAssign.branchName}" thành công!`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      
-      // Refresh assigned benefits list
-      const updated = await benefitService.getBenefitsByBranchId(selectedBranchForAssign.id);
-      setAssignedBenefits(updated);
-      
-      // Refresh row benefits if branch is expanded
-      if (expandedRows.has(selectedBranchForAssign.id)) {
-        setRowBenefits(prev => ({ ...prev, [selectedBranchForAssign.id]: updated }));
-      }
-      
-      setOpenAssignDialog(false);
-      setSelectedBranchForAssign(null);
-      setSelectedBenefits([]);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gán lợi ích';
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Handle remove benefit from branch
-  const handleRemoveBenefit = async (branchId, benefitId, benefitName) => {
-    setConfirmDialog({
-      open: true,
-      title: 'Xác nhận gỡ lợi ích',
-      description: `Bạn có chắc chắn muốn gỡ lợi ích "${benefitName}" khỏi chi nhánh này không?`,
-      onConfirm: async () => {
-        setActionLoading(true);
-        try {
-          await benefitService.removeBenefitFromBranch(branchId, benefitId);
-          
-          toast.success(`Đã gỡ lợi ích "${benefitName}" khỏi chi nhánh thành công!`, {
-            position: "top-right",
-            autoClose: 3000,
-          });
-          
-          // Refresh benefits list for this branch
-          const updated = await benefitService.getBenefitsByBranchId(branchId);
-          setRowBenefits(prev => ({ ...prev, [branchId]: updated }));
-          
-          // If dialog is open for this branch, update assigned benefits
-          if (selectedBranchForAssign?.id === branchId) {
-            setAssignedBenefits(updated);
-          }
-        } catch (err) {
-          const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gỡ lợi ích';
-          showGlobalError(errorMessage);
-          toast.error(errorMessage, {
-            position: "top-right",
-            autoClose: 4000,
-          });
-        } finally {
-          setActionLoading(false);
-          setConfirmDialog({
-            open: false,
-            title: '',
-            description: '',
-            onConfirm: null
-          });
-        }
-      }
-    });
-  };
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
+      
       {/* Header */}
-      <div className={styles.header}>
-        <h1 className={styles.title}>
-          Quản lý Chi Nhánh
-        </h1>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreateBranch}
-          className={styles.addButton}
-        >
-         Thêm Chi Nhánh
-        </Button>
-      </div>
+      <AdminPageHeader
+        title="Quản lý Chi Nhánh"
+        createButtonText="Thêm Chi Nhánh"
+        onCreateClick={handleCreateWithData}
+      />
 
       {/* Search Section */}
-      <Paper className={styles.searchSection}>
-        <div className={styles.searchContainer}>
-          <TextField
-            placeholder="Tìm kiếm theo tên, địa chỉ..."
-            value={keyword}
-            onChange={handleKeywordChange}
-            className={styles.searchField}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleKeywordSearch();
-              }
-            }}
-          />
-          <Button
-            variant="contained"
-            onClick={handleKeywordSearch}
-            disabled={searchLoading}
-            className={styles.searchButton}
-          >
-            {searchLoading ? 'Đang tìm...' : 'Tìm kiếm'}
-          </Button>
-          {keyword && (
-            <Button
-              variant="outlined"
-              onClick={() => setKeyword('')}
-            >
-              Xóa tìm kiếm
-            </Button>
-          )}
-        </div>
-      </Paper>
+      <AdminSearchSection
+        keyword={keyword}
+        onKeywordChange={handleKeywordChange}
+        onSearch={handleKeywordSearch}
+        onClear={handleClearSearch}
+        placeholder="Tìm kiếm theo tên, địa chỉ..."
+      />
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
+        <Alert severity="error" className={styles.errorAlert} onClose={() => {}}>
           {error}
         </Alert>
       )}
 
-      {/* Table */}
+      {/* Custom Table with Expandable Rows */}
       <div className={styles.tableContainer}>
-        <Paper>
-          <TableContainer>
-            <Table>
-              <TableHead>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell key={column.key} align={column.align || 'left'}>
+                    {column.header}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {isPageLoading ? (
                 <TableRow>
-                  {columns.map((column) => (
-                    <TableCell key={column.key} align={column.align || 'left'}>
-                      {column.header}
-                    </TableCell>
-                  ))}
+                  <TableCell colSpan={columns.length} align="center">
+                    <CircularProgress />
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {isPageLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} align="center">
-                      <CircularProgress />
-                    </TableCell>
-                  </TableRow>
-                ) : !paginatedBranches || paginatedBranches.length === 0 ? (
+              ) : !branches || branches.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={columns.length} align="center">
                       <Typography variant="h6" color="text.secondary">
@@ -653,7 +417,7 @@ const BranchManagement = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedBranches.map((branch, index) => (
+                  branches.map((branch, index) => (
                     <React.Fragment key={branch.id || index}>
                       <TableRow hover>
                         {columns.map((column) => (
@@ -752,212 +516,130 @@ const BranchManagement = () => {
             component="div"
             count={totalCount}
             page={page}
-            onPageChange={(e, newPage) => handlePageChange(e, newPage)}
+            onPageChange={handlePageChange}
             rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => handleRowsPerPageChange(e)}
+            onRowsPerPageChange={handleRowsPerPageChange}
             rowsPerPageOptions={[5, 10, 25, 50]}
             labelRowsPerPage="Số dòng mỗi trang:"
-            labelDisplayedRows={({ from, to, count }) => 
-              `${from}-${to} của ${count !== -1 ? count : `nhiều hơn ${to}`}`
-            }
           />
-        </Paper>
-      </div>
+        </div>
 
-      {/* Create/Edit Dialog */}
-      <Dialog 
-        open={openDialog} 
-        onClose={() => !actionLoading && setOpenDialog(false)} 
-        maxWidth="md" 
-        fullWidth
-        sx={{
-          '& .MuiDialog-paper': {
-            borderRadius: '8px',
-            overflow: 'hidden',
-            maxWidth: '800px'
-          }
+      {/* Form Dialog with Location Fields */}
+      <AdminFormDialog
+        open={openDialog}
+        onClose={() => {
+          setOpenDialog(false);
+          setProvinceId('');
+          setDistrictId('');
         }}
+        mode={dialogMode}
+        title="Chi Nhánh"
+        icon={BusinessIcon}
+        loading={actionLoading}
+        maxWidth="md"
       >
-        <DialogTitle 
-          sx={{
-            backgroundColor: '#1976d2',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 24px',
-            position: 'relative'
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <span>
-              {dialogMode === 'create' ? 'Thêm Chi Nhánh mới' : 'Chỉnh sửa Chi Nhánh'}
-            </span>
-          </Box>
-          <Button
-            onClick={() => setOpenDialog(false)}
-            disabled={actionLoading}
-            sx={{
-              color: 'white',
-              minWidth: 'auto',
-              padding: '8px',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            ✕
-          </Button>
-        </DialogTitle>
-        <DialogContent 
-          className={styles.dialogContent}
-          sx={{ 
-            padding: '24px !important',
-            paddingTop: '32px !important'
-          }}
-        >
-          <Box 
-            component="form" 
-            id="branch-form"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target);
-              const data = {
-                branchName: formData.get('branchName'),
-                address: formData.get('address'),
-                phone: formData.get('phone'),
-                districtId: districtId
-              };
-              await handleFormSubmit(data);
-            }}
-          >
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-              {/* Branch Name */}
-              <Grid item xs={12}>
-                <TextField
-                  name="branchName"
-                  label="Tên Chi Nhánh"
-                  required
-                  fullWidth
-                  placeholder="Ví dụ: Chi nhánh Quận 1, Chi nhánh Thủ Đức"
-                  defaultValue={selectedBranch?.branchName || ''}
-                  disabled={actionLoading}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                  }}
-                />
-              </Grid>
-
-              {/* Province */}
-              <Grid item xs={12}>
-                <FormControl fullWidth required>
-                  <InputLabel sx={{ fontSize: '14px' }}>Tỉnh/Thành Phố</InputLabel>
-                  <Select
-                    value={provinceId}
-                    onChange={(e) => setProvinceId(e.target.value)}
-                    label="Tỉnh/Thành Phố"
-                    disabled={actionLoading || locationLoading}
-                    sx={{ fontSize: '14px' }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: { maxHeight: 250 }
-                      }
-                    }}
-                  >
-                    <MenuItem value="">Chọn tỉnh/thành phố</MenuItem>
-                    {getProvinceOptions().map(option => (
-                      <MenuItem key={option.value} value={option.value} sx={{ fontSize: '14px' }}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              {/* District */}
-              <Grid item xs={12}>
-                <FormControl fullWidth required disabled={!provinceId}>
-                  <InputLabel sx={{ fontSize: '14px' }}>Quận/Huyện</InputLabel>
-                  <Select
-                    value={districtId}
-                    onChange={(e) => setDistrictId(e.target.value)}
-                    label="Quận/Huyện"
-                    disabled={actionLoading || locationLoading || !provinceId}
-                    sx={{ fontSize: '14px' }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: { maxHeight: 250 }
-                      }
-                    }}
-                  >
-                    <MenuItem value="" sx={{ fontSize: '14px' }}>Chọn quận/huyện</MenuItem>
-                    {getDistrictOptions().map(option => (
-                      <MenuItem key={option.value} value={option.value} sx={{ fontSize: '14px' }}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              {/* Address */}
-              <Grid item xs={12}>
-                <TextField
-                  name="address"
-                  label="Địa Chỉ"
-                  required
-                  fullWidth
-                  placeholder="Địa chỉ đầy đủ của chi nhánh"
-                  defaultValue={selectedBranch?.address || ''}
-                  disabled={actionLoading}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                  }}
-                />
-              </Grid>
-
-              {/* Phone */}
-              <Grid item xs={12}>
-                <TextField
-                  name="phone"
-                  label="Số Điện Thoại"
-                  required
-                  fullWidth
-                  placeholder="Ví dụ: 0123456789"
-                  defaultValue={selectedBranch?.phone || ''}
-                  disabled={actionLoading}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                  }}
-                />
-              </Grid>
+        <Box component="form" onSubmit={async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = {
+            branchName: formData.get('branchName'),
+            address: formData.get('address'),
+            phone: formData.get('phone'),
+            districtId: districtId
+          };
+          await handleFormSubmit(data);
+        }}>
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12}>
+              <TextField
+                name="branchName"
+                label="Tên Chi Nhánh"
+                required
+                fullWidth
+                defaultValue={selectedBranch?.branchName || ''}
+                disabled={actionLoading}
+              />
             </Grid>
-
-            {/* Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => {
-                  setOpenDialog(false);
-                  setProvinceId('');
-                  setDistrictId('');
-                }}
+            <Grid item xs={12}>
+              <FormControl fullWidth required>
+                <InputLabel>Tỉnh/Thành Phố</InputLabel>
+                <Select
+                  value={provinceId}
+                  onChange={(e) => setProvinceId(e.target.value)}
+                  label="Tỉnh/Thành Phố"
+                  disabled={actionLoading || locationLoading}
+                >
+                  <MenuItem value="">Chọn tỉnh/thành phố</MenuItem>
+                  {getProvinceOptions().map(option => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth required disabled={!provinceId}>
+                <InputLabel>Quận/Huyện</InputLabel>
+                <Select
+                  value={districtId}
+                  onChange={(e) => setDistrictId(e.target.value)}
+                  label="Quận/Huyện"
+                  disabled={actionLoading || locationLoading || !provinceId}
+                >
+                  <MenuItem value="">Chọn quận/huyện</MenuItem>
+                  {getDistrictOptions().map(option => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="address"
+                label="Địa Chỉ"
+                required
+                fullWidth
+                defaultValue={selectedBranch?.address || ''}
                 disabled={actionLoading}
-              >
-                Hủy
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="phone"
+                label="Số Điện Thoại"
+                required
+                fullWidth
+                defaultValue={selectedBranch?.phone || ''}
                 disabled={actionLoading}
-              >
-                {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Chi Nhánh' : 'Cập nhật Chi Nhánh'}
-              </Button>
-            </Box>
+              />
+            </Grid>
+          </Grid>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => {
+                setOpenDialog(false);
+                setProvinceId('');
+                setDistrictId('');
+              }}
+              disabled={actionLoading}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Chi Nhánh' : 'Cập nhật Chi Nhánh'}
+            </Button>
           </Box>
-        </DialogContent>
-      </Dialog>
+        </Box>
+      </AdminFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog
@@ -971,57 +653,17 @@ const BranchManagement = () => {
         confirmColor="error"
       />
 
-      {/* Assign Benefits Dialog */}
-      <Dialog 
-        open={openAssignDialog} 
-        onClose={() => !loadingBenefits && setOpenAssignDialog(false)} 
-        maxWidth="md" 
-        fullWidth
-        sx={{
-          '& .MuiDialog-paper': {
-            borderRadius: '8px',
-            overflow: 'hidden',
-            maxWidth: '700px'
-          }
-        }}
+      {/* Assign Benefits Dialog - Keep this special feature */}
+      <AdminFormDialog
+        open={openAssignDialog}
+        onClose={() => setOpenAssignDialog(false)}
+        mode="assign"
+        title={`Gán Lợi Ích cho "${selectedBranchForAssign?.branchName}"`}
+        icon={BenefitIcon}
+        loading={loadingBenefits || actionLoading}
+        maxWidth="md"
       >
-        <DialogTitle 
-          sx={{
-            backgroundColor: '#1976d2',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 24px'
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <BenefitIcon />
-            <span>
-              Gán Lợi Ích cho "{selectedBranchForAssign?.branchName}"
-            </span>
-          </Box>
-          <Button
-            onClick={() => setOpenAssignDialog(false)}
-            disabled={loadingBenefits}
-            sx={{
-              color: 'white',
-              minWidth: 'auto',
-              padding: '8px',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            ✕
-          </Button>
-        </DialogTitle>
-        <DialogContent 
-          sx={{ 
-            padding: '24px !important',
-            paddingTop: '32px !important'
-          }}
-        >
+        <>
           {loadingBenefits ? (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
               <CircularProgress />
@@ -1129,8 +771,8 @@ const BranchManagement = () => {
               {actionLoading ? 'Đang xử lý...' : 'Gán Lợi Ích'}
             </Button>
           </Box>
-        </DialogContent>
-      </Dialog>
+        </>
+      </AdminFormDialog>
     </div>
   );
 };
