@@ -26,7 +26,7 @@ import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import DialogWithTabs from '../../../components/Common/DialogWithTabs';
-import StaffAccountForm from '../../../components/Common/StaffAccountForm';
+import StaffAccountForm from '../../../components/AccountForms/StaffAccountForm';
 import { createUserSchema, updateUserSchema, updateManagerUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';

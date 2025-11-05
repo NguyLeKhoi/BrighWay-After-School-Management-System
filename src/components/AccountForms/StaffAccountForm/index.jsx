@@ -20,7 +20,7 @@ import {
   Lock as LockIcon,
   AssignmentInd as RoleIcon
 } from '@mui/icons-material';
-import Form from '../Form';
+import Form from '../../Common/Form';
 import { createStaffSchema } from '../../../utils/validationSchemas/userSchemas';
 
 const StaffAccountForm = ({ 

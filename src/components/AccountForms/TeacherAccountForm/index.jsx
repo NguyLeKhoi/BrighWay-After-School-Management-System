@@ -25,7 +25,7 @@ import {
   School as EducationIcon,
   Description as BioIcon
 } from '@mui/icons-material';
-import Form from '../Form';
+import Form from '../../Common/Form';
 import { createTeacherAccountSchema } from '../../../utils/validationSchemas/teacherSchemas';
 
 const TeacherAccountForm = ({ 

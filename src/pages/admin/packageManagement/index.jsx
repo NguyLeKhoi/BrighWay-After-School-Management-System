@@ -22,9 +22,9 @@ import {
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Common/AdminPageHeader';
-import AdminSearchSection from '../../../components/Common/AdminSearchSection';
-import AdminFormDialog from '../../../components/Common/AdminFormDialog';
+import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
+import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
+import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import packageService from '../../../services/package.service';
 import benefitService from '../../../services/benefit.service';

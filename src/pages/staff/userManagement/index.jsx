@@ -34,7 +34,7 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import FamilyAccountForm from '../../../components/Common/FamilyAccountForm';
+import FamilyAccountForm from '../../../components/AccountForms/FamilyAccountForm';
 import { updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';

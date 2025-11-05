@@ -11,7 +11,7 @@ import {
   Business as BusinessIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
-import userService from '../../../../services/user.service';
+import userService from '../../../../services/user.service.js';
 
 const ManagerStaffHeader = () => {
   const [userInfo, setUserInfo] = useState(null);

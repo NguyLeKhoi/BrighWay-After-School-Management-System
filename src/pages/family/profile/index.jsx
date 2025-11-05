@@ -33,7 +33,7 @@ import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
 import EditableField from '../../../components/Common/EditableField';
-import ParentForm from '../../../components/Common/ParentForm';
+import ParentForm from '../../../components/AccountForms/ParentForm';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 
 const FamilyProfile = () => {

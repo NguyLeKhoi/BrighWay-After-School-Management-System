@@ -4,9 +4,9 @@ import { School as SchoolIcon, Edit as EditIcon, Delete as DeleteIcon, Restore a
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Common/AdminPageHeader';
-import AdminSearchSection from '../../../components/Common/AdminSearchSection';
-import AdminFormDialog from '../../../components/Common/AdminFormDialog';
+import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
+import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
+import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { schoolSchema } from '../../../utils/validationSchemas/schoolSchemas';
 import schoolService from '../../../services/school.service';
