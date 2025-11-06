@@ -50,7 +50,10 @@ import StudentRoster from '../pages/teacher/students';
 import TeacherMaterials from '../pages/teacher/materials';
 
 // Staff Pages
-import UserManagement from '../pages/staff/userManagement';
+import StaffDashboard from '../pages/staff/dashboard';
+import StaffStudentLevels from '../pages/staff/studentLevels';
+import StaffActivityTypes from '../pages/staff/activityTypes';
+import StaffActivities from '../pages/staff/activities';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -243,11 +246,23 @@ export const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <UserManagement />,
+        element: <StaffStudentLevels />,
       },
       {
-        path: 'users',
-        element: <UserManagement />,
+        path: 'dashboard',
+        element: <StaffDashboard />,
+      },
+      {
+        path: 'student-levels',
+        element: <StaffStudentLevels />,
+      },
+      {
+        path: 'activity-types',
+        element: <StaffActivityTypes />,
+      },
+      {
+        path: 'activities',
+        element: <StaffActivities />,
       },
     ],
   },

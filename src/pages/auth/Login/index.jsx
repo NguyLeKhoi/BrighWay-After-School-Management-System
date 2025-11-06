@@ -55,8 +55,8 @@ const Login = () => {
         console.log('➡️ Redirecting to Teacher dashboard...');
         navigate('/teacher/dashboard');
       } else if (role === 'Staff' || role === 2) {
-        console.log('➡️ Redirecting to Staff users...');
-        navigate('/staff/users');
+        console.log('➡️ Redirecting to Staff portal...');
+        navigate('/staff');
       } else if (role === 'User' || role === 4) {
         console.log('➡️ Redirecting to Family profile...');
         navigate('/family/profile');

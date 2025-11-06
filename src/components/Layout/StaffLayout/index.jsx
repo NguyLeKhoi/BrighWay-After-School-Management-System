@@ -1,25 +1,74 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import ManagerStaffHeader from '../../Common/Headers/ManagerStaffHeader';
+import GenericDrawer from '../../Common/Drawer/GenericDrawer';
+import {
+  Dashboard as DashboardIcon,
+  School as StudentLevelIcon,
+  Category as ActivityTypeIcon,
+  Event as ActivityIcon
+} from '@mui/icons-material';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const StaffLayout = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const menuItems = [
+    {
+      path: '/staff/dashboard',
+      label: 'Dashboard',
+      icon: DashboardIcon
+    },
+    {
+      path: '/staff/student-levels',
+      label: 'Cấp độ học sinh',
+      icon: StudentLevelIcon
+    },
+    {
+      path: '/staff/activity-types',
+      label: 'Loại Hoạt Động',
+      icon: ActivityTypeIcon
+    },
+    {
+      path: '/staff/activities',
+      label: 'Hoạt Động',
+      icon: ActivityIcon
+    }
+  ];
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <ManagerStaffHeader />
 
-      {/* Main Content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          backgroundColor: '#f5f5f5',
-          minHeight: 'calc(100vh - 64px)',
-          p: 3
-        }}
-      >
-        <Outlet />
+      <Box sx={{ display: 'flex' }}>
+        {/* Sidebar */}
+        <GenericDrawer
+          title="BRIGHWAY"
+          subtitle="Staff Portal"
+          menuItems={menuItems}
+          onLogout={handleLogout}
+        />
+
+        {/* Main Content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            backgroundColor: '#f5f5f5',
+            minHeight: 'calc(100vh - 64px)'
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );
