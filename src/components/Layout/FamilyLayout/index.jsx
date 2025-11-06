@@ -37,8 +37,8 @@ const FamilyLayout = () => {
       icon: WalletIcon
     },
     {
-      path: '/family/courses',
-      label: 'Khóa học',
+      path: '/family/packages',
+      label: 'Các gói',
       icon: BookIcon
     },
     {
