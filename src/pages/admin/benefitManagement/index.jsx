@@ -10,7 +10,7 @@ import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { benefitSchema } from '../../../utils/validationSchemas/benefitSchemas';
 import benefitService from '../../../services/benefit.service';
-import useAdminCRUD from '../../../hooks/useAdminCRUD';
+import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import styles from './BenefitManagement.module.css';
 
 const BenefitManagement = () => {
@@ -42,7 +42,7 @@ const BenefitManagement = () => {
     handlePageChange,
     handleRowsPerPageChange,
     updateFilter
-  } = useAdminCRUD({
+  } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await benefitService.getBenefitsPaged({
         ...params,
@@ -54,7 +54,8 @@ const BenefitManagement = () => {
     createFunction: benefitService.createBenefit,
     updateFunction: benefitService.updateBenefit,
     deleteFunction: benefitService.deleteBenefit,
-    defaultFilters: { status: '' }
+    defaultFilters: { status: '' },
+    loadOnMount: true
   });
 
   // Define table columns

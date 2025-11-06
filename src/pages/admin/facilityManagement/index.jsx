@@ -10,7 +10,7 @@ import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { facilitySchema } from '../../../utils/validationSchemas/facilitySchemas';
 import facilityService from '../../../services/facility.service';
-import useAdminCRUD from '../../../hooks/useAdminCRUD';
+import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import styles from './FacilityManagement.module.css';
 
 const FacilityManagement = () => {
@@ -40,11 +40,12 @@ const FacilityManagement = () => {
     handleClearSearch,
     handlePageChange,
     handleRowsPerPageChange
-  } = useAdminCRUD({
+  } = useBaseCRUD({
     loadFunction: facilityService.getFacilitiesPaged,
     createFunction: facilityService.createFacility,
     updateFunction: facilityService.updateFacility,
-    deleteFunction: facilityService.deleteFacility
+    deleteFunction: facilityService.deleteFacility,
+    loadOnMount: true
   });
 
   // Define table columns

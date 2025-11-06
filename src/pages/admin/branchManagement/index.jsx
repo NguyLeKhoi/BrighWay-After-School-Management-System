@@ -45,7 +45,7 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import branchService from '../../../services/branch.service';
 import benefitService from '../../../services/benefit.service';
 import useLocationData from '../../../hooks/useLocationData';
-import useAdminCRUD from '../../../hooks/useAdminCRUD';
+import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { toast } from 'react-toastify';
 import styles from './BranchManagement.module.css';
 
@@ -102,7 +102,7 @@ const BranchManagement = () => {
     handleClearSearch,
     handlePageChange,
     handleRowsPerPageChange
-  } = useAdminCRUD({
+  } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await branchService.getBranchesPaged({
         page: params.page,
@@ -113,7 +113,8 @@ const BranchManagement = () => {
     },
     createFunction: branchService.createBranch,
     updateFunction: branchService.updateBranch,
-    deleteFunction: branchService.deleteBranch
+    deleteFunction: branchService.deleteBranch,
+    loadOnMount: true
   });
 
   // Handle province change

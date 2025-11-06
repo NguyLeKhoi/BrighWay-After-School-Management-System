@@ -21,7 +21,7 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import { roomSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import roomService from '../../../services/room.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
-import useAdminCRUD from '../../../hooks/useAdminCRUD';
+import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import styles from './RoomManagement.module.css';
 
 const RoomManagement = () => {
@@ -65,7 +65,7 @@ const RoomManagement = () => {
     handleRowsPerPageChange,
     updateFilter,
     loadData
-  } = useAdminCRUD({
+  } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await roomService.getRoomsPaged(
         params.page,
@@ -79,7 +79,8 @@ const RoomManagement = () => {
     createFunction: roomService.createRoom,
     updateFunction: roomService.updateRoom,
     deleteFunction: roomService.deleteRoom,
-    defaultFilters: { facilityFilter: '', branchFilter: '' }
+    defaultFilters: { facilityFilter: '', branchFilter: '' },
+    loadOnMount: true
   });
 
   // Load facility and branch data on mount

@@ -12,7 +12,9 @@ import {
   Autocomplete,
   Checkbox,
   ListItemText,
-  CircularProgress
+  CircularProgress,
+  TextField,
+  Button
 } from '@mui/material';
 import {
   ShoppingCart as PackageIcon,
@@ -29,7 +31,7 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import packageService from '../../../services/package.service';
 import benefitService from '../../../services/benefit.service';
 import usePackageDependencies from '../../../hooks/usePackageDependencies';
-import useAdminCRUD from '../../../hooks/useAdminCRUD';
+import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { toast } from 'react-toastify';
 import styles from './PackageManagement.module.css';
 
@@ -78,7 +80,7 @@ const PackageManagement = () => {
     handlePageChange,
     handleRowsPerPageChange,
     updateFilter
-  } = useAdminCRUD({
+  } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await packageService.getPackagesPaged({
         page: params.page,
@@ -91,7 +93,8 @@ const PackageManagement = () => {
     createFunction: packageService.createPackage,
     updateFunction: packageService.updatePackage,
     deleteFunction: packageService.deletePackage,
-    defaultFilters: { status: '' }
+    defaultFilters: { status: '' },
+    loadOnMount: true
   });
 
   // Define table columns

@@ -4,8 +4,8 @@ import { useApp } from '../contexts/AppContext';
 import useContentLoading from './useContentLoading';
 
 /**
- * Custom hook for admin CRUD operations
- * Handles common patterns: pagination, search, loading, error handling
+ * Base CRUD hook for all roles (Admin, Manager, Staff)
+ * Handles common patterns: pagination, search, loading, error handling, CRUD operations
  * 
  * @param {Object} config - Configuration object
  * @param {Function} config.loadFunction - Function to load data (page, pageSize, filters)
@@ -14,15 +14,17 @@ import useContentLoading from './useContentLoading';
  * @param {Function} config.deleteFunction - Function to delete item
  * @param {Object} config.defaultFilters - Default filter values
  * @param {number} config.minLoadingDuration - Minimum loading duration (default: 300ms)
+ * @param {boolean} config.loadOnMount - Whether to load data on mount (default: true)
  * @returns {Object} CRUD state and handlers
  */
-const useAdminCRUD = ({
+const useBaseCRUD = ({
   loadFunction,
   createFunction,
   updateFunction,
   deleteFunction,
   defaultFilters = {},
-  minLoadingDuration = 300
+  minLoadingDuration = 300,
+  loadOnMount = true
 }) => {
   // Data state
   const [data, setData] = useState([]);
@@ -55,6 +57,8 @@ const useAdminCRUD = ({
   
   // Load data
   const loadData = useCallback(async (showLoadingIndicator = true) => {
+    if (!loadFunction) return;
+    
     if (showLoadingIndicator) {
       showLoading();
     }
@@ -101,16 +105,22 @@ const useAdminCRUD = ({
   
   // Load data when page, rowsPerPage, or filters change
   useEffect(() => {
-    loadData();
+    if (loadOnMount) {
+      loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, rowsPerPage, filters]);
   
   // Debounced search
   useEffect(() => {
+    if (!loadOnMount) return;
+    
     const debounceTimer = setTimeout(() => {
       loadData(false);
     }, 300);
     
     return () => clearTimeout(debounceTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyword]);
   
   // Create handler
@@ -129,7 +139,7 @@ const useAdminCRUD = ({
   
   // Delete handler
   const handleDelete = useCallback((item, itemName = 'mục này') => {
-    const displayName = item.name || item.fullName || item.facilityName || item.branchName || itemName;
+    const displayName = item.name || item.fullName || item.facilityName || item.branchName || item.roomName || itemName;
     setConfirmDialog({
       open: true,
       title: 'Xác nhận xóa',
@@ -285,9 +295,10 @@ const useAdminCRUD = ({
     updateFilter,
     setFilters,
     setPage,
-    setRowsPerPage
+    setRowsPerPage,
+    setError
   };
 };
 
-export default useAdminCRUD;
+export default useBaseCRUD;
 

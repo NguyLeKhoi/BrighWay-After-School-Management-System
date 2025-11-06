@@ -10,7 +10,7 @@ import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { studentLevelSchema } from '../../../utils/validationSchemas/studentLevelSchemas';
 import studentLevelService from '../../../services/studentLevel.service';
-import useAdminCRUD from '../../../hooks/useAdminCRUD';
+import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import styles from './StudentLevelManagement.module.css';
 
 const StudentLevelManagement = () => {
@@ -40,7 +40,7 @@ const StudentLevelManagement = () => {
     handleClearSearch,
     handlePageChange,
     handleRowsPerPageChange
-  } = useAdminCRUD({
+  } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await studentLevelService.getStudentLevelsPaged({
         ...params,
@@ -50,7 +50,8 @@ const StudentLevelManagement = () => {
     },
     createFunction: studentLevelService.createStudentLevel,
     updateFunction: studentLevelService.updateStudentLevel,
-    deleteFunction: studentLevelService.deleteStudentLevel
+    deleteFunction: studentLevelService.deleteStudentLevel,
+    loadOnMount: true
   });
 
   // Define table columns

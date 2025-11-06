@@ -10,7 +10,7 @@ import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { schoolSchema } from '../../../utils/validationSchemas/schoolSchemas';
 import schoolService from '../../../services/school.service';
-import useAdminCRUD from '../../../hooks/useAdminCRUD';
+import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { toast } from 'react-toastify';
 import styles from './SchoolManagement.module.css';
 
@@ -42,7 +42,7 @@ const SchoolManagement = () => {
     handlePageChange,
     handleRowsPerPageChange,
     loadData
-  } = useAdminCRUD({
+  } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await schoolService.getSchoolsPaged({
         ...params,
@@ -53,7 +53,8 @@ const SchoolManagement = () => {
     },
     createFunction: schoolService.createSchool,
     updateFunction: schoolService.updateSchool,
-    deleteFunction: schoolService.softDeleteSchool
+    deleteFunction: schoolService.softDeleteSchool,
+    loadOnMount: true
   });
   
   // Custom restore handler
