@@ -3,9 +3,9 @@ import { useState, useRef } from 'react';
 /**
  * Custom hook for loading with minimum duration
  * Ensures loading state is shown for at least minimumDuration ms
- * @param {number} minimumDuration - Minimum duration in milliseconds (default: 1500ms)
+ * @param {number} minimumDuration - Minimum duration in milliseconds (default: 300ms for better UX)
  */
-export const useLoading = (minimumDuration = 1500) => {
+export const useLoading = (minimumDuration = 300) => {
   const [isLoading, setIsLoading] = useState(false);
   const startTimeRef = useRef(null);
   const timeoutRef = useRef(null);

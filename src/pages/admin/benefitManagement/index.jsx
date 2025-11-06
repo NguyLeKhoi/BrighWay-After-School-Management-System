@@ -1,65 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  InputAdornment,
-  Button,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Alert,
-  Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-  Switch,
-  FormControlLabel
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Search as SearchIcon,
-  CardGiftcard as BenefitIcon
-} from '@mui/icons-material';
+import React from 'react';
+import { Box, Typography, Alert, Chip, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
+import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import benefitService from '../../../services/benefit.service';
-import { useApp } from '../../../contexts/AppContext';
-import useContentLoading from '../../../hooks/useContentLoading';
+import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
+import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
+import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
-import { toast } from 'react-toastify';
+import { benefitSchema } from '../../../utils/validationSchemas/benefitSchemas';
+import benefitService from '../../../services/benefit.service';
+import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import styles from './BenefitManagement.module.css';
 
 const BenefitManagement = () => {
-  const [benefits, setBenefits] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  
-  // Dialog states
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogMode, setDialogMode] = useState('create');
-  const [selectedBenefit, setSelectedBenefit] = useState(null);
-  
-  // Confirm dialog states
-  const [confirmDialog, setConfirmDialog] = useState({
-    open: false,
-    title: '',
-    description: '',
-    onConfirm: null
+  // Use shared CRUD hook
+  const {
+    data: benefits,
+    totalCount,
+    page,
+    rowsPerPage,
+    keyword,
+    filters,
+    error,
+    actionLoading,
+    isPageLoading,
+    loadingText,
+    openDialog,
+    setOpenDialog,
+    dialogMode,
+    selectedItem: selectedBenefit,
+    confirmDialog,
+    setConfirmDialog,
+    handleCreate,
+    handleEdit,
+    handleDelete,
+    handleFormSubmit,
+    handleKeywordSearch,
+    handleKeywordChange,
+    handleClearSearch,
+    handlePageChange,
+    handleRowsPerPageChange,
+    updateFilter
+  } = useBaseCRUD({
+    loadFunction: async (params) => {
+      const response = await benefitService.getBenefitsPaged({
+        ...params,
+        searchTerm: params.searchTerm || params.Keyword || '',
+        status: params.status || null
+      });
+      return response;
+    },
+    createFunction: benefitService.createBenefit,
+    updateFunction: benefitService.updateBenefit,
+    deleteFunction: benefitService.deleteBenefit,
+    defaultFilters: { status: '' },
+    loadOnMount: true
   });
-  
-  // Global state
-  const { showGlobalError, addNotification } = useApp();
-  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(1500);
 
   // Define table columns
   const columns = [
@@ -106,234 +103,42 @@ const BenefitManagement = () => {
     }
   ];
 
-  // Load benefits with pagination
-  const loadBenefits = async (showLoadingIndicator = true) => {
-    if (showLoadingIndicator) {
-      showLoading();
-    }
-    setError(null);
-    try {
-      const response = await benefitService.getBenefitsPaged({
-        page: page + 1,
-        pageSize: rowsPerPage,
-        searchTerm: searchTerm,
-        status: statusFilter || null
-      });
-      
-      if (response.items) {
-        setBenefits(response.items);
-        setTotalCount(response.totalCount || response.items.length);
-      } else {
-        setBenefits(response);
-        setTotalCount(response.length);
-      }
-    } catch (err) {
-      const errorMessage = err.message || 'Có lỗi xảy ra khi tải danh sách lợi ích';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-    } finally {
-      if (showLoadingIndicator) {
-        hideLoading();
-      }
-    }
-  };
-
-  // Load benefits when page, rowsPerPage, or statusFilter changes
-  useEffect(() => {
-    loadBenefits();
-  }, [page, rowsPerPage, statusFilter]);
-
-  // Load benefits when keyword changes (debounced search while typing)
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      loadBenefits(false); // Don't show loading indicator for debounced search
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
-
-  // Event handlers
-  const handleSearch = () => {
-    setPage(0);
-    loadBenefits();
-  };
-
-  const handleClearSearch = () => {
-    setSearchTerm('');
-    setStatusFilter('');
-    setPage(0);
-  };
-
-  const handlePageChange = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleCreateBenefit = () => {
-    setDialogMode('create');
-    setSelectedBenefit(null);
-    setOpenDialog(true);
-  };
-
-  const handleEditBenefit = (benefit) => {
-    setDialogMode('edit');
-    setSelectedBenefit(benefit);
-    setOpenDialog(true);
-  };
-
-  const handleDeleteBenefit = (benefit) => {
-    setConfirmDialog({
-      open: true,
-      title: 'Xác nhận xóa lợi ích',
-      description: `Bạn có chắc chắn muốn xóa lợi ích "${benefit.name}"? Hành động này không thể hoàn tác.`,
-      onConfirm: () => performDeleteBenefit(benefit.id)
-    });
-  };
-
-  const performDeleteBenefit = async (benefitId) => {
-    setConfirmDialog(prev => ({ ...prev, open: false }));
-    setActionLoading(true);
-    
-    try {
-      await benefitService.deleteBenefit(benefitId);
-      
-      toast.success('Xóa lợi ích thành công!', {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      
-      loadBenefits();
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa lợi ích';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleFormSubmit = async (data) => {
-    setActionLoading(true);
-    
-    try {
-      const submitData = {
-        name: data.name,
-        description: data.description,
-        status: data.status
-      };
-      
-      if (dialogMode === 'create') {
-        await benefitService.createBenefit(submitData);
-        toast.success(`Tạo lợi ích "${data.name}" thành công!`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      } else {
-        await benefitService.updateBenefit(selectedBenefit.id, submitData);
-        toast.success(`Cập nhật lợi ích "${data.name}" thành công!`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-      
-      setOpenDialog(false);
-      loadBenefits();
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 
-        (dialogMode === 'create' ? 'Có lỗi xảy ra khi tạo lợi ích' : 'Có lỗi xảy ra khi cập nhật lợi ích');
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <div className={styles.header}>
-        <h1 className={styles.title}>
-          Quản lý Lợi Ích
-        </h1>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreateBenefit}
-          className={styles.addButton}
-        >
-          Thêm Lợi Ích
-        </Button>
-      </div>
+      <AdminPageHeader
+        title="Quản lý Lợi Ích"
+        createButtonText="Thêm Lợi Ích"
+        onCreateClick={handleCreate}
+      />
 
-      {/* Search Section */}
-      <Paper className={styles.searchSection}>
-        <div className={styles.searchContainer}>
-          <TextField
-            placeholder="Tìm kiếm theo tên lợi ích..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchField}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
-            }}
-          />
-          <FormControl className={styles.statusFilter}>
-            <InputLabel>Trạng thái</InputLabel>
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              label="Trạng thái"
-            >
-              <MenuItem value="">Tất cả</MenuItem>
-              <MenuItem value="true">Hoạt động</MenuItem>
-              <MenuItem value="false">Không hoạt động</MenuItem>
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            onClick={handleSearch}
-            disabled={searchLoading}
-            className={styles.searchButton}
+      {/* Search Section with Status Filter */}
+      <AdminSearchSection
+        keyword={keyword}
+        onKeywordChange={handleKeywordChange}
+        onSearch={handleKeywordSearch}
+        onClear={handleClearSearch}
+        placeholder="Tìm kiếm theo tên lợi ích..."
+      >
+        <FormControl className={styles.statusFilter}>
+          <InputLabel>Trạng thái</InputLabel>
+          <Select
+            value={filters.status || ''}
+            onChange={(e) => updateFilter('status', e.target.value)}
+            label="Trạng thái"
           >
-            {searchLoading ? 'Đang tìm...' : 'Tìm kiếm'}
-          </Button>
-          {(searchTerm || statusFilter) && (
-            <Button
-              variant="outlined"
-              onClick={handleClearSearch}
-            >
-              Xóa bộ lọc
-            </Button>
-          )}
-        </div>
-      </Paper>
+            <MenuItem value="">Tất cả</MenuItem>
+            <MenuItem value="true">Hoạt động</MenuItem>
+            <MenuItem value="false">Không hoạt động</MenuItem>
+          </Select>
+        </FormControl>
+      </AdminSearchSection>
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" className={styles.errorAlert} onClose={() => setError(null)}>
+        <Alert severity="error" className={styles.errorAlert} onClose={() => {}}>
           {error}
         </Alert>
       )}
@@ -349,150 +154,61 @@ const BenefitManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          onEdit={handleEditBenefit}
-          onDelete={handleDeleteBenefit}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
           emptyMessage="Không có lợi ích nào. Hãy thêm lợi ích đầu tiên để bắt đầu."
         />
       </div>
 
-      {/* Create/Edit Dialog */}
-      <Dialog 
-        open={openDialog} 
-        onClose={() => !actionLoading && setOpenDialog(false)} 
-        maxWidth="md" 
-        fullWidth
-        sx={{
-          '& .MuiDialog-paper': {
-            borderRadius: '8px',
-            overflow: 'hidden',
-            maxWidth: '600px'
-          }
-        }}
+      {/* Form Dialog */}
+      <AdminFormDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        mode={dialogMode}
+        title="Lợi Ích"
+        icon={BenefitIcon}
+        loading={actionLoading}
+        maxWidth="md"
       >
-        <DialogTitle 
-          sx={{
-            backgroundColor: '#1976d2',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 24px',
-            position: 'relative'
+        <Form
+          schema={benefitSchema}
+          defaultValues={{
+            name: selectedBenefit?.name || '',
+            description: selectedBenefit?.description || '',
+            status: selectedBenefit?.status !== false
           }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <BenefitIcon />
-            <span>
-              {dialogMode === 'create' ? 'Thêm Lợi Ích mới' : 'Chỉnh sửa Lợi Ích'}
-            </span>
-          </Box>
-          <Button
-            onClick={() => setOpenDialog(false)}
-            disabled={actionLoading}
-            sx={{
-              color: 'white',
-              minWidth: 'auto',
-              padding: '8px',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            ✕
-          </Button>
-        </DialogTitle>
-        <DialogContent 
-          className={styles.dialogContent}
-          sx={{ 
-            padding: '24px !important',
-            paddingTop: '32px !important'
-          }}
-        >
-          <Box 
-            component="form" 
-            id="benefit-form"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target);
-              const statusSwitch = e.target.querySelector('input[name="status"]');
-              const data = {
-                name: formData.get('name'),
-                description: formData.get('description'),
-                status: statusSwitch ? statusSwitch.checked : true
-              };
-              await handleFormSubmit(data);
-            }}
-          >
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-              {/* Benefit Name */}
-              <Grid item xs={12}>
-                <TextField
-                  name="name"
-                  label="Tên Lợi Ích"
-                  required
-                  fullWidth
-                  placeholder="Ví dụ: Giảm giá học phí, Tặng đồ dùng học tập"
-                  defaultValue={selectedBenefit?.name || ''}
-                  disabled={actionLoading}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                  }}
-                />
-              </Grid>
-
-              {/* Description */}
-              <Grid item xs={12}>
-                <TextField
-                  name="description"
-                  label="Mô Tả"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  placeholder="Mô tả chi tiết về lợi ích..."
-                  defaultValue={selectedBenefit?.description || ''}
-                  disabled={actionLoading}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                  }}
-                />
-              </Grid>
-
-              {/* Status */}
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      name="status"
-                      defaultChecked={selectedBenefit?.status !== false}
-                      disabled={actionLoading}
-                    />
-                  }
-                  label="Trạng thái hoạt động"
-                />
-              </Grid>
-            </Grid>
-
-            {/* Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => setOpenDialog(false)}
-                disabled={actionLoading}
-              >
-                Hủy
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={actionLoading}
-              >
-                {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Lợi Ích' : 'Cập nhật Lợi Ích'}
-              </Button>
-            </Box>
-          </Box>
-        </DialogContent>
-      </Dialog>
+          onSubmit={handleFormSubmit}
+          submitText={dialogMode === 'create' ? 'Tạo Lợi Ích' : 'Cập nhật Lợi Ích'}
+          loading={actionLoading}
+          disabled={actionLoading}
+          fields={[
+            {
+              name: 'name',
+              label: 'Tên Lợi Ích',
+              type: 'text',
+              required: true,
+              placeholder: 'Ví dụ: Giảm giá học phí, Tặng đồ dùng học tập',
+              disabled: actionLoading
+            },
+            {
+              name: 'description',
+              label: 'Mô Tả',
+              type: 'textarea',
+              required: false,
+              placeholder: 'Mô tả chi tiết về lợi ích...',
+              disabled: actionLoading,
+              rows: 3
+            },
+            {
+              name: 'status',
+              label: 'Trạng thái hoạt động',
+              type: 'switch',
+              required: false,
+              disabled: actionLoading
+            }
+          ]}
+        />
+      </AdminFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

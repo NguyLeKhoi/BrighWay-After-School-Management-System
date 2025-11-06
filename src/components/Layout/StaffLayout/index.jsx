@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
-import ManagerStaffHeader from '../../Common/Headers/ManagerStaffHeader';
+import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
 
 const StaffLayout = () => {
   return (

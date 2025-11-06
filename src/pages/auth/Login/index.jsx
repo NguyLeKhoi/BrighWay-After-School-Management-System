@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Typography, Box, IconButton } from '@mui/material';
 import { Home as HomeIcon } from '@mui/icons-material';
-import AuthCard from '@components/Common/AuthCard';
+import AuthCard from '@components/Auth/AuthCard';
 import Form from '../../../components/Common/Form';
 import Loading from '../../../components/Common/Loading';
 import { loginSchema } from '../../../utils/validationSchemas/authSchemas';
@@ -15,7 +15,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { addNotification, showGlobalError } = useApp();
-  const { isLoading, showLoading, hideLoading } = useLoading(1500);
+  const { isLoading, showLoading, hideLoading } = useLoading(300);
 
   const handleSubmit = async (data) => {
     showLoading();

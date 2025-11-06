@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import benefitService from '../services/benefit.service';
 import studentLevelService from '../services/studentLevel.service';
 import branchService from '../services/branch.service';
@@ -12,35 +12,35 @@ const usePackageDependencies = () => {
   const [benefits, setBenefits] = useState([]);
   const [studentLevels, setStudentLevels] = useState([]);
   const [branches, setBranches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false since we don't auto-fetch
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchDependencies = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  // Fetch dependencies function
+  const fetchDependencies = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Fetch all dependencies in parallel
-        const [benefitsData, studentLevelsData, branchesData] = await Promise.all([
-          benefitService.getAllBenefits(),
-          studentLevelService.getAllStudentLevels(),
-          branchService.getAllBranches()
-        ]);
+      // Fetch all dependencies in parallel
+      const [benefitsData, studentLevelsData, branchesData] = await Promise.all([
+        benefitService.getAllBenefits(),
+        studentLevelService.getAllStudentLevels(),
+        branchService.getAllBranches()
+      ]);
 
-        setBenefits(benefitsData || []);
-        setStudentLevels(studentLevelsData || []);
-        setBranches(branchesData || []);
-      } catch (err) {
-        console.error('Error fetching package dependencies:', err);
-        setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDependencies();
+      setBenefits(benefitsData || []);
+      setStudentLevels(studentLevelsData || []);
+      setBranches(branchesData || []);
+    } catch (err) {
+      console.error('Error fetching package dependencies:', err);
+      setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Don't auto-fetch on mount - only fetch when explicitly called
+  // This prevents unnecessary API calls when the hook is used but data isn't needed yet
 
   // Transform data for easier use in forms
   const benefitOptions = benefits.map(benefit => ({
@@ -83,31 +83,10 @@ const usePackageDependencies = () => {
     getStudentLevelById: (id) => studentLevels.find(sl => sl.id === id),
     getBranchById: (id) => branches.find(b => b.id === id),
     
-    // Refresh function
-    refresh: () => {
-      setLoading(true);
-      setError(null);
-      // Re-run the effect
-      const fetchDependencies = async () => {
-        try {
-          const [benefitsData, studentLevelsData, branchesData] = await Promise.all([
-            benefitService.getAllBenefits(),
-            studentLevelService.getAllStudentLevels(),
-            branchService.getAllBranches()
-          ]);
-
-          setBenefits(benefitsData || []);
-          setStudentLevels(studentLevelsData || []);
-          setBranches(branchesData || []);
-        } catch (err) {
-          console.error('Error refreshing package dependencies:', err);
-          setError(err.message || 'Có lỗi xảy ra khi tải lại dữ liệu');
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchDependencies();
-    }
+    // Fetch function - call this when you actually need the data
+    fetchDependencies,
+    // Refresh function - alias for fetchDependencies
+    refresh: fetchDependencies
   };
 };
 
