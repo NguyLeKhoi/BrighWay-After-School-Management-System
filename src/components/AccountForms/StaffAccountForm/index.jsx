@@ -20,12 +20,14 @@ import {
   Lock as LockIcon,
   AssignmentInd as RoleIcon
 } from '@mui/icons-material';
-import Form from '../Form';
-import { createUserByAdminSchema } from '../../../utils/validationSchemas/userSchemas';
+import Form from '../../Common/Form';
+import { createStaffSchema } from '../../../utils/validationSchemas/userSchemas';
 
 const StaffAccountForm = ({ 
   isSubmitting, 
-  onStaffSubmit 
+  onStaffSubmit,
+  setIsSubmitting,
+  onSuccess
 }) => {
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
@@ -38,15 +40,31 @@ const StaffAccountForm = ({
   ];
 
   const handleFormSubmit = (data) => {
+    console.log('StaffAccountForm - handleFormSubmit called with data:', data);
     setConfirmDialog({
       open: true,
       userData: data
     });
   };
 
-  const handleConfirmCreate = () => {
+  const handleConfirmCreate = async () => {
     setConfirmDialog(prev => ({ ...prev, open: false }));
-    onStaffSubmit(confirmDialog.userData);
+    if (setIsSubmitting) {
+      setIsSubmitting(true);
+    }
+    try {
+      await onStaffSubmit(confirmDialog.userData);
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err) {
+      // Error handling is done in parent component
+      console.error('Error in handleConfirmCreate:', err);
+    } finally {
+      if (setIsSubmitting) {
+        setIsSubmitting(false);
+      }
+    }
   };
 
   const handleCancelCreate = () => {
@@ -59,14 +77,14 @@ const StaffAccountForm = ({
   return (
     <Box>
       <Form
-        schema={createUserByAdminSchema}
+        schema={createStaffSchema}
         onSubmit={handleFormSubmit}
         submitText="Tạo Staff"
         loading={isSubmitting}
         defaultValues={{}}
         fields={[
           { 
-            name: 'fullName', 
+            name: 'name', 
             label: 'Họ và Tên', 
             type: 'text', 
             required: true, 
@@ -142,7 +160,7 @@ const StaffAccountForm = ({
                     Họ và Tên:
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">
-                    {confirmDialog.userData.fullName}
+                    {confirmDialog.userData.name || confirmDialog.userData.fullName}
                   </Typography>
                 </Box>
                 

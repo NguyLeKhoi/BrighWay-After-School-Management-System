@@ -129,6 +129,21 @@ const benefitService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Remove a specific benefit from a branch
+   * @param {string} branchId - Branch ID
+   * @param {string} benefitId - Benefit ID to remove
+   * @returns {Promise} Removal result
+   */
+  removeBenefitFromBranch: async (branchId, benefitId) => {
+    try {
+      const response = await axiosInstance.delete(`/Benefit/branch/${branchId}/benefit/${benefitId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

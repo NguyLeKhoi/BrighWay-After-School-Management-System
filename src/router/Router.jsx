@@ -16,14 +16,14 @@ import Contact from '../pages/main/Contact';
 // Auth Pages
 import Login from '../pages/auth/Login';
 
-// family Pages
-import FamilyProfile from '../pages/family/profile';
-import ChildrenList from '../pages/family/children/AllChildren';
-import ChildProfile from '../pages/family/children/ChildProfile';
-import ChildSchedule from '../pages/family/children/ChildSchedule';
-import MyWallet from '../pages/family/wallet';
-import MyCourses from '../pages/family/courses';
-import Notifications from '../pages/family/notifications';
+// useruser Pages
+import FamilyProfile from '../pages/user/profile';
+import ChildrenList from '../pages/user/children/AllChildren';
+import ChildProfile from '../pages/user/children/ChildProfile';
+import ChildSchedule from '../pages/user/children/ChildSchedule';
+import MyWallet from '../pages/user/wallet';
+import MyPackages from '../pages/user/packages';
+import Notifications from '../pages/user/notifications';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
@@ -34,11 +34,12 @@ import ManagerManagement from '../pages/admin/managerManagement';
 import BenefitManagement from '../pages/admin/benefitManagement';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 import PackageManagement from '../pages/admin/packageManagement';
+import SchoolManagement from '../pages/admin/schoolManagement';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
-import StaffAndTeacherManagement from '../pages/manager/staffAndTeacherManagement';
+import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
 
 // Teacher Pages
 import TeacherDashboard from '../pages/teacher/dashboard';
@@ -121,8 +122,8 @@ export const routes = createBrowserRouter([
         element: <MyWallet />,
       },
       {
-        path: 'courses',
-        element: <MyCourses />,
+        path: 'packages',
+        element: <MyPackages />,
       },
       {
         path: 'notifications',
@@ -172,6 +173,10 @@ export const routes = createBrowserRouter([
         path: 'packages',
         element: <PackageManagement />,
       },
+      {
+        path: 'schools',
+        element: <SchoolManagement />,
+      },
     ],
   },
   
@@ -189,8 +194,8 @@ export const routes = createBrowserRouter([
         element: <ManagerDashboard />,
       },
       {
-        path: 'staffAndTeacher',
-        element: <StaffAndTeacherManagement />,
+        path: 'staffAndParent',
+        element: <StaffAndParentManagement />,
       },
       {
         path: 'rooms',

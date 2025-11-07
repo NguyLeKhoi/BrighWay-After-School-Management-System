@@ -34,7 +34,7 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import FamilyAccountForm from '../../../components/Common/FamilyAccountForm';
+import FamilyAccountForm from '../../../components/AccountForms/FamilyAccountForm';
 import { updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
@@ -339,10 +339,12 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = (user) => {
+    const userName = user.name || user.fullName || user.email || 'người dùng này';
     setConfirmDialog({
       open: true,
       title: 'Xác nhận xóa tài khoản gia đình',
-      description: `Bạn có chắc chắn muốn xóa tài khoản gia đình "${user.fullName}"? Hành động này không thể hoàn tác.`,
+      description: `Bạn có chắc chắn muốn xóa tài khoản gia đình "${userName}"? Hành động này không thể hoàn tác.`,
+      highlightText: userName,
       onConfirm: () => performDeleteUser(user.id)
     });
   };
@@ -360,8 +362,13 @@ const UserManagement = () => {
         autoClose: 3000,
       });
       
+      // If we're deleting the last item on current page and not on first page, go to previous page
+      if (users.length === 1 && page > 0) {
+        setPage(page - 1);
+      }
+      
       // Reload the user list
-      await loadUsers();
+      await loadUsers(false);
       
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa người dùng';

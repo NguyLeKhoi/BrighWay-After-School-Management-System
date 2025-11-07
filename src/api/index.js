@@ -13,7 +13,10 @@ export { default as familyService } from '../services/family.service';
 export { default as benefitService } from '../services/benefit.service';
 export { default as studentLevelService } from '../services/studentLevel.service';
 export { default as packageService } from '../services/package.service';
-export { default as studentService } from '../services/student.service';
-export { default as activityTypeService } from '../services/activityType.service';
-export { default as activityService } from '../services/activity.service';
+export { default as schoolService } from '../services/school.service';
+
+// You can add more services here as you create them
+// export { default as userService } from '../services/user.service';
+// export { default as studentService } from '../services/student.service';
+// export { default as courseService } from '../services/course.service';
 

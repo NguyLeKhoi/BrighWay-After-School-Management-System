@@ -1,15 +1,7 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
-import ManagerStaffHeader from '../../Common/Headers/ManagerStaffHeader';
-import GenericDrawer from '../../Common/Drawer/GenericDrawer';
-import {
-  Dashboard as DashboardIcon,
-  School as StudentLevelIcon,
-  Category as ActivityTypeIcon,
-  Event as ActivityIcon
-} from '@mui/icons-material';
-import { useAuth } from '../../../contexts/AuthContext';
+import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
 
 const StaffLayout = () => {
   const navigate = useNavigate();

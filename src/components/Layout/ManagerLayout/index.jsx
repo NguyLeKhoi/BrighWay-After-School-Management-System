@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
-import ManagerStaffHeader from '../../Common/Headers/ManagerStaffHeader';
+import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
 import {
   Business as BranchIcon,
   Room as FacilityIcon,
@@ -30,8 +30,8 @@ const ManagerLayout = () => {
       icon: DashboardIcon
     },
     {
-      path: '/manager/staffAndTeacher',
-      label: 'Nhân Viên & Giáo Viên',
+      path: '/manager/staffAndParent',
+      label: 'Nhân Viên & ParentParent',
       icon: UserIcon
     },
     {

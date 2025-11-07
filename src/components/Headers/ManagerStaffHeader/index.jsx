@@ -11,7 +11,7 @@ import {
   Business as BusinessIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
-import userService from '../../../../services/user.service';
+import userService from '../../../services/user.service.js';
 
 const ManagerStaffHeader = () => {
   const [userInfo, setUserInfo] = useState(null);
@@ -24,6 +24,9 @@ const ManagerStaffHeader = () => {
         setUserInfo(user);
       } catch (error) {
         console.error('Error fetching current user:', error);
+        // Don't show error in header - it's not critical for page functionality
+        // Just set userInfo to null so header still renders
+        setUserInfo(null);
       } finally {
         setLoading(false);
       }

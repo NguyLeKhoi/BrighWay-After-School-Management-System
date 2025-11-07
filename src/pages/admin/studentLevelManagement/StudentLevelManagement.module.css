@@ -9,10 +9,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  background: white;
-  padding: 20px 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .title {
@@ -96,6 +92,7 @@
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
+    padding: 0;
   }
   
   .title {
@@ -119,7 +116,7 @@
   }
   
   .header {
-    padding: 16px;
+    padding: 0;
   }
   
   .title {
