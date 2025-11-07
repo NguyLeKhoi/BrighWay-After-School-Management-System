@@ -195,6 +195,7 @@ const SchoolManagement = () => {
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          showActions={false}
           emptyMessage="Không có trường nào. Hãy thêm trường đầu tiên để bắt đầu."
         />
       </div>

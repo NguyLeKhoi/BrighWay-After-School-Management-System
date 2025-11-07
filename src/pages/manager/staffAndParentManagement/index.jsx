@@ -16,7 +16,6 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import DialogWithTabs from '../../../components/Common/DialogWithTabs';
 import StaffAccountForm from '../../../components/AccountForms/StaffAccountForm';
 import ManagerPageHeader from '../../../components/Manager/ManagerPageHeader';
 import ManagerSearchSection from '../../../components/Manager/ManagerSearchSection';
@@ -78,6 +77,7 @@ const StaffAndParentManagement = () => {
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [createMode, setCreateMode] = useState('staff');
   const [selectedUser, setSelectedUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -136,6 +136,9 @@ const StaffAndParentManagement = () => {
   
   // Create handler
   const handleCreateUser = () => {
+    const mode = activeTab === 0 ? 'staff' : 'parent';
+    setCreateMode(mode);
+    setIsSubmitting(false);
     setOpenCreateDialog(true);
   };
   
@@ -243,7 +246,6 @@ const StaffAndParentManagement = () => {
       if (staffTab.loadData) {
         staffTab.loadData(false);
       }
-      setOpenCreateDialog(false);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản';
       setError(errorMessage);
@@ -267,7 +269,6 @@ const StaffAndParentManagement = () => {
       if (userTab.loadData) {
         userTab.loadData(false);
       }
-      setOpenCreateDialog(false);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
       setError(errorMessage);
@@ -341,7 +342,7 @@ const StaffAndParentManagement = () => {
       {/* Header */}
       <ManagerPageHeader
         title="Quản lý Staff & User"
-        createButtonText="Tạo Tài Khoản Mới"
+        createButtonText={activeTab === 0 ? 'Tạo Nhân Viên' : 'Tạo User (Parent)'}
         onCreateClick={handleCreateUser}
       />
 
@@ -601,37 +602,42 @@ const StaffAndParentManagement = () => {
       />
 
       {/* Create Account Dialog */}
-      <DialogWithTabs
+      <ManagerFormDialog
         open={openCreateDialog}
-        onClose={() => setOpenCreateDialog(false)}
-        onSuccess={() => {
-          if (currentTab.loadData) {
-            currentTab.loadData(false);
+        onClose={() => {
+          if (!isSubmitting) {
+            setOpenCreateDialog(false);
+            setCreateMode('staff');
+            setIsSubmitting(false);
           }
         }}
-        title="Tạo Tài Khoản Mới"
-        tabs={[
-          {
-            label: 'Tài Khoản Nhân Viên',
-            icon: <PersonIcon />
-          },
-          {
-            label: 'Tài Khoản User (Parent)',
-            icon: <PersonIcon />
-          }
-        ]}
-        tabContents={[
-          <StaffAccountForm 
-            key="staff-form"
-            onStaffSubmit={handleStaffSubmit}
-            roleOptions={[
-              { value: 0, label: 'Staff' }
-            ]}
-          />,
-          <ParentFormWrapper key="parent-form" />
-        ]}
+        mode="create"
+        title={createMode === 'staff' ? 'Tài Khoản Nhân Viên' : 'Tài Khoản User (Parent)'}
+        icon={createMode === 'staff' ? GroupsIcon : FamilyIcon}
         loading={isSubmitting}
-      />
+        maxWidth="md"
+      >
+        {createMode === 'staff' ? (
+          <StaffAccountForm
+            isSubmitting={isSubmitting}
+            setIsSubmitting={setIsSubmitting}
+            onStaffSubmit={handleStaffSubmit}
+            onSuccess={() => {
+              setOpenCreateDialog(false);
+              setCreateMode('staff');
+            }}
+          />
+        ) : (
+          <ParentFormWrapper
+            isSubmitting={isSubmitting}
+            setIsSubmitting={setIsSubmitting}
+            onSuccess={() => {
+              setOpenCreateDialog(false);
+              setCreateMode('staff');
+            }}
+          />
+        )}
+      </ManagerFormDialog>
     </div>
   );
 };
