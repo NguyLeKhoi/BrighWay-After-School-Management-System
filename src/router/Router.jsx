@@ -6,6 +6,7 @@ import AdminLayout from '../components/Layout/AdminLayout';
 import ManagerLayout from '../components/Layout/ManagerLayout';
 import TeacherLayout from '../components/Layout/TeacherLayout';
 import StaffLayout from '../components/Layout/StaffLayout';
+import ProtectedRoute from './ProtectedRoute';
 
 // Main Pages
 import Homepage from '../pages/main/Homepage';
@@ -96,7 +97,11 @@ export const routes = createBrowserRouter([
   // Parent Layout Routes (Parent Portal)
   {
     path: '/family',
-    element: <FamilyLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['User']}>
+        <FamilyLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         path: 'profile',
@@ -132,7 +137,11 @@ export const routes = createBrowserRouter([
   // Admin Layout Routes (Admin Portal)
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['Admin']}>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -180,7 +189,11 @@ export const routes = createBrowserRouter([
   // Manager Layout Routes (Manager Portal)
   {
     path: '/manager',
-    element: <ManagerLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['Manager']}>
+        <ManagerLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -204,7 +217,11 @@ export const routes = createBrowserRouter([
   // Teacher Layout Routes (Teacher Portal)
   {
     path: '/teacher',
-    element: <TeacherLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['Teacher']}>
+        <TeacherLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -244,7 +261,11 @@ export const routes = createBrowserRouter([
   // Staff Layout Routes (Staff Portal)
   {
     path: '/staff',
-    element: <StaffLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['Staff']}>
+        <StaffLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
