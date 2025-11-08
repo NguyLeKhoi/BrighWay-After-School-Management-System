@@ -34,7 +34,7 @@ const userService = {
   /**
    * Get user by ID
    * @param {string} userId - User ID
-   * @param {boolean} expandRoleDetails - Whether to expand role-specific details (Family/TeacherProfile)
+   * @param {boolean} expandRoleDetails - Whether to expand role-specific details (e.g. Family profile)
    * @returns {Promise} User details
    */
   getUserById: async (userId, expandRoleDetails = false) => {
@@ -117,16 +117,14 @@ const userService = {
    },
 
   /**
-   * Create new user (Manager creates account for staff/teacher)
+   * Create new user (Manager creates account for staff)
    * @param {Object} userData - User data { fullName, email, phoneNumber, password }
-   * @param {number} role - Role ID (0=Staff, 1=Teacher)
    * @returns {Promise} Created user
    */
-  createUserByManager: async (userData, role) => {
+  createUserByManager: async (userData) => {
     try {
-      // Role must be sent as query parameter (0=Staff, 1=Teacher only)
       const response = await axiosInstance.post('/User/manager-create', userData, {
-        params: { role }
+        params: { role: 0 }
       });
       return response.data;
     } catch (error) {
@@ -175,23 +173,9 @@ const userService = {
   },
 
   /**
-   * Create teacher account (Manager/Staff creates teacher with profile)
-   * @param {Object} teacherData - Teacher data { user: { fullName, email, phoneNumber, password }, profile: { teacherName, specialization, experienceYears, qualifications, bio } }
-   * @returns {Promise} Created teacher with user and profile
-   */
-  createTeacherAccount: async (teacherData) => {
-    try {
-      const response = await axiosInstance.post('/User/teacher-account', teacherData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  /**
-   * Update user (Manager updates Staff/Teacher users)
+   * Update user (Manager updates Staff users)
    * @param {string} userId - User ID
-   * @param {Object} userData - Updated user data { targetUserId, fullName, email, phoneNumber, changeRoleTo, isActive }
+   * @param {Object} userData - Updated user data { targetUserId, fullName, email, phoneNumber, isActive }
    * @returns {Promise} Updated user
    */
   updateUserByManager: async (userId, userData) => {
@@ -201,7 +185,7 @@ const userService = {
         fullName: userData.fullName,
         email: userData.email,
         phoneNumber: userData.phoneNumber,
-        changeRoleTo: userData.changeRoleTo || 0,
+        changeRoleTo: 0,
         isActive: userData.isActive !== undefined ? userData.isActive : true
       };
       
@@ -218,60 +202,13 @@ const userService = {
   },
 
   /**
-   * Delete user (Manager soft deletes Staff/Teacher users)
+   * Delete user (Manager soft deletes Staff users)
    * @param {string} userId - User ID
    * @returns {Promise} Deletion result
    */
   deleteUserByManager: async (userId) => {
     try {
       const response = await axiosInstance.delete(`/User/${userId}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  /**
-   * Update teacher account (Manager/Staff updates teacher with profile)
-   * @param {string} teacherId - Teacher ID
-   * @param {Object} teacherData - Teacher data { teacherUserId, fullName, email, phoneNumber, teacherName, specialization, experienceYears, qualifications, bio, isActive }
-   * @returns {Promise} Updated teacher with user and profile
-   */
-  updateTeacherAccount: async (teacherId, teacherData) => {
-    try {
-      const updateData = {
-        teacherUserId: teacherId,
-        fullName: teacherData.fullName,
-        email: teacherData.email,
-        phoneNumber: teacherData.phoneNumber,
-        teacherName: teacherData.teacherName,
-        specialization: teacherData.specialization,
-        experienceYears: teacherData.experienceYears,
-        qualifications: teacherData.qualifications,
-        bio: teacherData.bio,
-        isActive: teacherData.isActive !== undefined ? teacherData.isActive : true
-      };
-      
-      // Add password if provided
-      if (teacherData.password && teacherData.password.trim()) {
-        updateData.password = teacherData.password;
-      }
-      
-      const response = await axiosInstance.put(`/User/teacher-account/${teacherId}`, updateData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  /**
-   * Delete teacher account (Manager/Staff soft deletes teacher)
-   * @param {string} teacherId - Teacher ID (User ID)
-   * @returns {Promise} Deletion result
-   */
-  deleteTeacherAccount: async (teacherId) => {
-    try {
-      const response = await axiosInstance.delete(`/User/${teacherId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

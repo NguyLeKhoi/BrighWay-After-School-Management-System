@@ -4,7 +4,6 @@ import AuthLayout from '../components/Layout/AuthLayout';
 import FamilyLayout from '../components/Layout/FamilyLayout';
 import AdminLayout from '../components/Layout/AdminLayout';
 import ManagerLayout from '../components/Layout/ManagerLayout';
-import TeacherLayout from '../components/Layout/TeacherLayout';
 import StaffLayout from '../components/Layout/StaffLayout';
 
 // Main Pages
@@ -41,14 +40,6 @@ import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
 
-// Teacher Pages
-import TeacherDashboard from '../pages/teacher/dashboard';
-import ClassManagement from '../pages/teacher/classes';
-import AttendanceManagement from '../pages/teacher/attendance';
-import PerformanceReviews from '../pages/teacher/performance';
-import TeacherSchedule from '../pages/teacher/schedule';
-import StudentRoster from '../pages/teacher/students';
-import TeacherMaterials from '../pages/teacher/materials';
 
 // Staff Pages
 import StaffDashboard from '../pages/staff/dashboard';
@@ -204,45 +195,6 @@ export const routes = createBrowserRouter([
     ],
   },
   
-  // Teacher Layout Routes (Teacher Portal)
-  {
-    path: '/teacher',
-    element: <TeacherLayout />,
-    children: [
-      {
-        index: true,
-        element: <TeacherDashboard />,
-      },
-      {
-        path: 'dashboard',
-        element: <TeacherDashboard />,
-      },
-      {
-        path: 'schedule',
-        element: <TeacherSchedule />,
-      },
-      {
-        path: 'classes',
-        element: <ClassManagement />,
-      },
-      {
-        path: 'students',
-        element: <StudentRoster />,
-      },
-      {
-        path: 'attendance',
-        element: <AttendanceManagement />,
-      },
-      {
-        path: 'performance',
-        element: <PerformanceReviews />,
-      },
-      {
-        path: 'materials',
-        element: <TeacherMaterials />,
-      },
-    ],
-  },
   
   // Staff Layout Routes (Staff Portal)
   {

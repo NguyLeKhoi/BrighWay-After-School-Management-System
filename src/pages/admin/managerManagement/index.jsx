@@ -98,9 +98,9 @@ const ManagerManagement = () => {
 
   // Override handleEdit to fetch expanded details if needed
   const handleEdit = async (user) => {
-    const isTeacherOrUser = user.roles && (user.roles.includes('Teacher') || user.roles.includes('User'));
+    const isUser = user.roles && user.roles.includes('User');
     
-    if (isTeacherOrUser) {
+    if (isUser) {
       try {
         const expandedUser = await userService.getUserById(user.id, true);
         baseHandleEdit(expandedUser);
@@ -190,7 +190,6 @@ const ManagerManagement = () => {
         const getRoleDisplayName = (roleString) => {
           switch (roleString) {
             case 'Admin': return 'Admin';
-            case 'Teacher': return 'Teacher';
             case 'Staff': return 'Staff';
             case 'Manager': return 'Manager';
             case 'User': return 'User';
@@ -202,7 +201,6 @@ const ManagerManagement = () => {
           switch (roleString) {
             case 'Admin': return 'error';
             case 'Manager': return 'warning';
-            case 'Teacher': return 'success';
             case 'Staff': return 'info';
             case 'User': return 'primary';
             default: return 'default';
