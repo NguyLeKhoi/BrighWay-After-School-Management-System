@@ -14,9 +14,9 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { roomSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import roomService from '../../../services/room.service';
@@ -150,12 +150,15 @@ const RoomManagement = () => {
   // Get form fields
   const getFormFields = () => [
     {
+      section: 'Thông tin phòng',
+      sectionDescription: 'Tên phòng học và cơ sở vật chất liên quan.',
       name: 'roomName',
       label: 'Tên Phòng',
       type: 'text',
       placeholder: 'Nhập tên phòng học',
       required: true,
-      disabled: actionLoading
+      disabled: actionLoading,
+      gridSize: 6
     },
     {
       name: 'facilityId',
@@ -163,7 +166,8 @@ const RoomManagement = () => {
       type: 'select',
       required: true,
       options: getFacilityOptions(),
-      disabled: actionLoading || isDataLoading
+      disabled: actionLoading || isDataLoading,
+      gridSize: 6
     },
     {
       name: 'branchId',
@@ -171,15 +175,19 @@ const RoomManagement = () => {
       type: 'select',
       required: true,
       options: getBranchOptions(),
-      disabled: actionLoading || isDataLoading
+      disabled: actionLoading || isDataLoading,
+      gridSize: 6
     },
     {
+      section: 'Thông số phòng',
+      sectionDescription: 'Sức chứa ảnh hưởng đến việc xếp lịch lớp học.',
       name: 'capacity',
       label: 'Sức Chứa',
       type: 'number',
       placeholder: 'Sức chứa: 10',
       required: true,
-      disabled: actionLoading
+      disabled: actionLoading,
+      gridSize: 6
     }
   ];
 
@@ -188,7 +196,7 @@ const RoomManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Phòng Học"
         createButtonText="Thêm Phòng Học"
         onCreateClick={handleCreateWithData}
@@ -196,7 +204,7 @@ const RoomManagement = () => {
 
       {/* Search Section with Filters */}
       <Paper className={styles.searchAndFilterSection || styles.searchSection}>
-        <AdminSearchSection
+        <ManagementSearchSection
           keyword={keyword}
           onKeywordChange={handleKeywordChange}
           onSearch={handleKeywordSearch}
@@ -254,7 +262,7 @@ const RoomManagement = () => {
               )}
             </Select>
           </FormControl>
-        </AdminSearchSection>
+        </ManagementSearchSection>
       </Paper>
 
       {/* Error Alert */}
@@ -290,7 +298,7 @@ const RoomManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -318,7 +326,7 @@ const RoomManagement = () => {
             fields={getFormFields()}
           />
         )}
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -8,41 +8,38 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Grid,
-  Checkbox,
-  ListItemText,
-  CircularProgress,
-  TextField,
-  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Tabs,
   Tab,
   Paper
 } from '@mui/material';
 import {
   ShoppingCart as PackageIcon,
-  AttachMoney as PriceIcon,
-  Schedule as DurationIcon,
-  Group as SlotsIcon,
   DashboardCustomize as TemplateTabIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
+import Form from '../../../components/Common/Form';
 import packageService from '../../../services/package.service';
 import packageTemplateService from '../../../services/packageTemplate.service';
-import benefitService from '../../../services/benefit.service';
 import usePackageDependencies from '../../../hooks/usePackageDependencies';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import styles from './PackageManagement.module.css';
+import { packageTemplateSchema, packageSchema } from '../../../utils/validationSchemas/packageSchemas';
 
 const PackageManagement = () => {
   const [activeTab, setActiveTab] = useState('templates');
 
   const { 
-    benefitOptions, 
     studentLevelOptions, 
     branchOptions, 
     loading: dependenciesLoading,
@@ -136,10 +133,20 @@ const PackageManagement = () => {
     loadOnMount: true
   });
 
-  const [selectedBenefits, setSelectedBenefits] = useState([]);
-  const [selectedBranchId, setSelectedBranchId] = useState('');
-  const [availableBenefits, setAvailableBenefits] = useState([]);
-  const [loadingBenefits, setLoadingBenefits] = useState(false);
+  const [templateOptions, setTemplateOptions] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+
+  const fetchTemplateOptions = useCallback(async () => {
+    setLoadingTemplates(true);
+    try {
+      const templatesData = await packageTemplateService.getAllTemplates();
+      setTemplateOptions(templatesData || []);
+    } catch (err) {
+      setTemplateOptions([]);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }, []);
 
   const formatCurrency = (value) => {
     if (value === null || value === undefined) return '0 VNĐ';
@@ -154,7 +161,7 @@ const PackageManagement = () => {
       header: <Typography className={styles.noWrap}>Thông tin mẫu</Typography>,
       render: (_, item) => (
         <Box display="flex" alignItems="flex-start" gap={2}>
-          <PackageIcon fontSize="small" color="primary" />
+          <TemplateTabIcon fontSize="small" color="primary" />
           <Box>
             <Typography variant="subtitle2" fontWeight="medium" className={styles.primaryText}>
               {item?.name}
@@ -255,6 +262,18 @@ const PackageManagement = () => {
       )
     },
     {
+      key: 'packageStatus',
+      header: <Typography className={styles.noWrap}>Trạng thái</Typography>,
+      render: (_, item) => (
+        <Chip
+          label={item?.isActive ? 'Hoạt động' : 'Không hoạt động'}
+          color={item?.isActive ? 'success' : 'default'}
+          size="small"
+          variant={item?.isActive ? 'filled' : 'outlined'}
+        />
+      )
+    },
+    {
       key: 'packageSlots',
       header: <Typography className={styles.noWrap}>Số lượng</Typography>,
       render: (_, item) => (
@@ -276,6 +295,10 @@ const PackageManagement = () => {
           <Typography variant="body2">
             <strong>Cấp độ:</strong> {item?.studentLevel?.name || 'N/A'}
           </Typography>
+          <Typography variant="body2">
+            <strong>Mẫu gói:</strong>{' '}
+            {item?.packageTemplate?.name || item?.packageTemplateName || 'N/A'}
+          </Typography>
           <Typography variant="body2" color="text.secondary">
             <strong>Lợi ích:</strong>{' '}
             {item?.benefits && item.benefits.length > 0
@@ -286,27 +309,6 @@ const PackageManagement = () => {
       )
     }
   ];
-
-  useEffect(() => {
-    const loadBenefitsForBranch = async () => {
-      if (!selectedBranchId || !packageDialogOpen) {
-        setAvailableBenefits([]);
-        return;
-      }
-
-      setLoadingBenefits(true);
-      try {
-        const benefits = await benefitService.getBenefitsByBranchId(selectedBranchId);
-        setAvailableBenefits(benefits || []);
-      } catch (err) {
-        setAvailableBenefits([]);
-      } finally {
-        setLoadingBenefits(false);
-      }
-    };
-
-    loadBenefitsForBranch();
-  }, [selectedBranchId, packageDialogOpen]);
 
   const handleTemplateCreate = () => {
     templateHandleCreateBase();
@@ -335,58 +337,354 @@ const PackageManagement = () => {
       defaultPrice: toNumber(data.defaultPrice),
       defaultTotalSlots: toNumber(data.defaultTotalSlots),
       defaultDurationInMonths: toNumber(data.defaultDurationInMonths),
-      isActive: data.isActive === 'true'
+      isActive: data.isActive ?? true
     };
     await templateHandleFormSubmitBase(submitData);
   };
 
   const handlePackageCreate = async () => {
-    if (
-      benefitOptions.length === 0 &&
-      studentLevelOptions.length === 0 &&
-      branchOptions.length === 0
-    ) {
+    if (studentLevelOptions.length === 0 && branchOptions.length === 0) {
       await fetchDependencies();
     }
-    setSelectedBenefits([]);
-    setSelectedBranchId('');
-    setAvailableBenefits([]);
+    await fetchTemplateOptions();
     packageHandleCreateBase();
   };
 
   const handlePackageEdit = async (packageItem) => {
-    if (
-      benefitOptions.length === 0 &&
-      studentLevelOptions.length === 0 &&
-      branchOptions.length === 0
-    ) {
+    if (studentLevelOptions.length === 0 && branchOptions.length === 0) {
       await fetchDependencies();
     }
-    setSelectedBenefits(packageItem?.benefits?.map((b) => b.id) || []);
-    setSelectedBranchId(packageItem?.branchId || '');
+    await fetchTemplateOptions();
     packageHandleEditBase(packageItem);
   };
 
   const handlePackageFormSubmit = async (data) => {
+    const existingBenefitIds =
+      packageDialogMode === 'edit'
+        ? selectedPackage?.benefits?.map((b) => b.id) || []
+        : [];
+
     const submitData = {
       name: data.name,
       desc: data.desc,
-      minSlots: data.minSlots ? parseInt(data.minSlots, 10) : 0,
-      maxSlots: data.maxSlots ? parseInt(data.maxSlots, 10) : 0,
-      totalSlots: data.totalSlots ? parseInt(data.totalSlots, 10) : 0,
-      minDurationInMonths: data.minDurationInMonths ? parseInt(data.minDurationInMonths, 10) : 0,
-      maxDurationInMonths: data.maxDurationInMonths ? parseInt(data.maxDurationInMonths, 10) : 0,
-      durationInMonths: data.durationInMonths ? parseInt(data.durationInMonths, 10) : 0,
-      price: data.price ? parseFloat(data.price) : 0,
+      durationInMonths: toNumber(data.durationInMonths),
+      totalSlots: toNumber(data.totalSlots),
+      price: toNumber(data.price),
+      isActive: data.isActive ?? true,
       studentLevelId: data.studentLevelId,
       branchId: data.branchId,
-      benefitIds: selectedBenefits
+      packageTemplateId: data.packageTemplateId,
+      benefitIds: existingBenefitIds
     };
     await packageHandleFormSubmitBase(submitData);
-    setSelectedBenefits([]);
-    setSelectedBranchId('');
-    setAvailableBenefits([]);
   };
+
+  const templateFormFields = useMemo(
+    () => [
+      {
+        section: 'Thông tin cơ bản',
+        sectionDescription: 'Các thông tin hiển thị khi quản trị chọn mẫu gói.',
+        name: 'name',
+        label: 'Tên Mẫu Gói',
+        type: 'text',
+        required: true,
+        placeholder: 'Ví dụ: Mẫu gói tiếng Anh cơ bản',
+        gridSize: 8,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'isActive',
+        label: 'Trạng thái hoạt động',
+        type: 'switch',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'desc',
+        label: 'Mô Tả',
+        type: 'textarea',
+        rows: 3,
+        placeholder: 'Mô tả chi tiết về mẫu gói...',
+        gridSize: 12,
+        disabled: templateActionLoading
+      },
+      {
+        section: 'Khoảng giá đề xuất',
+        sectionDescription: 'Thiết lập khung giá khi tạo gói dựa trên mẫu.',
+        name: 'minPrice',
+        label: 'Giá thấp nhất (VNĐ)',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 500000',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'defaultPrice',
+        label: 'Giá mặc định (VNĐ)',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 1000000',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'maxPrice',
+        label: 'Giá cao nhất (VNĐ)',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 2000000',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        section: 'Thời hạn & Slot',
+        sectionDescription: 'Giới hạn thời lượng và số lượng slot cho mẫu gói.',
+        name: 'minDurationInMonths',
+        label: 'Thời hạn thấp nhất (tháng)',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 3',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'defaultDurationInMonths',
+        label: 'Thời hạn mặc định (tháng)',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 6',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'maxDurationInMonths',
+        label: 'Thời hạn cao nhất (tháng)',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 12',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'minSlots',
+        label: 'Slot thấp nhất',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 10',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'defaultTotalSlots',
+        label: 'Slot mặc định',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 20',
+        gridSize: 4,
+        disabled: templateActionLoading
+      },
+      {
+        name: 'maxSlots',
+        label: 'Slot cao nhất',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 30',
+        gridSize: 4,
+        disabled: templateActionLoading
+      }
+    ],
+    [templateActionLoading]
+  );
+
+  const templateDefaultValues = useMemo(() => ({
+    name: selectedTemplate?.name || '',
+    desc: selectedTemplate?.desc || '',
+    minPrice: selectedTemplate?.minPrice ?? '',
+    maxPrice: selectedTemplate?.maxPrice ?? '',
+    defaultPrice: selectedTemplate?.defaultPrice ?? '',
+    minDurationInMonths: selectedTemplate?.minDurationInMonths ?? '',
+    maxDurationInMonths: selectedTemplate?.maxDurationInMonths ?? '',
+    defaultDurationInMonths: selectedTemplate?.defaultDurationInMonths ?? '',
+    minSlots: selectedTemplate?.minSlots ?? '',
+    maxSlots: selectedTemplate?.maxSlots ?? '',
+    defaultTotalSlots: selectedTemplate?.defaultTotalSlots ?? '',
+    isActive: selectedTemplate?.isActive ?? true
+  }), [selectedTemplate]);
+
+  const branchSelectOptions = useMemo(
+    () => [
+      { value: '', label: 'Chọn chi nhánh' },
+      ...branchOptions.map((branch) => ({
+        value: branch.id,
+        label: branch.name
+      }))
+    ],
+    [branchOptions]
+  );
+
+  const studentLevelSelectOptions = useMemo(
+    () => [
+      { value: '', label: 'Chọn cấp độ học sinh' },
+      ...studentLevelOptions.map((level) => ({
+        value: level.id,
+        label: level.name
+      }))
+    ],
+    [studentLevelOptions]
+  );
+
+  const templateSelectOptions = useMemo(() => {
+    if (loadingTemplates) {
+      return [{ value: '', label: 'Đang tải mẫu gói...' }];
+    }
+
+    const baseOptions = templateOptions.map((template) => ({
+      value: template.id,
+      label: template.name
+    }));
+
+    const placeholderLabel = baseOptions.length
+      ? 'Chọn mẫu gói'
+      : 'Không có mẫu gói khả dụng';
+
+    const options = [{ value: '', label: placeholderLabel }, ...baseOptions];
+
+    const currentTemplateId =
+      selectedPackage?.packageTemplateId || selectedPackage?.packageTemplate?.id;
+
+    if (
+      currentTemplateId &&
+      !options.some((option) => option.value === currentTemplateId)
+    ) {
+      options.push({
+        value: currentTemplateId,
+        label:
+          selectedPackage?.packageTemplate?.name ||
+          selectedPackage?.packageTemplateName ||
+          'Mẫu gói hiện tại'
+      });
+    }
+
+    return options;
+  }, [loadingTemplates, templateOptions, selectedPackage]);
+
+  const packageFormFields = useMemo(
+    () => [
+      {
+        section: 'Thông tin cơ bản',
+        sectionDescription: 'Thông tin quản trị viên sẽ thấy khi quản lý gói bán.',
+        name: 'name',
+        label: 'Tên Gói Bán',
+        type: 'text',
+        required: true,
+        placeholder: 'Ví dụ: Gói bán tiếng Anh cơ bản',
+        gridSize: 8,
+        disabled: packageActionLoading || dependenciesLoading || loadingTemplates
+      },
+      {
+        name: 'isActive',
+        label: 'Trạng thái hoạt động',
+        type: 'switch',
+        gridSize: 4,
+        disabled: packageActionLoading || dependenciesLoading
+      },
+      {
+        name: 'desc',
+        label: 'Mô Tả',
+        type: 'textarea',
+        rows: 3,
+        placeholder: 'Mô tả chi tiết về gói bán...',
+        gridSize: 12,
+        disabled: packageActionLoading || dependenciesLoading
+      },
+      {
+        section: 'Liên kết dữ liệu',
+        sectionDescription: 'Xác định mẫu gói, chi nhánh và cấp độ học sinh áp dụng.',
+        name: 'packageTemplateId',
+        label: 'Mẫu Gói',
+        type: 'select',
+        required: true,
+        options: templateSelectOptions,
+        gridSize: 4,
+        disabled: packageActionLoading || dependenciesLoading || loadingTemplates
+      },
+      {
+        name: 'branchId',
+        label: 'Chi Nhánh',
+        type: 'select',
+        required: true,
+        options: branchSelectOptions,
+        gridSize: 4,
+        disabled: packageActionLoading || dependenciesLoading
+      },
+      {
+        name: 'studentLevelId',
+        label: 'Cấp Độ Học Sinh',
+        type: 'select',
+        required: true,
+        options: studentLevelSelectOptions,
+        gridSize: 4,
+        disabled: packageActionLoading || dependenciesLoading
+      },
+      {
+        section: 'Thông số gói',
+        sectionDescription: 'Thiết lập giá bán và số slot mặc định của gói.',
+        name: 'price',
+        label: 'Giá (VNĐ)',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 1000000',
+        gridSize: 4,
+        disabled: packageActionLoading || dependenciesLoading
+      },
+      {
+        name: 'durationInMonths',
+        label: 'Thời hạn (tháng)',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 6',
+        gridSize: 4,
+        disabled: packageActionLoading || dependenciesLoading
+      },
+      {
+        name: 'totalSlots',
+        label: 'Tổng số slot',
+        type: 'number',
+        required: true,
+        placeholder: 'Ví dụ: 20',
+        gridSize: 4,
+        disabled: packageActionLoading || dependenciesLoading
+      }
+    ],
+    [
+      packageActionLoading,
+      dependenciesLoading,
+      loadingTemplates,
+      templateSelectOptions,
+      branchSelectOptions,
+      studentLevelSelectOptions
+    ]
+  );
+
+  const packageDefaultValues = useMemo(
+    () => ({
+      name: selectedPackage?.name || '',
+      desc: selectedPackage?.desc || '',
+      price: selectedPackage?.price ?? '',
+      durationInMonths: selectedPackage?.durationInMonths ?? '',
+      totalSlots: selectedPackage?.totalSlots ?? '',
+      studentLevelId:
+        selectedPackage?.studentLevelId || selectedPackage?.studentLevel?.id || '',
+      branchId: selectedPackage?.branchId || selectedPackage?.branch?.id || '',
+      packageTemplateId:
+        selectedPackage?.packageTemplateId ||
+        selectedPackage?.packageTemplate?.id ||
+        '',
+      isActive: selectedPackage?.isActive ?? true
+    }),
+    [selectedPackage]
+  );
 
   const isTemplateTab = activeTab === 'templates';
   const activeLoading = isTemplateTab ? templateIsPageLoading : packageIsPageLoading;
@@ -407,7 +705,7 @@ const PackageManagement = () => {
     <div className={styles.container}>
       {activeLoading && <ContentLoading isLoading={activeLoading} text={activeLoadingText} />}
       
-      <AdminPageHeader
+      <ManagementPageHeader
         title={isTemplateTab ? 'Quản lý Mẫu Gói' : 'Quản lý Gói Bán'}
         createButtonText={isTemplateTab ? 'Thêm Mẫu Gói' : 'Thêm Gói Bán'}
         onCreateClick={isTemplateTab ? handleTemplateCreate : handlePackageCreate}
@@ -530,7 +828,7 @@ const PackageManagement = () => {
 
       {isTemplateTab ? (
         <>
-      <AdminSearchSection
+          <ManagementSearchSection
             keyword={templateSearchTerm}
             onKeywordChange={templateHandleKeywordChange}
             onSearch={templateHandleKeywordSearch}
@@ -543,7 +841,7 @@ const PackageManagement = () => {
             {renderStatusFilter(templateFilters.status || '', (e) =>
               templateUpdateFilter('status', e.target.value)
             )}
-          </AdminSearchSection>
+          </ManagementSearchSection>
 
           {templateError && (
             <Alert severity="error" className={styles.errorAlert}>
@@ -567,270 +865,27 @@ const PackageManagement = () => {
             />
           </div>
 
-          <AdminFormDialog
+          <ManagementFormDialog
             open={templateDialogOpen}
-            onClose={() => {
-              setTemplateDialogOpen(false);
-              setTemplateSelectedBenefits([]);
-            }}
+            onClose={() => setTemplateDialogOpen(false)}
             mode={templateDialogMode}
             title="Mẫu Gói"
-            icon={PackageIcon}
+            icon={TemplateTabIcon}
             loading={templateActionLoading}
             maxWidth="md"
           >
-            <Box
-              component="form"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-            const data = {
-              name: formData.get('name'),
-              desc: formData.get('desc'),
-              minPrice: formData.get('minPrice'),
-              maxPrice: formData.get('maxPrice'),
-              defaultPrice: formData.get('defaultPrice'),
-              minDurationInMonths: formData.get('minDurationInMonths'),
-              maxDurationInMonths: formData.get('maxDurationInMonths'),
-              defaultDurationInMonths: formData.get('defaultDurationInMonths'),
-              minSlots: formData.get('minSlots'),
-              maxSlots: formData.get('maxSlots'),
-              defaultTotalSlots: formData.get('defaultTotalSlots'),
-              isActive: formData.get('isActive')
-            };
-                await handleTemplateFormSubmit(data);
-              }}
-            >
-              <Grid container spacing={3} sx={{ mb: 3 }}>
-                <Grid item xs={12} md={8}>
-                  <TextField
-                    name="name"
-                    label="Tên Mẫu Gói"
-                    required
-                    fullWidth
-                    placeholder="Ví dụ: Gói học tiếng Anh cơ bản"
-                    defaultValue={selectedTemplate?.name || ''}
+            <Form
+              key={`template-${templateDialogMode}-${selectedTemplate?.id || 'new'}`}
+              schema={packageTemplateSchema}
+              defaultValues={templateDefaultValues}
+              onSubmit={handleTemplateFormSubmit}
+              submitText={templateDialogMode === 'create' ? 'Tạo Mẫu Gói' : 'Cập nhật Mẫu Gói'}
+              loading={templateActionLoading}
                     disabled={templateActionLoading}
-                    sx={{
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth required>
-                    <InputLabel>Trạng thái</InputLabel>
-                    <Select
-                      name="isActive"
-                      defaultValue={
-                        selectedTemplate?.isActive === undefined
-                          ? 'true'
-                          : String(selectedTemplate.isActive)
-                      }
-                      label="Trạng thái"
-                      disabled={templateActionLoading}
-                      sx={{ fontSize: '14px' }}
-                    >
-                      <MenuItem value="true">Hoạt động</MenuItem>
-                      <MenuItem value="false">Không hoạt động</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    name="desc"
-                    label="Mô Tả"
-                    fullWidth
-                    multiline
-                    rows={3}
-                    placeholder="Mô tả chi tiết về mẫu gói..."
-                    defaultValue={selectedTemplate?.desc || ''}
-                    disabled={templateActionLoading}
-                    sx={{
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle2" className={styles.sectionLabel}>
-                        Giá bán
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        name="minPrice"
-                        label="Giá thấp nhất (VNĐ)"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 500000"
-                        defaultValue={selectedTemplate?.minPrice || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        name="maxPrice"
-                        label="Giá cao nhất (VNĐ)"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 2000000"
-                        defaultValue={selectedTemplate?.maxPrice || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        name="defaultPrice"
-                        label="Giá mặc định (VNĐ)"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 1000000"
-                        defaultValue={selectedTemplate?.defaultPrice || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle2" className={styles.sectionLabel}>
-                        Thời hạn & Slot
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        name="minDurationInMonths"
-                        label="Thời hạn thấp nhất (tháng)"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 3"
-                        defaultValue={selectedTemplate?.minDurationInMonths || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        name="maxDurationInMonths"
-                        label="Thời hạn cao nhất (tháng)"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 12"
-                        defaultValue={selectedTemplate?.maxDurationInMonths || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        name="defaultDurationInMonths"
-                        label="Thời hạn mặc định (tháng)"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 6"
-                        defaultValue={selectedTemplate?.defaultDurationInMonths || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        name="minSlots"
-                        label="Slot thấp nhất"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 10"
-                        defaultValue={selectedTemplate?.minSlots || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        name="maxSlots"
-                        label="Slot cao nhất"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 30"
-                        defaultValue={selectedTemplate?.maxSlots || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        name="defaultTotalSlots"
-                        label="Slot mặc định"
-                        type="number"
-                        required
-                        fullWidth
-                        placeholder="Ví dụ: 20"
-                        defaultValue={selectedTemplate?.defaultTotalSlots || ''}
-                        disabled={templateActionLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid>
-
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={() => setTemplateDialogOpen(false)}
-                  disabled={templateActionLoading}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={templateActionLoading}
-                >
-                  {templateActionLoading
-                    ? 'Đang xử lý...'
-                    : templateDialogMode === 'create'
-                      ? 'Tạo Mẫu Gói'
-                      : 'Cập nhật Mẫu Gói'}
-                </Button>
-              </Box>
-            </Box>
-          </AdminFormDialog>
+              fields={templateFormFields}
+              showReset={templateDialogMode === 'create'}
+            />
+          </ManagementFormDialog>
 
           <ConfirmDialog
             open={templateConfirmDialog.open}
@@ -845,7 +900,7 @@ const PackageManagement = () => {
         </>
       ) : (
         <>
-          <AdminSearchSection
+          <ManagementSearchSection
             keyword={packageSearchTerm}
             onKeywordChange={packageHandleKeywordChange}
             onSearch={packageHandleKeywordSearch}
@@ -858,7 +913,7 @@ const PackageManagement = () => {
             {renderStatusFilter(packageFilters.status || '', (e) =>
               packageUpdateFilter('status', e.target.value)
             )}
-      </AdminSearchSection>
+      </ManagementSearchSection>
 
           {packageError && (
             <Alert severity="error" className={styles.errorAlert}>
@@ -878,326 +933,65 @@ const PackageManagement = () => {
               onRowsPerPageChange={packageHandleRowsPerPageChange}
               onEdit={handlePackageEdit}
               onDelete={packageHandleDelete}
+              expandableConfig={{
+                isRowExpandable: (item) => Array.isArray(item?.benefits) && item.benefits.length > 0,
+              renderExpandedContent: (item) => (
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                    Lợi ích trong gói
+                  </Typography>
+                  {item.benefits.length > 0 ? (
+                    <TableContainer component={Paper} variant="outlined">
+                      <Table size="small">
+                        <TableHead sx={{ backgroundColor: '#f0f4ff' }}>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 600 }}>Tên lợi ích</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {item.benefits.map((benefit, idx) => (
+                            <TableRow key={benefit.id || idx}>
+                              <TableCell>
+                                <Typography fontWeight={600}>{benefit.name}</Typography>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Không có lợi ích nào trong gói này.
+                    </Typography>
+                  )}
+                </Box>
+              )
+              }}
           emptyMessage="Không có gói bán nào. Hãy thêm gói bán đầu tiên để bắt đầu."
         />
       </div>
 
-      <AdminFormDialog
+      <ManagementFormDialog
             open={packageDialogOpen}
-        onClose={() => {
-              setPackageDialogOpen(false);
-          setSelectedBenefits([]);
-          setSelectedBranchId('');
-          setAvailableBenefits([]);
-        }}
+        onClose={() => setPackageDialogOpen(false)}
             mode={packageDialogMode}
         title="Gói Bán"
         icon={PackageIcon}
-            loading={packageActionLoading || dependenciesLoading}
+        loading={packageActionLoading || dependenciesLoading || loadingTemplates}
         maxWidth="lg"
       >
-        <Box 
-          component="form" 
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = {
-              name: formData.get('name'),
-              desc: formData.get('desc'),
-              price: formData.get('price'),
-              durationInMonths: formData.get('durationInMonths'),
-              minDurationInMonths: formData.get('minDurationInMonths'),
-              maxDurationInMonths: formData.get('maxDurationInMonths'),
-              totalSlots: formData.get('totalSlots'),
-              minSlots: formData.get('minSlots'),
-              maxSlots: formData.get('maxSlots'),
-              studentLevelId: formData.get('studentLevelId'),
-              branchId: formData.get('branchId')
-            };
-            await handlePackageFormSubmit(data);
-          }}
-        >
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={8}>
-                <TextField
-                  name="name"
-                  label="Tên Gói Bán"
-                  required
-                  fullWidth
-                  placeholder="Ví dụ: Gói học tiếng Anh cơ bản"
-                  defaultValue={selectedPackage?.name || ''}
-                disabled={packageActionLoading}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                  }}
-                />
-              </Grid>
-
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth required>
-                <InputLabel>Chi Nhánh</InputLabel>
-                <Select
-                  name="branchId"
-                  value={selectedBranchId}
-                  onChange={(e) => {
-                    setSelectedBranchId(e.target.value);
-                    setSelectedBenefits([]);
-                  }}
-                  label="Chi Nhánh"
-                  disabled={packageActionLoading || dependenciesLoading}
-                  sx={{ fontSize: '14px' }}
-                >
-                  <MenuItem value="">Chọn chi nhánh</MenuItem>
-                  {branchOptions.map((branch) => (
-                    <MenuItem key={branch.id} value={branch.id} sx={{ fontSize: '14px' }}>
-                      {branch.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                name="desc"
-                label="Mô Tả"
-                fullWidth
-                multiline
-                rows={3}
-                placeholder="Mô tả chi tiết về gói bán..."
-                defaultValue={selectedPackage?.desc || ''}
-                disabled={packageActionLoading}
-                sx={{ 
-                  '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" className={styles.sectionLabel}>
-                    Giá & Thời hạn
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    name="price"
-                    label="Giá (VNĐ)"
-                    type="number"
-                    required
-                    fullWidth
-                    placeholder="Ví dụ: 1000000"
-                    defaultValue={selectedPackage?.price || ''}
-                    disabled={packageActionLoading}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    name="durationInMonths"
-                    label="Thời hạn mặc định (tháng)"
-                    type="number"
-                    required
-                    fullWidth
-                    placeholder="Ví dụ: 6"
-                    defaultValue={selectedPackage?.durationInMonths || ''}
-                    disabled={packageActionLoading}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    name="minDurationInMonths"
-                    label="Thời hạn thấp nhất (tháng)"
-                    type="number"
-                    fullWidth
-                    placeholder="Ví dụ: 3"
-                    defaultValue={selectedPackage?.minDurationInMonths || ''}
-                    disabled={packageActionLoading}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    name="maxDurationInMonths"
-                    label="Thời hạn cao nhất (tháng)"
-                    type="number"
-                    fullWidth
-                    placeholder="Ví dụ: 12"
-                    defaultValue={selectedPackage?.maxDurationInMonths || ''}
-                    disabled={packageActionLoading}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" className={styles.sectionLabel}>
-                    Slot & Phạm vi áp dụng
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    name="minSlots"
-                    label="Slot thấp nhất"
-                    type="number"
-                    fullWidth
-                    placeholder="Ví dụ: 10"
-                    defaultValue={selectedPackage?.minSlots || ''}
-                    disabled={packageActionLoading}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    name="maxSlots"
-                    label="Slot cao nhất"
-                    type="number"
-                    fullWidth
-                    placeholder="Ví dụ: 30"
-                    defaultValue={selectedPackage?.maxSlots || ''}
-                    disabled={packageActionLoading}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    name="totalSlots"
-                    label="Slot mặc định"
-                    type="number"
-                    required
-                    fullWidth
-                    placeholder="Ví dụ: 20"
-                    defaultValue={selectedPackage?.totalSlots || ''}
-                    disabled={packageActionLoading}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { fontSize: '14px' }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required>
-                    <InputLabel>Cấp Độ Học Sinh</InputLabel>
-                    <Select
-                      name="studentLevelId"
-                      defaultValue={selectedPackage?.studentLevelId || ''}
-                      label="Cấp Độ Học Sinh"
-                      disabled={packageActionLoading || dependenciesLoading}
-                      sx={{ fontSize: '14px' }}
-                    >
-                      <MenuItem value="">Chọn cấp độ học sinh</MenuItem>
-                      {studentLevelOptions.map((level) => (
-                        <MenuItem key={level.id} value={level.id} sx={{ fontSize: '14px' }}>
-                          {level.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Lợi Ích</InputLabel>
-                    <Select
-                      name="benefitIds"
-                      multiple
-                      value={selectedBenefits}
-                      onChange={(e) => setSelectedBenefits(e.target.value)}
-                      label="Lợi Ích"
-                      disabled={
-                        packageActionLoading ||
-                        dependenciesLoading ||
-                        loadingBenefits ||
-                        !selectedBranchId
-                      }
-                      renderValue={(selected) => (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {selected.map((value) => {
-                            const benefit = availableBenefits.find((b) => b.id === value);
-                            return (
-                              <Chip key={value} label={benefit?.name || value} size="small" />
-                            );
-                          })}
-                        </Box>
-                      )}
-                      sx={{ fontSize: '14px' }}
-                    >
-                      {loadingBenefits ? (
-                        <MenuItem disabled>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <CircularProgress size={16} />
-                            <ListItemText primary="Đang tải lợi ích..." />
-                          </Box>
-                        </MenuItem>
-                      ) : availableBenefits.length > 0 ? (
-                        availableBenefits.map((benefit) => (
-                          <MenuItem key={benefit.id} value={benefit.id} sx={{ fontSize: '14px' }}>
-                            <Checkbox 
-                              checked={selectedBenefits.includes(benefit.id)}
-                              sx={{ padding: '4px' }}
-                            />
-                            <ListItemText 
-                              primary={benefit.name}
-                              secondary={benefit.description}
-                            />
-                          </MenuItem>
-                        ))
-                      ) : (
-                        <MenuItem disabled>
-                          <ListItemText
-                            primary={
-                              selectedBranchId
-                                ? 'Chi nhánh này chưa có lợi ích nào'
-                                : 'Vui lòng chọn chi nhánh trước'
-                            }
-                          />
-                        </MenuItem>
-                      )}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button
-                type="button"
-                variant="outlined"
-                  onClick={() => setPackageDialogOpen(false)}
-                  disabled={packageActionLoading}
-              >
-                Hủy
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                  disabled={packageActionLoading || dependenciesLoading}
-                >
-                  {packageActionLoading
-                    ? 'Đang xử lý...'
-                    : packageDialogMode === 'create'
-                      ? 'Tạo Gói Bán'
-                      : 'Cập nhật Gói Bán'}
-              </Button>
-            </Box>
-          </Box>
-        </AdminFormDialog>
+        <Form
+          key={`package-${packageDialogMode}-${selectedPackage?.id || 'new'}`}
+          schema={packageSchema}
+          defaultValues={packageDefaultValues}
+          onSubmit={handlePackageFormSubmit}
+          submitText={packageDialogMode === 'create' ? 'Tạo Gói Bán' : 'Cập nhật Gói Bán'}
+          loading={packageActionLoading || dependenciesLoading || loadingTemplates}
+          disabled={packageActionLoading || dependenciesLoading || loadingTemplates}
+          fields={packageFormFields}
+          showReset={packageDialogMode === 'create'}
+        />
+      </ManagementFormDialog>
 
       <ConfirmDialog
             open={packageConfirmDialog.open}

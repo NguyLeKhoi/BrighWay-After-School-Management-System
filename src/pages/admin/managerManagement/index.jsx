@@ -19,9 +19,9 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { createManagerSchema, updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
@@ -238,84 +238,91 @@ const ManagerManagement = () => {
   const getFormFields = () => {
     if (dialogMode === 'create') {
       return [
-        { 
-          name: 'name', 
-          label: 'Họ và Tên', 
-          type: 'text', 
-          required: true, 
+        {
+          section: 'Thông tin cá nhân',
+          sectionDescription: 'Thông tin hiển thị của quản lý.',
+          name: 'name',
+          label: 'Họ và Tên',
+          type: 'text',
+          required: true,
           placeholder: 'Ví dụ: Nguyễn Văn A',
           disabled: actionLoading,
           gridSize: 6
         },
-        { 
-          name: 'branchId', 
-          label: 'Chi Nhánh', 
-          type: 'select', 
-          required: false, 
+        {
+          name: 'branchId',
+          label: 'Chi Nhánh',
+          type: 'select',
+          required: false,
           options: getBranchOptions(),
           disabled: actionLoading || branchLoading,
           gridSize: 6
         },
-        { 
-          name: 'email', 
-          label: 'Email', 
-          type: 'email', 
-          required: true, 
+        {
+          section: 'Thông tin đăng nhập',
+          sectionDescription: 'Email và mật khẩu sẽ được dùng để đăng nhập hệ thống.',
+          name: 'email',
+          label: 'Email',
+          type: 'email',
+          required: true,
           placeholder: 'Ví dụ: email@example.com',
           disabled: actionLoading,
-          gridSize: 12
+          gridSize: 6
         },
-        { 
-          name: 'password', 
-          label: 'Mật Khẩu', 
-          type: 'password', 
-          required: true, 
+        {
+          name: 'password',
+          label: 'Mật Khẩu',
+          type: 'password',
+          required: true,
           placeholder: 'Nhập mật khẩu cho người dùng',
-          disabled: actionLoading,
-          gridSize: 12
-        }
-      ];
-    } else {
-      return [
-        { 
-          name: 'name', 
-          label: 'Họ và Tên', 
-          type: 'text', 
-          required: true, 
-          placeholder: 'Ví dụ: Nguyễn Văn A',
-          disabled: actionLoading,
-          gridSize: 6
-        },
-        { 
-          name: 'email', 
-          label: 'Email', 
-          type: 'email', 
-          required: true, 
-          placeholder: 'Ví dụ: email@example.com',
-          disabled: actionLoading,
-          gridSize: 6
-        },
-        { 
-          name: 'password', 
-          label: 'Mật Khẩu Mới', 
-          type: 'password', 
-          required: false,
-          placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
-          disabled: actionLoading,
-          gridSize: 6,
-          helperText: 'Để trống nếu không muốn thay đổi mật khẩu'
-        },
-        { 
-          name: 'isActive', 
-          label: 'Trạng Thái', 
-          type: 'switch', 
-          switchLabel: 'Hoạt động',
-          required: true, 
           disabled: actionLoading,
           gridSize: 6
         }
       ];
     }
+
+    return [
+      {
+        section: 'Thông tin cá nhân',
+        sectionDescription: 'Cập nhật thông tin hiển thị của quản lý.',
+        name: 'name',
+        label: 'Họ và Tên',
+        type: 'text',
+        required: true,
+        placeholder: 'Ví dụ: Nguyễn Văn A',
+        disabled: actionLoading,
+        gridSize: 6
+      },
+      {
+        name: 'email',
+        label: 'Email',
+        type: 'email',
+        required: true,
+        placeholder: 'Ví dụ: email@example.com',
+        disabled: actionLoading,
+        gridSize: 6
+      },
+      {
+        section: 'Bảo mật & Trạng thái',
+        sectionDescription: 'Bạn có thể đổi mật khẩu hoặc kích hoạt/ngưng hoạt động tài khoản.',
+        name: 'password',
+        label: 'Mật Khẩu Mới',
+        type: 'password',
+        required: false,
+        placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
+        disabled: actionLoading,
+        gridSize: 6,
+        helperText: 'Để trống nếu không muốn thay đổi mật khẩu'
+      },
+      {
+        name: 'isActive',
+        label: 'Trạng thái hoạt động',
+        type: 'switch',
+        required: true,
+        disabled: actionLoading,
+        gridSize: 6
+      }
+    ];
   };
 
   return (
@@ -323,14 +330,14 @@ const ManagerManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Manager"
         createButtonText="Tạo Manager"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -363,7 +370,7 @@ const ManagerManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -387,7 +394,7 @@ const ManagerManagement = () => {
           disabled={actionLoading}
           fields={getFormFields()}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

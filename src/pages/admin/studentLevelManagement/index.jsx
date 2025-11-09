@@ -4,9 +4,9 @@ import { School as StudentLevelIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { studentLevelSchema } from '../../../utils/validationSchemas/studentLevelSchemas';
 import studentLevelService from '../../../services/studentLevel.service';
@@ -93,14 +93,14 @@ const StudentLevelManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Cấp Độ Học Sinh"
         createButtonText="Thêm Cấp Độ"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -133,7 +133,7 @@ const StudentLevelManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -154,12 +154,15 @@ const StudentLevelManagement = () => {
           disabled={actionLoading}
           fields={[
             {
+              section: 'Thông tin cấp độ',
+              sectionDescription: 'Tên và mô tả giúp phân biệt các cấp độ học sinh.',
               name: 'name',
               label: 'Tên Cấp Độ',
               type: 'text',
               required: true,
               placeholder: 'Ví dụ: Mầm Non, Tiểu Học, Trung Học Cơ Sở',
-              disabled: actionLoading
+              disabled: actionLoading,
+              gridSize: 6
             },
             {
               name: 'description',
@@ -168,11 +171,12 @@ const StudentLevelManagement = () => {
               required: false,
               placeholder: 'Mô tả chi tiết về cấp độ học sinh...',
               disabled: actionLoading,
-              rows: 3
+              rows: 3,
+              gridSize: 12
             }
           ]}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

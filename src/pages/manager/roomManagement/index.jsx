@@ -13,9 +13,9 @@ import {
   MeetingRoom as RoomIcon
 } from '@mui/icons-material';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import ManagerPageHeader from '../../../components/Manager/ManagerPageHeader';
-import ManagerSearchSection from '../../../components/Manager/ManagerSearchSection';
-import ManagerFormDialog from '../../../components/Manager/ManagerFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -210,55 +210,61 @@ const ManagerRoomManagement = () => {
   ];
 
   // Get form fields
-  const getFormFields = () => {
-    return [
-      {
-        name: 'roomName',
-        label: 'Tên Phòng',
-        type: 'text',
-        placeholder: 'Nhập tên phòng học',
-        required: true
-      },
-      {
-        name: 'facilityId',
-        label: 'Cơ Sở Vật Chất',
-        type: 'select',
-        required: true,
-        options: getFacilityOptions()
-      },
-      {
-        name: 'branchId',
-        label: 'Chi Nhánh',
-        type: 'select',
-        required: true,
-        disabled: true, // Manager can only use their branch
-        options: managerBranchId 
-          ? getBranchOptions().filter(opt => opt.value === managerBranchId)
-          : getBranchOptions()
-      },
-      {
-        name: 'capacity',
-        label: 'Sức Chứa',
-        type: 'number',
-        placeholder: 'Sức chứa: 10',
-        required: true
-      }
-    ];
-  };
+  const getFormFields = () => [
+    {
+      section: 'Thông tin phòng',
+      sectionDescription: 'Tên phòng học và cơ sở vật chất đi kèm.',
+      name: 'roomName',
+      label: 'Tên Phòng',
+      type: 'text',
+      placeholder: 'Nhập tên phòng học',
+      required: true,
+      gridSize: 6
+    },
+    {
+      name: 'facilityId',
+      label: 'Cơ Sở Vật Chất',
+      type: 'select',
+      required: true,
+      options: getFacilityOptions(),
+      gridSize: 6
+    },
+    {
+      section: 'Phạm vi áp dụng',
+      sectionDescription: 'Quản lý chỉ được gán phòng vào chi nhánh mình phụ trách.',
+      name: 'branchId',
+      label: 'Chi Nhánh',
+      type: 'select',
+      required: true,
+      disabled: true, // Manager can only use their branch
+      options: managerBranchId 
+        ? getBranchOptions().filter(opt => opt.value === managerBranchId)
+        : getBranchOptions(),
+      gridSize: 6
+    },
+    {
+      name: 'capacity',
+      label: 'Sức Chứa',
+      type: 'number',
+      placeholder: 'Sức chứa: 10',
+      required: true,
+      gridSize: 6
+    }
+  ];
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <ManagerPageHeader
+      <ManagementPageHeader
         title="Quản lý Phòng Học"
         createButtonText="Thêm Phòng Học"
         onCreateClick={handleCreateWithData}
       />
 
       {/* Search Section with Additional Filters */}
-      <ManagerSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -294,7 +300,7 @@ const ManagerRoomManagement = () => {
             />
           )}
         </Box>
-      </ManagerSearchSection>
+      </ManagementSearchSection>
 
       {/* Error Alert */}
       {error && (
@@ -321,7 +327,7 @@ const ManagerRoomManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <ManagerFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -351,7 +357,7 @@ const ManagerRoomManagement = () => {
             loading={actionLoading}
           />
         )}
-      </ManagerFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

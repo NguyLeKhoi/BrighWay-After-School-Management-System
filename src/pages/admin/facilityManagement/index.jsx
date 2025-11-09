@@ -4,9 +4,9 @@ import { Room as RoomIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { facilitySchema } from '../../../utils/validationSchemas/facilitySchemas';
 import facilityService from '../../../services/facility.service';
@@ -78,14 +78,14 @@ const FacilityManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header - Reusable Component */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Cơ Sở Vật Chất"
         createButtonText="Thêm Cơ Sở Vật Chất"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section - Reusable Component */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -118,7 +118,7 @@ const FacilityManagement = () => {
       </div>
 
       {/* Form Dialog - Reusable Component */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -138,12 +138,15 @@ const FacilityManagement = () => {
           disabled={actionLoading}
           fields={[
             {
+              section: 'Thông tin cơ bản',
+              sectionDescription: 'Tên hiển thị cho cơ sở vật chất trong các bảng quản lý.',
               name: 'facilityName',
               label: 'Tên Cơ Sở Vật Chất',
               type: 'text',
               required: true,
               placeholder: 'Ví dụ: Phòng học A1, Thư viện, Sân thể thao',
-              disabled: actionLoading
+              disabled: actionLoading,
+              gridSize: 6
             },
             {
               name: 'description',
@@ -151,11 +154,12 @@ const FacilityManagement = () => {
               type: 'text',
               required: true,
               placeholder: 'Mô tả chi tiết về cơ sở vật chất',
-              disabled: actionLoading
+              disabled: actionLoading,
+              gridSize: 12
             }
           ]}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

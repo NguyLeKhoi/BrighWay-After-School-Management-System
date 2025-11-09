@@ -38,9 +38,9 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import branchService from '../../../services/branch.service';
 import benefitService from '../../../services/benefit.service';
@@ -367,14 +367,14 @@ const BranchManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Chi Nhánh"
         createButtonText="Thêm Chi Nhánh"
         onCreateClick={handleCreateWithData}
       />
 
       {/* Search Section */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -526,7 +526,7 @@ const BranchManagement = () => {
         </div>
 
       {/* Form Dialog with Location Fields */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => {
           setOpenDialog(false);
@@ -552,6 +552,14 @@ const BranchManagement = () => {
         }}>
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Thông tin chi nhánh
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Nhập tên chi nhánh và thông tin liên hệ để hiển thị trong hệ thống.
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
               <TextField
                 name="branchName"
                 label="Tên Chi Nhánh"
@@ -560,6 +568,14 @@ const BranchManagement = () => {
                 defaultValue={selectedBranch?.branchName || ''}
                 disabled={actionLoading}
               />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 1 }}>
+                Địa chỉ chi tiết
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Chọn tỉnh/thành, quận/huyện và nhập địa chỉ cụ thể.
+              </Typography>
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth required>
@@ -608,6 +624,14 @@ const BranchManagement = () => {
               />
             </Grid>
             <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Liên hệ
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Thông tin liên lạc được dùng khi gửi thông báo cho chi nhánh.
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
               <TextField
                 name="phone"
                 label="Số Điện Thoại"
@@ -640,7 +664,7 @@ const BranchManagement = () => {
             </Button>
           </Box>
         </Box>
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog
@@ -655,7 +679,7 @@ const BranchManagement = () => {
       />
 
       {/* Assign Benefits Dialog - Keep this special feature */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openAssignDialog}
         onClose={() => setOpenAssignDialog(false)}
         mode="assign"
@@ -773,7 +797,7 @@ const BranchManagement = () => {
             </Button>
           </Box>
         </>
-      </AdminFormDialog>
+      </ManagementFormDialog>
     </div>
   );
 };

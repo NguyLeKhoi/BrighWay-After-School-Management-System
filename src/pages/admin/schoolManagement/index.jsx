@@ -4,9 +4,9 @@ import { School as SchoolIcon, Edit as EditIcon, Delete as DeleteIcon, Restore a
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { schoolSchema } from '../../../utils/validationSchemas/schoolSchemas';
 import schoolService from '../../../services/school.service';
@@ -160,14 +160,14 @@ const SchoolManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Trường"
         createButtonText="Thêm Trường"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -201,7 +201,7 @@ const SchoolManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -256,7 +256,7 @@ const SchoolManagement = () => {
             }
           ]}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

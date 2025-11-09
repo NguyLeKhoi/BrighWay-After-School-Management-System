@@ -1,24 +1,7 @@
 import React from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Button,
-  Box
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, Button, Box } from '@mui/material';
 
-/**
- * Reusable Manager Form Dialog Component
- * @param {boolean} open - Dialog open state
- * @param {Function} onClose - Handler for close
- * @param {string} mode - 'create' or 'edit'
- * @param {string} title - Dialog title
- * @param {React.ReactNode} icon - Icon component
- * @param {boolean} loading - Loading state
- * @param {React.ReactNode} children - Dialog content (usually Form component)
- * @param {string} maxWidth - Dialog max width ('sm', 'md', 'lg')
- */
-const ManagerFormDialog = ({
+const ManagementFormDialog = ({
   open,
   onClose,
   mode,
@@ -29,7 +12,7 @@ const ManagerFormDialog = ({
   maxWidth = 'sm'
 }) => {
   const dialogTitle = mode === 'create' ? `Thêm ${title} mới` : `Chỉnh sửa ${title}`;
-  
+
   return (
     <Dialog
       open={open}
@@ -38,7 +21,7 @@ const ManagerFormDialog = ({
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          borderRadius: '8px',
+          borderRadius: '12px',
           overflow: 'hidden'
         }
       }}
@@ -50,8 +33,7 @@ const ManagerFormDialog = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px 24px',
-          position: 'relative'
+          padding: '18px 24px'
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -73,14 +55,12 @@ const ManagerFormDialog = ({
           ✕
         </Button>
       </DialogTitle>
-      <DialogContent sx={{ padding: '24px !important', paddingTop: '32px !important' }}>
-        <div style={{ paddingTop: '8px' }}>
-          {children}
-        </div>
+      <DialogContent sx={{ padding: '28px !important' }}>
+        {children}
       </DialogContent>
     </Dialog>
   );
 };
 
-export default ManagerFormDialog;
+export default ManagementFormDialog;
 

@@ -158,6 +158,24 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.sectionDescription {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
 @media (max-width: 768px) {
   .submitButton {
     width: 100%;

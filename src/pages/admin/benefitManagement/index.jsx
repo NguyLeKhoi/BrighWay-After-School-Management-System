@@ -4,9 +4,9 @@ import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { benefitSchema } from '../../../utils/validationSchemas/benefitSchemas';
 import benefitService from '../../../services/benefit.service';
@@ -108,14 +108,14 @@ const BenefitManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Lợi Ích"
         createButtonText="Thêm Lợi Ích"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section with Status Filter */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -134,7 +134,7 @@ const BenefitManagement = () => {
             <MenuItem value="false">Không hoạt động</MenuItem>
           </Select>
         </FormControl>
-      </AdminSearchSection>
+      </ManagementSearchSection>
 
       {/* Error Alert */}
       {error && (
@@ -161,7 +161,7 @@ const BenefitManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -183,12 +183,15 @@ const BenefitManagement = () => {
           disabled={actionLoading}
           fields={[
             {
+              section: 'Thông tin lợi ích',
+              sectionDescription: 'Tên và mô tả sẽ hiển thị với quản trị viên khi chọn lợi ích cho chi nhánh.',
               name: 'name',
               label: 'Tên Lợi Ích',
               type: 'text',
               required: true,
               placeholder: 'Ví dụ: Giảm giá học phí, Tặng đồ dùng học tập',
-              disabled: actionLoading
+              disabled: actionLoading,
+              gridSize: 6
             },
             {
               name: 'description',
@@ -197,18 +200,22 @@ const BenefitManagement = () => {
               required: false,
               placeholder: 'Mô tả chi tiết về lợi ích...',
               disabled: actionLoading,
-              rows: 3
+              rows: 3,
+              gridSize: 12
             },
             {
+              section: 'Trạng thái',
+              sectionDescription: 'Bật để lợi ích xuất hiện trong danh sách lựa chọn.',
               name: 'status',
               label: 'Trạng thái hoạt động',
               type: 'switch',
               required: false,
-              disabled: actionLoading
+              disabled: actionLoading,
+              gridSize: 12
             }
           ]}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

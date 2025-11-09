@@ -45,7 +45,7 @@ const Form = ({
     const error = errors[name];
 
     return (
-      <div key={name} className={`${styles.formGroup} ${field.fullWidth ? styles.fullWidth : ''} ${className ? styles[className] : ''}`}>
+      <div className={`${styles.formGroup} ${field.fullWidth ? styles.fullWidth : ''} ${className ? styles[className] : ''}`}>
         <label htmlFor={name} className={styles.formLabel}>
           {label}
         </label>
@@ -59,6 +59,7 @@ const Form = ({
             placeholder={field.placeholder}
             required={field.required}
             rows={field.rows || 4}
+            {...fieldProps}
           />
         ) : type === 'select' ? (
           <select
@@ -67,6 +68,7 @@ const Form = ({
             name={name}
             className={styles.formInput}
             required={field.required}
+            {...fieldProps}
           >
             {options?.map((option) => (
               <option key={option.value} value={option.value}>
@@ -82,6 +84,7 @@ const Form = ({
               id={name}
               name={name}
               className={styles.checkbox}
+              {...fieldProps}
             />
             <label htmlFor={name} className={styles.checkboxLabel}>
               {label}
@@ -118,6 +121,7 @@ const Form = ({
                         backgroundColor: value ? '#81c784' : '#e0e0e0'
                       }
                     }}
+                    {...fieldProps}
                   />
                 </Box>
               </Box>
@@ -132,6 +136,7 @@ const Form = ({
             className={styles.formInput}
             placeholder={field.placeholder}
             required={field.required}
+            {...fieldProps}
           />
         )}
         
@@ -160,11 +165,37 @@ const Form = ({
       
       <div className={styles.formFields}>
         <Grid container spacing={2}>
-          {fields.map((field, index) => (
-            <Grid item xs={field.gridSize || 12} key={field.name || index}>
-              {renderField(field)}
-            </Grid>
-          ))}
+          {(() => {
+            let currentSection = '';
+            return fields.map((field, index) => {
+              const elements = [];
+              if (field.section && field.section !== currentSection) {
+                currentSection = field.section;
+                elements.push(
+                  <Grid item xs={12} key={`section-${currentSection}-${index}`}>
+                    <div className={styles.sectionHeader}>
+                      <div className={styles.sectionTitle}>{field.section}</div>
+                      {field.sectionDescription && (
+                        <div className={styles.sectionDescription}>{field.sectionDescription}</div>
+                      )}
+                    </div>
+                  </Grid>
+                );
+              }
+
+              elements.push(
+                <Grid item xs={field.gridSize || 12} key={field.name || index}>
+                  {renderField(field)}
+                </Grid>
+              );
+
+              return (
+                <React.Fragment key={`field-${field.name || index}`}>
+                  {elements}
+                </React.Fragment>
+              );
+            });
+          })()}
         </Grid>
       </div>
       

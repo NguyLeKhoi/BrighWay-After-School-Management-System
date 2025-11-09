@@ -104,6 +104,22 @@
   font-size: 13px;
 }
 
+.sectionTitle {
+  font-weight: 600;
+  color: #0d47a1;
+  margin-bottom: 8px;
+  text-transform: none;
+  letter-spacing: 0.4px;
+  font-size: 16px;
+}
+
+.statusSwitch {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin-left: 4px;
+}
+
 .tableContainer {
   background: white;
   border-radius: 8px;

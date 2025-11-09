@@ -17,9 +17,9 @@ import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import StaffAccountForm from '../../../components/AccountForms/StaffAccountForm';
-import ManagerPageHeader from '../../../components/Manager/ManagerPageHeader';
-import ManagerSearchSection from '../../../components/Manager/ManagerSearchSection';
-import ManagerFormDialog from '../../../components/Manager/ManagerFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import { createUserSchema, updateManagerUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
@@ -340,7 +340,7 @@ const StaffAndParentManagement = () => {
   return (
     <div className={styles.container}>
       {/* Header */}
-      <ManagerPageHeader
+      <ManagementPageHeader
         title="Quản lý Staff & User"
         createButtonText={activeTab === 0 ? 'Tạo Nhân Viên' : 'Tạo User (Parent)'}
         onCreateClick={handleCreateUser}
@@ -469,7 +469,7 @@ const StaffAndParentManagement = () => {
         {/* Staff Tab */}
         {activeTab === 0 && (
           <Box>
-            <ManagerSearchSection
+            <ManagementSearchSection
               keyword={staffTab.keyword}
               onKeywordChange={staffTab.handleKeywordChange}
               onSearch={staffTab.handleKeywordSearch}
@@ -498,7 +498,7 @@ const StaffAndParentManagement = () => {
         {/* User Tab */}
         {activeTab === 1 && (
           <Box>
-            <ManagerSearchSection
+            <ManagementSearchSection
               keyword={userTab.keyword}
               onKeywordChange={userTab.handleKeywordChange}
               onSearch={userTab.handleKeywordSearch}
@@ -526,7 +526,7 @@ const StaffAndParentManagement = () => {
       </Box>
 
       {/* Edit Dialog */}
-      <ManagerFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => !actionLoading && setOpenDialog(false)}
         mode="edit"
@@ -549,13 +549,15 @@ const StaffAndParentManagement = () => {
           disabled={actionLoading}
           fields={[
             { 
+            section: 'Thông tin cơ bản',
+            sectionDescription: 'Tên và email hiển thị trong hệ thống.',
               name: 'name', 
               label: 'Họ và Tên', 
               type: 'text', 
               required: true, 
               placeholder: 'Ví dụ: Nguyễn Văn A',
               disabled: actionLoading,
-              gridSize: 6
+            gridSize: 6
             },
             { 
               name: 'email', 
@@ -567,6 +569,8 @@ const StaffAndParentManagement = () => {
               gridSize: 6
             },
             { 
+            section: 'Bảo mật & Trạng thái',
+            sectionDescription: 'Thay đổi mật khẩu hoặc trạng thái tài khoản.',
               name: 'password', 
               label: 'Mật Khẩu Mới', 
               type: 'password', 
@@ -578,16 +582,15 @@ const StaffAndParentManagement = () => {
             },
             { 
               name: 'isActive', 
-              label: 'Trạng Thái', 
+            label: 'Trạng thái hoạt động', 
               type: 'switch', 
-              switchLabel: 'Hoạt động',
               required: true, 
               disabled: actionLoading,
               gridSize: 12
             }
           ]}
         />
-      </ManagerFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog
@@ -602,7 +605,7 @@ const StaffAndParentManagement = () => {
       />
 
       {/* Create Account Dialog */}
-      <ManagerFormDialog
+      <ManagementFormDialog
         open={openCreateDialog}
         onClose={() => {
           if (!isSubmitting) {
@@ -637,7 +640,7 @@ const StaffAndParentManagement = () => {
             }}
           />
         )}
-      </ManagerFormDialog>
+      </ManagementFormDialog>
     </div>
   );
 };
