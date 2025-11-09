@@ -1,0 +1,125 @@
+/* Staff Dashboard Styles */
+.container {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin: 0 0 8px 0;
+  text-align: left;
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
+}
+
+.statsGrid {
+  margin-bottom: 32px;
+}
+
+.statCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1976d2, #42a5f5);
+}
+
+.infoCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.statCard {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.statCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.statCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.statCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.statCard:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.infoCard {
+  animation: fadeInUp 0.6s ease-out 0.5s both;
+}
+
+
