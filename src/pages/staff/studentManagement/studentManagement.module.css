@@ -1,0 +1,110 @@
+/* Staff Student Management Page Styles */
+.container {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0;
+}
+
+/* Search Section */
+.searchSection {
+  padding: 16px;
+  margin-bottom: 24px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.searchContainer {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.searchField {
+  min-width: 300px;
+  flex: 1;
+}
+
+.searchButton {
+  background-color: #1976d2;
+  color: white;
+  text-transform: none;
+  font-weight: 500;
+  padding: 8px 24px;
+}
+
+.searchButton:hover {
+  background-color: #1565c0;
+}
+
+/* Error Alert */
+.errorAlert {
+  margin-bottom: 24px;
+}
+
+/* Info Card */
+.infoCard {
+  padding: 16px;
+  margin-bottom: 24px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Data Table Container */
+.tableContainer {
+  position: relative;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .header {
+    margin-bottom: 16px;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+  }
+  
+  .searchContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchField {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+  }
+  
+  .searchContainer {
+    gap: 12px;
+  }
+}
+

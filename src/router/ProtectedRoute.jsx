@@ -6,8 +6,7 @@ import Loading from '../components/Common/Loading';
 const ROLE_DEFAULT_PATHS = {
   Admin: '/admin/dashboard',
   Manager: '/manager/dashboard',
-  Staff: '/staff/users',
-  Teacher: '/teacher/dashboard',
+  Staff: '/staff/dashboard',
   User: '/family/profile'
 };
 
@@ -47,5 +46,6 @@ const ProtectedRoute = ({ allowedRoles = [], redirectTo, children }) => {
 };
 
 export default ProtectedRoute;
+
 
 

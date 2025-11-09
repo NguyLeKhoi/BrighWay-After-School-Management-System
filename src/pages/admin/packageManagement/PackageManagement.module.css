@@ -76,11 +76,41 @@
   border-radius: 8px;
 }
 
+.tabsWrapper {
+  margin-bottom: 24px;
+}
+
+.noWrap {
+  white-space: nowrap;
+}
+
+.compactCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+}
+
+.primaryText {
+  color: #1a237e;
+}
+
+.sectionLabel {
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 13px;
+}
+
 .tableContainer {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
 }
 
 .dialogContent {

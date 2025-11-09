@@ -192,6 +192,131 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+.allowanceSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.transferCard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 10px;
+}
+
+.transferHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.transferTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.transferDesc {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.transferRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.transferField {
+  display: flex;
+  flex-direction: column;
+}
+
+.transferLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.transferSelect,
+.transferInput,
+.transferTextarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.transferSelect:focus,
+.transferInput:focus,
+.transferTextarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.transferTextarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.transferActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.transferButton {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.transferButton:hover {
+  background-color: #1d4ed8;
+}
+
+.transferButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.transferNote {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.inlineLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+}
+
+.noAllowanceWallets {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #495057;
+  font-size: 16px;
+}
+
 .transactionSection h3 {
   font-size: 20px;
   font-weight: 600;
@@ -256,6 +381,38 @@
 .noTransactions p {
   font-size: 16px;
   margin: 0;
+}
+
+.errorState {
+  background-color: #fff3f3;
+  border: 1px solid #f5c2c7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.errorMessage {
+  color: #b02a37;
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.retryButton {
+  background-color: #b02a37;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.retryButton:hover {
+  background-color: #842029;
 }
 
 /* Mobile Responsive */

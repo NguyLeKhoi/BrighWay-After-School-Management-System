@@ -79,7 +79,6 @@ const UserManagement = () => {
       case 'Admin': return 0;
       case 'Manager': return 1;
       case 'Staff': return 2;
-      case 'Teacher': return 3;
       case 'User': return 4;
       default: return 4; // Default to User
     }
@@ -127,7 +126,6 @@ const UserManagement = () => {
         const getRoleDisplayName = (roleString) => {
           switch (roleString) {
             case 'Admin': return 'Admin';
-            case 'Teacher': return 'Teacher';
             case 'Staff': return 'Staff';
             case 'Manager': return 'Manager';
             case 'User': return 'User';
@@ -139,7 +137,6 @@ const UserManagement = () => {
           switch (roleString) {
             case 'Admin': return 'error';
             case 'Manager': return 'warning';
-            case 'Teacher': return 'success';
             case 'Staff': return 'info';
             case 'User': return 'primary';
             default: return 'default';

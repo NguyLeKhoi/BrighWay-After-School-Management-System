@@ -4,7 +4,6 @@ import AuthLayout from '../components/Layout/AuthLayout';
 import FamilyLayout from '../components/Layout/FamilyLayout';
 import AdminLayout from '../components/Layout/AdminLayout';
 import ManagerLayout from '../components/Layout/ManagerLayout';
-import TeacherLayout from '../components/Layout/TeacherLayout';
 import StaffLayout from '../components/Layout/StaffLayout';
 import ProtectedRoute from './ProtectedRoute';
 
@@ -42,17 +41,12 @@ import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
 
-// Teacher Pages
-import TeacherDashboard from '../pages/teacher/dashboard';
-import ClassManagement from '../pages/teacher/classes';
-import AttendanceManagement from '../pages/teacher/attendance';
-import PerformanceReviews from '../pages/teacher/performance';
-import TeacherSchedule from '../pages/teacher/schedule';
-import StudentRoster from '../pages/teacher/students';
-import TeacherMaterials from '../pages/teacher/materials';
 
 // Staff Pages
-import UserManagement from '../pages/staff/userManagement';
+import StaffDashboard from '../pages/staff/dashboard';
+import StaffStudentLevels from '../pages/staff/studentLevels';
+import StaffActivityTypes from '../pages/staff/activityTypes';
+import StaffActivities from '../pages/staff/activities';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -214,49 +208,6 @@ export const routes = createBrowserRouter([
     ],
   },
   
-  // Teacher Layout Routes (Teacher Portal)
-  {
-    path: '/teacher',
-    element: (
-      <ProtectedRoute allowedRoles={['Teacher']}>
-        <TeacherLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: <TeacherDashboard />,
-      },
-      {
-        path: 'dashboard',
-        element: <TeacherDashboard />,
-      },
-      {
-        path: 'schedule',
-        element: <TeacherSchedule />,
-      },
-      {
-        path: 'classes',
-        element: <ClassManagement />,
-      },
-      {
-        path: 'students',
-        element: <StudentRoster />,
-      },
-      {
-        path: 'attendance',
-        element: <AttendanceManagement />,
-      },
-      {
-        path: 'performance',
-        element: <PerformanceReviews />,
-      },
-      {
-        path: 'materials',
-        element: <TeacherMaterials />,
-      },
-    ],
-  },
   
   // Staff Layout Routes (Staff Portal)
   {
@@ -269,11 +220,23 @@ export const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <UserManagement />,
+        element: <StaffStudentLevels />,
       },
       {
-        path: 'users',
-        element: <UserManagement />,
+        path: 'dashboard',
+        element: <StaffDashboard />,
+      },
+      {
+        path: 'student-levels',
+        element: <StaffStudentLevels />,
+      },
+      {
+        path: 'activity-types',
+        element: <StaffActivityTypes />,
+      },
+      {
+        path: 'activities',
+        element: <StaffActivities />,
       },
     ],
   },
@@ -284,3 +247,4 @@ export const routes = createBrowserRouter([
     element: <NotFound />,
   },
 ]);
+

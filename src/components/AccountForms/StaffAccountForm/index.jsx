@@ -35,8 +35,7 @@ const StaffAccountForm = ({
   });
 
   const roleOptions = [
-    { value: 0, label: 'Staff' },
-    { value: 1, label: 'Teacher' }
+    { value: 0, label: 'Staff' }
   ];
 
   const handleFormSubmit = (data) => {

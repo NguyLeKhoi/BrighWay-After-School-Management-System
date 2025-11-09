@@ -55,7 +55,7 @@ const DataTable = ({
 
   if (!data || data.length === 0) {
     return (
-      <Paper sx={{ p: 4, textAlign: 'center' }}>
+      <Paper sx={{ p: 4, textAlign: 'center', width: '100%' }}>
         <Typography variant="h6" color="text.secondary">
           {emptyMessage}
         </Typography>
@@ -64,9 +64,9 @@ const DataTable = ({
   }
 
   return (
-    <Paper>
-      <TableContainer>
-        <Table>
+    <Paper sx={{ width: '100%', overflowX: 'auto' }}>
+      <TableContainer sx={{ minWidth: 650 }}>
+        <Table sx={{ tableLayout: 'auto' }}>
           <TableHead>
             <TableRow>
               {columns.map((column) => (
