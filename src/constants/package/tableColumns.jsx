@@ -72,18 +72,7 @@ export const createTemplateColumns = (styles) => [
       </Box>
     )
   },
-  {
-    key: 'templateStatus',
-    header: <Typography className={styles?.noWrap}>Trạng thái</Typography>,
-    render: (_, item) => (
-      <Chip
-        label={item?.isActive ? 'Hoạt động' : 'Không hoạt động'}
-        color={item?.isActive ? 'success' : 'default'}
-        size="small"
-        variant={item?.isActive ? 'filled' : 'outlined'}
-      />
-    )
-  }
+  // Templates do not have an active/inactive status, so no status column here
 ];
 
 export const createPackageColumns = (styles) => [
