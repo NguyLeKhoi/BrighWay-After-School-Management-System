@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Typography, Alert } from '@mui/material';
+import React, { useMemo } from 'react';
+import { Alert } from '@mui/material';
 import { Room as RoomIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -11,6 +11,8 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import { facilitySchema } from '../../../utils/validationSchemas/facilitySchemas';
 import facilityService from '../../../services/facility.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createFacilityColumns } from '../../../constants/facility/tableColumns';
+import { createFacilityFormFields } from '../../../constants/facility/formFields';
 import styles from './FacilityManagement.module.css';
 
 const FacilityManagement = () => {
@@ -48,30 +50,11 @@ const FacilityManagement = () => {
     loadOnMount: true
   });
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'facilityName',
-      header: 'Tên Cơ Sở Vật Chất',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <RoomIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'description',
-      header: 'Mô Tả',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {value}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createFacilityColumns(), []);
+  const facilityFormFields = useMemo(
+    () => createFacilityFormFields(actionLoading),
+    [actionLoading]
+  );
 
   return (
     <div className={styles.container}>
@@ -136,28 +119,7 @@ const FacilityManagement = () => {
           submitText={dialogMode === 'create' ? 'Tạo Cơ Sở Vật Chất' : 'Cập nhật Cơ Sở Vật Chất'}
           loading={actionLoading}
           disabled={actionLoading}
-          fields={[
-            {
-              section: 'Thông tin cơ bản',
-              sectionDescription: 'Tên hiển thị cho cơ sở vật chất trong các bảng quản lý.',
-              name: 'facilityName',
-              label: 'Tên Cơ Sở Vật Chất',
-              type: 'text',
-              required: true,
-              placeholder: 'Ví dụ: Phòng học A1, Thư viện, Sân thể thao',
-              disabled: actionLoading,
-              gridSize: 6
-            },
-            {
-              name: 'description',
-              label: 'Mô Tả',
-              type: 'text',
-              required: true,
-              placeholder: 'Mô tả chi tiết về cơ sở vật chất',
-              disabled: actionLoading,
-              gridSize: 12
-            }
-          ]}
+          fields={facilityFormFields}
         />
       </ManagementFormDialog>
 

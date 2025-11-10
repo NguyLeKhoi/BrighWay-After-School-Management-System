@@ -1,35 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Paper, Typography, Chip } from '@mui/material';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Paper, Typography } from '@mui/material';
 import DataTable from '../../../components/Common/DataTable';
 import studentLevelService from '../../../services/studentLevel.service';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
+import { createStaffStudentLevelColumns } from '../../../constants/staff/studentLevels/tableColumns';
 
 const StaffStudentLevels = () => {
   const [levels, setLevels] = useState([]);
   const { isLoading, showLoading, hideLoading } = useLoading();
   const [error, setError] = useState(null);
 
-  const columns = [
-    { key: 'id', header: 'ID' },
-    { key: 'name', header: 'Tên cấp độ' },
-    {
-      key: 'status',
-      header: 'Trạng thái',
-      render: (value) => (
-        <Chip label={value ? 'Hoạt động' : 'Không hoạt động'} color={value ? 'success' : 'default'} size="small" />
-      )
-    },
-    {
-      key: 'createdTime',
-      header: 'Ngày tạo',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createStaffStudentLevelColumns(), []);
 
   useEffect(() => {
     const load = async () => {

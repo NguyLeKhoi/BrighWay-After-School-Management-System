@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Alert,
-  Chip,
   FormControl,
   InputLabel,
   Select,
@@ -33,6 +32,9 @@ import packageService from '../../../services/package.service';
 import packageTemplateService from '../../../services/packageTemplate.service';
 import usePackageDependencies from '../../../hooks/usePackageDependencies';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
+import { createTemplateColumns, createPackageColumns } from '../../../constants/package/tableColumns';
+import { createTemplateFormFields, createPackageFormFields } from '../../../constants/package/formFields';
 import styles from './PackageManagement.module.css';
 import { packageTemplateSchema, packageSchema } from '../../../utils/validationSchemas/packageSchemas';
 
@@ -123,18 +125,54 @@ const PackageManagement = () => {
         page: params.page,
         pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || '',
-        status: params.status === '' ? null : params.status === 'true'
+        status: params.status === '' ? null : params.status === 'true',
+        branchId: params.branchId || ''
       });
     },
     createFunction: packageService.createPackage,
     updateFunction: packageService.updatePackage,
     deleteFunction: packageService.deletePackage,
-    defaultFilters: { status: '' },
+    defaultFilters: { status: '', branchId: '' },
     loadOnMount: true
   });
 
   const [templateOptions, setTemplateOptions] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [branchFilterLoading, setBranchFilterLoading] = useState(false);
+
+  const { branches, fetchBranches } = useFacilityBranchData();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBranches = async () => {
+      setBranchFilterLoading(true);
+      try {
+        await fetchBranches();
+      } finally {
+        if (isMounted) {
+          setBranchFilterLoading(false);
+        }
+      }
+    };
+
+    loadBranches();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchBranches]);
+
+  const branchFilterOptions = useMemo(
+    () => [
+      { value: '', label: 'Tất cả chi nhánh' },
+      ...branches.map((branch) => ({
+        value: branch.id,
+        label: branch.branchName
+      }))
+    ],
+    [branches]
+  );
 
   const fetchTemplateOptions = useCallback(async () => {
     setLoadingTemplates(true);
@@ -148,167 +186,8 @@ const PackageManagement = () => {
     }
   }, []);
 
-  const formatCurrency = (value) => {
-    if (value === null || value === undefined) return '0 VNĐ';
-    const numericValue = Number(value);
-    if (Number.isNaN(numericValue)) return '0 VNĐ';
-    return `${numericValue.toLocaleString('vi-VN')} VNĐ`;
-  };
-
-  const templateColumns = [
-    {
-      key: 'templateInfo',
-      header: <Typography className={styles.noWrap}>Thông tin mẫu</Typography>,
-      render: (_, item) => (
-        <Box display="flex" alignItems="flex-start" gap={2}>
-          <TemplateTabIcon fontSize="small" color="primary" />
-          <Box>
-            <Typography variant="subtitle2" fontWeight="medium" className={styles.primaryText}>
-              {item?.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {item?.desc || 'Không có mô tả'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
-    {
-      key: 'templatePrice',
-      header: <Typography className={styles.noWrap}>Giá bán</Typography>,
-      render: (_, item) => (
-        <Box className={styles.compactCell}>
-          <Typography variant="body2">
-            <strong>Khoảng:</strong> {formatCurrency(item?.minPrice)} - {formatCurrency(item?.maxPrice)}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Mặc định:</strong> {formatCurrency(item?.defaultPrice)}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'templateDuration',
-      header: <Typography className={styles.noWrap}>Thời hạn</Typography>,
-      render: (_, item) => (
-        <Box className={styles.compactCell}>
-          <Typography variant="body2">
-            <strong>Khoảng:</strong> {item?.minDurationInMonths || 0} - {item?.maxDurationInMonths || 0} tháng
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Mặc định:</strong> {item?.defaultDurationInMonths || 0} tháng
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'templateSlots',
-      header: <Typography className={styles.noWrap}>Số slot</Typography>,
-      render: (_, item) => (
-        <Box className={styles.compactCell}>
-          <Typography variant="body2">
-            <strong>Khoảng:</strong> {item?.minSlots || 0} - {item?.maxSlots || 0}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Mặc định:</strong> {item?.defaultTotalSlots || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'templateStatus',
-      header: <Typography className={styles.noWrap}>Trạng thái</Typography>,
-      render: (value, item) => (
-        <Chip
-          label={item?.isActive ? 'Hoạt động' : 'Không hoạt động'}
-          color={item?.isActive ? 'success' : 'default'}
-          size="small"
-          variant={item?.isActive ? 'filled' : 'outlined'}
-        />
-      )
-    }
-  ];
-
-  const packageColumns = [
-    {
-      key: 'packageInfo',
-      header: <Typography className={styles.noWrap}>Thông tin gói</Typography>,
-      render: (_, item) => (
-        <Box display="flex" alignItems="flex-start" gap={2}>
-          <PackageIcon fontSize="small" color="primary" />
-          <Box>
-            <Typography variant="subtitle2" fontWeight="medium" className={styles.primaryText}>
-              {item?.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {item?.desc || 'Không có mô tả'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
-    {
-      key: 'packagePrice',
-      header: <Typography className={styles.noWrap}>Giá & Thời hạn</Typography>,
-      render: (_, item) => (
-        <Box className={styles.compactCell}>
-          <Typography variant="body2">
-            <strong>Giá:</strong> {formatCurrency(item?.price)}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Thời hạn:</strong> {item?.durationInMonths || 0} tháng
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'packageStatus',
-      header: <Typography className={styles.noWrap}>Trạng thái</Typography>,
-      render: (_, item) => (
-        <Chip
-          label={item?.isActive ? 'Hoạt động' : 'Không hoạt động'}
-          color={item?.isActive ? 'success' : 'default'}
-          size="small"
-          variant={item?.isActive ? 'filled' : 'outlined'}
-        />
-      )
-    },
-    {
-      key: 'packageSlots',
-      header: <Typography className={styles.noWrap}>Số lượng</Typography>,
-      render: (_, item) => (
-        <Box className={styles.compactCell}>
-          <Typography variant="body2">
-            <strong>Slots:</strong> {item?.totalSlots || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'packageContext',
-      header: <Typography className={styles.noWrap}>Phạm vi áp dụng</Typography>,
-      render: (_, item) => (
-        <Box className={styles.compactCell}>
-          <Typography variant="body2">
-            <strong>Chi nhánh:</strong> {item?.branch?.branchName || 'N/A'}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Cấp độ:</strong> {item?.studentLevel?.name || 'N/A'}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Mẫu gói:</strong>{' '}
-            {item?.packageTemplate?.name || item?.packageTemplateName || 'N/A'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Lợi ích:</strong>{' '}
-            {item?.benefits && item.benefits.length > 0
-              ? item.benefits.map((benefit) => benefit.name).join(', ')
-              : 'Không có'}
-          </Typography>
-        </Box>
-      )
-    }
-  ];
+  const templateColumns = useMemo(() => createTemplateColumns(styles), [styles]);
+  const packageColumns = useMemo(() => createPackageColumns(styles), [styles]);
 
   const handleTemplateCreate = () => {
     templateHandleCreateBase();
@@ -380,120 +259,7 @@ const PackageManagement = () => {
   };
 
   const templateFormFields = useMemo(
-    () => [
-      {
-        section: 'Thông tin cơ bản',
-        sectionDescription: 'Các thông tin hiển thị khi quản trị chọn mẫu gói.',
-        name: 'name',
-        label: 'Tên Mẫu Gói',
-        type: 'text',
-        required: true,
-        placeholder: 'Ví dụ: Mẫu gói tiếng Anh cơ bản',
-        gridSize: 8,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'isActive',
-        label: 'Trạng thái hoạt động',
-        type: 'switch',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'desc',
-        label: 'Mô Tả',
-        type: 'textarea',
-        rows: 3,
-        placeholder: 'Mô tả chi tiết về mẫu gói...',
-        gridSize: 12,
-        disabled: templateActionLoading
-      },
-      {
-        section: 'Khoảng giá đề xuất',
-        sectionDescription: 'Thiết lập khung giá khi tạo gói dựa trên mẫu.',
-        name: 'minPrice',
-        label: 'Giá thấp nhất (VNĐ)',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 500000',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'defaultPrice',
-        label: 'Giá mặc định (VNĐ)',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 1000000',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'maxPrice',
-        label: 'Giá cao nhất (VNĐ)',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 2000000',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        section: 'Thời hạn & Slot',
-        sectionDescription: 'Giới hạn thời lượng và số lượng slot cho mẫu gói.',
-        name: 'minDurationInMonths',
-        label: 'Thời hạn thấp nhất (tháng)',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 3',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'defaultDurationInMonths',
-        label: 'Thời hạn mặc định (tháng)',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 6',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'maxDurationInMonths',
-        label: 'Thời hạn cao nhất (tháng)',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 12',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'minSlots',
-        label: 'Slot thấp nhất',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 10',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'defaultTotalSlots',
-        label: 'Slot mặc định',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 20',
-        gridSize: 4,
-        disabled: templateActionLoading
-      },
-      {
-        name: 'maxSlots',
-        label: 'Slot cao nhất',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 30',
-        gridSize: 4,
-        disabled: templateActionLoading
-      }
-    ],
+    () => createTemplateFormFields({ templateActionLoading }),
     [templateActionLoading]
   );
 
@@ -570,93 +336,15 @@ const PackageManagement = () => {
   }, [loadingTemplates, templateOptions, selectedPackage]);
 
   const packageFormFields = useMemo(
-    () => [
-      {
-        section: 'Thông tin cơ bản',
-        sectionDescription: 'Thông tin quản trị viên sẽ thấy khi quản lý gói bán.',
-        name: 'name',
-        label: 'Tên Gói Bán',
-        type: 'text',
-        required: true,
-        placeholder: 'Ví dụ: Gói bán tiếng Anh cơ bản',
-        gridSize: 8,
-        disabled: packageActionLoading || dependenciesLoading || loadingTemplates
-      },
-      {
-        name: 'isActive',
-        label: 'Trạng thái hoạt động',
-        type: 'switch',
-        gridSize: 4,
-        disabled: packageActionLoading || dependenciesLoading
-      },
-      {
-        name: 'desc',
-        label: 'Mô Tả',
-        type: 'textarea',
-        rows: 3,
-        placeholder: 'Mô tả chi tiết về gói bán...',
-        gridSize: 12,
-        disabled: packageActionLoading || dependenciesLoading
-      },
-      {
-        section: 'Liên kết dữ liệu',
-        sectionDescription: 'Xác định mẫu gói, chi nhánh và cấp độ học sinh áp dụng.',
-        name: 'packageTemplateId',
-        label: 'Mẫu Gói',
-        type: 'select',
-        required: true,
-        options: templateSelectOptions,
-        gridSize: 4,
-        disabled: packageActionLoading || dependenciesLoading || loadingTemplates
-      },
-      {
-        name: 'branchId',
-        label: 'Chi Nhánh',
-        type: 'select',
-        required: true,
-        options: branchSelectOptions,
-        gridSize: 4,
-        disabled: packageActionLoading || dependenciesLoading
-      },
-      {
-        name: 'studentLevelId',
-        label: 'Cấp Độ Học Sinh',
-        type: 'select',
-        required: true,
-        options: studentLevelSelectOptions,
-        gridSize: 4,
-        disabled: packageActionLoading || dependenciesLoading
-      },
-      {
-        section: 'Thông số gói',
-        sectionDescription: 'Thiết lập giá bán và số slot mặc định của gói.',
-        name: 'price',
-        label: 'Giá (VNĐ)',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 1000000',
-        gridSize: 4,
-        disabled: packageActionLoading || dependenciesLoading
-      },
-      {
-        name: 'durationInMonths',
-        label: 'Thời hạn (tháng)',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 6',
-        gridSize: 4,
-        disabled: packageActionLoading || dependenciesLoading
-      },
-      {
-        name: 'totalSlots',
-        label: 'Tổng số slot',
-        type: 'number',
-        required: true,
-        placeholder: 'Ví dụ: 20',
-        gridSize: 4,
-        disabled: packageActionLoading || dependenciesLoading
-      }
-    ],
+    () =>
+      createPackageFormFields({
+        packageActionLoading,
+        dependenciesLoading,
+        loadingTemplates,
+        templateSelectOptions,
+        branchSelectOptions,
+        studentLevelSelectOptions
+      }),
     [
       packageActionLoading,
       dependenciesLoading,
@@ -697,6 +385,19 @@ const PackageManagement = () => {
         <MenuItem value="">Tất cả</MenuItem>
         <MenuItem value="true">Hoạt động</MenuItem>
         <MenuItem value="false">Không hoạt động</MenuItem>
+      </Select>
+    </FormControl>
+  );
+
+  const renderBranchFilter = (value, onChange) => (
+    <FormControl className={styles.statusFilter} disabled={branchFilterLoading}>
+      <InputLabel>Chi nhánh</InputLabel>
+      <Select value={value} onChange={onChange} label="Chi nhánh">
+        {branchFilterOptions.map((option) => (
+          <MenuItem key={option.value || 'all-branches'} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))}
       </Select>
     </FormControl>
   );
@@ -907,11 +608,15 @@ const PackageManagement = () => {
             onClear={() => {
               packageHandleClearSearch();
               packageUpdateFilter('status', '');
+              packageUpdateFilter('branchId', '');
             }}
             placeholder="Tìm kiếm theo tên gói bán..."
           >
             {renderStatusFilter(packageFilters.status || '', (e) =>
               packageUpdateFilter('status', e.target.value)
+            )}
+            {renderBranchFilter(packageFilters.branchId || '', (e) =>
+              packageUpdateFilter('branchId', e.target.value)
             )}
       </ManagementSearchSection>
 

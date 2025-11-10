@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Typography, Alert, Chip, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import React, { useMemo } from 'react';
+import { Alert, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -11,6 +11,8 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import { benefitSchema } from '../../../utils/validationSchemas/benefitSchemas';
 import benefitService from '../../../services/benefit.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createBenefitColumns } from '../../../constants/benefit/tableColumns';
+import { createBenefitFormFields } from '../../../constants/benefit/formFields';
 import styles from './BenefitManagement.module.css';
 
 const BenefitManagement = () => {
@@ -58,50 +60,8 @@ const BenefitManagement = () => {
     loadOnMount: true
   });
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Tên Lợi Ích',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <BenefitIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'description',
-      header: 'Mô Tả',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300 }}>
-          {value || 'Không có mô tả'}
-        </Typography>
-      )
-    },
-    {
-      key: 'status',
-      header: 'Trạng Thái',
-      render: (value) => (
-        <Chip
-          label={value ? 'Hoạt động' : 'Không hoạt động'}
-          color={value ? 'success' : 'default'}
-          size="small"
-        />
-      )
-    },
-    {
-      key: 'createdTime',
-      header: 'Ngày Tạo',
-      render: (value) => (
-        <Typography variant="body2">
-          {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createBenefitColumns(), []);
+  const benefitFormFields = useMemo(() => createBenefitFormFields(actionLoading), [actionLoading]);
 
   return (
     <div className={styles.container}>
@@ -181,39 +141,7 @@ const BenefitManagement = () => {
           submitText={dialogMode === 'create' ? 'Tạo Lợi Ích' : 'Cập nhật Lợi Ích'}
           loading={actionLoading}
           disabled={actionLoading}
-          fields={[
-            {
-              section: 'Thông tin lợi ích',
-              sectionDescription: 'Tên và mô tả sẽ hiển thị với quản trị viên khi chọn lợi ích cho chi nhánh.',
-              name: 'name',
-              label: 'Tên Lợi Ích',
-              type: 'text',
-              required: true,
-              placeholder: 'Ví dụ: Giảm giá học phí, Tặng đồ dùng học tập',
-              disabled: actionLoading,
-              gridSize: 6
-            },
-            {
-              name: 'description',
-              label: 'Mô Tả',
-              type: 'textarea',
-              required: false,
-              placeholder: 'Mô tả chi tiết về lợi ích...',
-              disabled: actionLoading,
-              rows: 3,
-              gridSize: 12
-            },
-            {
-              section: 'Trạng thái',
-              sectionDescription: 'Bật để lợi ích xuất hiện trong danh sách lựa chọn.',
-              name: 'status',
-              label: 'Trạng thái hoạt động',
-              type: 'switch',
-              required: false,
-              disabled: actionLoading,
-              gridSize: 12
-            }
-          ]}
+          fields={benefitFormFields}
         />
       </ManagementFormDialog>
 

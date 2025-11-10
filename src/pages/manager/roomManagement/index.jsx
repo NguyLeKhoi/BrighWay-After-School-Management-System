@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -24,6 +24,8 @@ import roomService from '../../../services/room.service';
 import userService from '../../../services/user.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createManagerRoomColumns } from '../../../constants/manager/room/tableColumns';
+import { createManagerRoomFormFields } from '../../../constants/manager/room/formFields';
 import { toast } from 'react-toastify';
 import styles from './RoomManagement.module.css';
 
@@ -166,91 +168,23 @@ const ManagerRoomManagement = () => {
     updateFilter('branchId', '');
   };
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'roomName',
-      header: 'Tên Phòng',
-      render: (value, item) => (
-        <Typography variant="body2" fontWeight="medium">
-          {item.roomName || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'facilityName',
-      header: 'Cơ Sở Vật Chất',
-      render: (value, item) => (
-        <div className={styles.facilityCell}>
-          <RoomIcon className={styles.facilityIcon} fontSize="small" />
-          <span className={styles.facilityName}>
-            {item.facilityName || 'N/A'}
-          </span>
-        </div>
-      )
-    },
-    {
-      key: 'branchName',
-      header: 'Chi Nhánh',
-      render: (value, item) => (
-        <Typography variant="body2">
-          {item.branchName || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'capacity',
-      header: 'Sức Chứa',
-      render: (value) => (
-        <span className={styles.capacityText}>
-          {value} người
-        </span>
-      )
-    }
-  ];
+  const columns = useMemo(() => createManagerRoomColumns(styles), [styles]);
+  const facilityOptions = useMemo(() => getFacilityOptions(), [getFacilityOptions]);
+  const branchOptions = useMemo(
+    () => getBranchOptions(),
+    [getBranchOptions, managerBranchId]
+  );
 
-  // Get form fields
-  const getFormFields = () => [
-    {
-      section: 'Thông tin phòng',
-      sectionDescription: 'Tên phòng học và cơ sở vật chất đi kèm.',
-      name: 'roomName',
-      label: 'Tên Phòng',
-      type: 'text',
-      placeholder: 'Nhập tên phòng học',
-      required: true,
-      gridSize: 6
-    },
-    {
-      name: 'facilityId',
-      label: 'Cơ Sở Vật Chất',
-      type: 'select',
-      required: true,
-      options: getFacilityOptions(),
-      gridSize: 6
-    },
-    {
-      section: 'Phạm vi áp dụng',
-      sectionDescription: 'Quản lý chỉ được gán phòng vào chi nhánh mình phụ trách.',
-      name: 'branchId',
-      label: 'Chi Nhánh',
-      type: 'select',
-      required: true,
-      disabled: true, // Manager can only use their branch
-      options: managerBranchId 
-        ? getBranchOptions().filter(opt => opt.value === managerBranchId)
-        : getBranchOptions(),
-      gridSize: 6
-    },
-    {
-      name: 'capacity',
-      label: 'Sức Chứa',
-      type: 'number',
-      placeholder: 'Sức chứa: 10',
-      required: true,
-      gridSize: 6
-    }
-  ];
+  const formFields = useMemo(
+    () =>
+      createManagerRoomFormFields({
+        actionLoading,
+        facilityOptions,
+        managerBranchId,
+        branchOptions
+      }),
+    [actionLoading, facilityOptions, managerBranchId, branchOptions]
+  );
 
   return (
     <div className={styles.container}>
@@ -348,7 +282,7 @@ const ManagerRoomManagement = () => {
           <Form
             schema={roomSchema}
             onSubmit={handleFormSubmit}
-            fields={getFormFields()}
+            fields={formFields}
             defaultValues={{
               ...selectedRoom,
               branchId: managerBranchId // Pre-fill with manager's branch

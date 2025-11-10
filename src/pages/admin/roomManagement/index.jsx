@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
-  Box,
-  Typography,
   Alert,
   FormControl,
   Select,
@@ -22,6 +20,8 @@ import { roomSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import roomService from '../../../services/room.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createRoomColumns } from '../../../constants/room/tableColumns';
+import { createRoomFormFields } from '../../../constants/room/formFields';
 import styles from './RoomManagement.module.css';
 
 const RoomManagement = () => {
@@ -104,92 +104,19 @@ const RoomManagement = () => {
     handleEdit(room);
   };
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'roomName',
-      header: 'Tên Phòng',
-      render: (value, row) => (
-        <Typography variant="body2" fontWeight="medium">
-          {row.roomName || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'facilityName',
-      header: 'Cơ Sở Vật Chất',
-      render: (value, row) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <RoomIcon fontSize="small" color="primary" />
-          <Typography variant="body2">
-            {row.facilityName || 'N/A'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'branchName',
-      header: 'Chi Nhánh',
-      render: (value, row) => (
-        <Typography variant="body2">
-          {row.branchName || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'capacity',
-      header: 'Sức Chứa',
-      render: (value) => (
-        <Typography variant="body2">
-          {value} người
-        </Typography>
-      )
-    }
-  ];
-
-  // Get form fields
-  const getFormFields = () => [
-    {
-      section: 'Thông tin phòng',
-      sectionDescription: 'Tên phòng học và cơ sở vật chất liên quan.',
-      name: 'roomName',
-      label: 'Tên Phòng',
-      type: 'text',
-      placeholder: 'Nhập tên phòng học',
-      required: true,
-      disabled: actionLoading,
-      gridSize: 6
-    },
-    {
-      name: 'facilityId',
-      label: 'Cơ Sở Vật Chất',
-      type: 'select',
-      required: true,
-      options: getFacilityOptions(),
-      disabled: actionLoading || isDataLoading,
-      gridSize: 6
-    },
-    {
-      name: 'branchId',
-      label: 'Chi Nhánh',
-      type: 'select',
-      required: true,
-      options: getBranchOptions(),
-      disabled: actionLoading || isDataLoading,
-      gridSize: 6
-    },
-    {
-      section: 'Thông số phòng',
-      sectionDescription: 'Sức chứa ảnh hưởng đến việc xếp lịch lớp học.',
-      name: 'capacity',
-      label: 'Sức Chứa',
-      type: 'number',
-      placeholder: 'Sức chứa: 10',
-      required: true,
-      disabled: actionLoading,
-      gridSize: 6
-    }
-  ];
+  const columns = useMemo(() => createRoomColumns(), []);
+  const facilityOptions = useMemo(() => getFacilityOptions(), [getFacilityOptions]);
+  const branchOptions = useMemo(() => getBranchOptions(), [getBranchOptions]);
+  const formFields = useMemo(
+    () =>
+      createRoomFormFields({
+        actionLoading,
+        isDataLoading,
+        facilityOptions,
+        branchOptions
+      }),
+    [actionLoading, isDataLoading, facilityOptions, branchOptions]
+  );
 
   return (
     <div className={styles.container}>
@@ -323,7 +250,7 @@ const RoomManagement = () => {
             submitText={dialogMode === 'create' ? 'Tạo Phòng Học' : 'Cập nhật Phòng Học'}
             loading={actionLoading}
             disabled={actionLoading}
-            fields={getFormFields()}
+            fields={formFields}
           />
         )}
       </ManagementFormDialog>

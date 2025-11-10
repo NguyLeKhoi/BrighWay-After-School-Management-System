@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -25,9 +25,7 @@ import {
 import {
   Add as AddIcon,
   Person as PersonIcon,
-  Email as EmailIcon,
   Lock as LockIcon,
-  AssignmentInd as RoleIcon,
   Home as HomeIcon,
   FamilyRestroom as FamilyIcon
 } from '@mui/icons-material';
@@ -40,6 +38,7 @@ import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
+import { createStaffUserColumns } from '../../../constants/staff/userManagement/tableColumns';
 import { toast } from 'react-toastify';
 import styles from './userManagement.module.css';
 
@@ -84,91 +83,7 @@ const UserManagement = () => {
     }
   };
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Họ và Tên',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PersonIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'email',
-      header: 'Email',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <EmailIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'roles',
-      header: 'Vai Trò',
-      render: (value, item) => {
-        // Handle both array format (from API) and single value format
-        let roles = [];
-        if (Array.isArray(value)) {
-          roles = value;
-        } else if (value !== undefined && value !== null) {
-          roles = [value];
-        }
-        
-        // Map role string to display name
-        const getRoleDisplayName = (roleString) => {
-          switch (roleString) {
-            case 'Admin': return 'Admin';
-            case 'Staff': return 'Staff';
-            case 'Manager': return 'Manager';
-            case 'User': return 'User';
-            default: return roleString || 'Unknown';
-          }
-        };
-        
-        const getRoleColor = (roleString) => {
-          switch (roleString) {
-            case 'Admin': return 'error';
-            case 'Manager': return 'warning';
-            case 'Staff': return 'info';
-            case 'User': return 'primary';
-            default: return 'default';
-          }
-        };
-        
-        return (
-          <Box display="flex" flexWrap="wrap" gap={0.5}>
-            {roles.map((role, index) => (
-              <Chip 
-                key={index}
-                label={getRoleDisplayName(role)} 
-                color={getRoleColor(role)} 
-                size="small"
-                variant="outlined"
-                icon={<RoleIcon fontSize="small" />}
-              />
-            ))}
-          </Box>
-        );
-      }
-    },
-    {
-      key: 'createdAt',
-      header: 'Ngày Tạo',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {new Date(value).toLocaleDateString('vi-VN')}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createStaffUserColumns(), []);
 
   // Load users with pagination and keyword search, filter for User role only
   const loadUsers = async (showLoadingIndicator = true) => {

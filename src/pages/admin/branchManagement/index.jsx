@@ -46,6 +46,7 @@ import branchService from '../../../services/branch.service';
 import benefitService from '../../../services/benefit.service';
 import useLocationData from '../../../hooks/useLocationData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createBranchColumns } from '../../../constants/branch/tableColumns';
 import { toast } from 'react-toastify';
 import styles from './BranchManagement.module.css';
 
@@ -278,88 +279,13 @@ const BranchManagement = () => {
   };
 
   // Define table columns
-  const columns = [
-    {
-      key: 'branchName',
-      header: 'Tên Chi Nhánh',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <IconButton
-            size="small"
-            onClick={() => handleToggleExpand(item.id)}
-            sx={{ padding: '4px', ml: -1 }}
-          >
-            {expandedRows.has(item.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
-          <BusinessIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'address',
-      header: 'Địa Chỉ',
-      render: (value, item) => {
-        const fullAddress = [
-          item.address,
-          item.districtName,
-          item.provinceName
-        ].filter(Boolean).join(', ');
-        
-        return (
-          <Typography variant="body2" color="text.secondary">
-            {fullAddress || value}
-          </Typography>
-        );
-      }
-    },
-    {
-      key: 'phone',
-      header: 'Số Điện Thoại',
-      render: (value) => (
-        <Typography variant="body2">
-          {value}
-        </Typography>
-      )
-    },
-    {
-      key: 'actions',
-      header: 'Thao tác',
-      align: 'center',
-      render: (value, item) => (
-        <Box display="flex" gap={0.5} justifyContent="center">
-          <IconButton
-            size="small"
-            color="info"
-            onClick={() => handleAssignBenefits(item)}
-            title="Gán lợi ích"
-          >
-            <AssignIcon fontSize="small" />
-          </IconButton>
-          <Tooltip title="Sửa">
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={() => handleEditWithData(item)}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => handleDelete(item)}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )
-    }
-  ];
+  const columns = createBranchColumns({
+    expandedRows,
+    onToggleExpand: handleToggleExpand,
+    onAssignBenefits: handleAssignBenefits,
+    onEditBranch: handleEditWithData,
+    onDeleteBranch: handleDelete
+  });
 
 
   return (

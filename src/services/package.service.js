@@ -100,7 +100,8 @@ const packageService = {
         page = 1, 
         pageSize = 10, 
         searchTerm = '', 
-        status = null
+        status = null,
+        branchId = ''
       } = params;
       
       const queryParams = new URLSearchParams({
@@ -114,6 +115,10 @@ const packageService = {
       
       if (status !== null && status !== undefined) {
         queryParams.append('filter.IsActive', status.toString());
+      }
+
+      if (branchId) {
+        queryParams.append('filter.BranchId', branchId);
       }
       
       const response = await axiosInstance.get(`/Package/paged?${queryParams}`);

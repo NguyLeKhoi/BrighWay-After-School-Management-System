@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
-  Typography,
   Alert,
   Paper,
   Tabs,
@@ -10,8 +9,7 @@ import {
 import {
   Person as PersonIcon,
   Groups as GroupsIcon,
-  FamilyRestroom as FamilyIcon,
-  Email as EmailIcon
+  FamilyRestroom as FamilyIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -24,6 +22,8 @@ import { createUserSchema, updateManagerUserSchema } from '../../../utils/valida
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
+import { createManagerUserFormFields } from '../../../constants/manager/staff/formFields';
 import { toast } from 'react-toastify';
 import styles from './staffAndParentManagement.module.css';
 
@@ -97,42 +97,11 @@ const StaffAndParentManagement = () => {
     setActiveTab(newValue);
   };
   
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Họ và Tên',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PersonIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'email',
-      header: 'Email',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <EmailIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'createdAt',
-      header: 'Ngày Tạo',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {new Date(value).toLocaleDateString('vi-VN')}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createStaffAndParentColumns(), []);
+  const formFields = useMemo(
+    () => createManagerUserFormFields(actionLoading),
+    [actionLoading]
+  );
   
   // Create handler
   const handleCreateUser = () => {
@@ -547,48 +516,7 @@ const StaffAndParentManagement = () => {
           submitText="Cập nhật Thông Tin"
           loading={actionLoading}
           disabled={actionLoading}
-          fields={[
-            { 
-            section: 'Thông tin cơ bản',
-            sectionDescription: 'Tên và email hiển thị trong hệ thống.',
-              name: 'name', 
-              label: 'Họ và Tên', 
-              type: 'text', 
-              required: true, 
-              placeholder: 'Ví dụ: Nguyễn Văn A',
-              disabled: actionLoading,
-            gridSize: 6
-            },
-            { 
-              name: 'email', 
-              label: 'Email', 
-              type: 'email', 
-              required: true, 
-              placeholder: 'Ví dụ: email@example.com',
-              disabled: actionLoading,
-              gridSize: 6
-            },
-            { 
-            section: 'Bảo mật & Trạng thái',
-            sectionDescription: 'Thay đổi mật khẩu hoặc trạng thái tài khoản.',
-              name: 'password', 
-              label: 'Mật Khẩu Mới', 
-              type: 'password', 
-              required: false,
-              placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
-              disabled: actionLoading,
-              gridSize: 6,
-              helperText: 'Lưu ý: Mật khẩu sẽ được thay đổi ngay lập tức, không cần xác nhận từ người dùng'
-            },
-            { 
-              name: 'isActive', 
-            label: 'Trạng thái hoạt động', 
-              type: 'switch', 
-              required: true, 
-              disabled: actionLoading,
-              gridSize: 12
-            }
-          ]}
+          fields={formFields}
         />
       </ManagementFormDialog>
 

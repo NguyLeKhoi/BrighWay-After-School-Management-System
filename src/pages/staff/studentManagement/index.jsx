@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -6,22 +6,18 @@ import {
   InputAdornment,
   Button,
   Paper,
-  Alert,
-  Chip,
-  Avatar
+  Alert
 } from '@mui/material';
 import {
-  Person as PersonIcon,
   School as SchoolIcon,
-  Search as SearchIcon,
-  Business as BusinessIcon,
-  CalendarToday as CalendarIcon
+  Search as SearchIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import studentService from '../../../services/student.service';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
+import { createStaffStudentColumns } from '../../../constants/staff/studentManagement/tableColumns';
 import { toast } from 'react-toastify';
 import styles from './studentManagement.module.css';
 
@@ -37,112 +33,7 @@ const StudentManagement = () => {
   const { showGlobalError } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading();
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Tên Học Sinh',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-            {value?.charAt(0)?.toUpperCase() || 'H'}
-          </Avatar>
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value || 'N/A'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'age',
-      header: 'Tuổi',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {value || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'dateOfBirth',
-      header: 'Ngày Sinh',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={0.5}>
-          <CalendarIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'userName',
-      header: 'Phụ Huynh',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PersonIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value || 'N/A'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'branchName',
-      header: 'Chi Nhánh',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <BusinessIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value || 'N/A'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'schoolName',
-      header: 'Trường Học',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <SchoolIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value || 'N/A'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'studentLevelName',
-      header: 'Cấp Độ',
-      render: (value) => (
-        <Chip
-          label={value || 'N/A'}
-          color="primary"
-          size="small"
-          variant="outlined"
-        />
-      )
-    },
-    {
-      key: 'status',
-      header: 'Trạng Thái',
-      render: (value) => (
-        <Chip
-          label={value ? 'Hoạt Động' : 'Không Hoạt Động'}
-          color={value ? 'success' : 'default'}
-          size="small"
-        />
-      )
-    },
-    {
-      key: 'createdTime',
-      header: 'Ngày Tạo',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createStaffStudentColumns(), []);
 
   // Load students
   const loadStudents = async () => {
