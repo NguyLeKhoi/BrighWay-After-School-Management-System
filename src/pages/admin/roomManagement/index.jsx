@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
 import {
   Alert,
-  FormControl,
-  Select,
-  MenuItem,
-  Paper
+  Box,
+  Typography,
+  TextField
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 import {
   MeetingRoom as RoomIcon
 } from '@mui/icons-material';
@@ -130,7 +130,7 @@ const RoomManagement = () => {
       />
 
       {/* Search Section with Filters */}
-      <Paper className={styles.searchAndFilterSection || styles.searchSection}>
+      <Box className={styles.searchAndFilterSection}>
         <ManagementSearchSection
           keyword={keyword}
           onKeywordChange={handleKeywordChange}
@@ -143,54 +143,50 @@ const RoomManagement = () => {
           placeholder="Tìm kiếm theo tên phòng học..."
         >
           {/* Facility Filter */}
-          <FormControl className={styles.filterGroupItem || styles.statusFilter}>
-            <Select
-              value={filters.facilityFilter || ''}
-              onChange={(e) => updateFilter('facilityFilter', e.target.value)}
-              displayEmpty
-              disabled={isDataLoading}
-              sx={{ minHeight: '40px', minWidth: '200px' }}
-            >
-              <MenuItem value="">Tất cả cơ sở vật chất</MenuItem>
-              {isDataLoading ? (
-                <MenuItem disabled>Đang tải...</MenuItem>
-              ) : getFacilityOptions().length === 0 ? (
-                <MenuItem disabled>Không có dữ liệu</MenuItem>
-              ) : (
-                getFacilityOptions().map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            options={[{ value: '', label: 'Tất cả cơ sở vật chất' }, ...facilityOptions]}
+            value={
+              facilityOptions.find((option) => option.value === filters.facilityFilter) ||
+              (filters.facilityFilter ? null : { value: '', label: 'Tất cả cơ sở vật chất' })
+            }
+            onChange={(_, newValue) => updateFilter('facilityFilter', newValue?.value || '')}
+            getOptionLabel={(option) => option.label || ''}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Cơ sở vật chất"
+                size="small"
+              />
+            )}
+            loading={isDataLoading}
+            disabled={isDataLoading}
+            isOptionEqualToValue={(option, value) => option.value === value.value}
+          />
 
           {/* Branch Filter */}
-          <FormControl className={styles.filterGroupItem || styles.statusFilter}>
-            <Select
-              value={filters.branchFilter || ''}
-              onChange={(e) => updateFilter('branchFilter', e.target.value)}
-              displayEmpty
-              disabled={isDataLoading}
-              sx={{ minHeight: '40px', minWidth: '200px' }}
-            >
-              <MenuItem value="">Tất cả chi nhánh</MenuItem>
-              {isDataLoading ? (
-                <MenuItem disabled>Đang tải...</MenuItem>
-              ) : getBranchOptions().length === 0 ? (
-                <MenuItem disabled>Không có dữ liệu</MenuItem>
-              ) : (
-                getBranchOptions().map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            options={[{ value: '', label: 'Tất cả chi nhánh' }, ...branchOptions]}
+            value={
+              branchOptions.find((option) => option.value === filters.branchFilter) ||
+              (filters.branchFilter ? null : { value: '', label: 'Tất cả chi nhánh' })
+            }
+            onChange={(_, newValue) => updateFilter('branchFilter', newValue?.value || '')}
+            getOptionLabel={(option) => option.label || ''}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Chi nhánh"
+                size="small"
+              />
+            )}
+            loading={isDataLoading}
+            disabled={isDataLoading}
+            isOptionEqualToValue={(option, value) => option.value === value.value}
+          />
         </ManagementSearchSection>
-      </Paper>
+      </Box>
 
       {/* Error Alert */}
       {error && (

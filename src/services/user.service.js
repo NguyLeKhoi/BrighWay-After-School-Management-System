@@ -254,7 +254,7 @@ const userService = {
    */
   getUsersPagedByRole: async (params = {}) => {
     try {
-      const { pageIndex = 1, pageSize = 10, Keyword = '', Role = null } = params;
+      const { pageIndex = 1, pageSize = 10, Keyword = '', Role = null, BranchId = '' } = params;
       const queryParams = new URLSearchParams({
         pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
@@ -266,6 +266,10 @@ const userService = {
       
       if (Role !== null && Role !== undefined) {
         queryParams.append('Role', Role.toString());
+      }
+
+      if (BranchId) {
+        queryParams.append('BranchId', BranchId);
       }
       
       const response = await axiosInstance.get(`/User/paged-by-role?${queryParams}`);

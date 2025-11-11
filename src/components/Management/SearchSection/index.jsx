@@ -12,7 +12,7 @@ const ManagementSearchSection = ({
   showClearButton = true,
   children
 }) => (
-  <Paper className={styles.searchSection}>
+  <Paper className={styles.searchSection} elevation={0}>
     <div className={styles.searchContainer}>
       <TextField
         placeholder={placeholder}

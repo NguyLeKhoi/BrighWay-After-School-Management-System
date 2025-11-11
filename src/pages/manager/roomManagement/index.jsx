@@ -3,12 +3,9 @@ import {
   Box,
   Typography,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 import {
   MeetingRoom as RoomIcon
 } from '@mui/icons-material';
@@ -154,8 +151,8 @@ const ManagerRoomManagement = () => {
   };
 
   // Handle facility filter change
-  const handleFacilityFilterChange = (e) => {
-    const value = e.target.value;
+  const handleFacilityFilterChange = (_, newValue) => {
+    const value = newValue?.value || '';
     setFacilityFilter(value);
     updateFilter('facilityId', value);
   };
@@ -207,32 +204,25 @@ const ManagerRoomManagement = () => {
       >
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Facility Filter */}
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Cơ Sở Vật Chất</InputLabel>
-            <Select
-              value={facilityFilter}
-              onChange={handleFacilityFilterChange}
-              label="Cơ Sở Vật Chất"
-              disabled={isDataLoading}
-            >
-              <MenuItem value="">Tất cả cơ sở vật chất</MenuItem>
-              {getFacilityOptions().map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Branch Filter - Read-only for Manager */}
-          {managerBranchId && (
-            <TextField
-              label="Chi Nhánh"
-              value={getBranchById(managerBranchId)?.branchName || 'Chi nhánh của bạn'}
-              disabled
-              sx={{ minWidth: 200 }}
-            />
-          )}
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            options={[{ value: '', label: 'Tất cả cơ sở vật chất' }, ...facilityOptions]}
+            value={
+              facilityOptions.find((option) => option.value === facilityFilter) ||
+              (facilityFilter ? null : { value: '', label: 'Tất cả cơ sở vật chất' })
+            }
+            onChange={handleFacilityFilterChange}
+            getOptionLabel={(option) => option.label || ''}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Cơ sở vật chất"
+                size="small"
+              />
+            )}
+            disabled={isDataLoading}
+            isOptionEqualToValue={(option, value) => option.value === value.value}
+          />
         </Box>
       </ManagementSearchSection>
 

@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid
-} from '@mui/material';
+import { Alert, Box, TextField } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 import { Person as PersonIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -56,14 +50,17 @@ const ManagerManagement = () => {
     handleKeywordChange,
     handleClearSearch,
     handlePageChange,
-    handleRowsPerPageChange
+    handleRowsPerPageChange,
+  filters,
+    updateFilter
   } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await userService.getUsersPagedByRole({
         pageIndex: params.page || params.pageIndex || 1,
         pageSize: params.pageSize || params.rowsPerPage || 10,
         Role: 'Manager',
-        Keyword: params.Keyword || params.searchTerm || ''
+        Keyword: params.Keyword || params.searchTerm || '',
+        BranchId: params.branchFilter || ''
       });
       return response;
     },
@@ -76,9 +73,13 @@ const ManagerManagement = () => {
     },
     updateFunction: userService.updateUser,
     deleteFunction: userService.deleteUser,
-    defaultFilters: {},
+    defaultFilters: { branchFilter: '' },
     loadOnMount: true
   });
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+
 
   // Override handleCreate to ensure branches are loaded
   const handleCreate = async () => {
@@ -126,6 +127,16 @@ const ManagerManagement = () => {
   const columns = useMemo(() => createManagerColumns(), []);
 
   const branchSelectOptions = useMemo(() => getBranchOptions(), [getBranchOptions]);
+
+  const filteredUsers = useMemo(() => {
+    if (!filters.branchFilter) return users;
+    return users.filter((user) => {
+      const userBranchId = user?.branchId || user?.branch?.id;
+      return userBranchId === filters.branchFilter;
+    });
+  }, [users, filters.branchFilter]);
+
+  const filteredTotalCount = filters.branchFilter ? filteredUsers.length : totalCount;
   const formFields = useMemo(
     () =>
       createManagerFormFields({
@@ -153,9 +164,34 @@ const ManagerManagement = () => {
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
-        onClear={handleClearSearch}
+        onClear={() => {
+          handleClearSearch();
+          updateFilter('branchFilter', '');
+        }}
         placeholder="Tìm kiếm theo tên, email..."
-      />
+      >
+        <Box sx={{ minWidth: 220 }}>
+          <Autocomplete
+            options={branchSelectOptions}
+            value={branchSelectOptions.find((option) => option.value === filters.branchFilter) || null}
+            onChange={(_, newValue) => updateFilter('branchFilter', newValue?.value || '')}
+            getOptionLabel={(option) => option.label || ''}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Chi nhánh"
+                size="small"
+              />
+            )}
+            loading={branchLoading}
+            sx={{
+              '& .MuiInputBase-root': {
+                borderRadius: '8px'
+              }
+            }}
+          />
+        </Box>
+      </ManagementSearchSection>
 
       {/* Error Alert */}
       {error && (
@@ -167,12 +203,12 @@ const ManagerManagement = () => {
       {/* Table */}
       <div className={styles.tableContainer}>
         <DataTable
-          data={users}
+          data={filteredUsers}
           columns={columns}
           loading={isPageLoading}
           page={page}
           rowsPerPage={rowsPerPage}
-          totalCount={totalCount}
+          totalCount={filteredTotalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEdit}
