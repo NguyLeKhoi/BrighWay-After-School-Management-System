@@ -40,6 +40,7 @@ import SchoolManagement from '../pages/admin/schoolManagement';
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
+import ManagerPackageManagement from '../pages/manager/packageManagement';
 
 
 // Staff Pages
@@ -204,6 +205,10 @@ export const routes = createBrowserRouter([
       {
         path: 'rooms',
         element: <ManagerRoomManagement />,
+      },
+      {
+        path: 'packages',
+        element: <ManagerPackageManagement />,
       },
     ],
   },

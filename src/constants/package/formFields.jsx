@@ -14,7 +14,7 @@ export const createTemplateFormFields = ({ templateActionLoading }) => [
     name: 'isActive',
     label: 'Trạng thái hoạt động',
     type: 'switch',
-    gridSize: 4,
+    gridSize: 6,
     disabled: templateActionLoading
   },
   {
@@ -34,7 +34,7 @@ export const createTemplateFormFields = ({ templateActionLoading }) => [
     type: 'number',
     required: true,
     placeholder: 'Ví dụ: 500000',
-    gridSize: 4,
+    gridSize: 6,
     disabled: templateActionLoading
   },
   {
@@ -119,7 +119,8 @@ export const createPackageFormFields = ({
   loadingTemplates,
   templateSelectOptions,
   branchSelectOptions,
-  studentLevelSelectOptions
+  studentLevelSelectOptions,
+  benefitSelectOptions = []
 }) => [
   {
     section: 'Thông tin cơ bản',
@@ -150,7 +151,6 @@ export const createPackageFormFields = ({
   },
   {
     section: 'Liên kết dữ liệu',
-    sectionDescription: 'Xác định mẫu gói, chi nhánh và cấp độ học sinh áp dụng.',
     name: 'packageTemplateId',
     label: 'Mẫu Gói',
     type: 'select',
@@ -176,6 +176,17 @@ export const createPackageFormFields = ({
     options: studentLevelSelectOptions,
     gridSize: 4,
     disabled: packageActionLoading || dependenciesLoading
+  },
+  {
+    name: 'benefitIds',
+    label: 'Lợi Ích Áp Dụng',
+    type: 'multiselect',
+    gridSize: 12,
+    disabled: packageActionLoading || dependenciesLoading || loadingTemplates || benefitSelectOptions.length === 0,
+    options: benefitSelectOptions.length
+      ? benefitSelectOptions
+      : [{ value: '', label: 'Không có lợi ích khả dụng' }],
+    helperText: ''
   },
   {
     section: 'Thông số gói',
@@ -206,6 +217,7 @@ export const createPackageFormFields = ({
     gridSize: 4,
     disabled: packageActionLoading || dependenciesLoading
   }
+  // Benefit selection will be appended dynamically in the page component
 ];
 
 

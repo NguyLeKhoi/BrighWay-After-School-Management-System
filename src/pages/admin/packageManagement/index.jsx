@@ -38,12 +38,26 @@ import { createTemplateFormFields, createPackageFormFields } from '../../../cons
 import styles from './PackageManagement.module.css';
 import { packageTemplateSchema, packageSchema } from '../../../utils/validationSchemas/packageSchemas';
 
+const extractBenefitIds = (source) => {
+  if (!source) return [];
+  if (Array.isArray(source.benefits)) {
+    return source.benefits
+      .map((benefit) => benefit?.id || benefit?.benefitId)
+      .filter(Boolean);
+  }
+  if (Array.isArray(source.benefitIds)) {
+    return source.benefitIds.filter(Boolean);
+  }
+  return [];
+};
+
 const PackageManagement = () => {
   const [activeTab, setActiveTab] = useState('templates');
 
-  const { 
-    studentLevelOptions, 
-    branchOptions, 
+  const {
+    benefitOptions: rawBenefitOptions,
+    studentLevelOptions,
+    branchOptions,
     loading: dependenciesLoading,
     error: dependenciesError,
     fetchDependencies
@@ -139,6 +153,16 @@ const PackageManagement = () => {
   const [templateOptions, setTemplateOptions] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [branchFilterLoading, setBranchFilterLoading] = useState(false);
+
+  const benefitSelectOptions = useMemo(() => {
+    if (!rawBenefitOptions?.length) {
+      return [];
+    }
+    return rawBenefitOptions.map((benefit) => ({
+      value: benefit.id,
+      label: benefit.name
+    }));
+  }, [rawBenefitOptions]);
 
   const { branches, fetchBranches } = useFacilityBranchData();
 
@@ -240,8 +264,14 @@ const PackageManagement = () => {
   const handlePackageFormSubmit = async (data) => {
     const existingBenefitIds =
       packageDialogMode === 'edit'
-        ? selectedPackage?.benefits?.map((b) => b.id) || []
+        ? extractBenefitIds(selectedPackage)
         : [];
+
+    const benefitIdsFromForm = Array.isArray(data.benefitIds)
+      ? data.benefitIds.filter(Boolean)
+      : data.benefitIds
+      ? [data.benefitIds].filter(Boolean)
+      : [];
 
     const submitData = {
       name: data.name,
@@ -253,7 +283,7 @@ const PackageManagement = () => {
       studentLevelId: data.studentLevelId,
       branchId: data.branchId,
       packageTemplateId: data.packageTemplateId,
-      benefitIds: existingBenefitIds
+      benefitIds: benefitIdsFromForm.length ? benefitIdsFromForm : existingBenefitIds
     };
     await packageHandleFormSubmitBase(submitData);
   };
@@ -343,7 +373,8 @@ const PackageManagement = () => {
         loadingTemplates,
         templateSelectOptions,
         branchSelectOptions,
-        studentLevelSelectOptions
+        studentLevelSelectOptions,
+        benefitSelectOptions
       }),
     [
       packageActionLoading,
@@ -351,7 +382,8 @@ const PackageManagement = () => {
       loadingTemplates,
       templateSelectOptions,
       branchSelectOptions,
-      studentLevelSelectOptions
+      studentLevelSelectOptions,
+      benefitSelectOptions
     ]
   );
 
@@ -369,7 +401,8 @@ const PackageManagement = () => {
         selectedPackage?.packageTemplateId ||
         selectedPackage?.packageTemplate?.id ||
         '',
-      isActive: selectedPackage?.isActive ?? true
+      isActive: selectedPackage?.isActive ?? true,
+      benefitIds: extractBenefitIds(selectedPackage).map(String)
     }),
     [selectedPackage]
   );

@@ -98,3 +98,67 @@ export const packageSchema = yup.object({
   isActive: yup.boolean().required()
 });
 
+const applyRange = (schema, minValue, maxValue, unitLabel) => {
+  let next = schema;
+  if (minValue !== null && minValue !== undefined) {
+    next = next.min(minValue, `Giá trị phải lớn hơn hoặc bằng ${minValue}${unitLabel}`);
+  }
+  if (maxValue !== null && maxValue !== undefined) {
+    next = next.max(maxValue, `Giá trị phải nhỏ hơn hoặc bằng ${maxValue}${unitLabel}`);
+  }
+  return next;
+};
+
+export const managerBranchPackageSchema = (template) => {
+  const priceMin = template?.minPrice ?? null;
+  const priceMax = template?.maxPrice ?? null;
+  const durationMin = template?.minDurationInMonths ?? null;
+  const durationMax = template?.maxDurationInMonths ?? null;
+  const slotMin = template?.minSlots ?? null;
+  const slotMax = template?.maxSlots ?? null;
+
+  return yup.object({
+    name: yup
+      .string()
+      .required('Tên gói là bắt buộc')
+      .min(3, 'Tên gói phải có ít nhất 3 ký tự')
+      .max(150, 'Tên gói không được vượt quá 150 ký tự'),
+    desc: yup
+      .string()
+      .nullable()
+      .max(500, 'Mô tả không được vượt quá 500 ký tự'),
+    price: applyRange(
+      yup
+        .number()
+        .typeError('Giá phải là số')
+        .required('Giá là bắt buộc'),
+      priceMin,
+      priceMax,
+      ' VNĐ'
+    ),
+    durationInMonths: applyRange(
+      yup
+        .number()
+        .typeError('Thời hạn phải là số')
+        .required('Thời hạn là bắt buộc'),
+      durationMin,
+      durationMax,
+      ' tháng'
+    ),
+    totalSlots: applyRange(
+      yup
+        .number()
+        .typeError('Slot phải là số')
+        .required('Slot là bắt buộc'),
+      slotMin,
+      slotMax,
+      ''
+    ),
+    packageTemplateId: yup.mixed().nullable(),
+    studentLevelId: yup
+      .string()
+      .required('Vui lòng chọn cấp độ học sinh'),
+    isActive: yup.boolean().required()
+  });
+};
+

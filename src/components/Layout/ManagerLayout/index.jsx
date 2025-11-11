@@ -38,6 +38,11 @@ const ManagerLayout = () => {
       path: '/manager/rooms',
       label: 'Phòng Học',
       icon: RoomIcon
+    },
+    {
+      path: '/manager/packages',
+      label: 'Gói dịch vụ',
+      icon: CoursesIcon
     }
   ];
 

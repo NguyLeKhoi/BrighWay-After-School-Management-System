@@ -126,6 +126,83 @@ const packageService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Get paginated packages for the current manager's branch
+   * @param {Object} params - Pagination parameters { page, pageSize, searchTerm, status }
+   * @returns {Promise} Paginated package list for branch
+   */
+  getMyBranchPackagesPaged: async (params = {}) => {
+    try {
+      const {
+        page = 1,
+        pageSize = 10,
+        searchTerm = '',
+        status = null
+      } = params;
+
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString()
+      });
+
+      if (searchTerm) {
+        queryParams.append('filter.Name', searchTerm);
+      }
+
+      if (status !== null && status !== undefined && status !== '') {
+        queryParams.append('filter.IsActive', status.toString());
+      }
+
+      const response = await axiosInstance.get(`/Package/paged/my-branch?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get benefits of a specific package
+   * @param {string} packageId
+   * @returns {Promise} Benefit list
+   */
+  getPackageBenefits: async (packageId) => {
+    try {
+      const response = await axiosInstance.get(`/Package/${packageId}/benefits`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Create a new package for the current manager's branch
+   * @param {Object} packageData
+   * @returns {Promise} Created package
+   */
+  createMyBranchPackage: async (packageData) => {
+    try {
+      const response = await axiosInstance.post('/Package/my-branch', packageData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Update an existing package in the current manager's branch
+   * @param {string} packageId
+   * @param {Object} packageData
+   * @returns {Promise} Updated package
+   */
+  updateMyBranchPackage: async (packageId, packageData) => {
+    try {
+      const response = await axiosInstance.put(`/Package/my-branch/${packageId}`, packageData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 
