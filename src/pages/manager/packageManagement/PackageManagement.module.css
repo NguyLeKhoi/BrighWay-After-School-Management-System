@@ -22,6 +22,24 @@
   overflow: hidden;
 }
 
+.benefitWrapper {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.benefitMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.benefitTable {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .formGrid {
   margin-top: 8px;
 }
@@ -228,6 +246,11 @@
 
 .filterControl {
   min-width: 180px;
+}
+
+.filterPlaceholder {
+  color: #90a4ae;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {

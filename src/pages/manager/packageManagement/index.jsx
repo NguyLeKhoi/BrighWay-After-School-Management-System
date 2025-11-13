@@ -15,7 +15,11 @@ import {
   Paper,
   Tabs,
   Tab,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  Chip
 } from '@mui/material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -30,6 +34,7 @@ import packageService from '../../../services/package.service';
 import { createPackageColumns } from '../../../constants/package/tableColumns';
 import { createManagerPackageFormFields } from '../../../constants/manager/package/formFields';
 import { managerBranchPackageSchema } from '../../../utils/validationSchemas/packageSchemas';
+import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
 import styles from './PackageManagement.module.css';
 
 const toNumber = (value) => {
@@ -134,23 +139,33 @@ const ManagerPackageManagement = () => {
   });
 
   const statusFilterControl = useMemo(() => (
-    <TextField
-      select
-      size="small"
-      label="Trạng thái"
-      value={filters.status || ''}
-      onChange={(event) => packageUpdateFilter('status', event.target.value)}
-      className={styles.filterControl}
-      SelectProps={{
-        displayEmpty: true
-      }}
-    >
-      <MenuItem value="">
-        Tất cả
-      </MenuItem>
-      <MenuItem value="true">Hoạt động</MenuItem>
-      <MenuItem value="false">Không hoạt động</MenuItem>
-    </TextField>
+    <FormControl size="small" className={styles.filterControl}>
+      <InputLabel id="manager-package-status-label" shrink>
+        Trạng thái
+      </InputLabel>
+      <Select
+        labelId="manager-package-status-label"
+        value={filters.status || ''}
+        label="Trạng thái"
+        notched
+        displayEmpty
+        renderValue={(selected) => {
+          if (!selected) {
+            return <span className={styles.filterPlaceholder}>Tất cả trạng thái</span>;
+          }
+          if (selected === 'true') return 'Hoạt động';
+          if (selected === 'false') return 'Không hoạt động';
+          return 'Không xác định';
+        }}
+        onChange={(event) => packageUpdateFilter('status', event.target.value)}
+      >
+        <MenuItem value="">
+          <em>Tất cả trạng thái</em>
+        </MenuItem>
+        <MenuItem value="true">Hoạt động</MenuItem>
+        <MenuItem value="false">Không hoạt động</MenuItem>
+      </Select>
+    </FormControl>
   ), [filters.status, packageUpdateFilter]);
 
   const packageDefaultValues = useMemo(() => {
@@ -279,24 +294,48 @@ const ManagerPackageManagement = () => {
     }
 
     return (
-      <Box>
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-          Lợi ích trong gói
-        </Typography>
-        <TableContainer component={Paper} variant="outlined">
+      <Box className={styles.benefitWrapper}>
+        <Box className={styles.benefitMeta}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            Lợi ích trong gói
+          </Typography>
+          <Chip
+            label={`${benefits.length} lợi ích`}
+            color="primary"
+            variant="outlined"
+            size="small"
+            sx={{ fontWeight: 500 }}
+          />
+        </Box>
+        <TableContainer component={Paper} variant="outlined" className={styles.benefitTable}>
           <Table size="small">
-            <TableHead sx={{ backgroundColor: '#f0f4ff' }}>
+            <TableHead sx={{ backgroundColor: 'grey.100' }}>
               <TableRow>
+                <TableCell sx={{ width: 56, fontWeight: 600 }}>#</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Tên lợi ích</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Mô tả</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {benefits.map((benefit, idx) => (
-                <TableRow key={benefit.id || idx}>
-                  <TableCell>
-                    <Typography fontWeight={600}>{benefit.name}</Typography>
-                  </TableCell>
-                </TableRow>
+                  <TableRow
+                    key={benefit.id || idx}
+                    hover
+                    sx={{ '&:hover': { backgroundColor: 'grey.50' } }}
+                  >
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <BenefitIcon fontSize="small" color="primary" />
+                        <Typography fontWeight={600}>{benefit.name}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {benefit.description || benefit.desc || 'Không có mô tả'}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
               ))}
             </TableBody>
           </Table>

@@ -1,0 +1,57 @@
+.container {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.errorAlert {
+  margin-bottom: 16px;
+}
+
+.tableContainer {
+  margin-top: 16px;
+}
+
+.filterRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.filterControl {
+  min-width: 220px;
+}
+
+.filterPlaceholder {
+  color: #90a4ae;
+  font-style: italic;
+}
+
+.dependenciesHint {
+  margin-top: 8px;
+  color: #616161;
+  font-size: 13px;
+}
+
+.formHint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #455a64;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .filterRow {
+    flex-direction: column;
+  }
+
+  .filterControl {
+    width: 100%;
+  }
+}
+
+

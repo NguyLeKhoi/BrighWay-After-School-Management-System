@@ -26,7 +26,8 @@ import {
   TablePagination,
   Tooltip,
   TextField,
-  Button
+  Button,
+  Paper
 } from '@mui/material';
 import {
   Business as BusinessIcon,
@@ -278,6 +279,28 @@ const BranchManagement = () => {
     });
   };
 
+  const resolveBenefitStatus = (benefit) => {
+    if (typeof benefit?.status === 'boolean') return benefit.status;
+    if (typeof benefit?.isActive === 'boolean') return benefit.isActive;
+    if (typeof benefit?.active === 'boolean') return benefit.active;
+    if (typeof benefit?.enabled === 'boolean') return benefit.enabled;
+    return undefined;
+  };
+
+  const getBenefitName = (benefit) =>
+    benefit?.name ||
+    benefit?.benefitName ||
+    benefit?.title ||
+    benefit?.displayName ||
+    'Không rõ tên';
+
+  const getBenefitDescription = (benefit) =>
+    benefit?.description ||
+    benefit?.desc ||
+    benefit?.benefitDescription ||
+    benefit?.detail ||
+    'Không có mô tả';
+
   // Define table columns
   const columns = createBranchColumns({
     expandedRows,
@@ -355,81 +378,129 @@ const BranchManagement = () => {
                       </TableRow>
                       {/* Expanded row showing benefits */}
                       {expandedRows.has(branch.id) && (
-                        <>
-                          {rowBenefits[branch.id] === undefined ? (
-                            <TableRow>
-                              <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
+                        <TableRow>
+                          <TableCell
+                            colSpan={columns.length}
+                            sx={{
+                              backgroundColor: 'grey.50',
+                              p: 0,
+                              borderBottom: 'none'
+                            }}
+                          >
+                            {rowBenefits[branch.id] === undefined ? (
+                              <Box
+                                display="flex"
+                                justifyContent="center"
+                                alignItems="center"
+                                py={4}
+                              >
                                 <CircularProgress size={24} />
-                              </TableCell>
-                            </TableRow>
-                          ) : rowBenefits[branch.id] && rowBenefits[branch.id].length > 0 ? (
-                            <>
-                              {/* Header row for benefits */}
-                              <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                                <TableCell colSpan={columns.length} sx={{ fontWeight: 600, py: 1.5, borderBottom: '1px solid', borderBottomColor: 'divider', pl: 4 }}>
-                                  Danh sách Lợi Ích
-                                </TableCell>
-                              </TableRow>
-                              {/* Benefit rows */}
-                              {rowBenefits[branch.id].map((benefit, idx) => (
-                                <TableRow 
-                                  key={benefit.id} 
-                                  hover
-                                  sx={{
-                                    backgroundColor: benefit.status ? 'success.50' : 'transparent',
-                                    '&:hover': {
-                                      backgroundColor: benefit.status ? 'success.100' : 'grey.50'
-                                    }
-                                  }}
-                                >
-                                  <TableCell sx={{ pl: 4 }}>
-                                    <Box display="flex" alignItems="center" gap={1}>
-                                      <BenefitIcon fontSize="small" color={benefit.status ? 'success' : 'inherit'} />
-                                      <Typography variant="body2" fontWeight={500}>
-                                        {benefit.name}
-                                      </Typography>
-                                    </Box>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Typography variant="body2" color="text.secondary">
-                                      {benefit.description || 'Không có mô tả'}
-                                    </Typography>
-                                  </TableCell>
-                                  <TableCell></TableCell>
-                                  <TableCell>
-                                    <Box display="flex" justifyContent="flex-end" gap={1} alignItems="center">
-                                      <Chip
-                                        label={benefit.status ? 'Hoạt động' : 'Không hoạt động'}
-                                        color={benefit.status ? 'success' : 'default'}
-                                        size="small"
-                                        sx={{ fontWeight: 500 }}
-                                      />
-                                      <Tooltip title="Gỡ lợi ích khỏi chi nhánh">
-                                        <IconButton
-                                          size="small"
-                                          color="error"
-                                          onClick={() => handleRemoveBenefit(branch.id, benefit.id, benefit.name)}
-                                          disabled={actionLoading}
-                                          sx={{ ml: 1 }}
-                                        >
-                                          <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                      </Tooltip>
-                                    </Box>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </>
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={columns.length} align="center" sx={{ py: 3, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
+                              </Box>
+                            ) : rowBenefits[branch.id] && rowBenefits[branch.id].length > 0 ? (
+                              <Box className={styles.benefitWrapper}>
+                                <Box className={styles.benefitMeta}>
+                                  <Typography variant="subtitle1" fontWeight={600}>
+                                    Danh sách Lợi Ích
+                                  </Typography>
+                                  <Chip
+                                    label={`${rowBenefits[branch.id].length} lợi ích`}
+                                    color="primary"
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{ fontWeight: 500 }}
+                                  />
+                                </Box>
+
+                                <TableContainer component={Paper} variant="outlined" className={styles.benefitTable}>
+                                  <Table size="small">
+                                    <TableHead sx={{ backgroundColor: 'grey.100' }}>
+                                      <TableRow>
+                                        <TableCell sx={{ width: 56, fontWeight: 600 }}>#</TableCell>
+                                        <TableCell sx={{ fontWeight: 600 }}>Tên lợi ích</TableCell>
+                                        <TableCell sx={{ fontWeight: 600 }}>Mô tả</TableCell>
+                                        <TableCell sx={{ fontWeight: 600, width: 140 }}>Trạng thái</TableCell>
+                                        <TableCell sx={{ width: 100 }} align="right">
+                                          Thao tác
+                                        </TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {rowBenefits[branch.id].map((benefit, idx) => {
+                                        const isActive =
+                                          typeof benefit.status === 'boolean'
+                                            ? benefit.status
+                                            : typeof benefit.isActive === 'boolean'
+                                            ? benefit.isActive
+                                            : false;
+
+                                        return (
+                                          <TableRow
+                                            key={benefit.id}
+                                            hover
+                                            sx={{
+                                              backgroundColor: isActive ? 'success.50' : 'transparent',
+                                              '&:hover': {
+                                                backgroundColor: isActive ? 'success.100' : 'grey.50'
+                                              }
+                                            }}
+                                          >
+                                            <TableCell>{idx + 1}</TableCell>
+                                            <TableCell>
+                                              <Box display="flex" alignItems="center" gap={1}>
+                                                <BenefitIcon fontSize="small" color={isActive ? 'success' : 'action'} />
+                                                <Typography variant="body2" fontWeight={600}>
+                                                  {benefit.name}
+                                                </Typography>
+                                              </Box>
+                                            </TableCell>
+                                            <TableCell>
+                                              <Typography variant="body2" color="text.secondary">
+                                                {benefit.description || 'Không có mô tả'}
+                                              </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                              <Chip
+                                                label={isActive ? 'Hoạt động' : 'Không hoạt động'}
+                                                color={isActive ? 'success' : 'default'}
+                                                size="small"
+                                                sx={{ fontWeight: 500 }}
+                                              />
+                                            </TableCell>
+                                            <TableCell align="right">
+                                              <Tooltip title="Gỡ lợi ích khỏi chi nhánh">
+                                                <span>
+                                                  <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={() => handleRemoveBenefit(branch.id, benefit.id, benefit.name)}
+                                                    disabled={actionLoading}
+                                                  >
+                                                    <DeleteIcon fontSize="small" />
+                                                  </IconButton>
+                                                </span>
+                                              </Tooltip>
+                                            </TableCell>
+                                          </TableRow>
+                                        );
+                                      })}
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              </Box>
+                            ) : (
+                              <Box
+                                sx={{
+                                  py: 4,
+                                  textAlign: 'center'
+                                }}
+                              >
                                 <Typography variant="body2" color="text.secondary">
                                   Chi nhánh này chưa có lợi ích nào được gán.
                                 </Typography>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </>
+                              </Box>
+                            )}
+                          </TableCell>
+                        </TableRow>
                       )}
                     </React.Fragment>
                   ))

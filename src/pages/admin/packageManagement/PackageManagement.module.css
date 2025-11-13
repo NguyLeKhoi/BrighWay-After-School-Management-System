@@ -129,6 +129,24 @@
   max-width: 100%;
 }
 
+.benefitWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.benefitMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.benefitTable {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .dialogContent {
   background: white;
 }

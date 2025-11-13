@@ -147,6 +147,24 @@
   gap: 8px;
 }
 
+.benefitWrapper {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.benefitMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.benefitTable {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .actionButton {
   padding: 4px;
 }

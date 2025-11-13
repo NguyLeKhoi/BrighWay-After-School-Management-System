@@ -4,14 +4,11 @@ import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
 import {
-  Business as BranchIcon,
-  Room as FacilityIcon,
   Person as UserIcon,
   School as CoursesIcon,
-  Assessment as ReportsIcon,
-  Settings as SettingsIcon,
   Dashboard as DashboardIcon,
-  MeetingRoom as RoomIcon
+  MeetingRoom as RoomIcon,
+  Group as StudentIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -33,6 +30,11 @@ const ManagerLayout = () => {
       path: '/manager/staffAndParent',
       label: 'Nhân Viên & ParentParent',
       icon: UserIcon
+    },
+    {
+      path: '/manager/students',
+      label: 'Học Sinh',
+      icon: StudentIcon
     },
     {
       path: '/manager/rooms',
