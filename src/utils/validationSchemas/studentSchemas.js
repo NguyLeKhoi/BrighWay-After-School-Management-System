@@ -45,4 +45,20 @@ export const managerStudentSchema = yup.object({
     .transform((value, originalValue) => (originalValue === '' ? null : value))
 });
 
+export const studentStep1Schema = yup.object({
+  name: managerStudentSchema.fields.name,
+  dateOfBirth: managerStudentSchema.fields.dateOfBirth
+});
+
+export const studentStep2Schema = yup.object({
+  userId: managerStudentSchema.fields.userId,
+  schoolId: managerStudentSchema.fields.schoolId,
+  studentLevelId: managerStudentSchema.fields.studentLevelId
+});
+
+export const studentStep3Schema = yup.object({
+  image: managerStudentSchema.fields.image,
+  note: managerStudentSchema.fields.note
+});
+
 

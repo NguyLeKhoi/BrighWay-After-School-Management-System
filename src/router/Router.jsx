@@ -41,10 +41,14 @@ import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
 import ManagerPackageManagement from '../pages/manager/packageManagement';
+import CreatePackage from '../pages/manager/packageManagement/CreatePackage';
+import UpdatePackage from '../pages/manager/packageManagement/UpdatePackage';
 import ManagerStudentManagement from '../pages/manager/studentManagement';
 import ManagerBranchSlotManagement from '../pages/manager/branchSlotManagement';
 import CreateBranchSlot from '../pages/manager/branchSlotManagement/CreateBranchSlot';
 import UpdateBranchSlot from '../pages/manager/branchSlotManagement/UpdateBranchSlot';
+import CreateStudent from '../pages/manager/studentManagement/CreateStudent';
+import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 
 
 // Staff Pages
@@ -215,8 +219,24 @@ export const routes = createBrowserRouter([
         element: <ManagerPackageManagement />,
       },
       {
+        path: 'packages/create',
+        element: <CreatePackage />,
+      },
+      {
+        path: 'packages/update/:id',
+        element: <UpdatePackage />,
+      },
+      {
         path: 'students',
         element: <ManagerStudentManagement />,
+      },
+      {
+        path: 'students/create',
+        element: <CreateStudent />,
+      },
+      {
+        path: 'students/update/:id',
+        element: <UpdateStudent />,
       },
       {
         path: 'branch-slots',

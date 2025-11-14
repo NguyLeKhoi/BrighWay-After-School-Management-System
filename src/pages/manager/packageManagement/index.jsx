@@ -21,51 +21,23 @@ import {
   Select,
   Chip
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
-import Form from '../../../components/Common/Form';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
-import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import useManagerPackageDependencies from '../../../hooks/useManagerPackageDependencies';
 import packageService from '../../../services/package.service';
 import { createPackageColumns } from '../../../constants/package/tableColumns';
-import { createManagerPackageFormFields } from '../../../constants/manager/package/formFields';
-import { managerBranchPackageSchema } from '../../../utils/validationSchemas/packageSchemas';
 import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
 import styles from './PackageManagement.module.css';
 
-const toNumber = (value) => {
-  if (value === null || value === undefined || value === '') return 0;
-  const numericValue = Number(value);
-  return Number.isNaN(numericValue) ? 0 : numericValue;
-};
-
-const extractBenefitIds = (source) => {
-  if (!source) return [];
-  if (Array.isArray(source.benefits)) {
-    return source.benefits
-      .map((benefit) => benefit?.id || benefit?.benefitId)
-      .filter(Boolean);
-  }
-  if (Array.isArray(source.benefitIds)) {
-    return source.benefitIds.filter(Boolean);
-  }
-  if (Array.isArray(source.templateBenefits)) {
-    return source.templateBenefits
-      .map((item) => item?.benefitId || item?.id)
-      .filter(Boolean);
-  }
-  return [];
-};
-
 const ManagerPackageManagement = () => {
+  const navigate = useNavigate();
   const {
     templates,
-    studentLevelOptions,
-    benefitOptions,
     loading: dependenciesLoading,
     error: dependenciesError,
     fetchDependencies
@@ -79,22 +51,14 @@ const ManagerPackageManagement = () => {
     keyword,
     filters,
     error,
-    actionLoading,
     isPageLoading,
     loadingText,
-    openDialog: packageDialogOpen,
-    setOpenDialog: setPackageDialogOpen,
-    dialogMode: packageDialogMode,
-    selectedItem: selectedPackage,
-    handleCreate: packageHandleCreateBase,
-    handleEdit: packageHandleEditBase,
-    handleFormSubmit: packageHandleFormSubmitBase,
-    handleKeywordSearch: packageHandleKeywordSearch,
-    handleKeywordChange: packageHandleKeywordChange,
-    handleClearSearch: packageHandleClearSearch,
-    handlePageChange: packageHandlePageChange,
-    handleRowsPerPageChange: packageHandleRowsPerPageChange,
-    updateFilter: packageUpdateFilter,
+    handleKeywordSearch,
+    handleKeywordChange,
+    handleClearSearch,
+    handlePageChange,
+    handleRowsPerPageChange,
+    updateFilter,
     loadData
   } = useBaseCRUD({
     loadFunction: packageService.getMyBranchPackagesPaged,
@@ -107,31 +71,7 @@ const ManagerPackageManagement = () => {
 
   const packageColumns = useMemo(() => createPackageColumns(styles), []);
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState(null);
   const [activeTab, setActiveTab] = useState('packages');
-  const selectedTemplate = useMemo(
-    () => templates.find((template) => template.id === selectedTemplateId) || null,
-    [templates, selectedTemplateId]
-  );
-
-  const packageFormFields = useMemo(
-    () =>
-      createManagerPackageFormFields({
-        actionLoading,
-        dependenciesLoading,
-        studentLevelOptions,
-        benefitOptions,
-        selectedTemplate
-      }),
-    [actionLoading, dependenciesLoading, studentLevelOptions, benefitOptions, selectedTemplate]
-  );
-
-  const validationSchema = useMemo(
-    () => managerBranchPackageSchema(selectedTemplate),
-    [selectedTemplate]
-  );
-
-  const hasDependencies = templates.length > 0 && studentLevelOptions.length > 0;
 
   const [deactivateDialog, setDeactivateDialog] = useState({
     open: false,
@@ -157,7 +97,7 @@ const ManagerPackageManagement = () => {
           if (selected === 'false') return 'Không hoạt động';
           return 'Không xác định';
         }}
-        onChange={(event) => packageUpdateFilter('status', event.target.value)}
+        onChange={(event) => updateFilter('status', event.target.value)}
       >
         <MenuItem value="">
           <em>Tất cả trạng thái</em>
@@ -166,52 +106,7 @@ const ManagerPackageManagement = () => {
         <MenuItem value="false">Không hoạt động</MenuItem>
       </Select>
     </FormControl>
-  ), [filters.status, packageUpdateFilter]);
-
-  const packageDefaultValues = useMemo(() => {
-    if (packageDialogMode === 'edit' && selectedPackage) {
-      return {
-        name: selectedPackage?.name || '',
-        desc: selectedPackage?.desc || '',
-        price: selectedPackage?.price ?? '',
-        durationInMonths: selectedPackage?.durationInMonths ?? '',
-        totalSlots: selectedPackage?.totalSlots ?? '',
-        studentLevelId:
-          selectedPackage?.studentLevelId || selectedPackage?.studentLevel?.id || '',
-        isActive: selectedPackage?.isActive ?? true,
-        packageTemplateId: selectedTemplate?.id || selectedPackage?.packageTemplateId || '',
-        benefitIds: extractBenefitIds(selectedPackage).map(String)
-      };
-    }
-
-    return {
-      name: '',
-      desc: '',
-      price: selectedTemplate?.defaultPrice ?? '',
-      durationInMonths: selectedTemplate?.defaultDurationInMonths ?? '',
-      totalSlots: selectedTemplate?.defaultTotalSlots ?? '',
-      studentLevelId: studentLevelOptions[0]?.value || '',
-      isActive: true,
-      packageTemplateId: selectedTemplate?.id || '',
-      benefitIds: extractBenefitIds(selectedTemplate).map(String)
-    };
-  }, [packageDialogMode, selectedPackage, selectedTemplate, studentLevelOptions]);
-
-  useEffect(() => {
-    if (!packageDialogOpen) {
-      setSelectedTemplateId(null);
-    }
-  }, [packageDialogOpen]);
-
-  useEffect(() => {
-    if (!packageDialogOpen || packageDialogMode !== 'edit' || !selectedPackage) {
-      return;
-    }
-
-    const templateId =
-      selectedPackage.packageTemplateId || selectedPackage.packageTemplate?.id || null;
-    setSelectedTemplateId(templateId);
-  }, [packageDialogOpen, packageDialogMode, selectedPackage]);
+  ), [filters.status, updateFilter]);
 
   useEffect(() => {
     if (activeTab === 'templates' && !dependenciesLoading && templates.length === 0) {
@@ -219,67 +114,22 @@ const ManagerPackageManagement = () => {
     }
   }, [activeTab, dependenciesLoading, templates.length, fetchDependencies]);
 
-  const handlePackageCreate = useCallback(async () => {
-    setActiveTab('templates');
-    if (!hasDependencies && !dependenciesLoading) {
-      await fetchDependencies();
-    }
-  }, [dependenciesLoading, fetchDependencies, hasDependencies]);
+  const handlePackageCreate = useCallback(() => {
+    navigate('/manager/packages/create');
+  }, [navigate]);
 
   const handlePackageEdit = useCallback(
-    async (packageItem) => {
-      let success = true;
-      if (!hasDependencies) {
-        success = await fetchDependencies();
-      }
-      if (!success) return;
-      packageHandleEditBase(packageItem);
+    (packageItem) => {
+      navigate(`/manager/packages/update/${packageItem.id}`);
     },
-    [fetchDependencies, packageHandleEditBase, hasDependencies]
+    [navigate]
   );
 
-  const handlePackageFormSubmit = useCallback(
-    async (data) => {
-      const isCreateMode = packageDialogMode === 'create';
-      if (isCreateMode && !selectedTemplate) {
-        throw new Error('Vui lòng chọn mẫu gói trước khi lưu.');
-      }
-
-      const templateIdForSubmit =
-        selectedTemplate?.id ??
-        selectedPackage?.packageTemplateId ??
-        selectedPackage?.packageTemplate?.id ??
-        null;
-
-      const benefitIdsFromForm = Array.isArray(data.benefitIds)
-        ? data.benefitIds.filter(Boolean).map(String)
-        : data.benefitIds
-        ? [data.benefitIds].filter(Boolean).map(String)
-        : [];
-
-      const fallbackBenefitIds = (
-        isCreateMode
-          ? extractBenefitIds(selectedTemplate)
-          : extractBenefitIds(selectedPackage)
-      ).map(String);
-
-      const benefitIds = benefitIdsFromForm.length ? benefitIdsFromForm : fallbackBenefitIds;
-
-      const submitData = {
-        name: data.name,
-        desc: data.desc,
-        durationInMonths: toNumber(data.durationInMonths),
-        totalSlots: toNumber(data.totalSlots),
-        price: toNumber(data.price),
-        isActive: data.isActive ?? true,
-        studentLevelId: data.studentLevelId || null,
-        packageTemplateId: templateIdForSubmit,
-        benefitIds
-      };
-
-      await packageHandleFormSubmitBase(submitData);
+  const handleTemplateCreate = useCallback(
+    (template) => {
+      navigate(`/manager/packages/create?templateId=${template.id}`);
     },
-    [packageDialogMode, packageHandleFormSubmitBase, selectedPackage, selectedTemplate]
+    [navigate]
   );
 
   const renderBenefits = useCallback((item) => {
@@ -375,33 +225,12 @@ const ManagerPackageManagement = () => {
     setDeactivateDialog({ open: false, item: null });
   }, []);
 
-  const handleTemplateCreate = useCallback(
-    async (template) => {
-      let success = true;
-      if (!hasDependencies) {
-        success = await fetchDependencies();
-      }
-      if (!success) return;
-      setSelectedTemplateId(template.id);
-      packageHandleCreateBase();
-    },
-    [fetchDependencies, hasDependencies, packageHandleCreateBase]
-  );
-
-  const handleTemplateChange = useCallback(() => {
-    setPackageDialogOpen(false);
-    setSelectedTemplateId(null);
-    setActiveTab('templates');
-  }, [setPackageDialogOpen, setActiveTab]);
-
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
 
       <ManagementPageHeader
         title="Quản lý gói của chi nhánh"
-        createButtonText="Tạo gói mới"
-        onCreateClick={activeTab === 'packages' ? handlePackageCreate : null}
       />
 
       <Paper
@@ -469,11 +298,11 @@ const ManagerPackageManagement = () => {
         <>
           <ManagementSearchSection
             keyword={keyword}
-            onKeywordChange={packageHandleKeywordChange}
-            onSearch={packageHandleKeywordSearch}
+            onKeywordChange={handleKeywordChange}
+            onSearch={handleKeywordSearch}
             onClear={() => {
-              packageHandleClearSearch();
-              packageUpdateFilter('status', '');
+              handleClearSearch();
+              updateFilter('status', '');
             }}
             placeholder="Tìm kiếm theo tên gói bán..."
           >
@@ -494,8 +323,8 @@ const ManagerPackageManagement = () => {
               page={page}
               rowsPerPage={rowsPerPage}
               totalCount={totalCount}
-              onPageChange={packageHandlePageChange}
-              onRowsPerPageChange={packageHandleRowsPerPageChange}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
               onEdit={handlePackageEdit}
               onDelete={handleDeactivatePrompt}
               expandableConfig={{
@@ -571,50 +400,6 @@ const ManagerPackageManagement = () => {
           )}
         </div>
       )}
-
-      <ManagementFormDialog
-        open={packageDialogOpen}
-        onClose={() => setPackageDialogOpen(false)}
-        mode={packageDialogMode}
-        title="Gói Bán"
-        loading={actionLoading || dependenciesLoading}
-        maxWidth="md"
-      >
-        {selectedTemplate && (
-          <Box className={styles.templateSummary}>
-            <Box className={styles.templateSummaryContent}>
-              <Typography variant="subtitle1" className={styles.templateSummaryTitle}>
-                {selectedTemplate.name}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" className={styles.templateSummaryDesc}>
-                {selectedTemplate.desc || 'Không có mô tả'}
-              </Typography>
-            </Box>
-            <Box className={styles.templateSummaryActions}>
-              <Button variant="text" onClick={handleTemplateChange}>
-                Đổi mẫu
-              </Button>
-            </Box>
-          </Box>
-        )}
-
-        {packageDialogMode !== 'create' || selectedTemplate ? (
-          <Form
-            key={`manager-package-${packageDialogMode}-${selectedPackage?.id || 'new'}-${selectedTemplate?.id || 'none'}`}
-            schema={validationSchema}
-            defaultValues={packageDefaultValues}
-            onSubmit={handlePackageFormSubmit}
-            submitText={packageDialogMode === 'create' ? 'Tạo Gói Bán' : 'Cập nhật Gói Bán'}
-            loading={actionLoading || dependenciesLoading}
-            fields={packageFormFields}
-            showReset={packageDialogMode === 'create'}
-          />
-        ) : (
-          <Alert severity="info">
-            Vui lòng chọn một mẫu gói từ tab "Mẫu gói" trước khi tạo mới.
-          </Alert>
-        )}
-      </ManagementFormDialog>
 
       <ConfirmDialog
         open={deactivateDialog.open}

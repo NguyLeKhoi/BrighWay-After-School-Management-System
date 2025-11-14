@@ -162,3 +162,65 @@ export const managerBranchPackageSchema = (template) => {
   });
 };
 
+export const packageStepGeneralSchema = yup.object({
+  name: yup
+    .string()
+    .required('Tên gói là bắt buộc')
+    .min(3, 'Tên gói phải có ít nhất 3 ký tự')
+    .max(150, 'Tên gói không được vượt quá 150 ký tự'),
+  desc: yup
+    .string()
+    .nullable()
+    .max(500, 'Mô tả không được vượt quá 500 ký tự'),
+  studentLevelId: yup
+    .string()
+    .required('Vui lòng chọn cấp độ học sinh'),
+  isActive: yup.boolean().required()
+});
+
+export const packageStepPricingSchema = (template) => {
+  const priceMin = template?.minPrice ?? null;
+  const priceMax = template?.maxPrice ?? null;
+  const durationMin = template?.minDurationInMonths ?? null;
+  const durationMax = template?.maxDurationInMonths ?? null;
+  const slotMin = template?.minSlots ?? null;
+  const slotMax = template?.maxSlots ?? null;
+
+  return yup.object({
+    price: applyRange(
+      yup
+        .number()
+        .typeError('Giá phải là số')
+        .required('Giá là bắt buộc'),
+      priceMin,
+      priceMax,
+      ' VNĐ'
+    ),
+    durationInMonths: applyRange(
+      yup
+        .number()
+        .typeError('Thời hạn phải là số')
+        .required('Thời hạn là bắt buộc'),
+      durationMin,
+      durationMax,
+      ' tháng'
+    ),
+    totalSlots: applyRange(
+      yup
+        .number()
+        .typeError('Slot phải là số')
+        .required('Slot là bắt buộc'),
+      slotMin,
+      slotMax,
+      ''
+    )
+  });
+};
+
+export const packageStep3Schema = yup.object({
+  benefitIds: yup
+    .array()
+    .of(yup.string())
+    .min(1, 'Vui lòng chọn ít nhất 1 lợi ích')
+});
+

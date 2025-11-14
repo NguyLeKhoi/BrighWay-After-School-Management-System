@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Box,
@@ -9,11 +9,10 @@ import {
   Select,
   Typography
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
-import ManagementFormDialog from '../../../components/Management/FormDialog';
 import DataTable from '../../../components/Common/DataTable';
-import Form from '../../../components/Common/Form';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -22,29 +21,7 @@ import schoolService from '../../../services/school.service';
 import studentLevelService from '../../../services/studentLevel.service';
 import userService from '../../../services/user.service';
 import { createManagerStudentColumns } from '../../../constants/manager/student/tableColumns';
-import { createManagerStudentFormFields } from '../../../constants/manager/student/formFields';
-import { managerStudentSchema } from '../../../utils/validationSchemas/studentSchemas';
 import styles from './StudentManagement.module.css';
-
-const DEFAULT_FORM_VALUES = {
-  name: '',
-  dateOfBirth: '',
-  userId: '',
-  branchId: '',
-  schoolId: '',
-  studentLevelId: '',
-  image: '',
-  note: ''
-};
-
-const toISODateString = (value) => {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-  return date.toISOString();
-};
 
 const mapOptions = (items = [], labelKey = 'name') =>
   items
@@ -54,20 +31,11 @@ const mapOptions = (items = [], labelKey = 'name') =>
       label: item[labelKey]
     }));
 
-const transformStudentPayload = (values) => ({
-  name: values.name?.trim(),
-  dateOfBirth: toISODateString(values.dateOfBirth),
-  image: values.image?.trim() || null,
-  note: values.note?.trim() || null,
-  userId: values.userId || null,
-  branchId: values.branchId || null,
-  schoolId: values.schoolId || null,
-  studentLevelId: values.studentLevelId || null
-});
-
 const StudentManagement = () => {
   const { showGlobalError } = useApp();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const branchIdRef = useRef(user?.branchId || '');
   const [parentOptions, setParentOptions] = useState([]);
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [studentLevelOptions, setStudentLevelOptions] = useState([]);
@@ -83,23 +51,20 @@ const StudentManagement = () => {
       const pageIndex = params.page || params.pageIndex || 1;
       const pageSize = params.pageSize || params.rowsPerPage || 10;
       const keyword = params.Keyword || params.searchTerm || '';
+      const resolvedBranchId =
+        params.branchId ||
+        branchIdRef.current ||
+        user?.branchId ||
+        undefined;
       return await studentService.getStudentsPaged({
         pageIndex,
         pageSize,
         name: keyword || undefined,
-         branchId: params.branchId || user?.branchId || undefined,
+        branchId: resolvedBranchId,
         schoolId: params.schoolId || undefined,
         levelId: params.studentLevelId || params.levelId || undefined,
         userId: params.userId || undefined
       });
-    },
-    createFunction: async (data) => {
-      const payload = transformStudentPayload(data);
-      return await studentService.createStudent(payload);
-    },
-    updateFunction: async (id, data) => {
-      const payload = transformStudentPayload(data);
-      return await studentService.updateStudent(id, payload);
     },
     defaultFilters: {
       branchId: '',
@@ -116,6 +81,7 @@ const StudentManagement = () => {
           id: user.branchId,
           name: user.branchName || prev.name
         }));
+        branchIdRef.current = user.branchId;
         studentCrud.setFilters((prev) => ({
           ...prev,
           branchId: user.branchId
@@ -124,6 +90,7 @@ const StudentManagement = () => {
       }
 
       if (branchInfo.id) {
+        branchIdRef.current = branchInfo.id;
         studentCrud.setFilters((prev) => ({
           ...prev,
           branchId: branchInfo.id
@@ -148,6 +115,7 @@ const StudentManagement = () => {
             id: managerBranchId,
             name: managerBranchName
           });
+          branchIdRef.current = managerBranchId;
           studentCrud.setFilters((prev) => ({
             ...prev,
             branchId: managerBranchId
@@ -163,25 +131,6 @@ const StudentManagement = () => {
   }, [user?.branchId, user?.branchName, branchInfo.id]);
 
   const columns = useMemo(() => createManagerStudentColumns(), []);
-
-  const formFields = useMemo(
-    () =>
-      createManagerStudentFormFields({
-        parentOptions,
-        schoolOptions,
-        studentLevelOptions,
-        actionLoading: studentCrud.actionLoading || dependenciesLoading,
-        defaultBranchName: branchInfo.name || 'Chi nhánh của bạn'
-      }),
-    [
-      parentOptions,
-      schoolOptions,
-      studentLevelOptions,
-      studentCrud.actionLoading,
-      dependenciesLoading,
-      branchInfo.name
-    ]
-  );
 
   const fetchDependencies = async () => {
     setDependenciesLoading(true);
@@ -222,47 +171,6 @@ const StudentManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getDialogTitle = studentCrud.dialogMode === 'edit' ? 'Cập nhật học sinh' : 'Thêm học sinh';
-
-  const getDefaultValues = () => {
-    if (studentCrud.dialogMode === 'edit' && studentCrud.selectedItem) {
-      const item = studentCrud.selectedItem;
-      return {
-        name: item.name || '',
-        dateOfBirth: item.dateOfBirth ? item.dateOfBirth.split('T')[0] : '',
-        userId: item.userId || '',
-        branchId: item.branchId || user?.branchId || branchInfo.id || '',
-        schoolId: item.schoolId || '',
-        studentLevelId: item.studentLevelId || '',
-        image: item.image || '',
-        note: item.note || ''
-      };
-    }
-    return {
-      ...DEFAULT_FORM_VALUES,
-      branchId: user?.branchId || branchInfo.id || ''
-    };
-  };
-
-  const handleStudentFormSubmit = useCallback(
-    async (formData) => {
-      const resolvedBranchId =
-        user?.branchId || branchInfo.id || formData.branchId || '';
-
-      if (!resolvedBranchId) {
-        showGlobalError('Không xác định được chi nhánh của bạn. Vui lòng đăng nhập lại hoặc liên hệ quản trị.');
-        return;
-      }
-
-      const submitData = {
-        ...formData,
-        branchId: resolvedBranchId
-      };
-      await studentCrud.handleFormSubmit(submitData);
-    },
-    [studentCrud, user?.branchId, branchInfo.id, showGlobalError]
-  );
-
   const renderDependencyState = () => {
     if (dependenciesLoading) {
       return (
@@ -291,7 +199,7 @@ const StudentManagement = () => {
       <ManagementPageHeader
         title="Quản lý học sinh"
         createButtonText="Thêm học sinh"
-        onCreateClick={studentCrud.handleCreate}
+        onCreateClick={() => navigate('/manager/students/create')}
       />
 
       {(studentCrud.error || dependenciesError) && (
@@ -391,33 +299,11 @@ const StudentManagement = () => {
           totalCount={studentCrud.totalCount}
           onPageChange={studentCrud.handlePageChange}
           onRowsPerPageChange={studentCrud.handleRowsPerPageChange}
-          onEdit={studentCrud.handleEdit}
+          onEdit={(item) => navigate(`/manager/students/update/${item.id}`)}
           showActions
           emptyMessage="Chưa có học sinh nào. Hãy thêm học sinh đầu tiên để bắt đầu."
         />
       </div>
-
-      <ManagementFormDialog
-        open={studentCrud.openDialog}
-        onClose={() => !studentCrud.actionLoading && studentCrud.setOpenDialog(false)}
-        mode={studentCrud.dialogMode}
-        title={getDialogTitle}
-        loading={studentCrud.actionLoading}
-        maxWidth="md"
-      >
-        <Form
-          schema={managerStudentSchema}
-          defaultValues={getDefaultValues()}
-          onSubmit={handleStudentFormSubmit}
-          submitText={studentCrud.dialogMode === 'edit' ? 'Cập nhật' : 'Tạo mới'}
-          loading={studentCrud.actionLoading}
-          fields={formFields}
-        >
-          <Typography variant="body2" className={styles.formHint}>
-            * Các trường bắt buộc đã được đánh dấu. Học sinh sẽ được tạo kèm ví điện tử tự động.
-          </Typography>
-        </Form>
-      </ManagementFormDialog>
     </div>
   );
 };

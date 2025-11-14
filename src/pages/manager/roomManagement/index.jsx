@@ -28,7 +28,6 @@ import styles from './RoomManagement.module.css';
 
 const ManagerRoomManagement = () => {
   const [managerBranchId, setManagerBranchId] = useState(null);
-  const [facilityFilter, setFacilityFilter] = useState('');
   
   // Facility and Branch data
   const {
@@ -69,17 +68,16 @@ const ManagerRoomManagement = () => {
     }
     
     const effectiveBranchFilter = managerBranchId; // Always use manager's branch
-    const effectiveFacilityFilter = facilityFilter || params.facilityId || '';
     
     const response = await roomService.getRoomsPaged(
       params.page || params.pageIndex || 1,
       params.pageSize || params.rowsPerPage || 10,
       params.Keyword || params.searchTerm || '',
-      effectiveFacilityFilter,
+      '',
       effectiveBranchFilter
     );
     return response;
-  }, [managerBranchId, facilityFilter]);
+  }, [managerBranchId]);
 
   // Use Manager CRUD hook with custom load function
   const {
@@ -166,23 +164,13 @@ const ManagerRoomManagement = () => {
     await baseHandleFormSubmit(submitData);
   };
 
-  // Handle facility filter change
-  const handleFacilityFilterChange = (_, newValue) => {
-    const value = newValue?.value || '';
-    setFacilityFilter(value);
-    updateFilter('facilityId', value);
-  };
-
   // Handle clear filters
   const handleClearFilters = () => {
-    setFacilityFilter('');
     handleClearSearch();
-    updateFilter('facilityId', '');
     updateFilter('branchId', '');
   };
 
   const columns = useMemo(() => createManagerRoomColumns(styles), [styles]);
-  const facilityOptions = useMemo(() => getFacilityOptions(), [getFacilityOptions]);
   const branchOptions = useMemo(
     () => getBranchOptions(),
     [getBranchOptions, managerBranchId]
@@ -192,11 +180,11 @@ const ManagerRoomManagement = () => {
     () =>
       createManagerRoomFormFields({
         actionLoading,
-        facilityOptions,
+        facilityOptions: getFacilityOptions(),
         managerBranchId,
         branchOptions
       }),
-    [actionLoading, facilityOptions, managerBranchId, branchOptions]
+    [actionLoading, getFacilityOptions, managerBranchId, branchOptions]
   );
 
   return (
@@ -218,28 +206,7 @@ const ManagerRoomManagement = () => {
         onClear={handleClearFilters}
         placeholder="Tìm kiếm theo tên phòng học..."
       >
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Facility Filter */}
-          <Autocomplete
-            sx={{ minWidth: 220 }}
-            options={[{ value: '', label: 'Tất cả cơ sở vật chất' }, ...facilityOptions]}
-            value={
-              facilityOptions.find((option) => option.value === facilityFilter) ||
-              (facilityFilter ? null : { value: '', label: 'Tất cả cơ sở vật chất' })
-            }
-            onChange={handleFacilityFilterChange}
-            getOptionLabel={(option) => option.label || ''}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Cơ sở vật chất"
-                size="small"
-              />
-            )}
-            disabled={isDataLoading}
-            isOptionEqualToValue={(option, value) => option.value === value.value}
-          />
-        </Box>
+        <Box />
       </ManagementSearchSection>
 
       {/* Error Alert */}

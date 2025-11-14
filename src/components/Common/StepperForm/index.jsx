@@ -121,12 +121,34 @@ const StepperForm = ({
     }
   }, [activeStep, steps, formData, onComplete]);
 
-  const handleBack = useCallback(() => {
-    // Only allow going back to completed steps
-    if (activeStep > 0) {
-      setActiveStep(activeStep - 1);
+  const handleBack = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-  }, [activeStep]);
+
+    if (activeStep === 0) {
+      if (onCancel) {
+        onCancel();
+      }
+      return;
+    }
+
+    setActiveStep((prev) => Math.max(prev - 1, 0));
+  }, [activeStep, onCancel]);
+
+  const handleBackButtonClick = useCallback(
+    (e) => {
+      if (activeStep === 0) {
+        if (onCancel) {
+          onCancel(e);
+        }
+        return;
+      }
+      handleBack(e);
+    },
+    [activeStep, handleBack, onCancel]
+  );
 
   const handleStepChange = useCallback((stepIndex) => {
     // Only allow clicking on:
@@ -153,7 +175,7 @@ const StepperForm = ({
 
   return (
     <Box className={styles.container}>
-      <Paper elevation={3} className={styles.paper}>
+      <Box className={styles.paper}>
         {/* Header */}
         <Box className={styles.header}>
           {icon && (
@@ -199,27 +221,29 @@ const StepperForm = ({
 
         {/* Step Content */}
         <Box className={styles.content}>
-          {CurrentStepComponent && (
-            <CurrentStepComponent
-              ref={(ref) => {
-                if (ref) {
-                  stepRefs.current[activeStep] = ref;
-                }
-              }}
-              data={formData}
-              updateData={updateFormData}
-              stepIndex={activeStep}
-              totalSteps={steps.length}
-              {...stepProps}
-            />
-          )}
+          <Box className={styles.scrollWrapper}>
+            {CurrentStepComponent && (
+              <CurrentStepComponent
+                ref={(ref) => {
+                  if (ref) {
+                    stepRefs.current[activeStep] = ref;
+                  }
+                }}
+                data={formData}
+                updateData={updateFormData}
+                stepIndex={activeStep}
+                totalSteps={steps.length}
+                {...stepProps}
+              />
+            )}
+          </Box>
         </Box>
 
         {/* Navigation Buttons */}
         <Box className={styles.actions}>
           <Button
             type="button"
-            onClick={onCancel || handleBack}
+            onClick={handleBackButtonClick}
             disabled={activeStep === 0 && !onCancel}
             startIcon={<ArrowBack />}
             size="large"
@@ -238,7 +262,7 @@ const StepperForm = ({
             {activeStep === steps.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
           </Button>
         </Box>
-      </Paper>
+      </Box>
     </Box>
   );
 };
