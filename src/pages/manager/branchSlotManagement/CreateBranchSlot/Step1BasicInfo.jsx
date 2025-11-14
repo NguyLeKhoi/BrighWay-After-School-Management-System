@@ -14,7 +14,20 @@ const WEEK_DAYS = [
   { value: 6, label: 'Thứ 7' }
 ];
 
-const Step1BasicInfo = forwardRef(({ data, updateData, stepIndex, totalSteps, timeframeOptions = [], slotTypeOptions = [], dependenciesLoading = false }, ref) => {
+const Step1BasicInfo = forwardRef(
+  (
+    {
+      data,
+      updateData,
+      stepIndex,
+      totalSteps,
+      timeframeOptions = [],
+      slotTypeOptions = [],
+      dependenciesLoading = false,
+      actionLoading = false
+    },
+    ref
+  ) => {
 
   const timeframeSelectOptions = useMemo(
     () => [
@@ -49,17 +62,17 @@ const Step1BasicInfo = forwardRef(({ data, updateData, stepIndex, totalSteps, ti
     []
   );
 
-  const formFields = useMemo(
-    () =>
-      createBranchSlotFormFields({
-        actionLoading: false,
-        dependenciesLoading,
-        timeframeSelectOptions,
-        slotTypeSelectOptions,
-        weekDateOptions: weekDateSelectOptions
-      }),
-    [dependenciesLoading, timeframeSelectOptions, slotTypeSelectOptions, weekDateSelectOptions]
-  );
+    const formFields = useMemo(
+      () =>
+        createBranchSlotFormFields({
+          actionLoading,
+          dependenciesLoading,
+          timeframeSelectOptions,
+          slotTypeSelectOptions,
+          weekDateOptions: weekDateSelectOptions
+        }),
+      [actionLoading, dependenciesLoading, timeframeSelectOptions, slotTypeSelectOptions, weekDateSelectOptions]
+    );
 
   const defaultValues = useMemo(
     () => ({
@@ -110,7 +123,7 @@ const Step1BasicInfo = forwardRef(({ data, updateData, stepIndex, totalSteps, ti
         fields={formFields}
         showReset={false}
         hideSubmitButton={true}
-        disabled={dependenciesLoading}
+        disabled={dependenciesLoading || actionLoading}
       />
       </Box>
     </Box>

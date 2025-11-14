@@ -2,28 +2,21 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Box } from '@mui/material';
-import StepperForm from '../../../../components/Common/StepperForm';
 import { AccessTime as BranchSlotIcon } from '@mui/icons-material';
+import StepperForm from '../../../../components/Common/StepperForm';
 import branchSlotService from '../../../../services/branchSlot.service';
+import userService from '../../../../services/user.service';
 import useBranchSlotDependencies from '../../../../hooks/useBranchSlotDependencies';
+import { useAuth } from '../../../../contexts/AuthContext';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2AssignRooms from './Step2AssignRooms';
 import Step3AssignStaff from './Step3AssignStaff';
 
-const WEEK_DAYS = [
-  { value: 0, label: 'Chủ nhật' },
-  { value: 1, label: 'Thứ 2' },
-  { value: 2, label: 'Thứ 3' },
-  { value: 3, label: 'Thứ 4' },
-  { value: 4, label: 'Thứ 5' },
-  { value: 5, label: 'Thứ 6' },
-  { value: 6, label: 'Thứ 7' }
-];
-
 const CreateBranchSlot = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
+  const { user: authUser } = useAuth();
+
   const {
     timeframeOptions,
     slotTypeOptions,
@@ -33,284 +26,286 @@ const CreateBranchSlot = () => {
     fetchDependencies
   } = useBranchSlotDependencies();
 
-  const [loading, setLoading] = useState(false);
-  
-  // Get IDs from URL params
-  const timeframeIdFromUrl = searchParams.get('timeframeId') || '';
-  const slotTypeIdFromUrl = searchParams.get('slotTypeId') || '';
-  const weekDateFromUrl = searchParams.get('weekDate') || '';
-  
-  const [formData, setFormData] = useState({
-    timeframeId: timeframeIdFromUrl,
-    slotTypeId: slotTypeIdFromUrl,
-    weekDate: weekDateFromUrl,
-    status: 'Available',
-    roomIds: [],
-    userId: '',
-    roomId: '',
-    name: ''
+  const [actionLoading, setActionLoading] = useState(false);
+  const [managerBranchId, setManagerBranchId] = useState('');
+  const [formData, setFormData] = useState(() => {
+    const timeframeId = searchParams.get('timeframeId') || '';
+    const slotTypeId = searchParams.get('slotTypeId') || '';
+    const weekDateParam = searchParams.get('weekDate');
+    const parsedWeekDate =
+      weekDateParam !== null && !isNaN(Number(weekDateParam)) ? String(Number(weekDateParam)) : '';
+
+    return {
+      timeframeId,
+      slotTypeId,
+      weekDate: parsedWeekDate,
+      status: 'Available',
+      roomIds: [],
+      userId: '',
+      roomId: '',
+      name: '',
+      branchSlotId: '',
+      branchId: ''
+    };
   });
 
-  // Ref to keep latest formData for handleComplete
   const formDataRef = React.useRef(formData);
-  
-  // Keep ref in sync with state
-  React.useEffect(() => {
+
+  useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
 
-  // Fetch dependencies on mount
   useEffect(() => {
     fetchDependencies();
   }, [fetchDependencies]);
 
-  // Auto-fill form data when dependencies are loaded and URL params exist
   useEffect(() => {
-    if (!dependenciesLoading && (timeframeIdFromUrl || slotTypeIdFromUrl || weekDateFromUrl)) {
-      setFormData(prevData => {
-        const updatedData = { ...prevData };
-        
-        // Validate and set timeframeId if provided in URL
-        if (timeframeIdFromUrl) {
-          const timeframeExists = timeframeOptions.some(tf => tf.id === timeframeIdFromUrl);
-          if (timeframeExists) {
-            updatedData.timeframeId = timeframeIdFromUrl;
-          }
-        }
-        
-        // Validate and set slotTypeId if provided in URL
-        if (slotTypeIdFromUrl) {
-          const slotTypeExists = slotTypeOptions.some(st => st.id === slotTypeIdFromUrl);
-          if (slotTypeExists) {
-            updatedData.slotTypeId = slotTypeIdFromUrl;
-          }
-        }
-        
-        // Set weekDate if provided in URL
-        if (weekDateFromUrl) {
-          const weekDateNum = Number(weekDateFromUrl);
-          if (!isNaN(weekDateNum) && weekDateNum >= 0 && weekDateNum <= 6) {
-            updatedData.weekDate = weekDateNum.toString();
-          }
-        }
-        
-        return updatedData;
-      });
-    }
-  }, [dependenciesLoading, timeframeOptions, slotTypeOptions, timeframeIdFromUrl, slotTypeIdFromUrl, weekDateFromUrl]);
+    const extractBranchId = (userData) =>
+      userData?.managerProfile?.branchId || userData?.branchId || userData?.managerBranchId || '';
 
-  const timeframeSelectOptions = useMemo(
-    () => [
-      { value: '', label: 'Chọn khung giờ' },
-      ...timeframeOptions.map((tf) => ({
-        value: tf.id,
-        label: `${tf.name} (${tf.startTime} - ${tf.endTime})`
-      }))
-    ],
-    [timeframeOptions]
-  );
-
-  const slotTypeSelectOptions = useMemo(
-    () => [
-      { value: '', label: 'Chọn loại ca học' },
-      ...slotTypeOptions.map((st) => ({
-        value: st.id,
-        label: st.name
-      }))
-    ],
-    [slotTypeOptions]
-  );
-
-  const weekDateSelectOptions = useMemo(
-    () => [
-      { value: '', label: 'Chọn ngày trong tuần' },
-      ...WEEK_DAYS.map((day) => ({
-        value: day.value,
-        label: day.label
-      }))
-    ],
-    []
-  );
-
-  // Update formData function
-  const updateFormData = useCallback((newData) => {
-    setFormData(prev => ({ ...prev, ...newData }));
-  }, []);
-
-  // Step 1: Validate basic info only (no API call)
-  const handleStep1Complete = useCallback(async (data) => {
-    // Use the latest formData
-    const currentData = { ...formData, ...data };
-    
-    // Only validate, don't create branch slot yet
-    if (!currentData.timeframeId || !currentData.slotTypeId || currentData.weekDate === '' || currentData.weekDate === undefined) {
-      toast.error('Vui lòng điền đầy đủ thông tin!', {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      return false;
-    }
-
-    // Just update formData, don't call API
-    setFormData(prev => ({ ...prev, ...currentData }));
-    return true; // Validation passed
-  }, [formData]);
-
-  // Step 2: Validate room assignment only (no API call)
-  const handleStep2Complete = useCallback(async (data) => {
-    // Use the latest formData
-    const currentData = { ...formData, ...data };
-    
-    // Just update formData, don't call API
-    setFormData(prev => ({ ...prev, ...currentData }));
-    
-    // Validation passed (rooms are optional)
-    return true;
-  }, [formData]);
-
-  // Step 3: Validate staff assignment only (no API call)
-  const handleStep3Complete = useCallback(async (data) => {
-    // Use the latest formData
-    const currentData = { ...formData, ...data };
-    
-    // Just update formData, don't call API
-    setFormData(prev => ({ ...prev, ...currentData }));
-    
-    // Validation passed (staff is optional)
-    return true;
-  }, [formData]);
-
-  // Final completion - Execute all API calls in sequence
-  const handleComplete = useCallback(async () => {
-    const finalData = formDataRef.current || formData;
-    
-    // Validate required fields
-    if (!finalData.timeframeId || !finalData.slotTypeId || finalData.weekDate === '' || finalData.weekDate === undefined) {
-      toast.error('Vui lòng điền đầy đủ thông tin cơ bản!', {
-        position: "top-right",
-        autoClose: 3000,
+    const existingBranchId = extractBranchId(authUser);
+    if (existingBranchId) {
+      setManagerBranchId(existingBranchId);
+      setFormData((prev) => {
+        if (prev.branchId) return prev;
+        const updated = { ...prev, branchId: existingBranchId };
+        formDataRef.current = updated;
+        return updated;
       });
       return;
     }
 
-    setLoading(true);
-    try {
-      // Step 1: Create Branch Slot
-      const submitData = {
-        timeframeId: finalData.timeframeId,
-        slotTypeId: finalData.slotTypeId,
-        weekDate: Number(finalData.weekDate),
-        status: finalData.status || 'Available'
-      };
-
-      const result = await branchSlotService.createMyBranchSlot(submitData);
-      const newBranchSlotId = result?.id;
-      
-      if (!newBranchSlotId) {
-        throw new Error('Không thể tạo ca học');
-      }
-
-      toast.success('Tạo ca học thành công!', {
-        position: "top-right",
-        autoClose: 2000,
-      });
-
-      // Step 2: Assign Rooms (if any)
-      if (finalData.roomIds && finalData.roomIds.length > 0) {
-        try {
-          await branchSlotService.assignRooms({
-            branchSlotId: newBranchSlotId,
-            roomIds: finalData.roomIds
-          });
-          toast.success('Gán phòng thành công!', {
-            position: "top-right",
-            autoClose: 2000,
-          });
-        } catch (err) {
-          console.error('Error assigning rooms:', err);
-          toast.warning('Tạo ca học thành công nhưng gán phòng thất bại. Bạn có thể gán phòng sau.', {
-            position: "top-right",
-            autoClose: 4000,
+    const fetchBranch = async () => {
+      try {
+        const currentUser = await userService.getCurrentUser();
+        const branchId = extractBranchId(currentUser);
+        if (branchId) {
+          setManagerBranchId(branchId);
+          setFormData((prev) => {
+            if (prev.branchId) return prev;
+            const updated = { ...prev, branchId };
+            formDataRef.current = updated;
+            return updated;
           });
         }
+      } catch (err) {
+        console.warn('Không thể lấy branchId của manager:', err);
       }
+    };
 
-      // Step 3: Assign Staff (if any)
-      if (finalData.userId) {
-        try {
-          await branchSlotService.assignStaff({
-            branchSlotId: newBranchSlotId,
-            userId: finalData.userId,
-            roomId: finalData.roomId || null,
-            name: finalData.name || null
-          });
-          toast.success('Gán nhân viên thành công!', {
-            position: "top-right",
-            autoClose: 2000,
-          });
-        } catch (err) {
-          console.error('Error assigning staff:', err);
-          toast.warning('Tạo ca học thành công nhưng gán nhân viên thất bại. Bạn có thể gán nhân viên sau.', {
-            position: "top-right",
-            autoClose: 4000,
-          });
-        }
-      }
+    fetchBranch();
+  }, [authUser]);
 
-      // All done
-      toast.success('Tạo ca học hoàn tất!', {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      
-      navigate('/manager/branch-slots');
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo ca học';
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setLoading(false);
+  const updateFormData = useCallback((newData) => {
+    setFormData((prev) => {
+      const updated = { ...prev, ...newData };
+      formDataRef.current = updated;
+      return updated;
+    });
+  }, []);
+
+  const ensureBranchSlotExists = useCallback(async (dataOverride = {}) => {
+    const currentData = { ...formDataRef.current, ...dataOverride };
+
+    if (
+      !currentData.timeframeId ||
+      !currentData.slotTypeId ||
+      currentData.weekDate === '' ||
+      currentData.weekDate === undefined
+    ) {
+      throw new Error('Vui lòng điền đầy đủ thông tin!');
     }
-  }, [formData, navigate]);
+
+    const branchIdToUse = currentData.branchId || managerBranchId || currentData?.branch?.id || null;
+
+    const payload = {
+      branchId: branchIdToUse,
+      timeframeId: currentData.timeframeId,
+      slotTypeId: currentData.slotTypeId,
+      weekDate: Number(currentData.weekDate),
+      status: currentData.status || 'Available'
+    };
+
+    const updateState = (nextData) => {
+      formDataRef.current = nextData;
+      setFormData(nextData);
+    };
+
+    if (currentData.branchSlotId) {
+      await branchSlotService.updateBranchSlot(currentData.branchSlotId, payload);
+      updateState({ ...currentData, branchId: branchIdToUse || currentData.branchId });
+      return currentData.branchSlotId;
+    }
+
+    const result = await branchSlotService.createMyBranchSlot(payload);
+    if (!result?.id) {
+      throw new Error('Không thể tạo ca học');
+    }
+
+    const updatedData = {
+      ...currentData,
+      branchSlotId: result.id,
+      branchId: result.branchId || branchIdToUse || currentData.branchId
+    };
+    updateState(updatedData);
+    return result.id;
+  }, [managerBranchId]);
+
+  const handleStep1Complete = useCallback(
+    async (data) => {
+      updateFormData(data);
+      setActionLoading(true);
+      try {
+        const branchSlotId = await ensureBranchSlotExists(data);
+        toast.success('Lưu thông tin ca học thành công! Tiếp tục gán phòng.', {
+          position: 'top-right',
+          autoClose: 2500
+        });
+        return !!branchSlotId;
+      } catch (error) {
+        const errorMessage = error?.response?.data?.message || error.message || 'Không thể lưu thông tin ca học';
+        toast.error(errorMessage, {
+          position: 'top-right',
+          autoClose: 4000
+        });
+        return false;
+      } finally {
+        setActionLoading(false);
+      }
+    },
+    [ensureBranchSlotExists, updateFormData]
+  );
+
+  const handleStep2Complete = useCallback(
+    async (data) => {
+      const mergedRooms = Array.isArray(data.roomIds) ? data.roomIds : [];
+      updateFormData({ roomIds: mergedRooms });
+
+      if (!mergedRooms.length) {
+        toast.info('Bạn có thể gán phòng sau.', {
+          position: 'top-right',
+          autoClose: 2500
+        });
+        return true;
+      }
+
+      setActionLoading(true);
+      try {
+        const branchSlotId = await ensureBranchSlotExists();
+
+        await branchSlotService.assignRooms({
+          branchSlotId,
+          roomIds: mergedRooms
+        });
+
+        toast.success('Gán phòng thành công! Tiếp tục gán nhân viên.', {
+          position: 'top-right',
+          autoClose: 2500
+        });
+        return true;
+      } catch (error) {
+        const errorMessage = error?.response?.data?.message || error.message || 'Không thể gán phòng';
+        toast.error(errorMessage, {
+          position: 'top-right',
+          autoClose: 4000
+        });
+        return false;
+      } finally {
+        setActionLoading(false);
+      }
+    },
+    [ensureBranchSlotExists, updateFormData]
+  );
+
+  const handleStep3Complete = useCallback(
+    async (data) => {
+      const mergedData = {
+        userId: data.userId || '',
+        roomId: data.roomId || '',
+        name: data.name || ''
+      };
+      updateFormData(mergedData);
+
+      const hasStaff = mergedData.userId;
+      if (!hasStaff) {
+        toast.info('Bạn có thể gán nhân viên sau.', {
+          position: 'top-right',
+          autoClose: 2500
+        });
+        return true;
+      }
+
+      setActionLoading(true);
+      try {
+        const branchSlotId = await ensureBranchSlotExists();
+
+        await branchSlotService.assignStaff({
+          branchSlotId,
+          userId: mergedData.userId,
+          roomId: mergedData.roomId || null,
+          name: mergedData.name || null
+        });
+
+        toast.success('Gán nhân viên thành công!', {
+          position: 'top-right',
+          autoClose: 2500
+        });
+        return true;
+      } catch (error) {
+        const errorMessage = error?.response?.data?.message || error.message || 'Không thể gán nhân viên';
+        toast.error(errorMessage, {
+          position: 'top-right',
+          autoClose: 4000
+        });
+        return false;
+      } finally {
+        setActionLoading(false);
+      }
+    },
+    [ensureBranchSlotExists, updateFormData]
+  );
+
+  const handleComplete = useCallback(() => {
+    toast.success('Hoàn tất tạo ca học!', {
+      position: 'top-right',
+      autoClose: 2500
+    });
+    navigate('/manager/branch-slots');
+  }, [navigate]);
 
   const handleCancel = useCallback(() => {
     navigate('/manager/branch-slots');
   }, [navigate]);
 
-  const steps = useMemo(() => [
-    {
-      label: 'Thông tin cơ bản',
-      component: Step1BasicInfo,
-      validation: async (data) => {
-        // First update formData, then validate
-        // The form submit will have already updated the data via updateData
-        return await handleStep1Complete(data);
+  const steps = useMemo(
+    () => [
+      {
+        label: 'Thông tin cơ bản',
+        component: Step1BasicInfo,
+        validation: handleStep1Complete
+      },
+      {
+        label: 'Gán phòng',
+        component: Step2AssignRooms,
+        validation: handleStep2Complete
+      },
+      {
+        label: 'Gán nhân viên',
+        component: Step3AssignStaff,
+        validation: handleStep3Complete
       }
-    },
-    {
-      label: 'Gán phòng',
-      component: Step2AssignRooms,
-      validation: async (data) => {
-        return await handleStep2Complete(data);
-      }
-    },
-    {
-      label: 'Gán nhân viên',
-      component: Step3AssignStaff,
-      validation: async (data) => {
-        return await handleStep3Complete(data);
-      }
-    }
-  ], [handleStep1Complete, handleStep2Complete, handleStep3Complete]);
+    ],
+    [handleStep1Complete, handleStep2Complete, handleStep3Complete]
+  );
 
   return (
-    <Box sx={{ 
-      height: 'calc(100vh - 64px - 48px)', 
-      display: 'flex', 
-      flexDirection: 'column'
-    }}>
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 64px - 48px)',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
       <StepperForm
         steps={steps}
         onComplete={handleComplete}
@@ -323,7 +318,8 @@ const CreateBranchSlot = () => {
           slotTypeOptions,
           roomOptions,
           staffOptions,
-          dependenciesLoading
+          dependenciesLoading,
+          actionLoading
         }}
       />
     </Box>
