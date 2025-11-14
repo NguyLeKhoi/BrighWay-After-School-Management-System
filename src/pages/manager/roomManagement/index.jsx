@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -58,7 +58,28 @@ const ManagerRoomManagement = () => {
       }
     };
     fetchManagerBranch();
-  }, []);
+  }, [fetchAllData]);
+
+  // Create load function that always uses latest managerBranchId
+  const loadRoomsFunction = useCallback(async (params) => {
+    // Manager can only see rooms in their branch - always filter by managerBranchId
+    if (!managerBranchId) {
+      // If branchId not loaded yet, return empty result
+      return { items: [], totalCount: 0, pageIndex: 1, pageSize: 10 };
+    }
+    
+    const effectiveBranchFilter = managerBranchId; // Always use manager's branch
+    const effectiveFacilityFilter = facilityFilter || params.facilityId || '';
+    
+    const response = await roomService.getRoomsPaged(
+      params.page || params.pageIndex || 1,
+      params.pageSize || params.rowsPerPage || 10,
+      params.Keyword || params.searchTerm || '',
+      effectiveFacilityFilter,
+      effectiveBranchFilter
+    );
+    return response;
+  }, [managerBranchId, facilityFilter]);
 
   // Use Manager CRUD hook with custom load function
   const {
@@ -87,22 +108,10 @@ const ManagerRoomManagement = () => {
     handlePageChange,
     handleRowsPerPageChange,
     updateFilter,
-    filters
+    filters,
+    loadData
   } = useBaseCRUD({
-    loadFunction: async (params) => {
-      // Manager can only see rooms in their branch
-      const effectiveBranchFilter = managerBranchId || params.branchId || '';
-      const effectiveFacilityFilter = facilityFilter || params.facilityId || '';
-      
-      const response = await roomService.getRoomsPaged(
-        params.page || params.pageIndex || 1,
-        params.pageSize || params.rowsPerPage || 10,
-        params.Keyword || params.searchTerm || keyword || '',
-        effectiveFacilityFilter,
-        effectiveBranchFilter
-      );
-      return response;
-    },
+    loadFunction: loadRoomsFunction,
     createFunction: async (data) => {
       // Ensure manager can only create rooms in their branch
       if (managerBranchId) {
@@ -122,8 +131,15 @@ const ManagerRoomManagement = () => {
       facilityId: '',
       branchId: ''
     },
-    loadOnMount: true
+    loadOnMount: false // Don't load on mount, wait for managerBranchId
   });
+
+  // Reload data when managerBranchId is set
+  useEffect(() => {
+    if (managerBranchId && loadData) {
+      loadData();
+    }
+  }, [managerBranchId, loadData]);
 
   // Override handleCreate to ensure data is loaded
   const handleCreateWithData = async () => {

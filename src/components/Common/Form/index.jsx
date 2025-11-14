@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Grid, Switch, Box, Typography, TextField, Checkbox } from '@mui/material';
@@ -8,7 +8,7 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import styles from './Form.module.css';
 import { toast } from 'react-toastify';
 
-const Form = ({
+const Form = forwardRef(({
   schema,
   defaultValues = {},
   onSubmit,
@@ -19,23 +19,34 @@ const Form = ({
   className = '',
   error = '',
   showReset = true,
-  resetText = 'Reset'
-}) => {
+  resetText = 'Reset',
+  hideSubmitButton = false
+}, ref) => {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
     control,
-    watch
+    watch,
+    trigger,
+    getValues
   } = useForm({
     resolver: schema ? yupResolver(schema) : undefined,
     defaultValues,
-    mode: 'onChange',
+    mode: 'onBlur',
     reValidateMode: 'onChange'
   });
 
   const previousErrorMessages = useRef({});
+
+  // Reset form when defaultValues change (for update scenarios)
+  useEffect(() => {
+    if (defaultValues && Object.keys(defaultValues).length > 0) {
+      // Use reset with keepDefaultValues option to properly update form
+      reset(defaultValues, { keepDefaultValues: true });
+    }
+  }, [defaultValues, reset]);
 
   useEffect(() => {
     const nextErrorMessages = {};
@@ -48,17 +59,57 @@ const Form = ({
     previousErrorMessages.current = nextErrorMessages;
   }, [errors]);
 
+  const formElementRef = useRef(null);
+
   const handleFormSubmit = async (data) => {
     console.log('Form - handleFormSubmit called with data:', data);
     try {
-      await onSubmit(data);
+      // Note: Validation is already done in submit() function before calling this
+      // Just call onSubmit callback
+      const result = await onSubmit(data);
       console.log('Form - onSubmit completed successfully');
       previousErrorMessages.current = {};
+      return result !== false; // Return true if result is not false
     } catch (error) {
       console.error('Form submission error:', error);
-      throw error; // Re-throw to let form handle it
+      return false; // Return false on error
     }
   };
+
+  // Expose submit function via ref
+  useImperativeHandle(ref, () => ({
+    submit: async () => {
+      if (formElementRef.current) {
+        // First validate the form - trigger validation for all fields
+        try {
+          const isValid = await trigger();
+          console.log('Form validation result:', isValid, 'Errors:', errors);
+          
+          if (!isValid) {
+            // Validation failed, don't submit
+            console.log('Form validation failed, not submitting');
+            return false;
+          }
+          
+          // If validation passes, get values and submit
+          const values = getValues();
+          console.log('Form values:', values);
+          const result = await handleFormSubmit(values);
+          
+          // Return true only if submit was successful
+          return result !== false;
+        } catch (error) {
+          console.error('Form submit error:', error);
+          return false;
+        }
+      }
+      return false;
+    },
+    validate: async () => {
+      return await trigger();
+    },
+    getValues: () => getValues()
+  }));
 
   const renderField = (field) => {
     const {
@@ -101,23 +152,41 @@ const Form = ({
               controllerField.onChange(newValue?.value || '');
             };
             const selectedOption = options.find(
-              (option) => option.value === controllerField.value
+              (option) => {
+                // Handle both string and number comparison
+                const optionValue = String(option.value);
+                const fieldValue = String(controllerField.value);
+                return optionValue === fieldValue;
+              }
             ) || null;
             return (
               <Autocomplete
                 disableClearable={!field.allowClear}
-                options={options}
+                options={options || []}
                 value={selectedOption}
                 onChange={handleChange}
-                getOptionLabel={(option) => option.label || ''}
+                getOptionLabel={(option) => {
+                  if (!option || typeof option !== 'object') return '';
+                  return option.label || '';
+                }}
+                filterOptions={(x) => x}
                 renderInput={(params) => (
                   <TextField
                     {...params}
                     placeholder={field.placeholder}
                     size="small"
+                    disabled={field.disabled}
                   />
                 )}
-                isOptionEqualToValue={(option, value) => option.value === value.value}
+                isOptionEqualToValue={(option, value) => {
+                  if (!option || !value) return false;
+                  // Handle both string and number comparison
+                  return String(option.value) === String(value.value);
+                }}
+                disabled={field.disabled}
+                loading={field.loading}
+                noOptionsText={options.length === 0 ? 'Không có dữ liệu' : 'Không tìm thấy'}
+                openOnFocus
                 sx={{
                   '& .MuiInputBase-root': {
                     borderRadius: '8px'
@@ -278,7 +347,11 @@ const Form = ({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className={`${styles.form} ${className}`}>
+    <form 
+      ref={formElementRef}
+      onSubmit={handleSubmit(handleFormSubmit)} 
+      className={`${styles.form} ${className}`}
+    >
       {error && (
         <div className={styles.errorMessage}>
           {error}
@@ -286,7 +359,7 @@ const Form = ({
       )}
       
       <div className={styles.formFields}>
-        <Grid container spacing={2}>
+        <Grid container spacing={1.5}>
           {(() => {
             let currentSection = '';
             return fields.map((field, index) => {
@@ -323,27 +396,31 @@ const Form = ({
       
       {children}
       
-      <div className={styles.buttonGroup}>
-        {showReset && (
+      {!hideSubmitButton && (
+        <div className={styles.buttonGroup}>
+          {showReset && (
+            <button
+              type="button"
+              className={`${styles.submitButton} ${styles.resetButton}`}
+              onClick={() => reset()}
+              disabled={isSubmitting || loading}
+            >
+              {resetText}
+            </button>
+          )}
           <button
-            type="button"
-            className={`${styles.submitButton} ${styles.resetButton}`}
-            onClick={() => reset()}
+            type="submit"
+            className={styles.submitButton}
             disabled={isSubmitting || loading}
           >
-            {resetText}
+            {isSubmitting || loading ? 'Loading...' : submitText}
           </button>
-        )}
-        <button
-          type="submit"
-          className={styles.submitButton}
-          disabled={isSubmitting || loading}
-        >
-          {isSubmitting || loading ? 'Loading...' : submitText}
-        </button>
-      </div>
+        </div>
+      )}
     </form>
   );
-};
+});
+
+Form.displayName = 'Form';
 
 export default Form;

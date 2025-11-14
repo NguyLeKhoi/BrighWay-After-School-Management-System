@@ -151,7 +151,7 @@ const userService = {
         updateData.password = userData.password;
       }
       
-      const response = await axiosInstance.put(`/User/admin-update/${userId}`, updateData);
+      const response = await axiosInstance.put(`/User/${userId}`, updateData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -175,26 +175,28 @@ const userService = {
   /**
    * Update user (Manager updates Staff users)
    * @param {string} userId - User ID
-   * @param {Object} userData - Updated user data { targetUserId, fullName, email, phoneNumber, isActive }
+   * @param {Object} userData - Updated user data { fullName, email, phoneNumber, isActive }
    * @returns {Promise} Updated user
    */
   updateUserByManager: async (userId, userData) => {
     try {
       const updateData = {
-        targetUserId: userId,
-        fullName: userData.fullName,
+        name: userData.fullName || userData.name,
         email: userData.email,
-        phoneNumber: userData.phoneNumber,
-        changeRoleTo: 0,
         isActive: userData.isActive !== undefined ? userData.isActive : true
       };
+      
+      // Add phoneNumber if provided
+      if (userData.phoneNumber) {
+        updateData.phoneNumber = userData.phoneNumber;
+      }
       
       // Add password if provided
       if (userData.password && userData.password.trim()) {
         updateData.password = userData.password;
       }
       
-      const response = await axiosInstance.put(`/User/manager-update/${userId}`, updateData);
+      const response = await axiosInstance.put(`/User/${userId}`, updateData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -376,6 +378,30 @@ const userService = {
       }
       
       const response = await axiosInstance.get(`/User/family-accounts/paged?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get paginated staff in current manager's branch
+   * @param {Object} params - Pagination parameters { pageIndex, pageSize, keyword }
+   * @returns {Promise} Paginated staff list in manager's branch
+   */
+  getStaffInMyBranch: async (params = {}) => {
+    try {
+      const { pageIndex = 1, pageSize = 10, keyword = '' } = params;
+      const queryParams = new URLSearchParams({
+        pageIndex: pageIndex.toString(),
+        pageSize: pageSize.toString()
+      });
+      
+      if (keyword) {
+        queryParams.append('keyword', keyword);
+      }
+      
+      const response = await axiosInstance.get(`/User/staff-in-my-branch?${queryParams}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

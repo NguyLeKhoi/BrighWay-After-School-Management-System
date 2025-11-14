@@ -176,14 +176,17 @@ const StaffAndParentManagement = () => {
     
     try {
       const updateData = {
-        targetUserId: selectedUser.id,
         fullName: data.name || data.fullName,
         email: data.email,
-        phoneNumber: '',
-        changeRoleTo: 0,
         isActive: data.isActive
       };
       
+      // Add phoneNumber if provided
+      if (data.phoneNumber) {
+        updateData.phoneNumber = data.phoneNumber;
+      }
+      
+      // Add password if provided
       if (data.password && data.password.trim()) {
         updateData.password = data.password;
       }

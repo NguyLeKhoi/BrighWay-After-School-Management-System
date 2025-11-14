@@ -8,7 +8,8 @@ import {
   School as CoursesIcon,
   Dashboard as DashboardIcon,
   MeetingRoom as RoomIcon,
-  Group as StudentIcon
+  Group as StudentIcon,
+  AccessTime as BranchSlotIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -45,6 +46,11 @@ const ManagerLayout = () => {
       path: '/manager/packages',
       label: 'Gói dịch vụ',
       icon: CoursesIcon
+    },
+    {
+      path: '/manager/branch-slots',
+      label: 'Ca Học',
+      icon: BranchSlotIcon
     }
   ];
 
