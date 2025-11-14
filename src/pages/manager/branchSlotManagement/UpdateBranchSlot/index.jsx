@@ -57,7 +57,6 @@ const UpdateBranchSlot = () => {
         // Lấy dữ liệu ca học
         if (id) {
           const slotData = await branchSlotService.getBranchSlotById(id);
-          console.log('Slot data from single endpoint:', slotData);
           setBranchSlotData(slotData);
           
           // Parse dữ liệu từ response cho Step 1: Basic Info
@@ -108,9 +107,7 @@ const UpdateBranchSlot = () => {
           
           // Parse dữ liệu từ response cho Step 3: Staff
           const staffList = slotData?.staff || [];
-          console.log('Staff list from response:', staffList);
           const firstStaff = staffList.length > 0 ? staffList[0] : null;
-          console.log('First staff:', firstStaff);
           
           const staffInfo = {
             userId: firstStaff?.staffId || '',
@@ -125,7 +122,6 @@ const UpdateBranchSlot = () => {
             ...staffInfo
           };
           
-          console.log('Setting formData from single endpoint:', formDataToSet);
           setFormData(formDataToSet);
         }
       } catch (err) {

@@ -7,12 +7,6 @@ const Step3AssignStaff = forwardRef(({ data, updateData, stepIndex, totalSteps, 
   const [selectedRoomId, setSelectedRoomId] = useState(data.roomId || '');
   const [roleName, setRoleName] = useState(data.name || '');
 
-  // Debug: Log data changes
-  useEffect(() => {
-    console.log('Step3AssignStaff - data changed:', data);
-    console.log('Step3AssignStaff - userId:', data.userId, 'roomId:', data.roomId, 'name:', data.name);
-  }, [data]);
-
   // Update local state when data changes (from parent)
   useEffect(() => {
     if (data.userId !== undefined && data.userId !== null && data.userId !== '') {

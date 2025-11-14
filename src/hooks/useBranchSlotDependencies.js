@@ -40,9 +40,6 @@ const useBranchSlotDependencies = () => {
       
       const roomsData = roomsResponse?.items || [];
       const staffData = staffResponse?.items || [];
-      
-      console.log('Fetched rooms data:', roomsData.length, 'rooms in manager branch');
-      console.log('Fetched staff data:', staffData.length, 'staff members');
 
       setTimeframes(timeframesData || []);
       setSlotTypes(slotTypesData || []);
