@@ -10,32 +10,16 @@ import {
   DialogTitle,
   DialogContent,
   Alert,
-  Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Switch,
-  FormControlLabel,
-  Divider,
-  Card,
-  CardContent,
-  CardHeader
+  Chip
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Person as PersonIcon,
   Email as EmailIcon,
   Lock as LockIcon,
-  AssignmentInd as RoleIcon,
-  Home as HomeIcon,
-  FamilyRestroom as FamilyIcon
+  AssignmentInd as RoleIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
-import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import FamilyAccountForm from '../../../components/AccountForms/FamilyAccountForm';
-import { updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
@@ -54,11 +38,16 @@ const UserManagement = () => {
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [keyword, setKeyword] = useState('');
+  const [currentUserBranchId, setCurrentUserBranchId] = useState(null);
   
   // Dialog states
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogMode, setDialogMode] = useState('create');
+  const [openParentDialog, setOpenParentDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [parentFormData, setParentFormData] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -215,8 +204,20 @@ const UserManagement = () => {
     }
   };
 
-  // Load users when component mounts
+  // Load current user branchId and users when component mounts
   useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const currentUser = await userService.getCurrentUser();
+        if (currentUser?.branchId) {
+          setCurrentUserBranchId(currentUser.branchId);
+        }
+      } catch (err) {
+        // Silently fail - branchId will be null
+      }
+    };
+    
+    loadCurrentUser();
     setSearchResult(null); // Clear any existing search result
     loadUsers();
   }, []);
@@ -298,33 +299,53 @@ const UserManagement = () => {
     setPage(0);
   };
 
-  const handleCreateFamilyAccount = () => {
-    setDialogMode('createFamily');
-    setSelectedUser(null);
-    setOpenDialog(true);
+  const handleCreateParent = () => {
+    setParentFormData({
+      name: '',
+      email: '',
+      password: ''
+    });
+    setOpenParentDialog(true);
   };
 
-  const handleEditUser = async (user) => {
-    setDialogMode('editFamily');
-    setActionLoading(true);
+  const handleCreateParentSubmit = async (e) => {
+    e.preventDefault();
     
-    try {
-      // Get expanded user details with family and parent information
-      const expandedUser = await userService.getUserById(user.id, true);
-      console.log('🔍 Expanded User Data:', expandedUser);
-      console.log('🔍 User fields:', {
-        user: expandedUser?.user,
-        fullName: expandedUser?.user?.fullName || expandedUser?.fullName,
-        email: expandedUser?.user?.email || expandedUser?.email,
-        phoneNumber: expandedUser?.user?.phoneNumber || expandedUser?.phoneNumber,
-        family: expandedUser?.family,
-        parents: expandedUser?.parents
+    if (!currentUserBranchId) {
+      toast.error('Không thể lấy thông tin chi nhánh. Vui lòng thử lại sau.', {
+        position: "top-right",
+        autoClose: 4000,
       });
-      setSelectedUser(expandedUser);
-      setOpenDialog(true);
+      return;
+    }
+
+    if (!parentFormData.name || !parentFormData.email || !parentFormData.password) {
+      toast.error('Vui lòng điền đầy đủ thông tin', {
+        position: "top-right",
+        autoClose: 4000,
+      });
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await userService.createParent({
+        name: parentFormData.name,
+        email: parentFormData.email,
+        password: parentFormData.password,
+        branchId: currentUserBranchId
+      });
+      
+      toast.success('Tạo tài khoản phụ huynh thành công!', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      
+      setOpenParentDialog(false);
+      setParentFormData({ name: '', email: '', password: '' });
+      await loadUsers();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi lấy thông tin người dùng';
-      setError(errorMessage);
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản phụ huynh';
       showGlobalError(errorMessage);
       toast.error(errorMessage, {
         position: "top-right",
@@ -333,6 +354,14 @@ const UserManagement = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handleEditUser = async (user) => {
+    // Edit functionality removed - only create parent account is available
+    toast.info('Chức năng chỉnh sửa tài khoản chưa được hỗ trợ', {
+      position: "top-right",
+      autoClose: 3000,
+    });
   };
 
   const handleDeleteUser = (user) => {
@@ -380,102 +409,6 @@ const UserManagement = () => {
     }
   };
 
-  const handleFormSubmit = async (data) => {
-    if (dialogMode === 'createFamily') {
-      // Direct create for family account
-      await performCreateFamilyAccount(data);
-    } else if (dialogMode === 'editFamily') {
-      // Update family account
-      await performUpdateFamilyAccount(data);
-    } else {
-      // Direct update for editing user
-      await performUpdateUser(data);
-    }
-  };
-
-
-  const performCreateFamilyAccount = async (data) => {
-    setActionLoading(true);
-    
-    try {
-      await userService.createFamilyAccount(data);
-      toast.success(`Tạo tài khoản gia đình thành công!`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      
-      // Reload data
-      await loadUsers();
-      
-      setOpenDialog(false);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản gia đình';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const performUpdateFamilyAccount = async (data) => {
-    setActionLoading(true);
-    
-    try {
-      // Add parentUserId to the data for update
-      const updateData = {
-        ...data,
-        parentUserId: selectedUser?.id || selectedUser?.userId
-      };
-      
-      await userService.updateFamilyAccount(selectedUser?.id || selectedUser?.userId, updateData);
-      toast.success(`Cập nhật tài khoản gia đình thành công!`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      
-      // Reload data
-      await loadUsers();
-      
-      setOpenDialog(false);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi cập nhật tài khoản gia đình';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const performUpdateUser = async (data) => {
-    setActionLoading(true);
-    
-    try {
-      // Note: This would need to be implemented in the backend
-      // For now, we'll show a message that this feature is not available
-      toast.error('Chức năng cập nhật tài khoản User chưa được hỗ trợ', {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi cập nhật người dùng';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   return (
     <>
@@ -489,11 +422,12 @@ const UserManagement = () => {
         </h1>
         <Button
           variant="contained"
-          startIcon={<FamilyIcon />}
-          onClick={handleCreateFamilyAccount}
+          startIcon={<PersonIcon />}
+          onClick={handleCreateParent}
           className={styles.addButton}
+          sx={{ bgcolor: '#28a745', '&:hover': { bgcolor: '#218838' } }}
         >
-          Tạo Tài Khoản Gia Đình
+          Tạo Tài Khoản Phụ Huynh
         </Button>
       </div>
 
@@ -554,43 +488,29 @@ const UserManagement = () => {
         />
       </div>
 
-      {/* Create/Edit Dialog */}
+      {/* Create Parent Dialog */}
       <Dialog 
-        open={openDialog} 
-        onClose={() => !actionLoading && setOpenDialog(false)} 
-        maxWidth="xl" 
+        open={openParentDialog} 
+        onClose={() => !actionLoading && setOpenParentDialog(false)} 
+        maxWidth="sm" 
         fullWidth
-        fullScreen={false}
-        sx={{
-          '& .MuiDialog-paper': {
-            borderRadius: '8px',
-            overflow: 'hidden',
-            width: '95vw',
-            height: '90vh',
-            maxWidth: 'none'
-          }
-        }}
       >
         <DialogTitle 
           sx={{
-            backgroundColor: '#1976d2',
+            backgroundColor: '#28a745',
             color: 'white',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '16px 24px',
-            position: 'relative'
+            padding: '16px 24px'
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FamilyIcon />
-            <span>
-              {dialogMode === 'createFamily' ? 'Tạo Tài Khoản Gia Đình' : 
-               'Cập Nhật Tài Khoản Gia Đình'}
-            </span>
+            <PersonIcon />
+            <span>Tạo Tài Khoản Phụ Huynh</span>
           </Box>
           <Button
-            onClick={() => setOpenDialog(false)}
+            onClick={() => setOpenParentDialog(false)}
             disabled={actionLoading}
             sx={{
               color: 'white',
@@ -604,52 +524,83 @@ const UserManagement = () => {
             ✕
           </Button>
         </DialogTitle>
-        <DialogContent 
-          sx={{ 
-            padding: '24px',
-            overflow: 'auto',
-            maxHeight: 'calc(90vh - 120px)'
-          }}
-        >
-          <div style={{ paddingTop: '8px' }}>
-            {dialogMode === 'createFamily' ? (
-              <FamilyAccountForm 
-                onSubmit={handleFormSubmit}
-                loading={actionLoading}
-                onCancel={() => setOpenDialog(false)}
-              />
-            ) : (
-              <FamilyAccountForm 
-                onSubmit={handleFormSubmit}
-                loading={actionLoading}
-                defaultValues={{
-                  user: {
-                    fullName: selectedUser?.user?.fullName || selectedUser?.fullName || '',
-                    email: selectedUser?.user?.email || selectedUser?.email || '',
-                    phoneNumber: selectedUser?.user?.phoneNumber || selectedUser?.phoneNumber || '',
-                    password: ''
-                  },
-                  family: {
-                    address: selectedUser?.family?.address || '',
-                    phone: selectedUser?.family?.phone || '',
-                    emergencyContactName: selectedUser?.family?.emergencyContactName || '',
-                    emergencyContactPhone: selectedUser?.family?.emergencyContactPhone || '',
-                    note: selectedUser?.family?.note || ''
-                  },
-                  parents: selectedUser?.parents || [{
-                    parentName: '',
-                    email: '',
-                    address: '',
-                    phone: '',
-                    relationshipToStudent: 'father',
-                    note: ''
-                  }]
-                }}
-                isEditMode={true}
-                onCancel={() => setOpenDialog(false)}
-              />
+        <DialogContent sx={{ padding: '24px' }}>
+          <form onSubmit={handleCreateParentSubmit}>
+            <TextField
+              fullWidth
+              label="Họ và Tên"
+              value={parentFormData.name}
+              onChange={(e) => setParentFormData({ ...parentFormData, name: e.target.value })}
+              margin="normal"
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              value={parentFormData.email}
+              onChange={(e) => setParentFormData({ ...parentFormData, email: e.target.value })}
+              margin="normal"
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Mật khẩu"
+              type="password"
+              value={parentFormData.password}
+              onChange={(e) => setParentFormData({ ...parentFormData, password: e.target.value })}
+              margin="normal"
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {currentUserBranchId && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Tài khoản sẽ được tạo cho chi nhánh của bạn
+              </Alert>
             )}
-          </div>
+            {!currentUserBranchId && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                Không thể lấy thông tin chi nhánh. Vui lòng liên hệ quản trị viên.
+              </Alert>
+            )}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+              <Button
+                onClick={() => setOpenParentDialog(false)}
+                disabled={actionLoading}
+                variant="outlined"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={actionLoading || !currentUserBranchId}
+                sx={{ bgcolor: '#28a745', '&:hover': { bgcolor: '#218838' } }}
+              >
+                {actionLoading ? 'Đang tạo...' : 'Tạo Tài Khoản'}
+              </Button>
+            </Box>
+          </form>
         </DialogContent>
       </Dialog>
 

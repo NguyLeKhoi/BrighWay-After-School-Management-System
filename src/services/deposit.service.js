@@ -32,6 +32,26 @@ const depositService = {
       throw error.response?.data || error.message;
     }
   },
+
+  /**
+   * Lấy lịch sử nạp tiền của user hiện tại với pagination
+   * @param {Object} params - Pagination parameters { pageIndex, pageSize }
+   * @returns {Promise<any>} Danh sách deposits với pagination info
+   */
+  getMyDeposits: async (params = {}) => {
+    try {
+      const { pageIndex = 1, pageSize = 20 } = params;
+      const queryParams = new URLSearchParams({
+        pageIndex: pageIndex.toString(),
+        pageSize: pageSize.toString()
+      });
+      
+      const response = await axiosInstance.get(`/Deposit/me?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default depositService;

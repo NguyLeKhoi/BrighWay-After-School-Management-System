@@ -17,6 +17,8 @@ import Login from '../pages/auth/Login';
 
 // useruser Pages
 import FamilyProfile from '../pages/user/profile';
+import FamilyServices from '../pages/user/services';
+import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
 import ChildProfile from '../pages/user/children/ChildProfile';
 import ChildSchedule from '../pages/user/children/ChildSchedule';
@@ -46,6 +48,7 @@ import StaffDashboard from '../pages/staff/dashboard';
 import StaffStudentLevels from '../pages/staff/studentLevels';
 import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
+import StaffUserManagement from '../pages/staff/userManagement';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -93,6 +96,14 @@ export const routes = createBrowserRouter([
     element: <FamilyLayout />,
     children: [
       {
+        index: true,
+        element: <FamilyServices />,
+      },
+      {
+        path: 'services',
+        element: <FamilyServices />,
+      },
+      {
         path: 'profile',
         element: <FamilyProfile />,
       },
@@ -111,6 +122,10 @@ export const routes = createBrowserRouter([
       {
         path: 'wallet',
         element: <MyWallet />,
+      },
+      {
+        path: 'schedule',
+        element: <MySchedule />,
       },
       {
         path: 'packages',
@@ -220,6 +235,10 @@ export const routes = createBrowserRouter([
       {
         path: 'activities',
         element: <StaffActivities />,
+      },
+      {
+        path: 'user-management',
+        element: <StaffUserManagement />,
       },
     ],
   },

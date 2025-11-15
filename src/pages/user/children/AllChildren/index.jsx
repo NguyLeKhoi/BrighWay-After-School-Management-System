@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '@components/Common/Card';
-import Form from '@components/Common/Form';
 import Loading from '@components/Common/Loading';
-import { childSchema } from '../../../../utils/validationSchemas/childSchemas';
 import { useApp } from '../../../../contexts/AppContext';
 import { useLoading } from '../../../../hooks/useLoading';
 import studentService from '../../../../services/student.service';
-import walletService from '../../../../services/wallet.service';
 import styles from './Children.module.css';
 
 const DEFAULT_PAGINATION = {
@@ -60,12 +57,11 @@ const transformStudent = (student) => {
 
 const ChildrenList = () => {
   const navigate = useNavigate();
-  const { addNotification, showGlobalError } = useApp();
+  const { showGlobalError } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading();
 
   const [children, setChildren] = useState([]);
   const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
-  const [showAddForm, setShowAddForm] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchChildren = async (pageIndex = DEFAULT_PAGINATION.pageIndex, pageSize = DEFAULT_PAGINATION.pageSize) => {
@@ -73,19 +69,21 @@ const ChildrenList = () => {
     showLoading();
 
     try {
-      const response = await studentService.getCurrentUserStudents({ pageIndex, pageSize });
-      const items = Array.isArray(response?.items) ? response.items : [];
+      const response = await studentService.getMyChildren();
+      // API mới trả về array trực tiếp, không phải object có items
+      const items = Array.isArray(response) ? response : (Array.isArray(response?.items) ? response.items : []);
 
       setChildren(items
         .map(transformStudent)
         .filter(Boolean)
       );
 
+      // API mới không có pagination, nên tính toán từ array
       setPagination({
-        pageIndex: response?.pageIndex ?? pageIndex,
-        pageSize: response?.pageSize ?? pageSize,
-        totalItems: response?.totalCount ?? items.length,
-        totalPages: response?.totalPages ?? Math.ceil((response?.totalCount ?? items.length) / pageSize)
+        pageIndex: 1,
+        pageSize: items.length,
+        totalItems: items.length,
+        totalPages: 1
       });
     } catch (err) {
       const errorMessage = typeof err === 'string'
@@ -103,30 +101,6 @@ const ChildrenList = () => {
     fetchChildren();
   }, []);
 
-  const handleAddChild = (data) => {
-    const child = {
-      id: Date.now().toString(),
-      name: data.name,
-      age: data.age ? parseInt(data.age, 10) : null,
-      grade: data.grade || 'Chưa xác định',
-      studentLevelName: data.grade || 'Chưa phân cấp',
-      schoolName: '',
-      branchName: '',
-      status: 'pending',
-      createdTime: new Date().toISOString(),
-      avatar: getInitials(data.name),
-      membershipType: data.grade || 'Chưa phân cấp'
-    };
-
-    setChildren(prev => [...prev, child]);
-    setShowAddForm(false);
-
-    addNotification({
-      message: 'Thêm con thành công!',
-      severity: 'success'
-    });
-  };
-
   const handleRetry = () => {
     fetchChildren(pagination.pageIndex, pagination.pageSize);
   };
@@ -143,54 +117,7 @@ const ChildrenList = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Quản lý con cái</h1>
-          <button 
-            className={styles.addButton}
-            onClick={() => setShowAddForm(true)}
-          >
-            + Thêm con
-          </button>
         </div>
-
-        {showAddForm && (
-          <div className={styles.addForm}>
-            <h3>Thêm con mới</h3>
-            <Form
-              schema={childSchema}
-              onSubmit={handleAddChild}
-              submitText="Lưu"
-              fields={[
-                { name: 'name', label: 'Tên con', type: 'text', required: true },
-                { name: 'age', label: 'Tuổi', type: 'number', required: true },
-                { name: 'grade', label: 'Lớp', type: 'text', required: true, placeholder: 'Ví dụ: Lớp 3' },
-                { 
-                  name: 'gender', 
-                  label: 'Giới tính', 
-                  type: 'select', 
-                  required: true,
-                  options: [
-                    { value: 'male', label: 'Nam' },
-                    { value: 'female', label: 'Nữ' }
-                  ]
-                },
-                { name: 'dateOfBirth', label: 'Ngày sinh', type: 'date' }
-              ]}
-              defaultValues={{
-                name: '',
-                age: '',
-                grade: '',
-                gender: 'male',
-                dateOfBirth: ''
-              }}
-            />
-            <button 
-              type="button" 
-              className={styles.cancelButton}
-              onClick={() => setShowAddForm(false)}
-            >
-              Hủy
-            </button>
-          </div>
-        )}
 
         {isLoading && children.length === 0 && (
           <div className={styles.loadingState}>
@@ -210,14 +137,10 @@ const ChildrenList = () => {
         {!isLoading && !error && children.length === 0 && (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>👶</div>
-            <h3>Chưa có con nào</h3>
-            <p>Thêm con đầu tiên để bắt đầu sử dụng hệ thống</p>
-            <button 
-              className={styles.addFirstButton}
-              onClick={() => setShowAddForm(true)}
-            >
-              Thêm con đầu tiên
-            </button>
+            <h3>Chưa có thông tin con</h3>
+            <p>
+              Bạn chưa có thêm con vào trung tâm, vui lòng liên hệ Staff/Manager để thêm.
+            </p>
           </div>
         )}
 

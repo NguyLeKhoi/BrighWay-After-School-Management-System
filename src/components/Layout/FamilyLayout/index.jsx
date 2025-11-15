@@ -3,8 +3,10 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
+  MiscellaneousServices as ServiceIcon,
   Person as PersonIcon,
   ChildCare as ChildIcon,
+  EventAvailable as ScheduleIcon,
   AccountBalanceWallet as WalletIcon,
   School as BookIcon,
   Notifications as BellIcon
@@ -32,6 +34,11 @@ const FamilyLayout = () => {
       icon: ChildIcon
     },
     {
+      path: '/family/schedule',
+      label: 'Lịch học',
+      icon: ScheduleIcon
+    },
+    {
       path: '/family/wallet',
       label: 'Ví',
       icon: WalletIcon
@@ -40,6 +47,11 @@ const FamilyLayout = () => {
       path: '/family/packages',
       label: 'Các gói',
       icon: BookIcon
+    },
+    {
+      path: '/family/services',
+      label: 'Dịch vụ',
+      icon: ServiceIcon
     },
     {
       path: '/family/notifications',
