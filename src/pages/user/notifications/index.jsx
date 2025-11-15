@@ -128,13 +128,11 @@ const Notifications = () => {
   });
 
   const markAsRead = (notificationId) => {
-    console.log('Mark as read:', notificationId);
-    // Handle mark as read
+    // TODO: Handle mark as read
   };
 
   const markAllAsRead = () => {
-    console.log('Mark all as read');
-    // Handle mark all as read
+    // TODO: Handle mark all as read
   };
 
   return (

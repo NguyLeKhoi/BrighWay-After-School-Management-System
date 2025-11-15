@@ -15,8 +15,8 @@ const CourseCatalog = () => {
         { label: 'Price', value: '2,500,000 VND' }
       ],
       actions: [
-        { text: 'Register', primary: true, onClick: () => console.log('Register course:', 1) },
-        { text: 'View Details', primary: false, onClick: () => console.log('View details:', 1) }
+        { text: 'Register', primary: true, onClick: () => {} },
+        { text: 'View Details', primary: false, onClick: () => {} }
       ]
     },
     {
@@ -29,8 +29,8 @@ const CourseCatalog = () => {
         { label: 'Price', value: '2,000,000 VND' }
       ],
       actions: [
-        { text: 'Register', primary: true, onClick: () => console.log('Register course:', 2) },
-        { text: 'View Details', primary: false, onClick: () => console.log('View details:', 2) }
+        { text: 'Register', primary: true, onClick: () => {} },
+        { text: 'View Details', primary: false, onClick: () => {} }
       ]
     },
     {
@@ -43,8 +43,8 @@ const CourseCatalog = () => {
         { label: 'Price', value: '3,000,000 VND' }
       ],
       actions: [
-        { text: 'Register', primary: true, onClick: () => console.log('Register course:', 3) },
-        { text: 'View Details', primary: false, onClick: () => console.log('View details:', 3) }
+        { text: 'Register', primary: true, onClick: () => {} },
+        { text: 'View Details', primary: false, onClick: () => {} }
       ]
     }
   ];

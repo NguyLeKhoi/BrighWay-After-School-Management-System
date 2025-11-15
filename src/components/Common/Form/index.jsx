@@ -62,12 +62,10 @@ const Form = forwardRef(({
   const formElementRef = useRef(null);
 
   const handleFormSubmit = async (data) => {
-    console.log('Form - handleFormSubmit called with data:', data);
     try {
       // Note: Validation is already done in submit() function before calling this
       // Just call onSubmit callback
       const result = await onSubmit(data);
-      console.log('Form - onSubmit completed successfully');
       previousErrorMessages.current = {};
       return result !== false; // Return true if result is not false
     } catch (error) {
@@ -83,17 +81,14 @@ const Form = forwardRef(({
         // First validate the form - trigger validation for all fields
         try {
           const isValid = await trigger();
-          console.log('Form validation result:', isValid, 'Errors:', errors);
           
           if (!isValid) {
             // Validation failed, don't submit
-            console.log('Form validation failed, not submitting');
             return false;
           }
           
           // If validation passes, get values and submit
           const values = getValues();
-          console.log('Form values:', values);
           const result = await handleFormSubmit(values);
           
           // Return true only if submit was successful

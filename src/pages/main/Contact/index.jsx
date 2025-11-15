@@ -22,7 +22,7 @@ const Contact = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    // TODO: Handle form submission
   };
 
   const formFields = [

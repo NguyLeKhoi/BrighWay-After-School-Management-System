@@ -8,8 +8,8 @@ const FacilitiesAbout = () => {
     heading: 'Our Facilities',
     subheading: 'World-class learning environment',
     buttons: [
-      { text: 'Learn More', primary: true, onClick: () => console.log('Learn More clicked') },
-      { text: 'View Gallery', primary: false, onClick: () => console.log('View Gallery clicked') }
+      { text: 'Learn More', primary: true, onClick: () => {} },
+      { text: 'View Gallery', primary: false, onClick: () => {} }
     ],
     hasImage: true
   };
@@ -18,8 +18,8 @@ const FacilitiesAbout = () => {
     heading: 'About Us',
     subheading: 'Dedicated to excellence in education',
     buttons: [
-      { text: 'Our Story', primary: true, onClick: () => console.log('Our Story clicked') },
-      { text: 'Meet the Team', primary: false, onClick: () => console.log('Meet the Team clicked') }
+      { text: 'Our Story', primary: true, onClick: () => {} },
+      { text: 'Meet the Team', primary: false, onClick: () => {} }
     ],
     hasImage: true,
     reverse: true

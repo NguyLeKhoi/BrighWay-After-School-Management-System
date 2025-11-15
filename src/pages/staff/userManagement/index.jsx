@@ -226,15 +226,6 @@ const UserManagement = () => {
     try {
       // Get expanded user details with family and parent information
       const expandedUser = await userService.getUserById(user.id, true);
-      console.log('🔍 Expanded User Data:', expandedUser);
-      console.log('🔍 User fields:', {
-        user: expandedUser?.user,
-        fullName: expandedUser?.user?.fullName || expandedUser?.fullName,
-        email: expandedUser?.user?.email || expandedUser?.email,
-        phoneNumber: expandedUser?.user?.phoneNumber || expandedUser?.phoneNumber,
-        family: expandedUser?.family,
-        parents: expandedUser?.parents
-      });
       setSelectedUser(expandedUser);
       setOpenDialog(true);
     } catch (err) {

@@ -26,9 +26,7 @@ const UserProfile = () => {
     setError(null);
     
     try {
-      console.log('🔄 Loading user data...');
       const currentUser = await userService.getCurrentUser();
-      console.log('✅ Current user loaded:', currentUser);
       
       const userInfo = {
         fullName: currentUser.fullName || currentUser.name || '',
@@ -68,7 +66,6 @@ const UserProfile = () => {
     
     try {
       showLoading();
-      console.log('🔄 Updating user info...');
       
       // TODO: Call API to update user info
       setUserData({

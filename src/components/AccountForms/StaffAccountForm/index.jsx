@@ -39,7 +39,6 @@ const StaffAccountForm = ({
   ];
 
   const handleFormSubmit = (data) => {
-    console.log('StaffAccountForm - handleFormSubmit called with data:', data);
     setConfirmDialog({
       open: true,
       userData: data

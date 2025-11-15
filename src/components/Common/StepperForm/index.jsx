@@ -116,7 +116,7 @@ const StepperForm = ({
     } else {
       // Last step - call onComplete
       if (onComplete) {
-        onComplete(formData);
+        onComplete(formDataRef.current);
       }
     }
   }, [activeStep, steps, formData, onComplete]);
