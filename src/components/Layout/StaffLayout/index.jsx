@@ -5,7 +5,6 @@ import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
   Dashboard as DashboardIcon,
-  School as StudentLevelIcon,
   Category as ActivityTypeIcon,
   Event as ActivityIcon,
   People as PeopleIcon
@@ -26,16 +25,6 @@ const StaffLayout = () => {
       path: '/staff/dashboard',
       label: 'Dashboard',
       icon: DashboardIcon
-    },
-    {
-      path: '/staff/user-management',
-      label: 'Quản lý Tài khoản',
-      icon: PeopleIcon
-    },
-    {
-      path: '/staff/student-levels',
-      label: 'Cấp độ học sinh',
-      icon: StudentLevelIcon
     },
     {
       path: '/staff/activity-types',

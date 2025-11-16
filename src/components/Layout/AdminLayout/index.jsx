@@ -79,7 +79,7 @@ const AdminLayout = () => {
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: '64px' }}>
       {/* Header */}
       <ManagerStaffHeader />
 

@@ -30,12 +30,18 @@ import Notifications from '../pages/user/notifications';
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
 import BranchManagement from '../pages/admin/branchManagement';
+import CreateBranch from '../pages/admin/branchManagement/CreateBranch';
+import UpdateBranch from '../pages/admin/branchManagement/UpdateBranch';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
 import ManagerManagement from '../pages/admin/managerManagement';
 import BenefitManagement from '../pages/admin/benefitManagement';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 import PackageManagement from '../pages/admin/packageManagement';
+import AdminCreateTemplate from '../pages/admin/packageManagement/CreateTemplate';
+import AdminUpdateTemplate from '../pages/admin/packageManagement/UpdateTemplate';
+import AdminCreatePackage from '../pages/admin/packageManagement/CreatePackage';
+import AdminUpdatePackage from '../pages/admin/packageManagement/UpdatePackage';
 import SchoolManagement from '../pages/admin/schoolManagement';
 
 // Manager Pages
@@ -55,10 +61,8 @@ import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 
 // Staff Pages
 import StaffDashboard from '../pages/staff/dashboard';
-import StaffStudentLevels from '../pages/staff/studentLevels';
 import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
-import StaffUserManagement from '../pages/staff/userManagement';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -174,6 +178,14 @@ export const routes = createBrowserRouter([
         element: <BranchManagement />,
       },
       {
+        path: 'branches/create',
+        element: <CreateBranch />,
+      },
+      {
+        path: 'branches/update/:id',
+        element: <UpdateBranch />,
+      },
+      {
         path: 'facilities',
         element: <FacilityManagement />,
       },
@@ -197,6 +209,10 @@ export const routes = createBrowserRouter([
         path: 'packages',
         element: <PackageManagement />,
       },
+      { path: 'packages/templates/create', element: <AdminCreateTemplate /> },
+      { path: 'packages/templates/update/:id', element: <AdminUpdateTemplate /> },
+      { path: 'packages/create', element: <AdminCreatePackage /> },
+      { path: 'packages/update/:id', element: <AdminUpdatePackage /> },
       {
         path: 'schools',
         element: <SchoolManagement />,
@@ -280,15 +296,11 @@ export const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <StaffStudentLevels />,
+        element: <StaffDashboard />,
       },
       {
         path: 'dashboard',
         element: <StaffDashboard />,
-      },
-      {
-        path: 'student-levels',
-        element: <StaffStudentLevels />,
       },
       {
         path: 'activity-types',
@@ -297,10 +309,6 @@ export const routes = createBrowserRouter([
       {
         path: 'activities',
         element: <StaffActivities />,
-      },
-      {
-        path: 'user-management',
-        element: <StaffUserManagement />,
       },
     ],
   },

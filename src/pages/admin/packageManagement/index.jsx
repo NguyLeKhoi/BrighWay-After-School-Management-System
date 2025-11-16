@@ -27,7 +27,6 @@ import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
-import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import Form from '../../../components/Common/Form';
 import packageService from '../../../services/package.service';
@@ -39,6 +38,7 @@ import { createTemplateColumns, createPackageColumns } from '../../../constants/
 import { createTemplateFormFields, createPackageFormFields } from '../../../constants/package/formFields';
 import styles from './PackageManagement.module.css';
 import { packageTemplateSchema, packageSchema } from '../../../utils/validationSchemas/packageSchemas';
+import { useNavigate } from 'react-router-dom';
 
 const extractBenefitIds = (source) => {
   if (!source) return [];
@@ -56,6 +56,7 @@ const extractBenefitIds = (source) => {
 const PackageManagement = () => {
   const [activeTab, setActiveTab] = useState('templates');
 
+  const navigate = useNavigate();
   const {
     benefitOptions: rawBenefitOptions,
     studentLevelOptions,
@@ -215,13 +216,11 @@ const PackageManagement = () => {
   const templateColumns = useMemo(() => createTemplateColumns(styles), [styles]);
   const packageColumns = useMemo(() => createPackageColumns(styles), [styles]);
 
-  const handleTemplateCreate = () => {
-    templateHandleCreateBase();
-  };
+  const handleCreateTemplate = () => navigate('/admin/packages/templates/create');
+  const handleEditTemplate = (item) => navigate(`/admin/packages/templates/update/${item.id}`);
 
-  const handleTemplateEdit = (templateItem) => {
-    templateHandleEditBase(templateItem);
-  };
+  const handleCreatePackage = () => navigate('/admin/packages/create');
+  const handleEditPackage = (item) => navigate(`/admin/packages/update/${item.id}`);
 
   const toNumber = (value) => {
     if (value === null || value === undefined || value === '') return 0;
@@ -510,7 +509,7 @@ const PackageManagement = () => {
       <ManagementPageHeader
         title={isTemplateTab ? 'Quản lý Mẫu Gói' : 'Quản lý Gói Bán'}
         createButtonText={isTemplateTab ? 'Thêm Mẫu Gói' : 'Thêm Gói Bán'}
-        onCreateClick={isTemplateTab ? handleTemplateCreate : handlePackageCreate}
+        onCreateClick={isTemplateTab ? handleCreateTemplate : handleCreatePackage}
       />
 
       <Paper
@@ -661,34 +660,13 @@ const PackageManagement = () => {
               totalCount={templateTotalCount}
               onPageChange={templateHandlePageChange}
               onRowsPerPageChange={templateHandleRowsPerPageChange}
-              onEdit={handleTemplateEdit}
+              onEdit={handleEditTemplate}
               onDelete={templateHandleDelete}
               emptyMessage="Chưa có mẫu gói nào. Hãy tạo mẫu đầu tiên để sử dụng lại nhanh chóng."
             />
           </div>
 
-          <ManagementFormDialog
-            open={templateDialogOpen}
-            onClose={() => setTemplateDialogOpen(false)}
-            mode={templateDialogMode}
-            title="Mẫu Gói"
-            icon={TemplateTabIcon}
-            loading={templateActionLoading}
-            maxWidth="md"
-          >
-            <Form
-              key={`template-${templateDialogMode}-${selectedTemplate?.id || 'new'}`}
-              schema={packageTemplateSchema}
-              defaultValues={templateDefaultValues}
-              onSubmit={handleTemplateFormSubmit}
-              submitText={templateDialogMode === 'create' ? 'Tạo Mẫu Gói' : 'Cập nhật Mẫu Gói'}
-              loading={templateActionLoading}
-                    disabled={templateActionLoading}
-              fields={templateFormFields}
-              showReset={templateDialogMode === 'create'}
-            />
-          </ManagementFormDialog>
-
+          {/* Template routes replace dialog; keep confirm dialog only */}
           <ConfirmDialog
             open={templateConfirmDialog.open}
             onClose={() => setTemplateConfirmDialog((prev) => ({ ...prev, open: false }))}
@@ -737,7 +715,7 @@ const PackageManagement = () => {
               totalCount={packageTotalCount}
               onPageChange={packageHandlePageChange}
               onRowsPerPageChange={packageHandleRowsPerPageChange}
-              onEdit={handlePackageEdit}
+              onEdit={handleEditPackage}
               onDelete={packageHandleDelete}
               expandableConfig={{
                 isRowExpandable: (item) => Array.isArray(item?.benefits) && item.benefits.length > 0,
@@ -747,28 +725,7 @@ const PackageManagement = () => {
         />
       </div>
 
-      <ManagementFormDialog
-            open={packageDialogOpen}
-        onClose={() => setPackageDialogOpen(false)}
-            mode={packageDialogMode}
-        title="Gói Bán"
-        icon={PackageIcon}
-        loading={packageActionLoading || dependenciesLoading || loadingTemplates}
-        maxWidth="lg"
-      >
-        <Form
-          key={`package-${packageDialogMode}-${selectedPackage?.id || 'new'}`}
-          schema={packageSchema}
-          defaultValues={packageDefaultValues}
-          onSubmit={handlePackageFormSubmit}
-          submitText={packageDialogMode === 'create' ? 'Tạo Gói Bán' : 'Cập nhật Gói Bán'}
-          loading={packageActionLoading || dependenciesLoading || loadingTemplates}
-          disabled={packageActionLoading || dependenciesLoading || loadingTemplates}
-          fields={packageFormFields}
-          showReset={packageDialogMode === 'create'}
-        />
-      </ManagementFormDialog>
-
+      {/* Package routes replace dialog; keep confirm dialog only */}
       <ConfirmDialog
             open={packageConfirmDialog.open}
             onClose={() => setPackageConfirmDialog((prev) => ({ ...prev, open: false }))}

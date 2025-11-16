@@ -50,6 +50,7 @@ import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createBranchColumns } from '../../../constants/branch/tableColumns';
 import { toast } from 'react-toastify';
 import styles from './BranchManagement.module.css';
+import { useNavigate } from 'react-router-dom';
 
 const BranchManagement = () => {
   // Location data
@@ -78,6 +79,7 @@ const BranchManagement = () => {
   const [selectedBenefits, setSelectedBenefits] = useState([]);
   const [loadingBenefits, setLoadingBenefits] = useState(false);
 
+  const navigate = useNavigate();
   // Use shared CRUD hook for basic operations
   const {
     data: branches,
@@ -89,9 +91,6 @@ const BranchManagement = () => {
     actionLoading,
     isPageLoading,
     loadingText,
-    openDialog,
-    setOpenDialog,
-    dialogMode,
     selectedItem: selectedBranch,
     confirmDialog,
     setConfirmDialog,
@@ -129,12 +128,7 @@ const BranchManagement = () => {
     }
   }, [provinceId, handleProvinceChange, selectedBranch]);
 
-  // Load provinces when dialog opens
-  useEffect(() => {
-    if (openDialog && provinces.length === 0) {
-      fetchProvinces();
-    }
-  }, [openDialog]);
+  // No dialog open effect needed after stepper refactor
 
   // Sync districtId when editing
   useEffect(() => {
@@ -153,22 +147,12 @@ const BranchManagement = () => {
     }
   }, [selectedBranch, provinces, districtId]);
 
-  // Override handleCreate to ensure provinces are loaded
   const handleCreateWithData = async () => {
-    if (provinces.length === 0) {
-      await fetchProvinces();
-    }
-    setProvinceId('');
-    setDistrictId('');
-    handleCreate();
+    navigate('/admin/branches/create');
   };
 
-  // Override handleEdit to ensure provinces are loaded
   const handleEditWithData = async (branch) => {
-    if (provinces.length === 0) {
-      await fetchProvinces();
-    }
-    handleEdit(branch);
+    navigate(`/admin/branches/update/${branch.id}`);
   };
 
   // Custom form submit handler (need to include districtId)
@@ -522,146 +506,7 @@ const BranchManagement = () => {
           />
         </div>
 
-      {/* Form Dialog with Location Fields */}
-      <ManagementFormDialog
-        open={openDialog}
-        onClose={() => {
-          setOpenDialog(false);
-          setProvinceId('');
-          setDistrictId('');
-        }}
-        mode={dialogMode}
-        title="Chi Nhánh"
-        icon={BusinessIcon}
-        loading={actionLoading}
-        maxWidth="md"
-      >
-        <Box component="form" onSubmit={async (e) => {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          const data = {
-            branchName: formData.get('branchName'),
-            address: formData.get('address'),
-            phone: formData.get('phone'),
-            districtId: districtId
-          };
-          await handleFormSubmit(data);
-        }}>
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Thông tin chi nhánh
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Nhập tên chi nhánh và thông tin liên hệ để hiển thị trong hệ thống.
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="branchName"
-                label="Tên Chi Nhánh"
-                required
-                fullWidth
-                defaultValue={selectedBranch?.branchName || ''}
-                disabled={actionLoading}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 1 }}>
-                Địa chỉ chi tiết
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Chọn tỉnh/thành, quận/huyện và nhập địa chỉ cụ thể.
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel>Tỉnh/Thành Phố</InputLabel>
-                <Select
-                  value={provinceId}
-                  onChange={(e) => setProvinceId(e.target.value)}
-                  label="Tỉnh/Thành Phố"
-                  disabled={actionLoading || locationLoading}
-                >
-                  <MenuItem value="">Chọn tỉnh/thành phố</MenuItem>
-                  {getProvinceOptions().map(option => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth required disabled={!provinceId}>
-                <InputLabel>Quận/Huyện</InputLabel>
-                <Select
-                  value={districtId}
-                  onChange={(e) => setDistrictId(e.target.value)}
-                  label="Quận/Huyện"
-                  disabled={actionLoading || locationLoading || !provinceId}
-                >
-                  <MenuItem value="">Chọn quận/huyện</MenuItem>
-                  {getDistrictOptions().map(option => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="address"
-                label="Địa Chỉ"
-                required
-                fullWidth
-                defaultValue={selectedBranch?.address || ''}
-                disabled={actionLoading}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Liên hệ
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Thông tin liên lạc được dùng khi gửi thông báo cho chi nhánh.
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="phone"
-                label="Số Điện Thoại"
-                required
-                fullWidth
-                defaultValue={selectedBranch?.phone || ''}
-                disabled={actionLoading}
-              />
-            </Grid>
-          </Grid>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() => {
-                setOpenDialog(false);
-                setProvinceId('');
-                setDistrictId('');
-              }}
-              disabled={actionLoading}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={actionLoading}
-            >
-              {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Chi Nhánh' : 'Cập nhật Chi Nhánh'}
-            </Button>
-          </Box>
-        </Box>
-      </ManagementFormDialog>
+      {/* Create/Update moved to dedicated stepper pages */}
 
       {/* Confirm Dialog */}
       <ConfirmDialog
