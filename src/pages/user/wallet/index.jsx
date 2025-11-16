@@ -48,44 +48,15 @@ const MyWallet = () => {
     note: ''
   });
 
-  const [transactions] = useState([
-    {
-      id: 1,
-      type: 'topup',
-      amount: 500000,
-      description: 'Nạp tiền ví chính',
-      date: '2024-01-15',
-      status: 'completed',
-      wallet: 'main'
-    },
-    {
-      id: 2,
-      type: 'payment',
-      amount: -300000,
-      description: 'Thanh toán học phí tháng 1',
-      date: '2024-01-10',
-      status: 'completed',
-      wallet: 'main'
-    },
-    {
-      id: 3,
-      type: 'purchase',
-      amount: -25000,
-      description: 'Mua đồ ăn vặt',
-      date: '2024-01-14',
-      status: 'completed',
-      wallet: 'allowance'
-    },
-    {
-      id: 4,
-      type: 'refill',
-      amount: 200000,
-      description: 'Nạp tiền tiêu vặt tháng 1',
-      date: '2024-01-01',
-      status: 'completed',
-      wallet: 'allowance'
-    }
-  ]);
+  const [transactions, setTransactions] = useState([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [transactionError, setTransactionError] = useState(null);
+  const [pagination, setPagination] = useState({
+    pageIndex: 1,
+    pageSize: 20,
+    totalPages: 1,
+    totalCount: 0
+  });
 
   const { showGlobalError, addNotification } = useApp();
   const { showLoading, hideLoading } = useLoading();
@@ -132,12 +103,10 @@ const MyWallet = () => {
     setIsChildWalletLoading(true);
 
     try {
-      const response = await studentService.getCurrentUserStudents({
-        pageIndex: 1,
-        pageSize: 50
-      });
+      const response = await studentService.getMyChildren();
 
-      const students = Array.isArray(response?.items) ? response.items : [];
+      // API mới trả về array trực tiếp, không phải object có items
+      const students = Array.isArray(response) ? response : (Array.isArray(response?.items) ? response.items : []);
 
       const wallets = await Promise.all(
         students.map(async (student) => {
@@ -176,6 +145,7 @@ const MyWallet = () => {
   useEffect(() => {
     loadWalletData({ showSpinner: true });
     loadChildWallets();
+    loadTransactions(1); // Load first page of transactions
   }, []);
 
   const handleTransfer = async (event) => {
@@ -236,6 +206,55 @@ const MyWallet = () => {
     } finally {
       setIsTransferring(false);
       hideLoading();
+    }
+  };
+
+  // Load transaction history (deposits)
+  const loadTransactions = async (pageIndex = 1, pageSize = 20) => {
+    setIsLoadingTransactions(true);
+    setTransactionError(null);
+
+    try {
+      const response = await depositService.getMyDeposits({
+        pageIndex,
+        pageSize
+      });
+
+      // API response có structure: { items: [...], totalPages, totalCount, ... }
+      const deposits = response.items || [];
+      
+      // Map deposits từ API sang format của component
+      const mappedTransactions = deposits.map((deposit) => ({
+        id: deposit.id,
+        type: 'topup', // Tất cả deposits đều là topup
+        amount: deposit.amount || 0,
+        description: `Nạp tiền - Order #${deposit.payOSOrderCode || 'N/A'}`,
+        date: deposit.timestamp || new Date().toISOString(),
+        status: deposit.status?.toLowerCase() || 'pending',
+        wallet: 'main',
+        payOSOrderCode: deposit.payOSOrderCode,
+        payOSTransactionId: deposit.payOSTransactionId
+      }));
+
+      setTransactions(mappedTransactions);
+      
+      // Update pagination info
+      setPagination(prev => ({
+        ...prev,
+        pageIndex,
+        pageSize,
+        totalPages: response.totalPages || 1,
+        totalCount: response.totalCount || 0
+      }));
+    } catch (err) {
+      const errorMessage = typeof err === 'string'
+        ? err
+        : err?.message || err?.error || 'Không thể tải lịch sử giao dịch';
+      
+      setTransactionError(errorMessage);
+      showGlobalError(errorMessage);
+    } finally {
+      setIsLoadingTransactions(false);
     }
   };
 
@@ -419,9 +438,18 @@ const MyWallet = () => {
     };
   }, []);
 
-  const filteredTransactions = transactions.filter(tx => 
-    activeTab === 'main' ? tx.wallet === 'main' : tx.wallet === 'allowance'
-  );
+  // Filter transactions based on active tab
+  // For main wallet, show all deposits (topup)
+  // For allowance wallet, show empty (no deposits for allowance wallet)
+  const filteredTransactions = activeTab === 'main' 
+    ? transactions.filter(tx => tx.wallet === 'main')
+    : []; // Allowance wallet doesn't have deposits
+
+  const handlePageChange = (newPageIndex) => {
+    if (newPageIndex >= 1 && newPageIndex <= pagination.totalPages) {
+      loadTransactions(newPageIndex);
+    }
+  };
 
   const tabs = [
     { id: 'main', label: 'Ví chính' },
@@ -601,35 +629,93 @@ const MyWallet = () => {
         {/* Transaction History */}
         <div className={styles.transactionSection}>
           <h3>Lịch sử giao dịch</h3>
-          <div className={styles.transactionList}>
-            {filteredTransactions.length > 0 ? (
-              filteredTransactions.map((transaction) => (
-                <div key={transaction.id} className={styles.transactionItem}>
-                  <div className={styles.transactionIcon}>
-                    {getTransactionIcon(transaction.type)}
-                  </div>
-                  <div className={styles.transactionDetails}>
-                    <div className={styles.transactionDescription}>
-                      {transaction.description}
+          {isLoadingTransactions ? (
+            <div className={styles.transactionLoading}>
+              <Loading />
+            </div>
+          ) : transactionError ? (
+            <div className={styles.transactionError}>
+              <p>{transactionError}</p>
+              <button className={styles.retryButton} onClick={() => loadTransactions(pagination.pageIndex)}>
+                Thử lại
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className={styles.transactionList}>
+                {filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((transaction) => (
+                    <div key={transaction.id} className={styles.transactionItem}>
+                      <div className={styles.transactionIcon}>
+                        {getTransactionIcon(transaction.type)}
+                      </div>
+                      <div className={styles.transactionDetails}>
+                        <div className={styles.transactionDescription}>
+                          {transaction.description}
+                        </div>
+                        <div className={styles.transactionDate}>
+                          {new Date(transaction.date).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                        {transaction.status && (
+                          <div className={styles.transactionStatus}>
+                            Trạng thái: <span className={styles[transaction.status]}>
+                              {transaction.status === 'pending' ? 'Đang chờ' : 
+                               transaction.status === 'completed' ? 'Hoàn thành' : 
+                               transaction.status}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div 
+                        className={styles.transactionAmount}
+                        style={{ color: getTransactionColor(transaction.type) }}
+                      >
+                        {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                      </div>
                     </div>
-                    <div className={styles.transactionDate}>
-                      {new Date(transaction.date).toLocaleDateString('vi-VN')}
-                    </div>
+                  ))
+                ) : (
+                  <div className={styles.noTransactions}>
+                    <p>Chưa có giao dịch nào</p>
                   </div>
-                  <div 
-                    className={styles.transactionAmount}
-                    style={{ color: getTransactionColor(transaction.type) }}
-                  >
-                    {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount)}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className={styles.noTransactions}>
-                <p>Chưa có giao dịch nào</p>
+                )}
               </div>
-            )}
-          </div>
+              
+              {/* Pagination Controls */}
+              {pagination.totalPages > 1 && (
+                <div className={styles.pagination}>
+                  <button
+                    className={styles.paginationButton}
+                    onClick={() => handlePageChange(pagination.pageIndex - 1)}
+                    disabled={pagination.pageIndex === 1 || isLoadingTransactions}
+                  >
+                    Trước
+                  </button>
+                  <span className={styles.paginationInfo}>
+                    Trang {pagination.pageIndex} / {pagination.totalPages}
+                    {pagination.totalCount > 0 && (
+                      <span className={styles.paginationCount}>
+                        ({pagination.totalCount} giao dịch)
+                      </span>
+                    )}
+                  </span>
+                  <button
+                    className={styles.paginationButton}
+                    onClick={() => handlePageChange(pagination.pageIndex + 1)}
+                    disabled={pagination.pageIndex >= pagination.totalPages || isLoadingTransactions}
+                  >
+                    Sau
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

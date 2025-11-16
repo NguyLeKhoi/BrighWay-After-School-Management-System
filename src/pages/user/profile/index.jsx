@@ -13,7 +13,7 @@ const UserProfile = () => {
     fullName: '',
     email: ''
   });
-  
+
   const { showGlobalError, addNotification } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading();
 
@@ -191,6 +191,7 @@ const UserProfile = () => {
             )}
           </div>
         </div>
+
       </div>
     </div>
   );

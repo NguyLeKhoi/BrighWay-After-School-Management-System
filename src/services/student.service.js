@@ -43,6 +43,19 @@ const studentService = {
   },
 
   /**
+   * Get current logged-in user's children (simplified API)
+   * @returns {Promise} Array of student objects
+   */
+  getMyChildren: async () => {
+    try {
+      const response = await axiosInstance.get('/Student/my-children');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
    * Get student by ID
    * @param {string} studentId - Student ID
    * @returns {Promise} Student details
