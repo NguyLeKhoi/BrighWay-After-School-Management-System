@@ -139,7 +139,8 @@ const packageService = {
         page = 1,
         pageSize = 10,
         searchTerm = '',
-        status = null
+        status = null,
+        branchId = ''
       } = params;
 
       const queryParams = new URLSearchParams({
@@ -155,7 +156,25 @@ const packageService = {
         queryParams.append('filter.IsActive', status.toString());
       }
 
+      if (branchId) {
+        queryParams.append('filter.BranchId', branchId);
+      }
+
       const response = await axiosInstance.get(`/Package/paged/my-branch?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get all package subscriptions for a specific student
+   * @param {string} studentId - Student ID
+   * @returns {Promise} List of package subscriptions
+   */
+  getSubscriptionsByStudent: async (studentId) => {
+    try {
+      const response = await axiosInstance.get(`/PackageSubscription/by-student/${studentId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -170,6 +189,20 @@ const packageService = {
   getPackageBenefits: async (packageId) => {
     try {
       const response = await axiosInstance.get(`/Package/${packageId}/benefits`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get packages suitable for a specific student
+   * @param {string} studentId - Student ID
+   * @returns {Promise} List of suitable packages
+   */
+  getSuitablePackages: async (studentId) => {
+    try {
+      const response = await axiosInstance.get(`/Package/student/${studentId}/suitable-packages`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -199,6 +232,20 @@ const packageService = {
   updateMyBranchPackage: async (packageId, packageData) => {
     try {
       const response = await axiosInstance.put(`/Package/my-branch/${packageId}`, packageData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Buy package for child
+   * @param {Object} purchaseData - Purchase data { packageId, studentId, startDate }
+   * @returns {Promise} Purchase result
+   */
+  buyPackageForChild: async (purchaseData) => {
+    try {
+      const response = await axiosInstance.post('/PackageSubscription/buy-for-child', purchaseData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

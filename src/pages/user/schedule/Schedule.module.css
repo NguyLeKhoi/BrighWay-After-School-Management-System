@@ -1,0 +1,459 @@
+.schedulePage {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 24px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.sectionSubtitle {
+  margin: 6px 0 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.selectorRow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 320px;
+}
+
+.selectorLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.selector {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #111827;
+  background: #f9fafb;
+  outline: none;
+}
+
+.selector:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.secondaryButton {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.secondaryButton:hover {
+  background-color: #f3f4f6;
+}
+
+.primaryButton {
+  margin-top: 12px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.primaryButton:hover {
+  background: #1d4ed8;
+}
+
+.primaryButton.activeButton {
+  background: #e11d48;
+}
+
+.primaryButton.activeButton:hover {
+  background: #be123c;
+}
+
+.inlineLoading {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.errorState {
+  text-align: center;
+  padding: 40px 20px;
+  border-radius: 12px;
+  border: 1px solid #ffe4e6;
+  background: #fff1f2;
+  color: #b91c1c;
+}
+
+.retryButton {
+  margin-top: 16px;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  background: #ef4444;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background: #dc2626;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px 16px;
+  border: 1px dashed #e2e8f0;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.roomsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.scheduleCard {
+  border: 1px solid #edf2f7;
+  border-radius: 14px;
+  padding: 20px;
+  background: #fcfdff;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardLabel {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+}
+
+.cardTitle {
+  margin: 4px 0 0 0;
+  font-size: 18px;
+  color: #111827;
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.statusBadge.active {
+  background: #e8f7ef;
+  color: #18794e;
+}
+
+.statusBadge.completed {
+  background: #e0f2fe;
+  color: #0c4a6e;
+}
+
+.statusBadge.pending {
+  background: #fff4e5;
+  color: #92400e;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.infoLabel {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.infoValue {
+  margin: 4px 0 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.benefits {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+}
+
+.benefits ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.benefits li {
+  padding-left: 18px;
+  position: relative;
+  color: #374151;
+  font-size: 14px;
+}
+
+.benefits li::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+  color: #2563eb;
+}
+
+.description {
+  color: #374151;
+  font-size: 14px;
+  margin: 8px 0 0 0;
+}
+
+.roomCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roomHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.roomHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #111827;
+}
+
+.roomCapacity {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.roomCardSelected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.roomSelectButton {
+  margin-top: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.roomSelectButton:hover {
+  background: #f3f4f6;
+}
+
+.roomSelectButtonActive {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: white;
+}
+
+.bookingForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bookingSummary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.formSelect,
+.formInput,
+.formTextarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #111827;
+  background: white;
+}
+
+.formTextarea {
+  resize: vertical;
+}
+
+.formSelect:focus,
+.formInput:focus,
+.formTextarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  outline: none;
+}
+
+.bookingActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bookButton {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #16a34a;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.bookButton:hover {
+  background: #15803d;
+}
+
+.bookButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+  }
+
+  .selectorRow {
+    width: 100%;
+  }
+
+  .scheduleGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .roomsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+

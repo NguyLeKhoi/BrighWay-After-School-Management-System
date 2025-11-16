@@ -221,7 +221,10 @@ const Form = forwardRef(({
                 onChange={(_, newValue) => onChange(newValue.map((option) => option.value))}
                 getOptionLabel={(option) => option.label || ''}
                 renderOption={(props, option, { selected }) => (
-                  <li {...props}>
+                  (() => {
+                    const { key, ...optionProps } = props;
+                    return (
+                      <li {...optionProps} key={key}>
                     <Checkbox
                       icon={icon}
                       checkedIcon={checkedIcon}
@@ -229,7 +232,9 @@ const Form = forwardRef(({
                       checked={selected}
                     />
                     {option.label}
-                  </li>
+                      </li>
+                    );
+                  })()
                 )}
                 renderInput={(params) => (
                   <TextField

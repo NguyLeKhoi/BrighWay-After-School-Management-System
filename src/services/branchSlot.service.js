@@ -2,13 +2,11 @@ import axiosInstance from '../config/axios.config';
 
 /**
  * Branch Slot Service
- * Handles all branch slot-related API calls for Manager role
+ * Handles all branch slot-related API calls
  */
 const branchSlotService = {
   /**
    * Get paginated branch slots for current manager's branch
-   * @param {Object} params - Pagination parameters { page, pageSize, searchTerm, status, weekDate, timeframeId, slotTypeId }
-   * @returns {Promise} Paginated branch slot list
    */
   getMyBranchSlotsPaged: async (params = {}) => {
     try {
@@ -48,6 +46,25 @@ const branchSlotService = {
       }
 
       const response = await axiosInstance.get(`/BranchSlot/manager/paged?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get available slots for a student (user side)
+   */
+  getAvailableSlotsForStudent: async (studentId, params = {}) => {
+    try {
+      const { pageIndex = 1, pageSize = 10 } = params;
+      const query = new URLSearchParams({
+        pageIndex: pageIndex.toString(),
+        pageSize: pageSize.toString()
+      });
+      const response = await axiosInstance.get(
+        `/BranchSlot/available-for-student/${studentId}?${query.toString()}`
+      );
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -140,13 +157,20 @@ const branchSlotService = {
   },
 
   /**
-   * Get rooms by branch slot ID
-   * @param {string} branchSlotId - Branch slot ID
-   * @returns {Promise} List of rooms
+   * Get rooms by branch slot ID (optionally paginated)
    */
-  getRoomsByBranchSlot: async (branchSlotId) => {
+  getRoomsByBranchSlot: async (branchSlotId, params = {}) => {
     try {
-      const response = await axiosInstance.get(`/BranchSlot/${branchSlotId}/rooms`);
+      const { pageIndex, pageSize } = params;
+      let url = `/BranchSlot/${branchSlotId}/rooms`;
+      if (pageIndex !== undefined && pageSize !== undefined) {
+        const query = new URLSearchParams({
+          pageIndex: pageIndex.toString(),
+          pageSize: pageSize.toString()
+        });
+        url = `${url}?${query.toString()}`;
+      }
+      const response = await axiosInstance.get(url);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

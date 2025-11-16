@@ -1,9 +1,17 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import packageTemplateService from '../services/packageTemplate.service';
 import studentLevelService from '../services/studentLevel.service';
 import benefitService from '../services/benefit.service';
 
 const useManagerPackageDependencies = () => {
+  const { user } = useAuth();
+  const managerBranchId =
+    user?.branchId ||
+    user?.managerProfile?.branchId ||
+    user?.managerBranchId ||
+    null;
+
   const [templates, setTemplates] = useState([]);
   const [studentLevels, setStudentLevels] = useState([]);
   const [benefits, setBenefits] = useState([]);
@@ -14,10 +22,14 @@ const useManagerPackageDependencies = () => {
     setLoading(true);
     setError(null);
     try {
+      const benefitPromise = managerBranchId
+        ? benefitService.getBenefitsByBranchId(managerBranchId)
+        : benefitService.getAllBenefits();
+
       const [templateData, studentLevelData, benefitData] = await Promise.all([
         packageTemplateService.getAllTemplates(),
         studentLevelService.getAllStudentLevels(),
-        benefitService.getAllBenefits()
+        benefitPromise
       ]);
       setTemplates(templateData || []);
       setStudentLevels(studentLevelData || []);
@@ -33,7 +45,7 @@ const useManagerPackageDependencies = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [managerBranchId]);
 
   const templateOptions = useMemo(
     () =>

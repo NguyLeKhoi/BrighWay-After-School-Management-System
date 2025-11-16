@@ -73,6 +73,27 @@ const userService = {
    },
 
    /**
+    * Create new parent account (for Staff role only)
+    * @param {Object} userData - User data { email, password, name, branchId }
+    * @returns {Promise} Created parent user
+    */
+   createParent: async (userData) => {
+     try {
+       // Backend expects { email, password, name, branchId }
+       const payload = {
+         email: userData.email,
+         password: userData.password,
+         name: userData.name || userData.fullName,
+         branchId: userData.branchId
+       };
+       const response = await axiosInstance.post('/User/parent', payload);
+       return response.data;
+     } catch (error) {
+       throw error.response?.data || error.message;
+     }
+   },
+
+   /**
     * Create new manager account
     * @param {Object} userData - User data { name, email, password, branchId? }
     * @returns {Promise} Created manager user
