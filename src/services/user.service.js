@@ -94,6 +94,32 @@ const userService = {
    },
 
    /**
+    * Create new parent account with CCCD data (for Manager role)
+    * @param {Object} userData - User data with CCCD information
+    * @returns {Promise} Created parent user
+    */
+   createParentWithCCCD: async (userData) => {
+     try {
+       const payload = {
+         email: userData.email,
+         password: userData.password,
+         name: userData.name || userData.fullName,
+         identityCardNumber: userData.identityCardNumber,
+         dateOfBirth: userData.dateOfBirth,
+         gender: userData.gender,
+         address: userData.address,
+         issuedDate: userData.issuedDate,
+         issuedPlace: userData.issuedPlace,
+         identityCardPublicId: userData.identityCardPublicId
+       };
+       const response = await axiosInstance.post('/User/parent-with-cccd', payload);
+       return response.data;
+     } catch (error) {
+       throw error.response?.data || error.message;
+     }
+   },
+
+   /**
     * Create new manager account
     * @param {Object} userData - User data { name, email, password, branchId? }
     * @returns {Promise} Created manager user
