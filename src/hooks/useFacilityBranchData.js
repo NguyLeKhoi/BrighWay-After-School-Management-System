@@ -54,14 +54,12 @@ const useFacilityBranchData = () => {
     }
   }, [fetchFacilities, fetchBranches]);
 
-  // Load data on mount
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+  // Don't auto-fetch on mount - only fetch when explicitly called
+  // This prevents unnecessary API calls when the hook is used but data isn't needed yet
 
   // Get facility options for select
   const getFacilityOptions = useCallback(() => {
-    return facilities.map(facility => ({
+    return facilities.filter(Boolean).map(facility => ({
       value: facility.id,
       label: facility.facilityName
     }));
@@ -69,7 +67,7 @@ const useFacilityBranchData = () => {
 
   // Get branch options for select
   const getBranchOptions = useCallback(() => {
-    return branches.map(branch => ({
+    return branches.filter(Boolean).map(branch => ({
       value: branch.id,
       label: branch.branchName
     }));

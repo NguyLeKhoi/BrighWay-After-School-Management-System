@@ -34,7 +34,7 @@ const branchService = {
 
   /**
    * Create new branch
-   * @param {Object} branchData - Branch data { branchName, address, phone }
+   * @param {Object} branchData - Branch data { branchName, address, phone, districtId }
    * @returns {Promise} Created branch
    */
   createBranch: async (branchData) => {
@@ -49,7 +49,7 @@ const branchService = {
   /**
    * Update branch
    * @param {string} branchId - Branch ID
-   * @param {Object} branchData - Updated branch data
+   * @param {Object} branchData - Updated branch data { branchName, address, phone, districtId }
    * @returns {Promise} Updated branch
    */
   updateBranch: async (branchId, branchData) => {
@@ -59,7 +59,8 @@ const branchService = {
         id: branchId,
         branchName: branchData.branchName,
         address: branchData.address,
-        phone: branchData.phone
+        phone: branchData.phone,
+        districtId: branchData.districtId
       };
       
       const response = await axiosInstance.put(`/Branch/${branchId}`, updateData);
@@ -97,7 +98,7 @@ const branchService = {
       });
       
       if (searchTerm) {
-        queryParams.append('searchTerm', searchTerm);
+        queryParams.append('filter.Keyword', searchTerm);
       }
       
       const response = await axiosInstance.get(`/Branch/paged?${queryParams}`);

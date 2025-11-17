@@ -67,6 +67,24 @@ const roomService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  // Get paginated rooms in current manager's branch
+  getRoomsInMyBranch: async (pageIndex = 1, pageSize = 1000, filter = {}) => {
+    try {
+      const params = {
+        pageIndex,
+        pageSize,
+        ...(filter.facilityId && { facilityId: filter.facilityId }),
+        ...(filter.branchId && { branchId: filter.branchId }),
+        ...(filter.keyword && { keyword: filter.keyword })
+      };
+      
+      const response = await axiosInstance.get('/Room/paged/my-branch', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

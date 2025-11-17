@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { toast } from 'react-toastify';
 
 const AppContext = createContext();
 
@@ -17,7 +18,7 @@ export const AppProvider = ({ children }) => {
   // Global error state
   const [globalError, setGlobalError] = useState(null);
   
-  // Global notification state
+  // Global notification state (deprecated - using react-toastify now)
   const [notifications, setNotifications] = useState([]);
   
   // Theme state
@@ -38,20 +39,27 @@ export const AppProvider = ({ children }) => {
   };
   const hideGlobalError = () => setGlobalError(null);
 
-  // Notification management
+  // Notification management using react-toastify
   const addNotification = (notification) => {
-    const id = Date.now();
-    const newNotification = { id, ...notification };
-    setNotifications(prev => [...prev, newNotification]);
+    const { message, severity = 'info', duration = 4000 } = notification;
     
-    // Auto remove after duration
-    if (notification.duration !== 0) {
-      setTimeout(() => {
-        removeNotification(id);
-      }, notification.duration || 5000);
+    switch (severity) {
+      case 'success':
+        toast.success(message, { autoClose: duration });
+        break;
+      case 'error':
+        toast.error(message, { autoClose: duration });
+        break;
+      case 'warning':
+        toast.warning(message, { autoClose: duration });
+        break;
+      case 'info':
+      default:
+        toast.info(message, { autoClose: duration });
+        break;
     }
     
-    return id;
+    return Date.now(); // Return a fake ID for compatibility
   };
 
   const removeNotification = (id) => {

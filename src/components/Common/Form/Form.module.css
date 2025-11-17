@@ -1,7 +1,9 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
+  height: 100%;
+  overflow: hidden;
 }
 
 .helperText {
@@ -12,19 +14,17 @@
 }
 
 .errorMessage {
-  background: #fee;
-  color: #c53030;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #feb2b2;
-  font-size: 0.9rem;
-  font-weight: 500;
+  color: #d32f2f;
+  font-size: 0.85rem;
+  margin-top: 4px;
 }
 
 .formFields {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  flex: 1;
+  overflow: hidden;
 }
 
 .formGroup {
@@ -32,7 +32,11 @@
   flex-direction: column;
   gap: 8px;
 }
-
+.inputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .formGroup.fullWidth {
   grid-column: 1 / -1;
 }
@@ -50,6 +54,8 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   background: white;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .formInput:focus {
@@ -60,6 +66,34 @@
 
 .formInput::placeholder {
   color: #a0aec0;
+}
+
+.formInput:disabled {
+  background: #f5f7fb;
+  color: #9aa5b1;
+  cursor: not-allowed;
+}
+
+.selectWrapper {
+  position: relative;
+}
+
+.selectInput {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+}
+
+.selectArrow {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.85rem;
+  color: #4a5568;
 }
 
 .checkboxGroup {
@@ -117,6 +151,63 @@
 
 .resetButton:hover:not(:disabled) {
   background: #5a6268 !important;
+}
+
+/* Highlight field styles */
+.highlightField {
+  background-color: #f8f9fa;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.highlightField::before {
+  content: "⭐";
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  background-color: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.highlightField .formLabel {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.highlightField .formInput {
+  border-color: #007bff;
+  background-color: white;
+}
+
+.highlightField .formInput:focus {
+  border-color: #0056b3;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.sectionDescription {
+  font-size: 0.9rem;
+  color: #6b7280;
 }
 
 @media (max-width: 768px) {

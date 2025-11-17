@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import MainHeader from '../../Common/Headers/MainHeader';
+import MainHeader from '../../Headers/MainHeader';
 import Footer from '../../Common/Footer';
 import styles from './MainLayout.module.css';
 

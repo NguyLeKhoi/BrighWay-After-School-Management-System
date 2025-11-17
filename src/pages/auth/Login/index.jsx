@@ -2,10 +2,10 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Typography, Box, IconButton } from '@mui/material';
 import { Home as HomeIcon } from '@mui/icons-material';
-import AuthCard from '@components/Common/AuthCard';
+import AuthCard from '@components/Auth/AuthCard';
 import Form from '../../../components/Common/Form';
 import Loading from '../../../components/Common/Loading';
-import { loginSchema } from '../../../utils/validationSchemas';
+import { loginSchema } from '../../../utils/validationSchemas/authSchemas';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
@@ -15,7 +15,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { addNotification, showGlobalError } = useApp();
-  const { isLoading, showLoading, hideLoading } = useLoading(1500);
+  const { isLoading, showLoading, hideLoading } = useLoading(300);
 
   const handleSubmit = async (data) => {
     showLoading();
@@ -29,12 +29,6 @@ const Login = () => {
       // Get user info to check role
       const user = result.user;
       
-      // Log user info for debugging
-      console.log('🚀 Login successful! User:', user);
-      console.log('🎯 User role:', user.role);
-      console.log('🔑 Access Token:', result.accessToken ? 'Received' : 'Missing');
-      console.log('🔄 Refresh Token:', result.refreshToken ? 'Received' : 'Missing');
-      
       // Show success notification
       addNotification({
         message: 'Đăng nhập thành công!',
@@ -43,19 +37,16 @@ const Login = () => {
       
       // Redirect based on role (handle both string and number roles)
       const role = user.role;
-      console.log('🔍 Role type:', typeof role, 'Value:', role);
       
       if (role === 'Admin' || role === 0) {
-        console.log('➡️ Redirecting to Admin dashboard...');
         navigate('/admin/dashboard');
-      } else if (role === 'Manager' || role === 3) {
-        console.log('➡️ Redirecting to Manager dashboard...');
+      } else if (role === 'Manager' || role === 1) {
         navigate('/manager/dashboard');
-      } else if (role === 'Teacher' || role === 1) {
-        console.log('➡️ Redirecting to Teacher dashboard...');
-        navigate('/teacher/dashboard');
+      } else if (role === 'Staff' || role === 2) {
+        navigate('/staff');
+      } else if (role === 'User' || role === 4) {
+        navigate('/family/profile');
       } else {
-        console.log('➡️ Redirecting to Parent profile...');
         navigate('/parent/profile');
       }
     } catch (err) {

@@ -103,6 +103,11 @@
   padding: 24px;
 }
 
+.dialogContent select {
+  max-height: 300px;
+  font-size: 14px;
+}
+
 .dialogActions {
   padding: 16px 24px;
   border-top: 1px solid #e0e0e0;
@@ -140,6 +145,24 @@
 .actionsCell {
   display: flex;
   gap: 8px;
+}
+
+.benefitWrapper {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.benefitMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.benefitTable {
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .actionButton {
