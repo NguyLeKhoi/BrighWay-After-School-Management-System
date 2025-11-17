@@ -18,4 +18,7 @@ export { default as locationService } from '../services/location.service';
 export { default as studentService } from '../services/student.service';
 export { default as activityTypeService } from '../services/activityType.service';
 export { default as activityService } from '../services/activity.service';
+export { default as branchSlotService } from '../services/branchSlot.service';
+export { default as timeframeService } from '../services/timeframe.service';
+export { default as slotTypeService } from '../services/slotType.service';
 

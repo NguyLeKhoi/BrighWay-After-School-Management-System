@@ -1,33 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
-  Typography,
   Alert,
   Paper,
   Tabs,
-  Tab
+  Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
 import {
   Person as PersonIcon,
   Groups as GroupsIcon,
   FamilyRestroom as FamilyIcon,
-  Email as EmailIcon
+  PhotoCamera as PhotoCameraIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import StaffAccountForm from '../../../components/AccountForms/StaffAccountForm';
-import ManagerPageHeader from '../../../components/Manager/ManagerPageHeader';
-import ManagerSearchSection from '../../../components/Manager/ManagerSearchSection';
-import ManagerFormDialog from '../../../components/Manager/ManagerFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import { createUserSchema, updateManagerUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import { useApp } from '../../../contexts/AppContext';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
+import { createManagerUserFormFields } from '../../../constants/manager/staff/formFields';
 import { toast } from 'react-toastify';
 import styles from './staffAndParentManagement.module.css';
 
 const StaffAndParentManagement = () => {
+  const navigate = useNavigate();
+  
   // Tab state
   const [activeTab, setActiveTab] = useState(0); // 0 = Staff, 1 = User
   
@@ -97,49 +110,28 @@ const StaffAndParentManagement = () => {
     setActiveTab(newValue);
   };
   
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Họ và Tên',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PersonIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'email',
-      header: 'Email',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <EmailIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'createdAt',
-      header: 'Ngày Tạo',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {new Date(value).toLocaleDateString('vi-VN')}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createStaffAndParentColumns(), []);
+  const formFields = useMemo(
+    () => createManagerUserFormFields(actionLoading),
+    [actionLoading]
+  );
   
   // Create handler
   const handleCreateUser = () => {
     const mode = activeTab === 0 ? 'staff' : 'parent';
     setCreateMode(mode);
     setIsSubmitting(false);
-    setOpenCreateDialog(true);
+    
+    if (mode === 'parent') {
+      // Show mode selection dialog for parent
+      setShowParentModeDialog(true);
+    } else {
+      setOpenCreateDialog(true);
+    }
+  };
+
+  const handleNavigateToCreateParent = (parentMode) => {
+    navigate(`/manager/staffAndParent/create-parent?mode=${parentMode}`);
   };
   
   // Edit handler
@@ -207,14 +199,17 @@ const StaffAndParentManagement = () => {
     
     try {
       const updateData = {
-        targetUserId: selectedUser.id,
         fullName: data.name || data.fullName,
         email: data.email,
-        phoneNumber: '',
-        changeRoleTo: 0,
         isActive: data.isActive
       };
       
+      // Add phoneNumber if provided
+      if (data.phoneNumber) {
+        updateData.phoneNumber = data.phoneNumber;
+      }
+      
+      // Add password if provided
       if (data.password && data.password.trim()) {
         updateData.password = data.password;
       }
@@ -255,17 +250,15 @@ const StaffAndParentManagement = () => {
     }
   };
   
-  // Parent submit handler
-  const handleParentSubmit = async (data) => {
+  // Parent creation mode state
+  const [parentCreationMode, setParentCreationMode] = useState('ocr'); // 'ocr' or 'manual'
+  const [showParentModeDialog, setShowParentModeDialog] = useState(false);
+
+  // Parent submit handler - with CCCD
+  const handleParentSubmitWithCCCD = async (data) => {
     try {
-      const parentData = {
-        email: data.email,
-        password: data.password,
-        name: data.name || data.fullName
-      };
-      
-      await userService.createParent(parentData);
-      toast.success(`Tạo tài khoản User (Parent) "${parentData.name}" thành công!`);
+      await userService.createParentWithCCCD(data);
+      toast.success(`Tạo tài khoản User (Parent) "${data.name}" thành công!`);
       if (userTab.loadData) {
         userTab.loadData(false);
       }
@@ -277,70 +270,44 @@ const StaffAndParentManagement = () => {
       throw err;
     }
   };
-  
-  // Parent Form Wrapper
-  const ParentFormWrapper = ({ isSubmitting, setIsSubmitting, onSuccess }) => (
-    <Form
-      schema={createUserSchema}
-      defaultValues={{
-        name: '',
-        email: '',
-        password: ''
-      }}
-      onSubmit={async (data) => {
-        if (setIsSubmitting) setIsSubmitting(true);
-        try {
-          await handleParentSubmit(data);
-          if (onSuccess) onSuccess();
-        } catch (err) {
-          const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
-          setError(errorMessage);
-          showGlobalError(errorMessage);
-          toast.error(errorMessage);
-          throw err;
-        } finally {
-          if (setIsSubmitting) setIsSubmitting(false);
+
+  // Parent submit handler - manual
+  const handleParentSubmitManual = async (data) => {
+    try {
+      // If has CCCD data, use with CCCD endpoint, otherwise use regular endpoint
+      if (data.identityCardNumber || data.identityCardPublicId) {
+        await handleParentSubmitWithCCCD(data);
+      } else {
+        const parentData = {
+          email: data.email,
+          password: data.password,
+          name: data.name || data.fullName
+        };
+        await userService.createParent(parentData);
+        toast.success(`Tạo tài khoản User (Parent) "${parentData.name}" thành công!`);
+        if (userTab.loadData) {
+          userTab.loadData(false);
         }
-      }}
-      submitText="Tạo User (Parent)"
-      loading={isSubmitting}
-      disabled={isSubmitting}
-      fields={[
-        { 
-          name: 'name', 
-          label: 'Họ và Tên', 
-          type: 'text', 
-          required: true, 
-          placeholder: 'Ví dụ: Nguyễn Văn A',
-          disabled: isSubmitting,
-          gridSize: 6
-        },
-        { 
-          name: 'email', 
-          label: 'Email', 
-          type: 'email', 
-          required: true, 
-          placeholder: 'Ví dụ: email@example.com',
-          disabled: isSubmitting,
-          gridSize: 6
-        },
-        { 
-          name: 'password', 
-          label: 'Mật Khẩu', 
-          type: 'password', 
-          required: true, 
-          placeholder: 'Nhập mật khẩu cho người dùng',
-          disabled: isSubmitting,
-          gridSize: 12
-        }
-      ]}
-    />
-  );
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
+      setError(errorMessage);
+      showGlobalError(errorMessage);
+      toast.error(errorMessage);
+      throw err;
+    }
+  };
+
+  // Handle parent creation mode selection
+  const handleParentModeSelect = (mode) => {
+    setParentCreationMode(mode);
+    setShowParentModeDialog(false);
+  };
   
   return (
     <div className={styles.container}>
       {/* Header */}
-      <ManagerPageHeader
+      <ManagementPageHeader
         title="Quản lý Staff & User"
         createButtonText={activeTab === 0 ? 'Tạo Nhân Viên' : 'Tạo User (Parent)'}
         onCreateClick={handleCreateUser}
@@ -469,7 +436,7 @@ const StaffAndParentManagement = () => {
         {/* Staff Tab */}
         {activeTab === 0 && (
           <Box>
-            <ManagerSearchSection
+            <ManagementSearchSection
               keyword={staffTab.keyword}
               onKeywordChange={staffTab.handleKeywordChange}
               onSearch={staffTab.handleKeywordSearch}
@@ -498,7 +465,7 @@ const StaffAndParentManagement = () => {
         {/* User Tab */}
         {activeTab === 1 && (
           <Box>
-            <ManagerSearchSection
+            <ManagementSearchSection
               keyword={userTab.keyword}
               onKeywordChange={userTab.handleKeywordChange}
               onSearch={userTab.handleKeywordSearch}
@@ -526,7 +493,7 @@ const StaffAndParentManagement = () => {
       </Box>
 
       {/* Edit Dialog */}
-      <ManagerFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => !actionLoading && setOpenDialog(false)}
         mode="edit"
@@ -547,47 +514,9 @@ const StaffAndParentManagement = () => {
           submitText="Cập nhật Thông Tin"
           loading={actionLoading}
           disabled={actionLoading}
-          fields={[
-            { 
-              name: 'name', 
-              label: 'Họ và Tên', 
-              type: 'text', 
-              required: true, 
-              placeholder: 'Ví dụ: Nguyễn Văn A',
-              disabled: actionLoading,
-              gridSize: 6
-            },
-            { 
-              name: 'email', 
-              label: 'Email', 
-              type: 'email', 
-              required: true, 
-              placeholder: 'Ví dụ: email@example.com',
-              disabled: actionLoading,
-              gridSize: 6
-            },
-            { 
-              name: 'password', 
-              label: 'Mật Khẩu Mới', 
-              type: 'password', 
-              required: false,
-              placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
-              disabled: actionLoading,
-              gridSize: 6,
-              helperText: 'Lưu ý: Mật khẩu sẽ được thay đổi ngay lập tức, không cần xác nhận từ người dùng'
-            },
-            { 
-              name: 'isActive', 
-              label: 'Trạng Thái', 
-              type: 'switch', 
-              switchLabel: 'Hoạt động',
-              required: true, 
-              disabled: actionLoading,
-              gridSize: 12
-            }
-          ]}
+          fields={formFields}
         />
-      </ManagerFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog
@@ -601,8 +530,98 @@ const StaffAndParentManagement = () => {
         confirmColor="error"
       />
 
+      {/* Parent Mode Selection Dialog */}
+      <Dialog
+        open={showParentModeDialog}
+        onClose={() => setShowParentModeDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          Chọn phương thức tạo tài khoản Phụ huynh
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Vui lòng chọn một trong hai phương thức sau:
+          </Typography>
+          <ToggleButtonGroup
+            value={parentCreationMode}
+            exclusive
+            onChange={(e, value) => value && setParentCreationMode(value)}
+            fullWidth
+            orientation="vertical"
+            sx={{ gap: 2 }}
+          >
+            <ToggleButton
+              value="ocr"
+              sx={{
+                p: 3,
+                textAlign: 'left',
+                justifyContent: 'flex-start',
+                '&.Mui-selected': {
+                  backgroundColor: 'primary.50',
+                  borderColor: 'primary.main',
+                  borderWidth: 2
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <PhotoCameraIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Sử dụng OCR (Chụp CCCD)
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Tự động trích xuất thông tin từ ảnh CCCD
+                  </Typography>
+                </Box>
+              </Box>
+            </ToggleButton>
+            <ToggleButton
+              value="manual"
+              sx={{
+                p: 3,
+                textAlign: 'left',
+                justifyContent: 'flex-start',
+                '&.Mui-selected': {
+                  backgroundColor: 'primary.50',
+                  borderColor: 'primary.main',
+                  borderWidth: 2
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <EditIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Nhập thủ công
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Nhập thông tin từng bước bằng form
+                  </Typography>
+                </Box>
+              </Box>
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowParentModeDialog(false)}>
+            Hủy
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setShowParentModeDialog(false);
+              handleNavigateToCreateParent(parentCreationMode);
+            }}
+          >
+            Tiếp tục
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Create Account Dialog */}
-      <ManagerFormDialog
+      <ManagementFormDialog
         open={openCreateDialog}
         onClose={() => {
           if (!isSubmitting) {
@@ -615,7 +634,7 @@ const StaffAndParentManagement = () => {
         title={createMode === 'staff' ? 'Tài Khoản Nhân Viên' : 'Tài Khoản User (Parent)'}
         icon={createMode === 'staff' ? GroupsIcon : FamilyIcon}
         loading={isSubmitting}
-        maxWidth="md"
+        maxWidth={createMode === 'parent' && parentCreationMode === 'manual' ? 'lg' : 'md'}
       >
         {createMode === 'staff' ? (
           <StaffAccountForm
@@ -627,17 +646,8 @@ const StaffAndParentManagement = () => {
               setCreateMode('staff');
             }}
           />
-        ) : (
-          <ParentFormWrapper
-            isSubmitting={isSubmitting}
-            setIsSubmitting={setIsSubmitting}
-            onSuccess={() => {
-              setOpenCreateDialog(false);
-              setCreateMode('staff');
-            }}
-          />
-        )}
-      </ManagerFormDialog>
+        ) : null}
+      </ManagementFormDialog>
     </div>
   );
 };

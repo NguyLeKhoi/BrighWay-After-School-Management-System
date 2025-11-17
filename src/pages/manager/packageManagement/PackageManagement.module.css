@@ -1,0 +1,266 @@
+ .container {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.errorAlert {
+  margin-bottom: 16px;
+}
+
+.tableWrapper {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.benefitWrapper {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.benefitMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.benefitTable {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.formGrid {
+  margin-top: 8px;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  color: #0d47a1;
+  margin-bottom: 12px;
+}
+
+.field {
+  width: 100%;
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.infoText {
+  color: #1a237e;
+  font-weight: 500;
+}
+
+.dependenciesHint {
+  font-size: 13px;
+  color: #757575;
+  margin-bottom: 12px;
+}
+
+.benefitChips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.compactCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.emptyPlaceholder {
+  padding: 32px;
+  text-align: center;
+  color: #757575;
+}
+
+.statusChip {
+  font-weight: 500;
+}
+
+.templateSelector {
+  margin-bottom: 16px;
+}
+
+.tabsWrapper {
+  margin-bottom: 16px;
+}
+
+.templateTabContent {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.templateLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 0;
+}
+
+.templateEmpty {
+  margin: 16px 0 0;
+}
+
+.templateList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.templateCard {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.templateCard:hover {
+  border-color: #1976d2;
+  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.15);
+  transform: translateY(-2px);
+}
+
+.templateCardActive {
+  border-color: #1976d2;
+  background: rgba(25, 118, 210, 0.08);
+  transform: translateY(-2px);
+}
+
+.templateMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  background: rgba(25, 118, 210, 0.05);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.templateCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.templateCardTitle {
+  font-weight: 600;
+  color: #0d47a1;
+}
+
+.templateDescription {
+  min-height: 40px;
+}
+
+.templateMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metricLabel {
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricValue {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.templateSelectButton {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.templateSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border: 1px dashed #1976d2;
+  border-radius: 8px;
+  background: rgba(25, 118, 210, 0.04);
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.templateSummaryActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.templateSummaryContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.templateSummaryTitle {
+  font-weight: 600;
+  color: #0d47a1;
+}
+
+.templateSummaryDesc {
+  margin: 0;
+}
+
+.filterRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filterControl {
+  min-width: 180px;
+}
+
+.filterPlaceholder {
+  color: #90a4ae;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+

@@ -498,7 +498,7 @@ const MyWallet = () => {
             infoRows={mainWalletInfo}
             actions={[
               { text: 'Nạp tiền', primary: true, onClick: handleTopUp },
-              { text: 'Lịch sử giao dịch', primary: false, onClick: () => console.log('View history') }
+              { text: 'Lịch sử giao dịch', primary: false, onClick: () => {} }
             ]}
           />
         )}

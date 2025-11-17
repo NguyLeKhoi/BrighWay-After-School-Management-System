@@ -1,38 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Alert,
-  Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid
-} from '@mui/material';
-import {
-  Person as PersonIcon,
-  Email as EmailIcon,
-  AssignmentInd as RoleIcon,
-  Business as BusinessIcon
-} from '@mui/icons-material';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Alert, Box, TextField } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
+import { Person as PersonIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { createManagerSchema, updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createManagerColumns } from '../../../constants/manager/tableColumns';
+import { createManagerFormFields } from '../../../constants/manager/formFields';
 import { toast } from 'react-toastify';
 import styles from './staffAndManagerManagement.module.css';
 
 const ManagerManagement = () => {
   // Branch selection state
-  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [userRoleType, setUserRoleType] = useState(null); // 'staff' or 'manager'
   
   // Fetch branch data (lazy loading - only fetch when dialog opens)
@@ -63,14 +50,17 @@ const ManagerManagement = () => {
     handleKeywordChange,
     handleClearSearch,
     handlePageChange,
-    handleRowsPerPageChange
+    handleRowsPerPageChange,
+  filters,
+    updateFilter
   } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await userService.getUsersPagedByRole({
         pageIndex: params.page || params.pageIndex || 1,
         pageSize: params.pageSize || params.rowsPerPage || 10,
         Role: 'Manager',
-        Keyword: params.Keyword || params.searchTerm || ''
+        Keyword: params.Keyword || params.searchTerm || '',
+        BranchId: params.branchFilter || ''
       });
       return response;
     },
@@ -83,9 +73,13 @@ const ManagerManagement = () => {
     },
     updateFunction: userService.updateUser,
     deleteFunction: userService.deleteUser,
-    defaultFilters: {},
+    defaultFilters: { branchFilter: '' },
     loadOnMount: true
   });
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+
 
   // Override handleCreate to ensure branches are loaded
   const handleCreate = async () => {
@@ -130,213 +124,74 @@ const ManagerManagement = () => {
     }
   };
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Họ và Tên',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PersonIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'email',
-      header: 'Email',
-      render: (value) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <EmailIcon fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'branchName',
-      header: 'Chi Nhánh',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <BusinessIcon fontSize="small" color={value ? "primary" : "disabled"} />
-          <Typography variant="body2" color={value ? "text.primary" : "text.secondary"}>
-            {value || item.branchName || 'Chưa có chi nhánh'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'roles',
-      header: 'Vai Trò',
-      render: (value, item) => {
-        // Get roleName or roles from item
-        let roleNames = [];
-        
-        if (item.roleName) {
-          roleNames = [item.roleName];
-        } else if (Array.isArray(item.roles) && item.roles.length > 0) {
-          roleNames = item.roles;
-        } else if (value && Array.isArray(value)) {
-          roleNames = value;
-        } else if (value) {
-          roleNames = [value];
-        } else {
-          roleNames = ['Unknown'];
-        }
-        
-        const getRoleDisplayName = (roleString) => {
-          switch (roleString) {
-            case 'Admin': return 'Admin';
-            case 'Staff': return 'Staff';
-            case 'Manager': return 'Manager';
-            case 'User': return 'User';
-            default: return roleString || 'Unknown';
-          }
-        };
-        
-        const getRoleColor = (roleString) => {
-          switch (roleString) {
-            case 'Admin': return 'error';
-            case 'Manager': return 'warning';
-            case 'Staff': return 'info';
-            case 'User': return 'primary';
-            default: return 'default';
-          }
-        };
-        
-        return (
-          <Box display="flex" flexWrap="wrap" gap={0.5}>
-            {roleNames.map((role, index) => (
-              <Chip 
-                key={index}
-                label={getRoleDisplayName(role)} 
-                color={getRoleColor(role)} 
-                size="small"
-                variant="outlined"
-                icon={<RoleIcon fontSize="small" />}
-              />
-            ))}
-          </Box>
-        );
-      }
-    },
-    {
-      key: 'createdAt',
-      header: 'Ngày Tạo',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {new Date(value).toLocaleDateString('vi-VN')}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createManagerColumns(), []);
 
-  // Get form fields
-  const getFormFields = () => {
-    if (dialogMode === 'create') {
-      return [
-        { 
-          name: 'name', 
-          label: 'Họ và Tên', 
-          type: 'text', 
-          required: true, 
-          placeholder: 'Ví dụ: Nguyễn Văn A',
-          disabled: actionLoading,
-          gridSize: 6
-        },
-        { 
-          name: 'branchId', 
-          label: 'Chi Nhánh', 
-          type: 'select', 
-          required: false, 
-          options: getBranchOptions(),
-          disabled: actionLoading || branchLoading,
-          gridSize: 6
-        },
-        { 
-          name: 'email', 
-          label: 'Email', 
-          type: 'email', 
-          required: true, 
-          placeholder: 'Ví dụ: email@example.com',
-          disabled: actionLoading,
-          gridSize: 12
-        },
-        { 
-          name: 'password', 
-          label: 'Mật Khẩu', 
-          type: 'password', 
-          required: true, 
-          placeholder: 'Nhập mật khẩu cho người dùng',
-          disabled: actionLoading,
-          gridSize: 12
-        }
-      ];
-    } else {
-      return [
-        { 
-          name: 'name', 
-          label: 'Họ và Tên', 
-          type: 'text', 
-          required: true, 
-          placeholder: 'Ví dụ: Nguyễn Văn A',
-          disabled: actionLoading,
-          gridSize: 6
-        },
-        { 
-          name: 'email', 
-          label: 'Email', 
-          type: 'email', 
-          required: true, 
-          placeholder: 'Ví dụ: email@example.com',
-          disabled: actionLoading,
-          gridSize: 6
-        },
-        { 
-          name: 'password', 
-          label: 'Mật Khẩu Mới', 
-          type: 'password', 
-          required: false,
-          placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
-          disabled: actionLoading,
-          gridSize: 6,
-          helperText: 'Để trống nếu không muốn thay đổi mật khẩu'
-        },
-        { 
-          name: 'isActive', 
-          label: 'Trạng Thái', 
-          type: 'switch', 
-          switchLabel: 'Hoạt động',
-          required: true, 
-          disabled: actionLoading,
-          gridSize: 6
-        }
-      ];
-    }
-  };
+  const branchSelectOptions = useMemo(() => getBranchOptions(), [getBranchOptions]);
+
+  const filteredUsers = useMemo(() => {
+    if (!filters.branchFilter) return users;
+    return users.filter((user) => {
+      const userBranchId = user?.branchId || user?.branch?.id;
+      return userBranchId === filters.branchFilter;
+    });
+  }, [users, filters.branchFilter]);
+
+  const filteredTotalCount = filters.branchFilter ? filteredUsers.length : totalCount;
+  const formFields = useMemo(
+    () =>
+      createManagerFormFields({
+        dialogMode,
+        actionLoading,
+        branchOptions: branchSelectOptions,
+        branchLoading
+      }),
+    [dialogMode, actionLoading, branchSelectOptions, branchLoading]
+  );
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Manager"
         createButtonText="Tạo Manager"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
-        onClear={handleClearSearch}
+        onClear={() => {
+          handleClearSearch();
+          updateFilter('branchFilter', '');
+        }}
         placeholder="Tìm kiếm theo tên, email..."
-      />
+      >
+        <Box sx={{ minWidth: 220 }}>
+          <Autocomplete
+            options={branchSelectOptions}
+            value={branchSelectOptions.find((option) => option.value === filters.branchFilter) || null}
+            onChange={(_, newValue) => updateFilter('branchFilter', newValue?.value || '')}
+            getOptionLabel={(option) => option.label || ''}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Chi nhánh"
+                size="small"
+              />
+            )}
+            loading={branchLoading}
+            sx={{
+              '& .MuiInputBase-root': {
+                borderRadius: '8px'
+              }
+            }}
+          />
+        </Box>
+      </ManagementSearchSection>
 
       {/* Error Alert */}
       {error && (
@@ -348,12 +203,12 @@ const ManagerManagement = () => {
       {/* Table */}
       <div className={styles.tableContainer}>
         <DataTable
-          data={users}
+          data={filteredUsers}
           columns={columns}
           loading={isPageLoading}
           page={page}
           rowsPerPage={rowsPerPage}
-          totalCount={totalCount}
+          totalCount={filteredTotalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEdit}
@@ -363,7 +218,7 @@ const ManagerManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -385,9 +240,9 @@ const ManagerManagement = () => {
           submitText={dialogMode === 'create' ? 'Tạo Manager' : 'Cập nhật Thông Tin'}
           loading={actionLoading}
           disabled={actionLoading}
-          fields={getFormFields()}
+          fields={formFields}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

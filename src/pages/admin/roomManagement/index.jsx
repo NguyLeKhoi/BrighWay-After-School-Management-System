@@ -1,27 +1,27 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
+  Alert,
   Box,
   Typography,
-  Alert,
-  FormControl,
-  Select,
-  MenuItem,
-  Paper
+  TextField
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 import {
   MeetingRoom as RoomIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { roomSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import roomService from '../../../services/room.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createRoomColumns } from '../../../constants/room/tableColumns';
+import { createRoomFormFields } from '../../../constants/room/formFields';
 import styles from './RoomManagement.module.css';
 
 const RoomManagement = () => {
@@ -104,99 +104,34 @@ const RoomManagement = () => {
     handleEdit(room);
   };
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'roomName',
-      header: 'Tên Phòng',
-      render: (value, row) => (
-        <Typography variant="body2" fontWeight="medium">
-          {row.roomName || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'facilityName',
-      header: 'Cơ Sở Vật Chất',
-      render: (value, row) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <RoomIcon fontSize="small" color="primary" />
-          <Typography variant="body2">
-            {row.facilityName || 'N/A'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'branchName',
-      header: 'Chi Nhánh',
-      render: (value, row) => (
-        <Typography variant="body2">
-          {row.branchName || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'capacity',
-      header: 'Sức Chứa',
-      render: (value) => (
-        <Typography variant="body2">
-          {value} người
-        </Typography>
-      )
-    }
-  ];
-
-  // Get form fields
-  const getFormFields = () => [
-    {
-      name: 'roomName',
-      label: 'Tên Phòng',
-      type: 'text',
-      placeholder: 'Nhập tên phòng học',
-      required: true,
-      disabled: actionLoading
-    },
-    {
-      name: 'facilityId',
-      label: 'Cơ Sở Vật Chất',
-      type: 'select',
-      required: true,
-      options: getFacilityOptions(),
-      disabled: actionLoading || isDataLoading
-    },
-    {
-      name: 'branchId',
-      label: 'Chi Nhánh',
-      type: 'select',
-      required: true,
-      options: getBranchOptions(),
-      disabled: actionLoading || isDataLoading
-    },
-    {
-      name: 'capacity',
-      label: 'Sức Chứa',
-      type: 'number',
-      placeholder: 'Sức chứa: 10',
-      required: true,
-      disabled: actionLoading
-    }
-  ];
+  const columns = useMemo(() => createRoomColumns(), []);
+  const facilityOptions = useMemo(() => getFacilityOptions(), [getFacilityOptions]);
+  const branchOptions = useMemo(() => getBranchOptions(), [getBranchOptions]);
+  const formFields = useMemo(
+    () =>
+      createRoomFormFields({
+        actionLoading,
+        isDataLoading,
+        facilityOptions,
+        branchOptions
+      }),
+    [actionLoading, isDataLoading, facilityOptions, branchOptions]
+  );
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Phòng Học"
         createButtonText="Thêm Phòng Học"
         onCreateClick={handleCreateWithData}
       />
 
       {/* Search Section with Filters */}
-      <Paper className={styles.searchAndFilterSection || styles.searchSection}>
-        <AdminSearchSection
+      <Box className={styles.searchAndFilterSection}>
+        <ManagementSearchSection
           keyword={keyword}
           onKeywordChange={handleKeywordChange}
           onSearch={handleKeywordSearch}
@@ -208,54 +143,50 @@ const RoomManagement = () => {
           placeholder="Tìm kiếm theo tên phòng học..."
         >
           {/* Facility Filter */}
-          <FormControl className={styles.filterGroupItem || styles.statusFilter}>
-            <Select
-              value={filters.facilityFilter || ''}
-              onChange={(e) => updateFilter('facilityFilter', e.target.value)}
-              displayEmpty
-              disabled={isDataLoading}
-              sx={{ minHeight: '40px', minWidth: '200px' }}
-            >
-              <MenuItem value="">Tất cả cơ sở vật chất</MenuItem>
-              {isDataLoading ? (
-                <MenuItem disabled>Đang tải...</MenuItem>
-              ) : getFacilityOptions().length === 0 ? (
-                <MenuItem disabled>Không có dữ liệu</MenuItem>
-              ) : (
-                getFacilityOptions().map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            options={[{ value: '', label: 'Tất cả cơ sở vật chất' }, ...facilityOptions]}
+            value={
+              facilityOptions.find((option) => option.value === filters.facilityFilter) ||
+              (filters.facilityFilter ? null : { value: '', label: 'Tất cả cơ sở vật chất' })
+            }
+            onChange={(_, newValue) => updateFilter('facilityFilter', newValue?.value || '')}
+            getOptionLabel={(option) => option.label || ''}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Cơ sở vật chất"
+                size="small"
+              />
+            )}
+            loading={isDataLoading}
+            disabled={isDataLoading}
+            isOptionEqualToValue={(option, value) => option.value === value.value}
+          />
 
           {/* Branch Filter */}
-          <FormControl className={styles.filterGroupItem || styles.statusFilter}>
-            <Select
-              value={filters.branchFilter || ''}
-              onChange={(e) => updateFilter('branchFilter', e.target.value)}
-              displayEmpty
-              disabled={isDataLoading}
-              sx={{ minHeight: '40px', minWidth: '200px' }}
-            >
-              <MenuItem value="">Tất cả chi nhánh</MenuItem>
-              {isDataLoading ? (
-                <MenuItem disabled>Đang tải...</MenuItem>
-              ) : getBranchOptions().length === 0 ? (
-                <MenuItem disabled>Không có dữ liệu</MenuItem>
-              ) : (
-                getBranchOptions().map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-          </FormControl>
-        </AdminSearchSection>
-      </Paper>
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            options={[{ value: '', label: 'Tất cả chi nhánh' }, ...branchOptions]}
+            value={
+              branchOptions.find((option) => option.value === filters.branchFilter) ||
+              (filters.branchFilter ? null : { value: '', label: 'Tất cả chi nhánh' })
+            }
+            onChange={(_, newValue) => updateFilter('branchFilter', newValue?.value || '')}
+            getOptionLabel={(option) => option.label || ''}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Chi nhánh"
+                size="small"
+              />
+            )}
+            loading={isDataLoading}
+            disabled={isDataLoading}
+            isOptionEqualToValue={(option, value) => option.value === value.value}
+          />
+        </ManagementSearchSection>
+      </Box>
 
       {/* Error Alert */}
       {error && (
@@ -290,7 +221,7 @@ const RoomManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -315,10 +246,10 @@ const RoomManagement = () => {
             submitText={dialogMode === 'create' ? 'Tạo Phòng Học' : 'Cập nhật Phòng Học'}
             loading={actionLoading}
             disabled={actionLoading}
-            fields={getFormFields()}
+            fields={formFields}
           />
         )}
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

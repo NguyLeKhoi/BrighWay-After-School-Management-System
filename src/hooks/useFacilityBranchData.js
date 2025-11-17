@@ -59,7 +59,7 @@ const useFacilityBranchData = () => {
 
   // Get facility options for select
   const getFacilityOptions = useCallback(() => {
-    return facilities.map(facility => ({
+    return facilities.filter(Boolean).map(facility => ({
       value: facility.id,
       label: facility.facilityName
     }));
@@ -67,7 +67,7 @@ const useFacilityBranchData = () => {
 
   // Get branch options for select
   const getBranchOptions = useCallback(() => {
-    return branches.map(branch => ({
+    return branches.filter(Boolean).map(branch => ({
       value: branch.id,
       label: branch.branchName
     }));

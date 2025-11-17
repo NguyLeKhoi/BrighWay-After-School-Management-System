@@ -1,16 +1,18 @@
-import React from 'react';
-import { Box, Typography, Alert, Chip, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import React, { useMemo } from 'react';
+import { Alert, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { benefitSchema } from '../../../utils/validationSchemas/benefitSchemas';
 import benefitService from '../../../services/benefit.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createBenefitColumns } from '../../../constants/benefit/tableColumns';
+import { createBenefitFormFields } from '../../../constants/benefit/formFields';
 import styles from './BenefitManagement.module.css';
 
 const BenefitManagement = () => {
@@ -58,64 +60,22 @@ const BenefitManagement = () => {
     loadOnMount: true
   });
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Tên Lợi Ích',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <BenefitIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'description',
-      header: 'Mô Tả',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300 }}>
-          {value || 'Không có mô tả'}
-        </Typography>
-      )
-    },
-    {
-      key: 'status',
-      header: 'Trạng Thái',
-      render: (value) => (
-        <Chip
-          label={value ? 'Hoạt động' : 'Không hoạt động'}
-          color={value ? 'success' : 'default'}
-          size="small"
-        />
-      )
-    },
-    {
-      key: 'createdTime',
-      header: 'Ngày Tạo',
-      render: (value) => (
-        <Typography variant="body2">
-          {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createBenefitColumns(), []);
+  const benefitFormFields = useMemo(() => createBenefitFormFields(actionLoading), [actionLoading]);
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Lợi Ích"
         createButtonText="Thêm Lợi Ích"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section with Status Filter */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -134,7 +94,7 @@ const BenefitManagement = () => {
             <MenuItem value="false">Không hoạt động</MenuItem>
           </Select>
         </FormControl>
-      </AdminSearchSection>
+      </ManagementSearchSection>
 
       {/* Error Alert */}
       {error && (
@@ -161,7 +121,7 @@ const BenefitManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -181,34 +141,9 @@ const BenefitManagement = () => {
           submitText={dialogMode === 'create' ? 'Tạo Lợi Ích' : 'Cập nhật Lợi Ích'}
           loading={actionLoading}
           disabled={actionLoading}
-          fields={[
-            {
-              name: 'name',
-              label: 'Tên Lợi Ích',
-              type: 'text',
-              required: true,
-              placeholder: 'Ví dụ: Giảm giá học phí, Tặng đồ dùng học tập',
-              disabled: actionLoading
-            },
-            {
-              name: 'description',
-              label: 'Mô Tả',
-              type: 'textarea',
-              required: false,
-              placeholder: 'Mô tả chi tiết về lợi ích...',
-              disabled: actionLoading,
-              rows: 3
-            },
-            {
-              name: 'status',
-              label: 'Trạng thái hoạt động',
-              type: 'switch',
-              required: false,
-              disabled: actionLoading
-            }
-          ]}
+          fields={benefitFormFields}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

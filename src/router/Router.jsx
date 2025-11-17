@@ -5,6 +5,7 @@ import FamilyLayout from '../components/Layout/FamilyLayout';
 import AdminLayout from '../components/Layout/AdminLayout';
 import ManagerLayout from '../components/Layout/ManagerLayout';
 import StaffLayout from '../components/Layout/StaffLayout';
+import ProtectedRoute from './ProtectedRoute';
 
 // Main Pages
 import Homepage from '../pages/main/Homepage';
@@ -29,26 +30,40 @@ import Notifications from '../pages/user/notifications';
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
 import BranchManagement from '../pages/admin/branchManagement';
+import CreateBranch from '../pages/admin/branchManagement/CreateBranch';
+import UpdateBranch from '../pages/admin/branchManagement/UpdateBranch';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
 import ManagerManagement from '../pages/admin/managerManagement';
 import BenefitManagement from '../pages/admin/benefitManagement';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 import PackageManagement from '../pages/admin/packageManagement';
+import AdminCreateTemplate from '../pages/admin/packageManagement/CreateTemplate';
+import AdminUpdateTemplate from '../pages/admin/packageManagement/UpdateTemplate';
+import AdminCreatePackage from '../pages/admin/packageManagement/CreatePackage';
+import AdminUpdatePackage from '../pages/admin/packageManagement/UpdatePackage';
 import SchoolManagement from '../pages/admin/schoolManagement';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
+import CreateParent from '../pages/manager/staffAndParentManagement/CreateParent';
+import ManagerPackageManagement from '../pages/manager/packageManagement';
+import CreatePackage from '../pages/manager/packageManagement/CreatePackage';
+import UpdatePackage from '../pages/manager/packageManagement/UpdatePackage';
+import ManagerStudentManagement from '../pages/manager/studentManagement';
+import ManagerBranchSlotManagement from '../pages/manager/branchSlotManagement';
+import CreateBranchSlot from '../pages/manager/branchSlotManagement/CreateBranchSlot';
+import UpdateBranchSlot from '../pages/manager/branchSlotManagement/UpdateBranchSlot';
+import CreateStudent from '../pages/manager/studentManagement/CreateStudent';
+import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 
 
 // Staff Pages
 import StaffDashboard from '../pages/staff/dashboard';
-import StaffStudentLevels from '../pages/staff/studentLevels';
 import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
-import StaffUserManagement from '../pages/staff/userManagement';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -93,7 +108,11 @@ export const routes = createBrowserRouter([
   // Parent Layout Routes (Parent Portal)
   {
     path: '/family',
-    element: <FamilyLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['User']}>
+        <FamilyLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -141,7 +160,11 @@ export const routes = createBrowserRouter([
   // Admin Layout Routes (Admin Portal)
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['Admin']}>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -154,6 +177,14 @@ export const routes = createBrowserRouter([
       {
         path: 'branches',
         element: <BranchManagement />,
+      },
+      {
+        path: 'branches/create',
+        element: <CreateBranch />,
+      },
+      {
+        path: 'branches/update/:id',
+        element: <UpdateBranch />,
       },
       {
         path: 'facilities',
@@ -179,6 +210,10 @@ export const routes = createBrowserRouter([
         path: 'packages',
         element: <PackageManagement />,
       },
+      { path: 'packages/templates/create', element: <AdminCreateTemplate /> },
+      { path: 'packages/templates/update/:id', element: <AdminUpdateTemplate /> },
+      { path: 'packages/create', element: <AdminCreatePackage /> },
+      { path: 'packages/update/:id', element: <AdminUpdatePackage /> },
       {
         path: 'schools',
         element: <SchoolManagement />,
@@ -189,7 +224,11 @@ export const routes = createBrowserRouter([
   // Manager Layout Routes (Manager Portal)
   {
     path: '/manager',
-    element: <ManagerLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['Manager']}>
+        <ManagerLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -204,8 +243,48 @@ export const routes = createBrowserRouter([
         element: <StaffAndParentManagement />,
       },
       {
+        path: 'staffAndParent/create-parent',
+        element: <CreateParent />,
+      },
+      {
         path: 'rooms',
         element: <ManagerRoomManagement />,
+      },
+      {
+        path: 'packages',
+        element: <ManagerPackageManagement />,
+      },
+      {
+        path: 'packages/create',
+        element: <CreatePackage />,
+      },
+      {
+        path: 'packages/update/:id',
+        element: <UpdatePackage />,
+      },
+      {
+        path: 'students',
+        element: <ManagerStudentManagement />,
+      },
+      {
+        path: 'students/create',
+        element: <CreateStudent />,
+      },
+      {
+        path: 'students/update/:id',
+        element: <UpdateStudent />,
+      },
+      {
+        path: 'branch-slots',
+        element: <ManagerBranchSlotManagement />,
+      },
+      {
+        path: 'branch-slots/create',
+        element: <CreateBranchSlot />,
+      },
+      {
+        path: 'branch-slots/update/:id',
+        element: <UpdateBranchSlot />,
       },
     ],
   },
@@ -214,19 +293,19 @@ export const routes = createBrowserRouter([
   // Staff Layout Routes (Staff Portal)
   {
     path: '/staff',
-    element: <StaffLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['Staff']}>
+        <StaffLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
-        element: <StaffStudentLevels />,
+        element: <StaffDashboard />,
       },
       {
         path: 'dashboard',
         element: <StaffDashboard />,
-      },
-      {
-        path: 'student-levels',
-        element: <StaffStudentLevels />,
       },
       {
         path: 'activity-types',
@@ -235,10 +314,6 @@ export const routes = createBrowserRouter([
       {
         path: 'activities',
         element: <StaffActivities />,
-      },
-      {
-        path: 'user-management',
-        element: <StaffUserManagement />,
       },
     ],
   },
@@ -249,3 +324,4 @@ export const routes = createBrowserRouter([
     element: <NotFound />,
   },
 ]);
+

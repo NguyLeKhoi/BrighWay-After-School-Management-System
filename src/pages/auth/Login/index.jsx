@@ -29,12 +29,6 @@ const Login = () => {
       // Get user info to check role
       const user = result.user;
       
-      // Log user info for debugging
-      console.log('🚀 Login successful! User:', user);
-      console.log('🎯 User role:', user.role);
-      console.log('🔑 Access Token:', result.accessToken ? 'Received' : 'Missing');
-      console.log('🔄 Refresh Token:', result.refreshToken ? 'Received' : 'Missing');
-      
       // Show success notification
       addNotification({
         message: 'Đăng nhập thành công!',
@@ -43,22 +37,16 @@ const Login = () => {
       
       // Redirect based on role (handle both string and number roles)
       const role = user.role;
-      console.log('🔍 Role type:', typeof role, 'Value:', role);
       
       if (role === 'Admin' || role === 0) {
-        console.log('➡️ Redirecting to Admin dashboard...');
         navigate('/admin/dashboard');
       } else if (role === 'Manager' || role === 1) {
-        console.log('➡️ Redirecting to Manager dashboard...');
         navigate('/manager/dashboard');
       } else if (role === 'Staff' || role === 2) {
-        console.log('➡️ Redirecting to Staff portal...');
         navigate('/staff');
       } else if (role === 'User' || role === 4) {
-        console.log('➡️ Redirecting to Family profile...');
         navigate('/family/profile');
       } else {
-        console.log('➡️ Redirecting to Parent profile...');
         navigate('/parent/profile');
       }
     } catch (err) {

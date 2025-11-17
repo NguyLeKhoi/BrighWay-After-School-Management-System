@@ -69,18 +69,42 @@ const authService = {
         refreshToken: refreshToken
       });
       
-      if (response.data.accessToken && response.data.refreshToken) {
-        // Save new tokens
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken);
-        
-        return {
-          accessToken: response.data.accessToken,
-          refreshToken: response.data.refreshToken
-        };
+      const {
+        accessToken: accessTokenCamel,
+        refreshToken: refreshTokenCamel,
+        access_token: accessTokenSnake,
+        refresh_token: refreshTokenSnake
+      } = response.data || {};
+
+      const newAccessToken = accessTokenCamel || accessTokenSnake;
+      const newRefreshToken = refreshTokenCamel || refreshTokenSnake;
+
+      if (!newAccessToken || !newRefreshToken) {
+        throw new Error('Invalid refresh response');
       }
-      
-      throw new Error('Invalid refresh response');
+
+      // Save new tokens
+      localStorage.setItem('accessToken', newAccessToken);
+      localStorage.setItem('refreshToken', newRefreshToken);
+
+      try {
+        const decoded = jwtDecode(newAccessToken);
+        const updatedUserInfo = {
+          id: decoded[JWT_CLAIMS.USER_ID],
+          email: decoded[JWT_CLAIMS.EMAIL],
+          role: decoded[JWT_CLAIMS.ROLE] || 'User'
+        };
+
+        localStorage.setItem('user', JSON.stringify(updatedUserInfo));
+      } catch (decodeError) {
+        // Decoding is best-effort only
+        console.warn('Unable to decode refreshed access token', decodeError);
+      }
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken
+      };
     } catch (error) {
       // If refresh fails, clear tokens and redirect to login
       localStorage.removeItem('accessToken');
@@ -126,6 +150,11 @@ const authService = {
   isAuthenticated: () => {
     return !!(localStorage.getItem('accessToken') && localStorage.getItem('refreshToken'));
   },
+
+  /**
+   * Warm up (no-op) to avoid cold-start delay; currently skipped to prevent noisy 404s.
+   */
+  ping: async () => Promise.resolve(),
 
 };
 

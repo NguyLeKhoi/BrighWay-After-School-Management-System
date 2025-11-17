@@ -39,6 +39,16 @@ const AdminLayout = () => {
       icon: UserIcon
     },
     {
+      path: '/admin/schools',
+      label: 'Trường',
+      icon: SchoolIcon
+    },
+    {
+      path: '/admin/student-levels',
+      label: 'Cấp Độ Học Sinh',
+      icon: StudentLevelIcon
+    },
+    {
       path: '/admin/branches',
       label: 'Chi Nhánh',
       icon: BranchIcon
@@ -54,29 +64,22 @@ const AdminLayout = () => {
       icon: RoomIcon
     },
     {
-      path: '/admin/benefits',
-      label: 'Lợi Ích',
-      icon: BenefitIcon
-    },
-    {
-      path: '/admin/student-levels',
-      label: 'Cấp Độ Học Sinh',
-      icon: StudentLevelIcon
-    },
-    {
       path: '/admin/packages',
       label: 'Gói Bán',
       icon: PackageIcon
     },
     {
-      path: '/admin/schools',
-      label: 'Trường',
-      icon: SchoolIcon
-    }
+      path: '/admin/benefits',
+      label: 'Lợi Ích',
+      icon: BenefitIcon
+    },
+   
+   
+    
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: '64px' }}>
       {/* Header */}
       <ManagerStaffHeader />
 

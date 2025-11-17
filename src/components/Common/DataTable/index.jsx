@@ -16,7 +16,9 @@ import {
 } from '@mui/material';
 import {
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 
 const DataTable = ({
@@ -31,8 +33,21 @@ const DataTable = ({
   onEdit,
   onDelete,
   emptyMessage = "Không có dữ liệu",
-  showActions = true
+  showActions = true,
+  expandableConfig = null
 }) => {
+  const [expandedRows, setExpandedRows] = React.useState({});
+
+  const isRowExpandable = expandableConfig?.isRowExpandable;
+  const renderExpandedContent = expandableConfig?.renderExpandedContent;
+
+  const toggleRow = (rowId) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [rowId]: !prev[rowId]
+    }));
+  };
+
   const handleEdit = (item) => {
     if (onEdit) {
       onEdit(item);
@@ -55,7 +70,7 @@ const DataTable = ({
 
   if (!data || data.length === 0) {
     return (
-      <Paper sx={{ p: 4, textAlign: 'center' }}>
+      <Paper sx={{ p: 4, textAlign: 'center', width: '100%' }}>
         <Typography variant="h6" color="text.secondary">
           {emptyMessage}
         </Typography>
@@ -64,11 +79,14 @@ const DataTable = ({
   }
 
   return (
-    <Paper>
-      <TableContainer>
-        <Table>
+    <Paper sx={{ width: '100%', overflowX: 'auto' }}>
+      <TableContainer sx={{ minWidth: 650 }}>
+        <Table sx={{ tableLayout: 'auto' }}>
           <TableHead>
             <TableRow>
+              {expandableConfig && (
+                <TableCell padding="checkbox" />
+              )}
               {columns.map((column) => (
                 <TableCell key={column.key} align={column.align || 'left'}>
                   {column.header}
@@ -80,41 +98,73 @@ const DataTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={item.id || index} hover>
-                {columns.map((column) => (
-                  <TableCell key={column.key} align={column.align || 'left'}>
-                    {column.render ? column.render(item[column.key], item) : item[column.key]}
-                  </TableCell>
-                ))}
-                {showActions && (
-                  <TableCell align="center">
-                    <Box display="flex" gap={1} justifyContent="center">
-                      {onEdit && (
+            {data.map((item, index) => {
+              const rowId = item.id || index;
+              const expandable = Boolean(
+                expandableConfig && (!isRowExpandable || isRowExpandable(item))
+              );
+              const isExpanded = expandedRows[rowId] || false;
+
+              return (
+                <React.Fragment key={rowId}>
+                  <TableRow hover>
+                    {expandable && (
+                      <TableCell padding="checkbox">
                         <IconButton
                           size="small"
-                          color="primary"
-                          onClick={() => handleEdit(item)}
-                          title="Chỉnh sửa"
+                          onClick={() => toggleRow(rowId)}
+                          aria-label={isExpanded ? 'Thu gọn' : 'Mở rộng'}
                         >
-                          <EditIcon fontSize="small" />
+                          {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                         </IconButton>
-                      )}
-                      {onDelete && (
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDelete(item)}
-                          title="Xóa"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      )}
-                    </Box>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
+                      </TableCell>
+                    )}
+                    {!expandable && expandableConfig && <TableCell padding="checkbox" />}
+                    {columns.map((column) => (
+                      <TableCell key={column.key} align={column.align || 'left'}>
+                        {column.render ? column.render(item[column.key], item) : item[column.key]}
+                      </TableCell>
+                    ))}
+                    {showActions && (
+                      <TableCell align="center">
+                        <Box display="flex" gap={1} justifyContent="center">
+                          {onEdit && (
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleEdit(item)}
+                              title="Chỉnh sửa"
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          {onDelete && (
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDelete(item)}
+                              title="Xóa"
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                        </Box>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                  {expandable && isExpanded && renderExpandedContent && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length + (showActions ? 1 : 0) + 1}
+                        sx={{ backgroundColor: '#f9f9f9', p: 2 }}
+                      >
+                        {renderExpandedContent(item)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

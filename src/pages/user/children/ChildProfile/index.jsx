@@ -73,8 +73,7 @@ const ChildProfile = () => {
     });
     setEditingField(null);
     setTempValue('');
-    // Handle profile update
-    console.log('Field updated:', fieldName, tempValue);
+    // TODO: Persist profile update
   };
 
   const handleKeyPress = (e, fieldName) => {

@@ -1,16 +1,18 @@
-import React from 'react';
-import { Box, Typography, Alert } from '@mui/material';
+import React, { useMemo } from 'react';
+import { Alert } from '@mui/material';
 import { Room as RoomIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { facilitySchema } from '../../../utils/validationSchemas/facilitySchemas';
 import facilityService from '../../../services/facility.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createFacilityColumns } from '../../../constants/facility/tableColumns';
+import { createFacilityFormFields } from '../../../constants/facility/formFields';
 import styles from './FacilityManagement.module.css';
 
 const FacilityManagement = () => {
@@ -48,44 +50,25 @@ const FacilityManagement = () => {
     loadOnMount: true
   });
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'facilityName',
-      header: 'Tên Cơ Sở Vật Chất',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <RoomIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'description',
-      header: 'Mô Tả',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {value}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createFacilityColumns(), []);
+  const facilityFormFields = useMemo(
+    () => createFacilityFormFields(actionLoading),
+    [actionLoading]
+  );
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header - Reusable Component */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Cơ Sở Vật Chất"
         createButtonText="Thêm Cơ Sở Vật Chất"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section - Reusable Component */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -118,7 +101,7 @@ const FacilityManagement = () => {
       </div>
 
       {/* Form Dialog - Reusable Component */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -136,26 +119,9 @@ const FacilityManagement = () => {
           submitText={dialogMode === 'create' ? 'Tạo Cơ Sở Vật Chất' : 'Cập nhật Cơ Sở Vật Chất'}
           loading={actionLoading}
           disabled={actionLoading}
-          fields={[
-            {
-              name: 'facilityName',
-              label: 'Tên Cơ Sở Vật Chất',
-              type: 'text',
-              required: true,
-              placeholder: 'Ví dụ: Phòng học A1, Thư viện, Sân thể thao',
-              disabled: actionLoading
-            },
-            {
-              name: 'description',
-              label: 'Mô Tả',
-              type: 'text',
-              required: true,
-              placeholder: 'Mô tả chi tiết về cơ sở vật chất',
-              disabled: actionLoading
-            }
-          ]}
+          fields={facilityFormFields}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

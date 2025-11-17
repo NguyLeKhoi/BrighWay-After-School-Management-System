@@ -1,0 +1,94 @@
+import * as yup from 'yup';
+
+// Schema for Step 1: Basic Info
+export const createParentBasicInfoSchema = yup.object({
+  name: yup
+    .string()
+    .required('Họ và tên là bắt buộc')
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự'),
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ'),
+  password: yup
+    .string()
+    .required('Mật khẩu là bắt buộc')
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(50, 'Mật khẩu không được quá 50 ký tự')
+});
+
+// Schema for Step 2: CCCD Info (all optional)
+export const createParentCCCDInfoSchema = yup.object({
+  email: yup
+    .string()
+    .optional()
+    .email('Email không hợp lệ'),
+  password: yup
+    .string()
+    .optional()
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(50, 'Mật khẩu không được quá 50 ký tự'),
+  identityCardNumber: yup
+    .string()
+    .optional(),
+  dateOfBirth: yup
+    .string()
+    .optional()
+    .matches(/^(\d{2}\/\d{2}\/\d{4}|)$/, 'Ngày sinh phải có định dạng dd/mm/yyyy'),
+  gender: yup
+    .string()
+    .optional(),
+  address: yup
+    .string()
+    .optional(),
+  issuedDate: yup
+    .string()
+    .optional()
+    .matches(/^(\d{2}\/\d{2}\/\d{4}|)$/, 'Ngày cấp phải có định dạng dd/mm/yyyy'),
+  issuedPlace: yup
+    .string()
+    .optional()
+});
+
+// Schema for creating parent with CCCD
+export const createParentWithCCCDSchema = yup.object({
+  name: yup
+    .string()
+    .required('Họ và tên là bắt buộc')
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự'),
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ'),
+  password: yup
+    .string()
+    .required('Mật khẩu là bắt buộc')
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(50, 'Mật khẩu không được quá 50 ký tự'),
+  identityCardNumber: yup
+    .string()
+    .optional(),
+  dateOfBirth: yup
+    .date()
+    .nullable()
+    .optional(),
+  gender: yup
+    .string()
+    .optional(),
+  address: yup
+    .string()
+    .optional(),
+  issuedDate: yup
+    .date()
+    .nullable()
+    .optional(),
+  issuedPlace: yup
+    .string()
+    .optional(),
+  identityCardPublicId: yup
+    .string()
+    .optional()
+});
+

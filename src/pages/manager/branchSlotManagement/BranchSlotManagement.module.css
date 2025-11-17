@@ -1,0 +1,48 @@
+.container {
+  width: 100%;
+  padding: 0;
+}
+
+.errorAlert {
+  margin-bottom: 16px;
+}
+
+.tableContainer {
+  margin-top: 24px;
+}
+
+.statusFilter {
+  min-width: 200px;
+  width: 200px;
+  margin-left: 12px;
+}
+
+.staffWrapper {
+  padding: 16px;
+}
+
+.staffMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.staffTable {
+  margin-top: 12px;
+}
+
+.noWrap {
+  white-space: nowrap;
+}
+
+.primaryText {
+  color: #1976d2;
+}
+
+.compactCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+

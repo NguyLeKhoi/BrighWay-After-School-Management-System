@@ -10,8 +10,8 @@ const Homepage = () => {
     heading: 'Section heading',
     features: features,
     buttons: [
-      { text: 'Learn More', primary: true, onClick: () => console.log('Learn More clicked') },
-      { text: 'View Courses', primary: false, onClick: () => console.log('View Courses clicked') }
+      { text: 'Learn More', primary: true, onClick: () => {} },
+      { text: 'View Courses', primary: false, onClick: () => {} }
     ],
     hasImage: true
   };
@@ -20,8 +20,8 @@ const Homepage = () => {
     heading: 'Why Choose Us',
     description: 'We provide comprehensive education programs designed to help you achieve your goals and build a successful career.',
     buttons: [
-      { text: 'Our Programs', primary: true, onClick: () => console.log('Our Programs clicked') },
-      { text: 'Apply Now', primary: false, onClick: () => console.log('Apply Now clicked') }
+      { text: 'Our Programs', primary: true, onClick: () => {} },
+      { text: 'Apply Now', primary: false, onClick: () => {} }
     ],
     hasImage: false
   };
@@ -32,7 +32,7 @@ const Homepage = () => {
         title="Landing page title"
         subtitle="Discover amazing educational opportunities and transform your future"
         buttonText="Get Started"
-        onButtonClick={() => console.log('Get Started clicked')}
+        onButtonClick={() => {}}
       />
 
       <ContentSection {...contentSection1} />

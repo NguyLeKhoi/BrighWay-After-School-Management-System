@@ -28,9 +28,6 @@ import {
 import { createFamilyAccountSchema } from '../../../utils/validationSchemas/familySchemas';
 
 const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, isEditMode = false, onCancel = null }) => {
-  console.log('🔍 FamilyAccountForm defaultValues:', defaultValues);
-  console.log('🔍 isEditMode:', isEditMode);
-  
   const [parentCount, setParentCount] = useState(defaultValues?.parents?.length || 1);
   
   const {

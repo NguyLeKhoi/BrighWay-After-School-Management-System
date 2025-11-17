@@ -5,7 +5,6 @@ import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import {
   Dashboard as DashboardIcon,
-  School as StudentLevelIcon,
   Category as ActivityTypeIcon,
   Event as ActivityIcon,
   People as PeopleIcon
@@ -28,16 +27,6 @@ const StaffLayout = () => {
       icon: DashboardIcon
     },
     {
-      path: '/staff/user-management',
-      label: 'Quản lý Tài khoản',
-      icon: PeopleIcon
-    },
-    {
-      path: '/staff/student-levels',
-      label: 'Cấp độ học sinh',
-      icon: StudentLevelIcon
-    },
-    {
       path: '/staff/activity-types',
       label: 'Loại Hoạt Động',
       icon: ActivityTypeIcon
@@ -50,7 +39,7 @@ const StaffLayout = () => {
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: '64px' }}>
       {/* Header */}
       <ManagerStaffHeader />
 

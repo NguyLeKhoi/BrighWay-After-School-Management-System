@@ -26,7 +26,8 @@ import {
   TablePagination,
   Tooltip,
   TextField,
-  Button
+  Button,
+  Paper
 } from '@mui/material';
 import {
   Business as BusinessIcon,
@@ -38,16 +39,18 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import branchService from '../../../services/branch.service';
 import benefitService from '../../../services/benefit.service';
 import useLocationData from '../../../hooks/useLocationData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createBranchColumns } from '../../../constants/branch/tableColumns';
 import { toast } from 'react-toastify';
 import styles from './BranchManagement.module.css';
+import { useNavigate } from 'react-router-dom';
 
 const BranchManagement = () => {
   // Location data
@@ -76,6 +79,7 @@ const BranchManagement = () => {
   const [selectedBenefits, setSelectedBenefits] = useState([]);
   const [loadingBenefits, setLoadingBenefits] = useState(false);
 
+  const navigate = useNavigate();
   // Use shared CRUD hook for basic operations
   const {
     data: branches,
@@ -87,9 +91,6 @@ const BranchManagement = () => {
     actionLoading,
     isPageLoading,
     loadingText,
-    openDialog,
-    setOpenDialog,
-    dialogMode,
     selectedItem: selectedBranch,
     confirmDialog,
     setConfirmDialog,
@@ -127,12 +128,7 @@ const BranchManagement = () => {
     }
   }, [provinceId, handleProvinceChange, selectedBranch]);
 
-  // Load provinces when dialog opens
-  useEffect(() => {
-    if (openDialog && provinces.length === 0) {
-      fetchProvinces();
-    }
-  }, [openDialog]);
+  // No dialog open effect needed after stepper refactor
 
   // Sync districtId when editing
   useEffect(() => {
@@ -151,22 +147,12 @@ const BranchManagement = () => {
     }
   }, [selectedBranch, provinces, districtId]);
 
-  // Override handleCreate to ensure provinces are loaded
   const handleCreateWithData = async () => {
-    if (provinces.length === 0) {
-      await fetchProvinces();
-    }
-    setProvinceId('');
-    setDistrictId('');
-    handleCreate();
+    navigate('/admin/branches/create');
   };
 
-  // Override handleEdit to ensure provinces are loaded
   const handleEditWithData = async (branch) => {
-    if (provinces.length === 0) {
-      await fetchProvinces();
-    }
-    handleEdit(branch);
+    navigate(`/admin/branches/update/${branch.id}`);
   };
 
   // Custom form submit handler (need to include districtId)
@@ -277,89 +263,36 @@ const BranchManagement = () => {
     });
   };
 
+  const resolveBenefitStatus = (benefit) => {
+    if (typeof benefit?.status === 'boolean') return benefit.status;
+    if (typeof benefit?.isActive === 'boolean') return benefit.isActive;
+    if (typeof benefit?.active === 'boolean') return benefit.active;
+    if (typeof benefit?.enabled === 'boolean') return benefit.enabled;
+    return undefined;
+  };
+
+  const getBenefitName = (benefit) =>
+    benefit?.name ||
+    benefit?.benefitName ||
+    benefit?.title ||
+    benefit?.displayName ||
+    'Không rõ tên';
+
+  const getBenefitDescription = (benefit) =>
+    benefit?.description ||
+    benefit?.desc ||
+    benefit?.benefitDescription ||
+    benefit?.detail ||
+    'Không có mô tả';
+
   // Define table columns
-  const columns = [
-    {
-      key: 'branchName',
-      header: 'Tên Chi Nhánh',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <IconButton
-            size="small"
-            onClick={() => handleToggleExpand(item.id)}
-            sx={{ padding: '4px', ml: -1 }}
-          >
-            {expandedRows.has(item.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
-          <BusinessIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'address',
-      header: 'Địa Chỉ',
-      render: (value, item) => {
-        const fullAddress = [
-          item.address,
-          item.districtName,
-          item.provinceName
-        ].filter(Boolean).join(', ');
-        
-        return (
-          <Typography variant="body2" color="text.secondary">
-            {fullAddress || value}
-          </Typography>
-        );
-      }
-    },
-    {
-      key: 'phone',
-      header: 'Số Điện Thoại',
-      render: (value) => (
-        <Typography variant="body2">
-          {value}
-        </Typography>
-      )
-    },
-    {
-      key: 'actions',
-      header: 'Thao tác',
-      align: 'center',
-      render: (value, item) => (
-        <Box display="flex" gap={0.5} justifyContent="center">
-          <IconButton
-            size="small"
-            color="info"
-            onClick={() => handleAssignBenefits(item)}
-            title="Gán lợi ích"
-          >
-            <AssignIcon fontSize="small" />
-          </IconButton>
-          <Tooltip title="Sửa">
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={() => handleEditWithData(item)}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => handleDelete(item)}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )
-    }
-  ];
+  const columns = createBranchColumns({
+    expandedRows,
+    onToggleExpand: handleToggleExpand,
+    onAssignBenefits: handleAssignBenefits,
+    onEditBranch: handleEditWithData,
+    onDeleteBranch: handleDelete
+  });
 
 
   return (
@@ -367,14 +300,14 @@ const BranchManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Chi Nhánh"
         createButtonText="Thêm Chi Nhánh"
         onCreateClick={handleCreateWithData}
       />
 
       {/* Search Section */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -429,81 +362,129 @@ const BranchManagement = () => {
                       </TableRow>
                       {/* Expanded row showing benefits */}
                       {expandedRows.has(branch.id) && (
-                        <>
-                          {rowBenefits[branch.id] === undefined ? (
-                            <TableRow>
-                              <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
+                        <TableRow>
+                          <TableCell
+                            colSpan={columns.length}
+                            sx={{
+                              backgroundColor: 'grey.50',
+                              p: 0,
+                              borderBottom: 'none'
+                            }}
+                          >
+                            {rowBenefits[branch.id] === undefined ? (
+                              <Box
+                                display="flex"
+                                justifyContent="center"
+                                alignItems="center"
+                                py={4}
+                              >
                                 <CircularProgress size={24} />
-                              </TableCell>
-                            </TableRow>
-                          ) : rowBenefits[branch.id] && rowBenefits[branch.id].length > 0 ? (
-                            <>
-                              {/* Header row for benefits */}
-                              <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                                <TableCell colSpan={columns.length} sx={{ fontWeight: 600, py: 1.5, borderBottom: '1px solid', borderBottomColor: 'divider', pl: 4 }}>
-                                  Danh sách Lợi Ích
-                                </TableCell>
-                              </TableRow>
-                              {/* Benefit rows */}
-                              {rowBenefits[branch.id].map((benefit, idx) => (
-                                <TableRow 
-                                  key={benefit.id} 
-                                  hover
-                                  sx={{
-                                    backgroundColor: benefit.status ? 'success.50' : 'transparent',
-                                    '&:hover': {
-                                      backgroundColor: benefit.status ? 'success.100' : 'grey.50'
-                                    }
-                                  }}
-                                >
-                                  <TableCell sx={{ pl: 4 }}>
-                                    <Box display="flex" alignItems="center" gap={1}>
-                                      <BenefitIcon fontSize="small" color={benefit.status ? 'success' : 'inherit'} />
-                                      <Typography variant="body2" fontWeight={500}>
-                                        {benefit.name}
-                                      </Typography>
-                                    </Box>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Typography variant="body2" color="text.secondary">
-                                      {benefit.description || 'Không có mô tả'}
-                                    </Typography>
-                                  </TableCell>
-                                  <TableCell></TableCell>
-                                  <TableCell>
-                                    <Box display="flex" justifyContent="flex-end" gap={1} alignItems="center">
-                                      <Chip
-                                        label={benefit.status ? 'Hoạt động' : 'Không hoạt động'}
-                                        color={benefit.status ? 'success' : 'default'}
-                                        size="small"
-                                        sx={{ fontWeight: 500 }}
-                                      />
-                                      <Tooltip title="Gỡ lợi ích khỏi chi nhánh">
-                                        <IconButton
-                                          size="small"
-                                          color="error"
-                                          onClick={() => handleRemoveBenefit(branch.id, benefit.id, benefit.name)}
-                                          disabled={actionLoading}
-                                          sx={{ ml: 1 }}
-                                        >
-                                          <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                      </Tooltip>
-                                    </Box>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </>
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={columns.length} align="center" sx={{ py: 3, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
+                              </Box>
+                            ) : rowBenefits[branch.id] && rowBenefits[branch.id].length > 0 ? (
+                              <Box className={styles.benefitWrapper}>
+                                <Box className={styles.benefitMeta}>
+                                  <Typography variant="subtitle1" fontWeight={600}>
+                                    Danh sách Lợi Ích
+                                  </Typography>
+                                  <Chip
+                                    label={`${rowBenefits[branch.id].length} lợi ích`}
+                                    color="primary"
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{ fontWeight: 500 }}
+                                  />
+                                </Box>
+
+                                <TableContainer component={Paper} variant="outlined" className={styles.benefitTable}>
+                                  <Table size="small">
+                                    <TableHead sx={{ backgroundColor: 'grey.100' }}>
+                                      <TableRow>
+                                        <TableCell sx={{ width: 56, fontWeight: 600 }}>#</TableCell>
+                                        <TableCell sx={{ fontWeight: 600 }}>Tên lợi ích</TableCell>
+                                        <TableCell sx={{ fontWeight: 600 }}>Mô tả</TableCell>
+                                        <TableCell sx={{ fontWeight: 600, width: 140 }}>Trạng thái</TableCell>
+                                        <TableCell sx={{ width: 100 }} align="right">
+                                          Thao tác
+                                        </TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {rowBenefits[branch.id].map((benefit, idx) => {
+                                        const isActive =
+                                          typeof benefit.status === 'boolean'
+                                            ? benefit.status
+                                            : typeof benefit.isActive === 'boolean'
+                                            ? benefit.isActive
+                                            : false;
+
+                                        return (
+                                          <TableRow
+                                            key={benefit.id}
+                                            hover
+                                            sx={{
+                                              backgroundColor: isActive ? 'success.50' : 'transparent',
+                                              '&:hover': {
+                                                backgroundColor: isActive ? 'success.100' : 'grey.50'
+                                              }
+                                            }}
+                                          >
+                                            <TableCell>{idx + 1}</TableCell>
+                                            <TableCell>
+                                              <Box display="flex" alignItems="center" gap={1}>
+                                                <BenefitIcon fontSize="small" color={isActive ? 'success' : 'action'} />
+                                                <Typography variant="body2" fontWeight={600}>
+                                                  {benefit.name}
+                                                </Typography>
+                                              </Box>
+                                            </TableCell>
+                                            <TableCell>
+                                              <Typography variant="body2" color="text.secondary">
+                                                {benefit.description || 'Không có mô tả'}
+                                              </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                              <Chip
+                                                label={isActive ? 'Hoạt động' : 'Không hoạt động'}
+                                                color={isActive ? 'success' : 'default'}
+                                                size="small"
+                                                sx={{ fontWeight: 500 }}
+                                              />
+                                            </TableCell>
+                                            <TableCell align="right">
+                                              <Tooltip title="Gỡ lợi ích khỏi chi nhánh">
+                                                <span>
+                                                  <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={() => handleRemoveBenefit(branch.id, benefit.id, benefit.name)}
+                                                    disabled={actionLoading}
+                                                  >
+                                                    <DeleteIcon fontSize="small" />
+                                                  </IconButton>
+                                                </span>
+                                              </Tooltip>
+                                            </TableCell>
+                                          </TableRow>
+                                        );
+                                      })}
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              </Box>
+                            ) : (
+                              <Box
+                                sx={{
+                                  py: 4,
+                                  textAlign: 'center'
+                                }}
+                              >
                                 <Typography variant="body2" color="text.secondary">
                                   Chi nhánh này chưa có lợi ích nào được gán.
                                 </Typography>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </>
+                              </Box>
+                            )}
+                          </TableCell>
+                        </TableRow>
                       )}
                     </React.Fragment>
                   ))
@@ -525,122 +506,7 @@ const BranchManagement = () => {
           />
         </div>
 
-      {/* Form Dialog with Location Fields */}
-      <AdminFormDialog
-        open={openDialog}
-        onClose={() => {
-          setOpenDialog(false);
-          setProvinceId('');
-          setDistrictId('');
-        }}
-        mode={dialogMode}
-        title="Chi Nhánh"
-        icon={BusinessIcon}
-        loading={actionLoading}
-        maxWidth="md"
-      >
-        <Box component="form" onSubmit={async (e) => {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          const data = {
-            branchName: formData.get('branchName'),
-            address: formData.get('address'),
-            phone: formData.get('phone'),
-            districtId: districtId
-          };
-          await handleFormSubmit(data);
-        }}>
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={12}>
-              <TextField
-                name="branchName"
-                label="Tên Chi Nhánh"
-                required
-                fullWidth
-                defaultValue={selectedBranch?.branchName || ''}
-                disabled={actionLoading}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel>Tỉnh/Thành Phố</InputLabel>
-                <Select
-                  value={provinceId}
-                  onChange={(e) => setProvinceId(e.target.value)}
-                  label="Tỉnh/Thành Phố"
-                  disabled={actionLoading || locationLoading}
-                >
-                  <MenuItem value="">Chọn tỉnh/thành phố</MenuItem>
-                  {getProvinceOptions().map(option => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth required disabled={!provinceId}>
-                <InputLabel>Quận/Huyện</InputLabel>
-                <Select
-                  value={districtId}
-                  onChange={(e) => setDistrictId(e.target.value)}
-                  label="Quận/Huyện"
-                  disabled={actionLoading || locationLoading || !provinceId}
-                >
-                  <MenuItem value="">Chọn quận/huyện</MenuItem>
-                  {getDistrictOptions().map(option => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="address"
-                label="Địa Chỉ"
-                required
-                fullWidth
-                defaultValue={selectedBranch?.address || ''}
-                disabled={actionLoading}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="phone"
-                label="Số Điện Thoại"
-                required
-                fullWidth
-                defaultValue={selectedBranch?.phone || ''}
-                disabled={actionLoading}
-              />
-            </Grid>
-          </Grid>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() => {
-                setOpenDialog(false);
-                setProvinceId('');
-                setDistrictId('');
-              }}
-              disabled={actionLoading}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={actionLoading}
-            >
-              {actionLoading ? 'Đang xử lý...' : dialogMode === 'create' ? 'Tạo Chi Nhánh' : 'Cập nhật Chi Nhánh'}
-            </Button>
-          </Box>
-        </Box>
-      </AdminFormDialog>
+      {/* Create/Update moved to dedicated stepper pages */}
 
       {/* Confirm Dialog */}
       <ConfirmDialog
@@ -655,7 +521,7 @@ const BranchManagement = () => {
       />
 
       {/* Assign Benefits Dialog - Keep this special feature */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openAssignDialog}
         onClose={() => setOpenAssignDialog(false)}
         mode="assign"
@@ -773,7 +639,7 @@ const BranchManagement = () => {
             </Button>
           </Box>
         </>
-      </AdminFormDialog>
+      </ManagementFormDialog>
     </div>
   );
 };

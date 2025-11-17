@@ -1,21 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
 import {
   MeetingRoom as RoomIcon
 } from '@mui/icons-material';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import ManagerPageHeader from '../../../components/Manager/ManagerPageHeader';
-import ManagerSearchSection from '../../../components/Manager/ManagerSearchSection';
-import ManagerFormDialog from '../../../components/Manager/ManagerFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -24,12 +21,13 @@ import roomService from '../../../services/room.service';
 import userService from '../../../services/user.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createManagerRoomColumns } from '../../../constants/manager/room/tableColumns';
+import { createManagerRoomFormFields } from '../../../constants/manager/room/formFields';
 import { toast } from 'react-toastify';
 import styles from './RoomManagement.module.css';
 
 const ManagerRoomManagement = () => {
   const [managerBranchId, setManagerBranchId] = useState(null);
-  const [facilityFilter, setFacilityFilter] = useState('');
   
   // Facility and Branch data
   const {
@@ -59,7 +57,27 @@ const ManagerRoomManagement = () => {
       }
     };
     fetchManagerBranch();
-  }, []);
+  }, [fetchAllData]);
+
+  // Create load function that always uses latest managerBranchId
+  const loadRoomsFunction = useCallback(async (params) => {
+    // Manager can only see rooms in their branch - always filter by managerBranchId
+    if (!managerBranchId) {
+      // If branchId not loaded yet, return empty result
+      return { items: [], totalCount: 0, pageIndex: 1, pageSize: 10 };
+    }
+    
+    const effectiveBranchFilter = managerBranchId; // Always use manager's branch
+    
+    const response = await roomService.getRoomsPaged(
+      params.page || params.pageIndex || 1,
+      params.pageSize || params.rowsPerPage || 10,
+      params.Keyword || params.searchTerm || '',
+      '',
+      effectiveBranchFilter
+    );
+    return response;
+  }, [managerBranchId]);
 
   // Use Manager CRUD hook with custom load function
   const {
@@ -88,22 +106,10 @@ const ManagerRoomManagement = () => {
     handlePageChange,
     handleRowsPerPageChange,
     updateFilter,
-    filters
+    filters,
+    loadData
   } = useBaseCRUD({
-    loadFunction: async (params) => {
-      // Manager can only see rooms in their branch
-      const effectiveBranchFilter = managerBranchId || params.branchId || '';
-      const effectiveFacilityFilter = facilityFilter || params.facilityId || '';
-      
-      const response = await roomService.getRoomsPaged(
-        params.page || params.pageIndex || 1,
-        params.pageSize || params.rowsPerPage || 10,
-        params.Keyword || params.searchTerm || keyword || '',
-        effectiveFacilityFilter,
-        effectiveBranchFilter
-      );
-      return response;
-    },
+    loadFunction: loadRoomsFunction,
     createFunction: async (data) => {
       // Ensure manager can only create rooms in their branch
       if (managerBranchId) {
@@ -123,8 +129,15 @@ const ManagerRoomManagement = () => {
       facilityId: '',
       branchId: ''
     },
-    loadOnMount: true
+    loadOnMount: false // Don't load on mount, wait for managerBranchId
   });
+
+  // Reload data when managerBranchId is set
+  useEffect(() => {
+    if (managerBranchId && loadData) {
+      loadData();
+    }
+  }, [managerBranchId, loadData]);
 
   // Override handleCreate to ensure data is loaded
   const handleCreateWithData = async () => {
@@ -151,150 +164,50 @@ const ManagerRoomManagement = () => {
     await baseHandleFormSubmit(submitData);
   };
 
-  // Handle facility filter change
-  const handleFacilityFilterChange = (e) => {
-    const value = e.target.value;
-    setFacilityFilter(value);
-    updateFilter('facilityId', value);
-  };
-
   // Handle clear filters
   const handleClearFilters = () => {
-    setFacilityFilter('');
     handleClearSearch();
-    updateFilter('facilityId', '');
     updateFilter('branchId', '');
   };
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'roomName',
-      header: 'Tên Phòng',
-      render: (value, item) => (
-        <Typography variant="body2" fontWeight="medium">
-          {item.roomName || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'facilityName',
-      header: 'Cơ Sở Vật Chất',
-      render: (value, item) => (
-        <div className={styles.facilityCell}>
-          <RoomIcon className={styles.facilityIcon} fontSize="small" />
-          <span className={styles.facilityName}>
-            {item.facilityName || 'N/A'}
-          </span>
-        </div>
-      )
-    },
-    {
-      key: 'branchName',
-      header: 'Chi Nhánh',
-      render: (value, item) => (
-        <Typography variant="body2">
-          {item.branchName || 'N/A'}
-        </Typography>
-      )
-    },
-    {
-      key: 'capacity',
-      header: 'Sức Chứa',
-      render: (value) => (
-        <span className={styles.capacityText}>
-          {value} người
-        </span>
-      )
-    }
-  ];
+  const columns = useMemo(() => createManagerRoomColumns(styles), [styles]);
+  const branchOptions = useMemo(
+    () => getBranchOptions(),
+    [getBranchOptions, managerBranchId]
+  );
 
-  // Get form fields
-  const getFormFields = () => {
-    return [
-      {
-        name: 'roomName',
-        label: 'Tên Phòng',
-        type: 'text',
-        placeholder: 'Nhập tên phòng học',
-        required: true
-      },
-      {
-        name: 'facilityId',
-        label: 'Cơ Sở Vật Chất',
-        type: 'select',
-        required: true,
-        options: getFacilityOptions()
-      },
-      {
-        name: 'branchId',
-        label: 'Chi Nhánh',
-        type: 'select',
-        required: true,
-        disabled: true, // Manager can only use their branch
-        options: managerBranchId 
-          ? getBranchOptions().filter(opt => opt.value === managerBranchId)
-          : getBranchOptions()
-      },
-      {
-        name: 'capacity',
-        label: 'Sức Chứa',
-        type: 'number',
-        placeholder: 'Sức chứa: 10',
-        required: true
-      }
-    ];
-  };
+  const formFields = useMemo(
+    () =>
+      createManagerRoomFormFields({
+        actionLoading,
+        facilityOptions: getFacilityOptions(),
+        managerBranchId,
+        branchOptions
+      }),
+    [actionLoading, getFacilityOptions, managerBranchId, branchOptions]
+  );
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <ManagerPageHeader
+      <ManagementPageHeader
         title="Quản lý Phòng Học"
         createButtonText="Thêm Phòng Học"
         onCreateClick={handleCreateWithData}
       />
 
       {/* Search Section with Additional Filters */}
-      <ManagerSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
         onClear={handleClearFilters}
         placeholder="Tìm kiếm theo tên phòng học..."
       >
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Facility Filter */}
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Cơ Sở Vật Chất</InputLabel>
-            <Select
-              value={facilityFilter}
-              onChange={handleFacilityFilterChange}
-              label="Cơ Sở Vật Chất"
-              disabled={isDataLoading}
-            >
-              <MenuItem value="">Tất cả cơ sở vật chất</MenuItem>
-              {getFacilityOptions().map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Branch Filter - Read-only for Manager */}
-          {managerBranchId && (
-            <TextField
-              label="Chi Nhánh"
-              value={getBranchById(managerBranchId)?.branchName || 'Chi nhánh của bạn'}
-              disabled
-              sx={{ minWidth: 200 }}
-            />
-          )}
-        </Box>
-      </ManagerSearchSection>
+        <Box />
+      </ManagementSearchSection>
 
       {/* Error Alert */}
       {error && (
@@ -321,7 +234,7 @@ const ManagerRoomManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <ManagerFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -342,7 +255,7 @@ const ManagerRoomManagement = () => {
           <Form
             schema={roomSchema}
             onSubmit={handleFormSubmit}
-            fields={getFormFields()}
+            fields={formFields}
             defaultValues={{
               ...selectedRoom,
               branchId: managerBranchId // Pre-fill with manager's branch
@@ -351,7 +264,7 @@ const ManagerRoomManagement = () => {
             loading={actionLoading}
           />
         )}
-      </ManagerFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

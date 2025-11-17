@@ -1,16 +1,18 @@
-import React from 'react';
-import { Box, Typography, Alert } from '@mui/material';
+import React, { useMemo } from 'react';
+import { Alert } from '@mui/material';
 import { School as StudentLevelIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { studentLevelSchema } from '../../../utils/validationSchemas/studentLevelSchemas';
 import studentLevelService from '../../../services/studentLevel.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
+import { createStudentLevelColumns } from '../../../constants/studentLevel/tableColumns';
+import { createStudentLevelFormFields } from '../../../constants/studentLevel/formFields';
 import styles from './StudentLevelManagement.module.css';
 
 const StudentLevelManagement = () => {
@@ -54,53 +56,25 @@ const StudentLevelManagement = () => {
     loadOnMount: true
   });
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Tên Cấp Độ',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <StudentLevelIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'description',
-      header: 'Mô Tả',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
-          {value || 'Không có mô tả'}
-        </Typography>
-      )
-    },
-    {
-      key: 'createdTime',
-      header: 'Ngày Tạo',
-      render: (value) => (
-        <Typography variant="body2">
-          {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
-        </Typography>
-      )
-    }
-  ];
+  const columns = useMemo(() => createStudentLevelColumns(), []);
+  const studentLevelFormFields = useMemo(
+    () => createStudentLevelFormFields(actionLoading),
+    [actionLoading]
+  );
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Cấp Độ Học Sinh"
         createButtonText="Thêm Cấp Độ"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -133,7 +107,7 @@ const StudentLevelManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -152,27 +126,9 @@ const StudentLevelManagement = () => {
           submitText={dialogMode === 'create' ? 'Tạo Cấp Độ' : 'Cập nhật Cấp Độ'}
           loading={actionLoading}
           disabled={actionLoading}
-          fields={[
-            {
-              name: 'name',
-              label: 'Tên Cấp Độ',
-              type: 'text',
-              required: true,
-              placeholder: 'Ví dụ: Mầm Non, Tiểu Học, Trung Học Cơ Sở',
-              disabled: actionLoading
-            },
-            {
-              name: 'description',
-              label: 'Mô Tả',
-              type: 'textarea',
-              required: false,
-              placeholder: 'Mô tả chi tiết về cấp độ học sinh...',
-              disabled: actionLoading,
-              rows: 3
-            }
-          ]}
+          fields={studentLevelFormFields}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

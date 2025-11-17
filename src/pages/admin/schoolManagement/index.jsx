@@ -1,17 +1,19 @@
-import React from 'react';
-import { Box, Typography, Alert, Chip, IconButton, Tooltip } from '@mui/material';
-import { School as SchoolIcon, Edit as EditIcon, Delete as DeleteIcon, Restore as RestoreIcon } from '@mui/icons-material';
+import React, { useMemo } from 'react';
+import { Alert } from '@mui/material';
+import { School as SchoolIcon } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import AdminPageHeader from '../../../components/Admin/AdminPageHeader';
-import AdminSearchSection from '../../../components/Admin/AdminSearchSection';
-import AdminFormDialog from '../../../components/Admin/AdminFormDialog';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
+import ManagementSearchSection from '../../../components/Management/SearchSection';
+import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import { schoolSchema } from '../../../utils/validationSchemas/schoolSchemas';
 import schoolService from '../../../services/school.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { toast } from 'react-toastify';
+import { createSchoolColumns } from '../../../constants/school/tableColumns';
+import { createSchoolFormFields } from '../../../constants/school/formFields';
 import styles from './SchoolManagement.module.css';
 
 const SchoolManagement = () => {
@@ -85,89 +87,33 @@ const SchoolManagement = () => {
     }
   };
 
-  // Define table columns with custom actions for restore
-  const columns = [
-    {
-      key: 'name',
-      header: 'Tên Trường',
-      render: (value, item) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <SchoolIcon fontSize="small" color="primary" />
-          <Typography variant="subtitle2" fontWeight="medium">
-            {value}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      key: 'address',
-      header: 'Địa Chỉ',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {value}
-        </Typography>
-      )
-    },
-    {
-      key: 'phoneNumber',
-      header: 'Số Điện Thoại',
-      render: (value) => (
-        <Typography variant="body2">
-          {value}
-        </Typography>
-      )
-    },
-    {
-      key: 'email',
-      header: 'Email',
-      render: (value) => (
-        <Typography variant="body2" color="text.secondary">
-          {value}
-        </Typography>
-      )
-    },
-    {
-      key: 'actions',
-      header: 'Thao tác',
-      align: 'center',
-      render: (value, item) => (
-        <Box display="flex" gap={0.5} justifyContent="center">
-          <Tooltip title="Sửa">
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={() => handleEdit(item)}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Xóa (Soft Delete)">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => handleDelete(item)}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )
-    }
-  ];
+  const columns = useMemo(
+    () =>
+      createSchoolColumns({
+        onEdit: handleEdit,
+        onDelete: handleDelete
+      }),
+    [handleEdit, handleDelete]
+  );
+
+  const schoolFormFields = useMemo(
+    () => createSchoolFormFields(actionLoading),
+    [actionLoading]
+  );
 
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
-      <AdminPageHeader
+      <ManagementPageHeader
         title="Quản lý Trường"
         createButtonText="Thêm Trường"
         onCreateClick={handleCreate}
       />
 
       {/* Search Section */}
-      <AdminSearchSection
+      <ManagementSearchSection
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
@@ -201,7 +147,7 @@ const SchoolManagement = () => {
       </div>
 
       {/* Form Dialog */}
-      <AdminFormDialog
+      <ManagementFormDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
@@ -221,42 +167,9 @@ const SchoolManagement = () => {
           submitText={dialogMode === 'create' ? 'Tạo Trường' : 'Cập nhật Trường'}
           loading={actionLoading}
           disabled={actionLoading}
-          fields={[
-            {
-              name: 'name',
-              label: 'Tên Trường',
-              type: 'text',
-              required: true,
-              placeholder: 'Ví dụ: Trường Tiểu học ABC',
-              disabled: actionLoading
-            },
-            {
-              name: 'address',
-              label: 'Địa Chỉ',
-              type: 'text',
-              required: true,
-              placeholder: 'Địa chỉ đầy đủ của trường',
-              disabled: actionLoading
-            },
-            {
-              name: 'phoneNumber',
-              label: 'Số Điện Thoại',
-              type: 'text',
-              required: true,
-              placeholder: 'Ví dụ: 0123456789',
-              disabled: actionLoading
-            },
-            {
-              name: 'email',
-              label: 'Email',
-              type: 'email',
-              required: true,
-              placeholder: 'Ví dụ: contact@school.edu.vn',
-              disabled: actionLoading
-            }
-          ]}
+          fields={schoolFormFields}
         />
-      </AdminFormDialog>
+      </ManagementFormDialog>
 
       {/* Confirm Dialog */}
       <ConfirmDialog
