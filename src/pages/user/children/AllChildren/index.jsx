@@ -165,8 +165,8 @@ const ChildrenList = () => {
                   formatDate(child.createdTime) ? { label: 'Ngày tham gia', value: formatDate(child.createdTime) } : null
                 ].filter(Boolean)}
                 actions={[
-                  { text: 'Xem Profile', primary: false, onClick: () => navigate(`/parent/children/${child.id}/profile`) },
-                  { text: 'Lịch học', primary: true, onClick: () => navigate(`/parent/children/${child.id}/schedule`) }
+                  { text: 'Xem Profile', primary: false, onClick: () => navigate(`/family/children/${child.id}/profile`) },
+                  { text: 'Lịch học', primary: true, onClick: () => navigate(`/family/children/${child.id}/schedule`) }
                 ]}
               />
             ))}

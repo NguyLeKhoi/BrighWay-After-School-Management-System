@@ -21,7 +21,13 @@ const HeroSection = ({
         )}
         {hasImage && (
           <div className={styles.heroImage}>
-            {imageContent || <div className={styles.imagePlaceholder}>Image</div>}
+            {imageContent || (
+              <img 
+                src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=400&fit=crop&q=80" 
+                alt={title || "Hero image"}
+                className={styles.heroImageImg}
+              />
+            )}
           </div>
         )}
       </div>

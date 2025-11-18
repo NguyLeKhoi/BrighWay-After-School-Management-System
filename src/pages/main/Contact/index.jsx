@@ -60,7 +60,11 @@ const Contact = () => {
             </div>
             
             <div className={styles.imageContent}>
-              <div className={styles.imagePlaceholder}>Image</div>
+              <img 
+                src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=600&h=600&fit=crop&q=80" 
+                alt="Contact us"
+                className={styles.contactImage}
+              />
             </div>
           </div>
         </div>

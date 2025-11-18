@@ -106,6 +106,63 @@ const branchService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Connect a school to a branch
+   * @param {Object} data - Connection data { branchId, schoolId }
+   * @returns {Promise} Connection result
+   */
+  connectSchool: async (data) => {
+    try {
+      const { branchId, schoolId } = data;
+      const queryParams = new URLSearchParams({
+        branchId: branchId.toString(),
+        schoolId: schoolId.toString()
+      });
+      const response = await axiosInstance.post(`/Branch/connect-school?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Disconnect a school from a branch
+   * @param {Object} data - Disconnection data { branchId, schoolId }
+   * @returns {Promise} Disconnection result
+   */
+  disconnectSchool: async (data) => {
+    try {
+      const { branchId, schoolId } = data;
+      const queryParams = new URLSearchParams({
+        branchId: branchId.toString(),
+        schoolId: schoolId.toString()
+      });
+      const response = await axiosInstance.delete(`/Branch/disconnect-school?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Add a student level to a branch
+   * @param {Object} data - Connection data { branchId, studentLevelId }
+   * @returns {Promise} Connection result
+   */
+  addStudentLevel: async (data) => {
+    try {
+      const { branchId, studentLevelId } = data;
+      const queryParams = new URLSearchParams({
+        branchId: branchId.toString(),
+        studentLevelId: studentLevelId.toString()
+      });
+      const response = await axiosInstance.post(`/Branch/add-student-level?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

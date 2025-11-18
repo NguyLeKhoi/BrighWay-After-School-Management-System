@@ -96,13 +96,59 @@ const updateStudent = async (studentId, studentData) => {
   }
 };
 
+/**
+ * Get current logged in user's children (all)
+ * @returns {Promise} List of all children for current user
+ */
+const getMyChildren = async () => {
+  try {
+    const response = await axiosInstance.get(`${STUDENT_BASE_PATH}/my-children`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Get current logged in user's children (paged)
+ * @param {Object} params - Pagination parameters { pageIndex, pageSize }
+ * @returns {Promise} Paginated list of children for current user
+ */
+const getMyChildrenPaged = async (params = {}) => {
+  try {
+    const { pageIndex = 1, pageSize = 10 } = params;
+    const queryString = buildQueryString({ pageIndex, pageSize });
+    const response = await axiosInstance.get(`${STUDENT_BASE_PATH}/my-children/paged${queryString}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Approve a student after validating all documents
+ * @param {string} studentId - Student ID
+ * @returns {Promise} Approval result
+ */
+const approveStudent = async (studentId) => {
+  try {
+    const response = await axiosInstance.post(`${STUDENT_BASE_PATH}/${studentId}/approve`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 const studentService = {
   getAllStudents,
   getStudentsPaged,
   getCurrentUserStudents,
   getStudentById,
   createStudent,
-  updateStudent
+  updateStudent,
+  getMyChildren,
+  getMyChildrenPaged,
+  approveStudent
 };
 
 export default studentService;

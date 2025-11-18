@@ -45,7 +45,13 @@ const ContentSection = ({
           
           {hasImage && (
             <div className={styles.imageContent}>
-              {imageContent || <div className={styles.imagePlaceholder}>Image</div>}
+              {imageContent || (
+                <img 
+                  src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop&q=80" 
+                  alt={heading || "Content image"}
+                  className={styles.contentImage}
+                />
+              )}
             </div>
           )}
         </div>

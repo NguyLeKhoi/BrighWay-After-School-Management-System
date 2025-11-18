@@ -250,6 +250,33 @@ const packageService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Get all packages (public endpoint - no authentication required)
+   * @returns {Promise} List of all active packages for public display
+   */
+  getPublicPackages: async () => {
+    try {
+      const response = await axiosInstance.get('/Package/public');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get package by ID (public endpoint - no authentication required)
+   * @param {string} packageId - Package ID
+   * @returns {Promise} Package details
+   */
+  getPublicPackageById: async (packageId) => {
+    try {
+      const response = await axiosInstance.get(`/Package/public/${packageId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

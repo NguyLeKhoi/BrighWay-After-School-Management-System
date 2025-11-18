@@ -104,6 +104,33 @@ const facilityService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Get all facilities (public endpoint - no authentication required)
+   * @returns {Promise} List of all facilities for public display
+   */
+  getPublicFacilities: async () => {
+    try {
+      const response = await axiosInstance.get('/Facility/public');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Get facility by ID (public endpoint - no authentication required)
+   * @param {string} facilityId - Facility ID
+   * @returns {Promise} Facility details
+   */
+  getPublicFacilityById: async (facilityId) => {
+    try {
+      const response = await axiosInstance.get(`/Facility/public/${facilityId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

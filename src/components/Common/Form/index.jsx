@@ -1,12 +1,55 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Grid, Switch, Box, Typography, TextField, Checkbox } from '@mui/material';
+import { Grid, Switch, Box, Typography, TextField, Checkbox, InputAdornment, IconButton } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import styles from './Form.module.css';
 import { toast } from 'react-toastify';
+
+// Password field component with show/hide toggle
+const PasswordField = ({ name, control, placeholder, required, error, disabled, fieldProps }) => {
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field: controllerField }) => (
+        <TextField
+          {...controllerField}
+          type={showPassword ? 'text' : 'password'}
+          id={name}
+          placeholder={placeholder}
+          required={required}
+          fullWidth
+          size="small"
+          error={!!error}
+          helperText={error?.message}
+          disabled={disabled}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                  size="small"
+                >
+                  {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+          {...fieldProps}
+        />
+      )}
+    />
+  );
+};
 
 const Form = forwardRef(({
   schema,
@@ -311,6 +354,19 @@ const Form = forwardRef(({
               </Box>
             </Box>
           )}
+        />
+      );
+    } else if (type === 'password') {
+      // Password field with show/hide toggle
+      inputElement = (
+        <PasswordField
+          name={name}
+          control={control}
+          placeholder={field.placeholder}
+          required={field.required}
+          error={error}
+          disabled={field.disabled}
+          fieldProps={fieldProps}
         />
       );
     } else {
