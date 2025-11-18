@@ -8,51 +8,52 @@ const Footer = () => {
       <div className={styles.footerContainer}>
         <div className={styles.footerContent}>
           <div className={styles.footerSection}>
-            <h3 className={styles.footerTitle}>MyApp</h3>
+            <h3 className={styles.footerTitle}>BRIGHWAY</h3>
             <p className={styles.footerDescription}>
-              Your trusted platform for modern solutions and innovative services.
+              Dịch vụ giữ trẻ sau giờ học với các hoạt động ngoài giờ đa dạng, phong phú. 
+              Chúng tôi cam kết mang đến môi trường an toàn, vui vẻ và bổ ích cho trẻ em.
             </p>
             <div className={styles.socialLinks}>
               <a href="#" className={styles.socialLink}>Facebook</a>
-              <a href="#" className={styles.socialLink}>Twitter</a>
-              <a href="#" className={styles.socialLink}>LinkedIn</a>
+              <a href="#" className={styles.socialLink}>Zalo</a>
               <a href="#" className={styles.socialLink}>Instagram</a>
             </div>
           </div>
           
           <div className={styles.footerSection}>
-            <h4 className={styles.footerSubtitle}>Quick Links</h4>
+            <h4 className={styles.footerSubtitle}>Liên Kết Nhanh</h4>
             <ul className={styles.footerLinks}>
-              <li><Link to="/" className={styles.footerLink}>Home</Link></li>
-              <li><Link to="/about" className={styles.footerLink}>About Us</Link></li>
-              <li><Link to="/services" className={styles.footerLink}>Services</Link></li>
-              <li><Link to="/contact" className={styles.footerLink}>Contact</Link></li>
+              <li><Link to="/" className={styles.footerLink}>Trang Chủ</Link></li>
+              <li><Link to="/packages" className={styles.footerLink}>Gói Dịch Vụ</Link></li>
+              <li><Link to="/facilities" className={styles.footerLink}>Cơ Sở Vật Chất</Link></li>
+              <li><Link to="/contact" className={styles.footerLink}>Liên Hệ</Link></li>
             </ul>
           </div>
           
           <div className={styles.footerSection}>
-            <h4 className={styles.footerSubtitle}>Support</h4>
+            <h4 className={styles.footerSubtitle}>Dịch Vụ</h4>
             <ul className={styles.footerLinks}>
-              <li><Link to="/help" className={styles.footerLink}>Help Center</Link></li>
-              <li><Link to="/faq" className={styles.footerLink}>FAQ</Link></li>
-              <li><Link to="/privacy" className={styles.footerLink}>Privacy Policy</Link></li>
-              <li><Link to="/terms" className={styles.footerLink}>Terms of Service</Link></li>
+              <li><Link to="/packages" className={styles.footerLink}>Gói Dịch Vụ Giữ Trẻ</Link></li>
+              <li><Link to="/facilities" className={styles.footerLink}>Cơ Sở Vật Chất</Link></li>
+              <li><Link to="/contact" className={styles.footerLink}>Đăng Ký Dịch Vụ</Link></li>
+              <li><Link to="/login" className={styles.footerLink}>Đăng Nhập</Link></li>
             </ul>
           </div>
           
           <div className={styles.footerSection}>
-            <h4 className={styles.footerSubtitle}>Contact Info</h4>
+            <h4 className={styles.footerSubtitle}>Thông Tin Liên Hệ</h4>
             <div className={styles.contactInfo}>
-              <p>Email: info@myapp.com</p>
-              <p>Phone: +1 (555) 123-4567</p>
-              <p>Address: 123 Main St, City, State 12345</p>
+              <p>Email: info@brighway.com</p>
+              <p>Điện thoại: 1900 1234</p>
+              <p>Địa chỉ: Thành phố Hồ Chí Minh, Việt Nam</p>
+              <p>Giờ làm việc: Thứ 2 - Thứ 6: 7:00 - 18:00</p>
             </div>
           </div>
         </div>
         
         <div className={styles.footerBottom}>
           <div className={styles.footerCopyright}>
-            <p>&copy; 2024 MyApp. All rights reserved.</p>
+            <p>&copy; 2024 BRIGHWAY. Tất cả quyền được bảo lưu.</p>
           </div>
         </div>
       </div>

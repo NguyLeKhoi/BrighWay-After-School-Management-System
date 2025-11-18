@@ -121,6 +121,15 @@
   padding-top: 60px;
 }
 
+.contactImage {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
 .imagePlaceholder {
   width: 100%;
   max-width: 300px;

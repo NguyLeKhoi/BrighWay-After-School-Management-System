@@ -8,7 +8,7 @@ const Contact = () => {
     name: '',
     email: '',
     phone: '',
-    company: '',
+    childAge: '',
     message: ''
   });
 
@@ -26,20 +26,20 @@ const Contact = () => {
   };
 
   const formFields = [
-    { name: 'name', label: 'Name', type: 'text', value: formData.name, onChange: handleChange, required: true },
-    { name: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange, required: true },
-    { name: 'phone', label: 'Phone', type: 'tel', value: formData.phone, onChange: handleChange },
-    { name: 'company', label: 'Company', type: 'text', value: formData.company, onChange: handleChange },
-    { name: 'message', label: 'Message', type: 'textarea', value: formData.message, onChange: handleChange, required: true, rows: 6 }
+    { name: 'name', label: 'Họ và Tên Phụ Huynh', type: 'text', value: formData.name, onChange: handleChange, required: true, placeholder: 'Nhập họ và tên của bạn' },
+    { name: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange, required: true, placeholder: 'example@email.com' },
+    { name: 'phone', label: 'Số Điện Thoại', type: 'tel', value: formData.phone, onChange: handleChange, required: true, placeholder: '0900 123 456' },
+    { name: 'childAge', label: 'Độ Tuổi Của Trẻ', type: 'text', value: formData.childAge, onChange: handleChange, placeholder: 'Ví dụ: 5-7 tuổi (nếu có nhiều trẻ, vui lòng ghi rõ)' },
+    { name: 'message', label: 'Nội Dung Yêu Cầu', type: 'textarea', value: formData.message, onChange: handleChange, required: true, rows: 6, placeholder: 'Vui lòng cho chúng tôi biết nhu cầu của bạn về dịch vụ giữ trẻ, gói dịch vụ quan tâm, hoặc bất kỳ câu hỏi nào bạn muốn được tư vấn...' }
   ];
 
   const contactInfo = [
-    { label: 'Address', value: '123 Education Street, Learning City' },
-    { label: 'Phone', value: '+1 (555) 123-4567' },
-    { label: 'Email', value: 'info@education.com' },
-    { label: 'Hours', value: 'Mon-Fri: 9AM-6PM' },
-    { label: 'Website', value: 'www.education.com' },
-    { label: 'Social', value: '@education_center' }
+    { label: 'Hệ Thống Chi Nhánh', value: 'Nhiều chi nhánh trên toàn quốc - Liên hệ để biết chi nhánh gần nhất' },
+    { label: 'Điện Thoại', value: '1900 1234' },
+    { label: 'Email', value: 'info@brighway.com' },
+    { label: 'Giờ Làm Việc', value: 'Thứ 2 - Thứ 6: 7:00 - 18:00' },
+    { label: 'Website', value: 'www.brighway.com' },
+    { label: 'Mạng Xã Hội', value: 'Facebook, Zalo, Instagram' }
   ];
 
   return (
@@ -48,21 +48,25 @@ const Contact = () => {
         <div className={styles.contactContainer}>
           <div className={styles.formWrapper}>
             <div className={styles.formContent}>
-              <h1 className={styles.contactTitle}>Get in touch</h1>
-              <p className={styles.contactSubtitle}>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+              <h1 className={styles.contactTitle}>Liên Hệ Với Chúng Tôi</h1>
+              <p className={styles.contactSubtitle}>
+                Bạn đang tìm kiếm dịch vụ giữ trẻ chất lượng với các hoạt động ngoài giờ phong phú? 
+                Hãy liên hệ với BRIGHWAY ngay hôm nay! Đội ngũ của chúng tôi luôn sẵn sàng tư vấn và hỗ trợ bạn 
+                tìm được giải pháp phù hợp nhất cho con em của bạn.
+              </p>
               
               <Form
                 fields={formFields}
                 onSubmit={handleSubmit}
-                submitText="Send message"
+                submitText="Gửi Tin Nhắn"
                 className={styles.contactForm}
               />
             </div>
             
             <div className={styles.imageContent}>
               <img 
-                src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=600&h=600&fit=crop&q=80" 
-                alt="Contact us"
+                src="https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=600&h=600&fit=crop&q=80" 
+                alt="Liên hệ BRIGHWAY - Dịch vụ giữ trẻ an toàn và chất lượng"
                 className={styles.contactImage}
               />
             </div>

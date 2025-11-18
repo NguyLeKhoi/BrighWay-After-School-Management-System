@@ -15,22 +15,22 @@ const MainHeader = () => {
         <nav className={styles.headerNav}>
           <ul className={styles.navList}>
             <li className={styles.navItem}>
-              <Link to="/" className={styles.navLink}>Home</Link>
+              <Link to="/" className={styles.navLink}>Trang Chủ</Link>
             </li>
             <li className={styles.navItem}>
-              <Link to="/courses" className={styles.navLink}>Courses</Link>
+              <Link to="/packages" className={styles.navLink}>Gói Dịch Vụ</Link>
             </li>
             <li className={styles.navItem}>
-              <Link to="/facilities" className={styles.navLink}>Facilities</Link>
+              <Link to="/facilities" className={styles.navLink}>Cơ Sở Vật Chất</Link>
             </li>
             <li className={styles.navItem}>
-              <Link to="/contact" className={styles.navLink}>Contact</Link>
+              <Link to="/contact" className={styles.navLink}>Liên Hệ</Link>
             </li>
           </ul>
         </nav>
         
         <div className={styles.headerActions}>
-          <Link to="/login" className={`${styles.btn} ${styles.btnOutline}`}>Login</Link>
+          <Link to="/login" className={`${styles.btn} ${styles.btnOutline}`}>Đăng Nhập</Link>
         </div>
       </div>
     </header>

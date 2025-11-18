@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import ContentSection from '@components/Common/ContentSection';
-import InfoGrid from '@components/Common/InfoGrid';
 import ContentLoading from '@components/Common/ContentLoading';
 import Card from '@components/Common/Card';
 import facilityService from '../../../services/facility.service';
@@ -37,24 +36,6 @@ const FacilitiesAbout = () => {
 
   // Giới hạn số lượng facilities hiển thị
   const MAX_FACILITIES_DISPLAY = 6; // Tổng số facilities tối đa hiển thị
-  const MAX_FACILITIES_INFOGRID = 4; // Số facilities ở InfoGrid section
-
-  // Convert facilities to InfoGrid format
-  const formatFacilitiesToFeatures = () => {
-    if (facilities.length === 0) {
-      return [
-        { label: 'Phòng học hiện đại', value: 'Môi trường học tập tiên tiến' },
-        { label: 'Công nghệ tiên tiến', value: 'Thiết bị và phần mềm mới nhất' },
-        { label: 'Giáo viên chuyên nghiệp', value: 'Đội ngũ giáo viên giàu kinh nghiệm' },
-        { label: 'Tài liệu học tập', value: 'Tài liệu học tập đầy đủ' }
-      ];
-    }
-
-    return facilities.slice(0, MAX_FACILITIES_INFOGRID).map((facility) => ({
-      label: facility.facilityName || 'Cơ sở vật chất',
-      value: facility.description || 'Mô tả cơ sở vật chất'
-    }));
-  };
 
   // Ảnh section 1 - cơ sở vật chất (phòng học, thư viện, khu vui chơi)
   const facilitiesImage = (
@@ -78,10 +59,6 @@ const FacilitiesAbout = () => {
     heading: 'Cơ Sở Vật Chất Của Chúng Tôi',
     subheading: 'Môi trường học tập đẳng cấp thế giới',
     description: 'Chúng tôi tự hào về hệ thống cơ sở vật chất hiện đại, được trang bị đầy đủ thiết bị và công nghệ tiên tiến để mang đến trải nghiệm học tập tốt nhất cho học sinh.',
-    buttons: [
-      { text: 'Tìm hiểu thêm', primary: true, onClick: () => {} },
-      { text: 'Xem thư viện ảnh', primary: false, onClick: () => {} }
-    ],
     hasImage: true,
     imageContent: facilitiesImage
   };
@@ -90,10 +67,6 @@ const FacilitiesAbout = () => {
     heading: 'Về Chúng Tôi',
     subheading: 'Cam kết với sự xuất sắc trong giáo dục',
     description: 'Với nhiều năm kinh nghiệm trong lĩnh vực giáo dục, chúng tôi luôn đặt chất lượng và sự phát triển của học sinh lên hàng đầu. Đội ngũ giáo viên của chúng tôi được tuyển chọn kỹ lưỡng và thường xuyên được đào tạo nâng cao.',
-    buttons: [
-      { text: 'Câu chuyện của chúng tôi', primary: true, onClick: () => {} },
-      { text: 'Gặp gỡ đội ngũ', primary: false, onClick: () => {} }
-    ],
     hasImage: true,
     reverse: true,
     imageContent: aboutImage
@@ -104,8 +77,6 @@ const FacilitiesAbout = () => {
     description: 'BRIGHWAY cam kết mang đến môi trường học tập tốt nhất cho học sinh, với đội ngũ giáo viên chuyên nghiệp, cơ sở vật chất hiện đại và phương pháp giảng dạy tiên tiến. Chúng tôi tin rằng mỗi học sinh đều có tiềm năng phát triển và chúng tôi sẽ đồng hành cùng các em trên con đường học tập.',
     hasImage: false
   };
-
-  const features = formatFacilitiesToFeatures();
 
   return (
     <div className={styles.facilitiesAbout}>
@@ -133,18 +104,6 @@ const FacilitiesAbout = () => {
             <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
               <p>Hiện tại chưa có cơ sở vật chất nào. Vui lòng quay lại sau.</p>
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* Why Choose Us Section */}
-      <section className={styles.contentSection}>
-        <div className={styles.contentContainer}>
-          <h2 className={styles.sectionHeading}>Tại Sao Chọn Chúng Tôi</h2>
-          {loading ? (
-            <ContentLoading text="Đang tải thông tin cơ sở vật chất..." />
-          ) : (
-            <InfoGrid items={features} columns={2} />
           )}
         </div>
       </section>

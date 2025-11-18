@@ -126,6 +126,70 @@ const getMyChildrenPaged = async (params = {}) => {
 };
 
 /**
+ * Get a specific child of current logged in user by studentId
+ * @param {string} studentId - Student ID
+ * @returns {Promise} Child information
+ */
+const getMyChildById = async (studentId) => {
+  try {
+    const response = await axiosInstance.get(`${STUDENT_BASE_PATH}/my-children/${studentId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Get unverified students (students that haven't been approved yet)
+ * @returns {Promise} List of unverified students
+ */
+const getUnverifiedStudents = async () => {
+  try {
+    const response = await axiosInstance.get(`${STUDENT_BASE_PATH}/unverified-students`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Register a child for the current logged in parent
+ * @param {FormData} formData - Form data with student info and document file
+ * @returns {Promise} Registered student
+ */
+const registerChild = async (formData) => {
+  try {
+    const response = await axiosInstance.post(`${STUDENT_BASE_PATH}/register-child`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Add a document for a student
+ * @param {string} studentId - Student ID
+ * @param {FormData} formData - Form data with document info and file
+ * @returns {Promise} Added document
+ */
+const addDocument = async (studentId, formData) => {
+  try {
+    const response = await axiosInstance.post(`${STUDENT_BASE_PATH}/${studentId}/document`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
  * Approve a student after validating all documents
  * @param {string} studentId - Student ID
  * @returns {Promise} Approval result
@@ -148,6 +212,10 @@ const studentService = {
   updateStudent,
   getMyChildren,
   getMyChildrenPaged,
+  getMyChildById,
+  registerChild,
+  addDocument,
+  getUnverifiedStudents,
   approveStudent
 };
 

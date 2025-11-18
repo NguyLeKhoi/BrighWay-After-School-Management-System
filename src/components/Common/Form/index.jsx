@@ -73,7 +73,8 @@ const Form = forwardRef(({
     control,
     watch,
     trigger,
-    getValues
+    getValues,
+    setValue
   } = useForm({
     resolver: schema ? yupResolver(schema) : undefined,
     defaultValues,
@@ -146,7 +147,10 @@ const Form = forwardRef(({
     validate: async () => {
       return await trigger();
     },
-    getValues: () => getValues()
+    getValues: () => getValues(),
+    setValue: (name, value, options) => {
+      setValue(name, value, options);
+    }
   }));
 
   const renderField = (field) => {
@@ -367,6 +371,39 @@ const Form = forwardRef(({
           error={error}
           disabled={field.disabled}
           fieldProps={fieldProps}
+        />
+      );
+    } else if (type === 'file') {
+      inputElement = (
+        <Controller
+          name={name}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Box>
+              <input
+                type="file"
+                accept={fieldProps.accept}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  onChange(file);
+                }}
+                disabled={field.disabled}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '14px'
+                }}
+                {...fieldProps}
+              />
+              {helperText && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                  {helperText}
+                </Typography>
+              )}
+            </Box>
+          )}
         />
       );
     } else {

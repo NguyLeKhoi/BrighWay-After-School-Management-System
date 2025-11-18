@@ -117,6 +117,12 @@ const ChildrenList = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Quản lý con cái</h1>
+          <button 
+            className={styles.addButton} 
+            onClick={() => navigate('/family/children/create')}
+          >
+            + Thêm con
+          </button>
         </div>
 
         {isLoading && children.length === 0 && (

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import { Person as PersonIcon, Email as EmailIcon } from '@mui/icons-material';
+import { Box, Typography, IconButton, Tooltip } from '@mui/material';
+import { Person as PersonIcon, Email as EmailIcon, Visibility as ViewIcon } from '@mui/icons-material';
 
-export const createStaffAndParentColumns = () => [
+export const createStaffAndParentColumns = (onViewDetail) => [
   {
     key: 'name',
     header: 'Họ và Tên',

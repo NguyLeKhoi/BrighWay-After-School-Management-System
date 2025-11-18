@@ -51,13 +51,16 @@ const UpdateStudent = () => {
         await fetchDependencies();
         const student = await studentService.getStudentById(id);
 
+        // Handle userId - could be direct property or nested in user object
+        const userId = student.userId || student.user?.id || '';
+
         const preparedData = {
           name: student.name || '',
           dateOfBirth: student.dateOfBirth ? student.dateOfBirth.split('T')[0] : '',
-          userId: student.userId || '',
-          branchId: student.branchId || '',
-          schoolId: student.schoolId || '',
-          studentLevelId: student.studentLevelId || '',
+          userId: userId,
+          branchId: student.branchId || student.branch?.id || '',
+          schoolId: student.schoolId || student.school?.id || '',
+          studentLevelId: student.studentLevelId || student.studentLevel?.id || '',
           image: student.image || '',
           note: student.note || ''
         };

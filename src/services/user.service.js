@@ -227,15 +227,18 @@ const userService = {
    */
   updateUserByManager: async (userId, userData) => {
     try {
+      // Map fields according to API endpoint: PUT /api/User/{id}
+      // Required fields: name, isActive, branchId
+      // Optional: profilePictureUrl, password
       const updateData = {
-        name: userData.fullName || userData.name,
-        email: userData.email,
-        isActive: userData.isActive !== undefined ? userData.isActive : true
+        name: userData.name || userData.fullName || '',
+        isActive: userData.isActive !== undefined ? userData.isActive : true,
+        branchId: userData.branchId || null
       };
       
-      // Add phoneNumber if provided
-      if (userData.phoneNumber) {
-        updateData.phoneNumber = userData.phoneNumber;
+      // Add profilePictureUrl if provided
+      if (userData.profilePictureUrl) {
+        updateData.profilePictureUrl = userData.profilePictureUrl;
       }
       
       // Add password if provided

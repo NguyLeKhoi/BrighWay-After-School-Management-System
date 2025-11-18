@@ -4,16 +4,7 @@ import ContentSection from '@components/Common/ContentSection';
 import styles from './Homepage.module.css';
 
 const Homepage = () => {
-  const features = ['Giáo Dục Chất Lượng', 'Giáo Viên Chuyên Nghiệp', 'Cơ Sở Vật Chất Hiện Đại'];
-
-  // Ảnh hero - học sinh vui vẻ học tập
-  const heroImage = (
-    <img 
-      src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&h=600&fit=crop&q=80" 
-      alt="Học sinh học tập tại BRIGHWAY"
-      className={styles.heroImageImg}
-    />
-  );
+  const features = ['Chăm Sóc Chuyên Nghiệp', 'Hoạt Động Đa Dạng', 'Cơ Sở Vật Chất An Toàn'];
 
   // Ảnh section 1 - giáo viên và học sinh
   const section1Image = (
@@ -35,12 +26,12 @@ const Homepage = () => {
 
   const contentSection1 = {
     heading: 'Về BRIGHWAY',
-    subheading: 'Nơi nuôi dưỡng tài năng trẻ',
-    description: 'Chúng tôi cam kết mang đến môi trường học tập tốt nhất với đội ngũ giáo viên giàu kinh nghiệm và phương pháp giảng dạy hiện đại.',
+    subheading: 'Nơi giữ trẻ an toàn và tin cậy',
+    description: 'BRIGHWAY là dịch vụ giữ trẻ sau giờ học với các hoạt động ngoài giờ đa dạng, phong phú. Chúng tôi cam kết mang đến môi trường an toàn, vui vẻ và bổ ích cho trẻ em với đội ngũ nhân viên chăm sóc chuyên nghiệp và cơ sở vật chất hiện đại.',
     features: features,
     buttons: [
       { text: 'Tìm hiểu thêm', primary: true, onClick: () => {} },
-      { text: 'Xem khóa học', primary: false, onClick: () => window.location.href = '/courses' }
+      { text: 'Xem gói dịch vụ', primary: false, onClick: () => window.location.href = '/packages' }
     ],
     hasImage: true,
     imageContent: section1Image
@@ -48,10 +39,10 @@ const Homepage = () => {
 
   const contentSection2 = {
     heading: 'Tại Sao Chọn Chúng Tôi',
-    subheading: 'Cam kết chất lượng giáo dục',
-    description: 'Chúng tôi cung cấp các chương trình giáo dục toàn diện được thiết kế để giúp học sinh đạt được mục tiêu và xây dựng tương lai thành công.',
+    subheading: 'Cam kết chất lượng chăm sóc trẻ',
+    description: 'Chúng tôi cung cấp dịch vụ giữ trẻ chất lượng cao với các hoạt động ngoài giờ đa dạng, được thiết kế để trẻ em phát triển toàn diện về thể chất, tinh thần và kỹ năng xã hội trong môi trường an toàn và vui vẻ.',
     buttons: [
-      { text: 'Xem chương trình', primary: true, onClick: () => window.location.href = '/courses' },
+      { text: 'Xem gói dịch vụ', primary: true, onClick: () => window.location.href = '/packages' },
       { text: 'Đăng ký ngay', primary: false, onClick: () => window.location.href = '/login' }
     ],
     hasImage: true,
@@ -63,11 +54,10 @@ const Homepage = () => {
     <div className={styles.homepage}>
       <HeroSection
         title="BRIGHWAY - After School Management"
-        subtitle="Khám phá cơ hội giáo dục tuyệt vời và biến đổi tương lai của con bạn"
+        subtitle="Nơi giữ trẻ an toàn với các hoạt động ngoài giờ phong phú và bổ ích"
         buttonText="Bắt Đầu Ngay"
-        onButtonClick={() => window.location.href = '/courses'}
-        hasImage={true}
-        imageContent={heroImage}
+        onButtonClick={() => window.location.href = '/packages'}
+        hasImage={false}
       />
 
       <ContentSection {...contentSection1} />

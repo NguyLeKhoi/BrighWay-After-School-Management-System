@@ -64,7 +64,7 @@ const Step2Associations = React.forwardRef(
         schoolId: data.schoolId || '',
         studentLevelId: data.studentLevelId || ''
       }),
-      [data]
+      [data.userId, data.schoolId, data.studentLevelId, parentOptions.length, schoolOptions.length, studentLevelOptions.length]
     );
 
     const handleSubmit = async (formValues) => {
@@ -98,6 +98,7 @@ const Step2Associations = React.forwardRef(
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <Form
+            key={`step2-${data.userId}-${parentOptions.length}-${schoolOptions.length}-${studentLevelOptions.length}`}
             ref={formRef}
             schema={studentStep2Schema}
             defaultValues={defaultValues}

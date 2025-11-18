@@ -49,10 +49,22 @@ export const updateUserSchema = yup.object({
     .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
     .max(100, 'Họ và tên không được quá 100 ký tự')
     .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
-  email: yup
+  branchId: yup
     .string()
-    .required('Email là bắt buộc')
-    .email('Email không hợp lệ'),
+    .required('Chi nhánh là bắt buộc')
+    .uuid('Chi nhánh không hợp lệ'),
+  profilePictureUrl: yup
+    .string()
+    .optional()
+    .test('url-validation', 'URL ảnh đại diện không hợp lệ', function(value) {
+      if (!value || value.trim() === '') return true; // Allow empty
+      try {
+        new URL(value);
+        return true;
+      } catch {
+        return false;
+      }
+    }),
   isActive: yup
     .boolean()
     .default(true),

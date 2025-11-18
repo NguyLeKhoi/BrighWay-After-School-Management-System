@@ -1,7 +1,7 @@
-export const createManagerUserFormFields = (actionLoading) => [
+export const createManagerUserFormFields = (actionLoading, branchOptions = []) => [
   {
     section: 'Thông tin cơ bản',
-    sectionDescription: 'Tên và email hiển thị trong hệ thống.',
+    sectionDescription: 'Thông tin hiển thị trong hệ thống.',
     name: 'name',
     label: 'Họ và Tên',
     type: 'text',
@@ -11,25 +11,23 @@ export const createManagerUserFormFields = (actionLoading) => [
     gridSize: 6
   },
   {
-    name: 'email',
-    label: 'Email',
-    type: 'email',
+    name: 'branchId',
+    label: 'Chi Nhánh',
+    type: 'select',
     required: true,
-    placeholder: 'Ví dụ: email@example.com',
-    disabled: actionLoading,
+    options: branchOptions,
+    disabled: actionLoading || branchOptions.length === 0,
+    helperText: branchOptions.length === 0 ? 'Chưa có chi nhánh khả dụng' : undefined,
     gridSize: 6
   },
   {
-    section: 'Bảo mật & Trạng thái',
-    sectionDescription: 'Bạn có thể đổi mật khẩu hoặc kích hoạt/ngưng hoạt động tài khoản.',
-    name: 'password',
-    label: 'Mật Khẩu Mới',
-    type: 'password',
+    name: 'profilePictureUrl',
+    label: 'URL Ảnh Đại Diện',
+    type: 'text',
     required: false,
-    placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
-    helperText: 'Lưu ý: Mật khẩu sẽ được thay đổi ngay lập tức, không cần xác nhận từ người dùng',
+    placeholder: 'Nhập URL ảnh đại diện (tùy chọn)',
     disabled: actionLoading,
-    gridSize: 6
+    gridSize: 12
   },
   {
     name: 'isActive',

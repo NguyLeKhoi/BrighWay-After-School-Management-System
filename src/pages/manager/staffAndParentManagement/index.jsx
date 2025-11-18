@@ -31,7 +31,9 @@ import ManagementSearchSection from '../../../components/Management/SearchSectio
 import ManagementFormDialog from '../../../components/Management/FormDialog';
 import { createUserSchema, updateManagerUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
+import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
 import { createManagerUserFormFields } from '../../../constants/manager/staff/formFields';
@@ -104,6 +106,33 @@ const StaffAndParentManagement = () => {
   
   // Global state
   const { showGlobalError } = useApp();
+  const { user } = useAuth();
+  
+  // Branch options state
+  const [branchOptions, setBranchOptions] = useState([]);
+  const [branchLoading, setBranchLoading] = useState(false);
+  
+  // Fetch branch options
+  useEffect(() => {
+    const fetchBranches = async () => {
+      setBranchLoading(true);
+      try {
+        const branches = await branchService.getAllBranches();
+        const options = branches.map(branch => ({
+          value: branch.id,
+          label: branch.branchName || branch.name || 'N/A'
+        }));
+        setBranchOptions(options);
+      } catch (err) {
+        console.error('Error fetching branches:', err);
+        setBranchOptions([]);
+      } finally {
+        setBranchLoading(false);
+      }
+    };
+    
+    fetchBranches();
+  }, []);
   
   // Tab change handler
   const handleTabChange = (event, newValue) => {
@@ -112,8 +141,8 @@ const StaffAndParentManagement = () => {
   
   const columns = useMemo(() => createStaffAndParentColumns(), []);
   const formFields = useMemo(
-    () => createManagerUserFormFields(actionLoading),
-    [actionLoading]
+    () => createManagerUserFormFields(actionLoading, branchOptions),
+    [actionLoading, branchOptions]
   );
   
   // Create handler
@@ -198,15 +227,18 @@ const StaffAndParentManagement = () => {
     setActionLoading(true);
     
     try {
+      // Map fields according to API endpoint: PUT /api/User/{id}
+      // Required fields: name, isActive, branchId
+      // Optional: profilePictureUrl, password
       const updateData = {
-        fullName: data.name || data.fullName,
-        email: data.email,
-        isActive: data.isActive
+        name: data.name || data.fullName || selectedUser?.name || selectedUser?.fullName || '',
+        isActive: data.isActive !== undefined ? data.isActive : (selectedUser?.isActive !== undefined ? selectedUser.isActive : true),
+        branchId: data.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null
       };
       
-      // Add phoneNumber if provided
-      if (data.phoneNumber) {
-        updateData.phoneNumber = data.phoneNumber;
+      // Add profilePictureUrl if provided
+      if (data.profilePictureUrl) {
+        updateData.profilePictureUrl = data.profilePictureUrl;
       }
       
       // Add password if provided
@@ -506,8 +538,8 @@ const StaffAndParentManagement = () => {
           schema={updateManagerUserSchema}
           defaultValues={{
             name: selectedUser?.name || selectedUser?.fullName || '',
-            email: selectedUser?.email || '',
-            password: '',
+            branchId: selectedUser?.branchId || selectedUser?.branch?.id || '',
+            profilePictureUrl: selectedUser?.profilePictureUrl || '',
             isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
           }}
           onSubmit={handleFormSubmit}

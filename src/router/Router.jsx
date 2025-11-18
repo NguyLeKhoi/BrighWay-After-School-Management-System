@@ -9,7 +9,7 @@ import ProtectedRoute from './ProtectedRoute';
 
 // Main Pages
 import Homepage from '../pages/main/Homepage';
-import CourseCatalog from '../pages/main/CourseCatalog';
+import PackageCatalog from '../pages/main/PackageCatalog';
 import FacilitiesAbout from '../pages/main/FacilitiesAbout';
 import Contact from '../pages/main/Contact';
 
@@ -21,6 +21,7 @@ import FamilyProfile from '../pages/user/profile';
 import FamilyServices from '../pages/user/services';
 import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
+import CreateChild from '../pages/user/children/CreateChild';
 import ChildProfile from '../pages/user/children/ChildProfile';
 import ChildSchedule from '../pages/user/children/ChildSchedule';
 import MyWallet from '../pages/user/wallet';
@@ -79,8 +80,8 @@ export const routes = createBrowserRouter([
         element: <Homepage />,
       },
       {
-        path: 'courses',
-        element: <CourseCatalog />,
+        path: 'packages',
+        element: <PackageCatalog />,
       },
       {
         path: 'facilities',
@@ -129,6 +130,10 @@ export const routes = createBrowserRouter([
       {
         path: 'children',
         element: <ChildrenList />,
+      },
+      {
+        path: 'children/create',
+        element: <CreateChild />,
       },
       {
         path: 'children/:childId/profile',

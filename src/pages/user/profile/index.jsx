@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../contexts/AppContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
 import userService from '../../../services/user.service';
@@ -16,6 +17,7 @@ const UserProfile = () => {
 
   const { showGlobalError, addNotification } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading();
+  const { user, updateUser } = useAuth();
 
   useEffect(() => {
     loadUserData();
@@ -62,19 +64,51 @@ const UserProfile = () => {
   };
 
   const handleSave = async () => {
-    if (!userData) return;
+    if (!userData || !user?.id) return;
     
     try {
       showLoading();
       
-      // TODO: Call API to update user info
-      setUserData({
-        ...userData,
-        fullName: editForm.fullName,
+      // Call API to update user info - map fullName to name for API
+      const updateData = {
+        name: editForm.fullName,
         email: editForm.email
+      };
+      
+      // Try updateFamilyAccount first, if it fails, try updateUser
+      let updatedUser;
+      try {
+        updatedUser = await userService.updateFamilyAccount(user.id, updateData);
+      } catch (familyAccountError) {
+        // If family-account endpoint doesn't exist or fails, try regular updateUser
+        console.warn('updateFamilyAccount failed, trying updateUser:', familyAccountError);
+        updatedUser = await userService.updateUser(user.id, {
+          fullName: editForm.fullName,
+          email: editForm.email
+        });
+      }
+      
+      // Update local state with fresh data from API
+      const freshUserData = await userService.getCurrentUser();
+      const updatedUserInfo = {
+        fullName: freshUserData.fullName || freshUserData.name || editForm.fullName,
+        email: freshUserData.email || editForm.email,
+        id: freshUserData.id || userData.id
+      };
+      
+      setUserData(updatedUserInfo);
+      setEditForm({
+        fullName: updatedUserInfo.fullName,
+        email: updatedUserInfo.email
       });
       
-      await loadUserData();
+      // Update AuthContext to sync with localStorage
+      updateUser({
+        name: updatedUserInfo.fullName,
+        fullName: updatedUserInfo.fullName,
+        email: updatedUserInfo.email
+      });
+      
       setIsEditing(false);
       
       addNotification({
@@ -83,8 +117,12 @@ const UserProfile = () => {
       });
     } catch (err) {
       console.error('❌ Update error:', err);
-      const errorMessage = err.message || 'Có lỗi xảy ra khi cập nhật thông tin';
+      const errorMessage = err?.response?.data?.message || err?.message || 'Có lỗi xảy ra khi cập nhật thông tin';
       showGlobalError(errorMessage);
+      addNotification({
+        message: errorMessage,
+        severity: 'error'
+      });
     } finally {
       hideLoading();
     }

@@ -4,9 +4,9 @@ import Card from '@components/Common/Card';
 import ContentLoading from '@components/Common/ContentLoading';
 import packageService from '../../../services/package.service';
 import { useApp } from '../../../contexts/AppContext';
-import styles from './CourseCatalog.module.css';
+import styles from './PackageCatalog.module.css';
 
-const CourseCatalog = () => {
+const PackageCatalog = () => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const { showGlobalError } = useApp();
@@ -23,7 +23,7 @@ const CourseCatalog = () => {
         setPackages(packagesData);
       } catch (error) {
         console.error('Error fetching packages:', error);
-        const errorMessage = error.response?.data?.message || error.message || 'Không thể tải danh sách gói học. Vui lòng thử lại sau.';
+        const errorMessage = error.response?.data?.message || error.message || 'Không thể tải danh sách gói dịch vụ. Vui lòng thử lại sau.';
         showGlobalError(errorMessage);
         setPackages([]);
       } finally {
@@ -73,9 +73,9 @@ const CourseCatalog = () => {
       infoRows.push({ label: 'Chi nhánh', value: pkg.branch.name });
     }
 
-    return {
+      return {
       id: pkg.id,
-      title: pkg.name || 'Gói học',
+      title: pkg.name || 'Gói dịch vụ',
       description: pkg.desc || 'Không có mô tả',
       infoRows: infoRows,
       actions: [
@@ -91,14 +91,6 @@ const CourseCatalog = () => {
               window.location.href = '/login';
             }
           }
-        },
-        { 
-          text: 'Xem chi tiết', 
-          primary: false, 
-          onClick: () => {
-            // Could navigate to package detail page if exists
-            console.log('View package details:', pkg.id);
-          }
         }
       ]
     };
@@ -108,23 +100,23 @@ const CourseCatalog = () => {
   const MAX_PACKAGES_DISPLAY = 6; // Tổng số packages tối đa hiển thị
   const MAX_FEATURED_PACKAGES = 3; // Số packages ở section giữa
   
-  const bestCourses = packages.slice(0, MAX_PACKAGES_DISPLAY).map(formatPackageToCard);
+  const bestPackages = packages.slice(0, MAX_PACKAGES_DISPLAY).map(formatPackageToCard);
   const featuredPackages = packages.slice(0, MAX_FEATURED_PACKAGES).map(formatPackageToCard);
 
-  // Ảnh hero - khóa học và gói học
+  // Ảnh hero - gói học
   const heroImage = (
     <img 
       src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&h=600&fit=crop&q=80" 
-      alt="Các gói học tại BRIGHWAY"
+      alt="Các gói dịch vụ giữ trẻ tại BRIGHWAY"
       className={styles.heroImageImg}
     />
   );
 
   return (
-    <div className={styles.courseCatalog}>
+    <div className={styles.packageCatalog}>
       <HeroSection
-        title="Danh Mục Gói Học"
-        subtitle="Khám phá các chương trình học tập toàn diện của chúng tôi"
+        title="Danh Mục Gói Dịch Vụ"
+        subtitle="Khám phá các gói dịch vụ giữ trẻ với hoạt động ngoài giờ đa dạng"
         hasImage={true}
         imageContent={heroImage}
       />
@@ -134,13 +126,13 @@ const CourseCatalog = () => {
         <div className={styles.contentContainer}>
           <article className={styles.article}>
             <p className={styles.articleText}>
-              Chào mừng bạn đến với danh mục gói học của BRIGHWAY! Chúng tôi cung cấp các gói học tập đa dạng, 
-              được thiết kế phù hợp với từng cấp độ và nhu cầu học tập của học sinh. Mỗi gói học được xây dựng 
-              với mục tiêu giúp học sinh phát triển toàn diện về kiến thức, kỹ năng và tư duy.
+              Chào mừng bạn đến với danh mục gói dịch vụ của BRIGHWAY! Chúng tôi cung cấp các gói dịch vụ giữ trẻ đa dạng, 
+              được thiết kế phù hợp với từng độ tuổi và nhu cầu của trẻ em. Mỗi gói dịch vụ bao gồm các hoạt động ngoài giờ 
+              phong phú, giúp trẻ phát triển toàn diện về thể chất, tinh thần và kỹ năng xã hội trong môi trường an toàn và vui vẻ.
             </p>
             
             {loading ? (
-              <ContentLoading text="Đang tải danh sách gói học..." />
+              <ContentLoading text="Đang tải danh sách gói dịch vụ..." />
             ) : featuredPackages.length > 0 ? (
               <div className={styles.cardGrid}>
                 {featuredPackages.map((pkg) => (
@@ -156,41 +148,41 @@ const CourseCatalog = () => {
             ) : (
               <div className={styles.cardGrid}>
                 <div className={styles.card}>
-                  <div className={styles.cardPlaceholder}>Chưa có gói học nào</div>
+                  <div className={styles.cardPlaceholder}>Chưa có gói dịch vụ nào</div>
                 </div>
               </div>
             )}
 
             <p className={styles.articleText}>
-              Tất cả các gói học của chúng tôi đều được giảng dạy bởi đội ngũ giáo viên giàu kinh nghiệm, 
-              sử dụng phương pháp giảng dạy hiện đại và tài liệu học tập được cập nhật thường xuyên. 
-              Chúng tôi cam kết mang đến trải nghiệm học tập tốt nhất cho học sinh.
+              Tất cả các gói dịch vụ của chúng tôi đều được quản lý bởi đội ngũ nhân viên chăm sóc trẻ chuyên nghiệp, 
+              giàu kinh nghiệm. Các hoạt động được thiết kế đa dạng, từ vui chơi, thể thao, nghệ thuật đến các hoạt động 
+              phát triển kỹ năng. Chúng tôi cam kết mang đến môi trường an toàn, vui vẻ và bổ ích cho trẻ em.
             </p>
           </article>
         </div>
       </section>
 
-      {/* Best Courses Section */}
-      <section className={styles.bestCoursesSection}>
-        <div className={styles.bestCoursesContainer}>
-          <h2 className={styles.sectionHeading}>Các Gói Học Nổi Bật</h2>
+      {/* Best Packages Section */}
+      <section className={styles.bestPackagesSection}>
+        <div className={styles.bestPackagesContainer}>
+          <h2 className={styles.sectionHeading}>Các Gói Dịch Vụ Nổi Bật</h2>
           {loading ? (
             <ContentLoading text="Đang tải danh sách gói học..." />
-          ) : bestCourses.length > 0 ? (
-            <div className={styles.bestCoursesGrid}>
-              {bestCourses.map((course) => (
+          ) : bestPackages.length > 0 ? (
+            <div className={styles.bestPackagesGrid}>
+              {bestPackages.map((pkg) => (
                 <Card
-                  key={course.id}
-                  title={course.title}
-                  description={course.description}
-                  infoRows={course.infoRows}
-                  actions={course.actions}
+                  key={pkg.id}
+                  title={pkg.title}
+                  description={pkg.description}
+                  infoRows={pkg.infoRows}
+                  actions={pkg.actions}
                 />
               ))}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-              <p>Hiện tại chưa có gói học nào. Vui lòng quay lại sau.</p>
+              <p>Hiện tại chưa có gói dịch vụ nào. Vui lòng quay lại sau.</p>
             </div>
           )}
         </div>
@@ -199,4 +191,5 @@ const CourseCatalog = () => {
   );
 };
 
-export default CourseCatalog;
+export default PackageCatalog;
+

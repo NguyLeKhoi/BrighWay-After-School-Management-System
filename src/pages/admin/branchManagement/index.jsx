@@ -142,16 +142,16 @@ const BranchManagement = () => {
           rowSchools={rowSchools}
           rowStudentLevels={rowStudentLevels}
           isPageLoading={isPageLoading}
-          page={page}
+            page={page}
           rowsPerPage={rowsPerPage}
           totalCount={totalCount}
-          onPageChange={handlePageChange}
-          onRowsPerPageChange={handleRowsPerPageChange}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
           actionLoading={actionLoading}
           onRemoveBenefit={handleRemoveBenefit}
           onRemoveSchool={handleRemoveSchool}
-        />
-      </div>
+          />
+        </div>
 
       {/* Confirm Dialog */}
       <ConfirmDialog
