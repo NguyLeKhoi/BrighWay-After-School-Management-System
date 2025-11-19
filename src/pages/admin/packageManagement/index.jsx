@@ -59,9 +59,12 @@ const PackageManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {
+    benefits,
+    benefitOptions,
     studentLevelOptions,
     branchOptions,
     loading: dependenciesLoading,
+    error: dependenciesError,
     fetchDependencies
   } = usePackageDependencies();
 
@@ -154,14 +157,14 @@ const PackageManagement = () => {
   const [branchFilterLoading, setBranchFilterLoading] = useState(false);
 
   const benefitSelectOptions = useMemo(() => {
-    if (!rawBenefitOptions?.length) {
+    if (!benefitOptions?.length) {
       return [];
     }
-    return rawBenefitOptions.map((benefit) => ({
+    return benefitOptions.map((benefit) => ({
       value: benefit.id,
       label: benefit.name
     }));
-  }, [rawBenefitOptions]);
+  }, [benefitOptions]);
 
   const { branches, fetchBranches } = useFacilityBranchData();
 

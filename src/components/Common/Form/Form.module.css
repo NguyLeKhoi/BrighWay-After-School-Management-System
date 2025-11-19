@@ -7,15 +7,15 @@
 }
 
 .helperText {
-  color: #6b7280;
-  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
   margin-top: 4px;
   font-style: italic;
 }
 
 .errorMessage {
-  color: #d32f2f;
-  font-size: 0.85rem;
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
   margin-top: 4px;
 }
 
@@ -42,35 +42,37 @@
 }
 
 .formLabel {
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.95rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-primary);
 }
 
 .formInput {
-  padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: white;
+  padding: 14px 18px;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  transition: var(--transition-all);
+  background: var(--bg-primary);
   width: 100%;
   box-sizing: border-box;
+  font-family: var(--font-family);
 }
 
 .formInput:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-50);
 }
 
 .formInput::placeholder {
-  color: #a0aec0;
+  color: var(--text-tertiary);
 }
 
 .formInput:disabled {
-  background: #f5f7fb;
-  color: #9aa5b1;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
   cursor: not-allowed;
 }
 
@@ -116,21 +118,24 @@
 }
 
 .submitButton {
-  background: #667eea;
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--bg-primary);
   border: none;
-  padding: 14px 28px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 14px 32px;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-all);
   align-self: flex-start;
+  box-shadow: var(--shadow-md);
 }
 
 .submitButton:hover:not(:disabled) {
-  background: #5a67d8;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-secondary-dark));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .submitButton:disabled {
@@ -146,11 +151,14 @@
 }
 
 .resetButton {
-  background: #6c757d !important;
+  background: linear-gradient(135deg, var(--color-gray-600) 0%, var(--color-gray-700) 100%) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .resetButton:hover:not(:disabled) {
-  background: #5a6268 !important;
+  background: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-800) 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
 }
 
 /* Highlight field styles */
@@ -200,14 +208,16 @@
 }
 
 .sectionTitle {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-family: var(--font-family-heading);
 }
 
 .sectionDescription {
-  font-size: 0.9rem;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-family-primary);
 }
 
 @media (max-width: 768px) {

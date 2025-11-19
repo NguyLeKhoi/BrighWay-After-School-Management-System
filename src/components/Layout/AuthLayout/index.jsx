@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Threads from '../../Animation/Background/Threads';
+import PageTransition from '../../Common/PageTransition';
 import styles from './AuthLayout.module.css';
 
 const AuthLayout = () => {
@@ -14,7 +15,9 @@ const AuthLayout = () => {
         />
       </div>
       <div className={styles.authContainer}>
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Box,
   Drawer,
@@ -51,63 +52,158 @@ const GenericDrawer = ({
       }}
     >
       {/* Header */}
-      <Box sx={{ p: 2, textAlign: 'center', borderBottom: 1, borderColor: 'divider' }}>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-          {title}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {subtitle}
-        </Typography>
-      </Box>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Box sx={{ 
+          p: 2, 
+          textAlign: 'center', 
+          borderBottom: 1, 
+          borderColor: 'divider',
+          background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+          color: 'white'
+        }}>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ 
+              fontWeight: 800,
+              fontSize: '1.5rem',
+              letterSpacing: '0.05em',
+              mb: 0.5
+            }}
+          >
+            {title}
+          </Typography>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase'
+            }}
+          >
+            {subtitle}
+          </Typography>
+        </Box>
+      </motion.div>
 
       {/* Navigation Menu */}
       <List sx={{ flexGrow: 1, pt: 1 }}>
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-          
-          return (
-            <ListItem key={item.path} disablePadding>
-              <ListItemButton
-                onClick={() => handleNavigation(item.path)}
-                sx={{
-                  mx: 1,
-                  borderRadius: 1,
-                  backgroundColor: isActive ? 'primary.light' : 'transparent',
-                  color: isActive ? 'primary.contrastText' : 'text.primary',
-                  '&:hover': {
-                    backgroundColor: isActive ? 'primary.light' : 'action.hover',
-                  },
-                }}
+        <AnimatePresence>
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+            
+            return (
+              <motion.div
+                key={item.path}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
               >
-                <ListItemIcon sx={{ color: isActive ? 'primary.contrastText' : 'text.secondary' }}>
-                  <Icon />
-                </ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => handleNavigation(item.path)}
+                    component={motion.div}
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                    sx={{
+                      mx: 1,
+                      my: 0.5,
+                      borderRadius: 2,
+                      backgroundColor: isActive 
+                        ? 'var(--color-primary-100)' 
+                        : 'transparent',
+                      color: isActive 
+                        ? 'var(--color-primary-dark)' 
+                        : 'var(--text-primary)',
+                      fontWeight: isActive ? 600 : 500,
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: isActive 
+                          ? 'var(--color-primary-100)' 
+                          : 'var(--bg-secondary)',
+                        transform: 'translateX(4px)',
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ 
+                      color: isActive 
+                        ? 'var(--color-primary-dark)' 
+                        : 'var(--text-secondary)',
+                      minWidth: 40
+                    }}>
+                      <Icon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={item.label}
+                      primaryTypographyProps={{
+                        fontSize: '0.95rem',
+                        fontWeight: isActive ? 600 : 500
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </List>
 
       <Divider />
 
       {/* Footer */}
-      <Box sx={{ p: 2 }}>
-        <Button
-          fullWidth
-          variant="outlined"
-          color="error"
-          startIcon={<LogoutIcon />}
-          onClick={handleLogout}
-          sx={{ mb: 1 }}
-        >
-          Đăng xuất
-        </Button>
-        <Typography variant="caption" color="text.secondary" display="block" textAlign="center">
-          v1.0.0
-        </Typography>
-      </Box>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.3 }}
+      >
+        <Box sx={{ p: 2 }}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              fullWidth
+              variant="outlined"
+              color="error"
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+              sx={{ 
+                mb: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+                textTransform: 'none',
+                borderWidth: 2,
+                '&:hover': {
+                  borderWidth: 2,
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                }
+              }}
+            >
+              Đăng xuất
+            </Button>
+          </motion.div>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: 'var(--text-tertiary)',
+              display: 'block', 
+              textAlign: 'center',
+              fontSize: '0.7rem',
+              fontWeight: 500
+            }}
+          >
+            v1.0.0
+          </Typography>
+        </Box>
+      </motion.div>
     </Drawer>
   );
 };

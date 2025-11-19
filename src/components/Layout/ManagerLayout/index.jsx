@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
+import PageTransition from '../../Common/PageTransition';
 import {
   Person as UserIcon,
   School as CoursesIcon,
@@ -74,11 +75,14 @@ const ManagerLayout = () => {
           sx={{
             flexGrow: 1,
             p: 3,
-            backgroundColor: '#f5f5f5',
-            minHeight: 'calc(100vh - 64px)'
+            backgroundColor: 'var(--bg-secondary)',
+            minHeight: 'calc(100vh - 64px)',
+            transition: 'background-color 0.3s ease'
           }}
         >
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </Box>
       </Box>
     </Box>

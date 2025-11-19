@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import Loading from '@components/Common/Loading';
 import Tabs from '@components/Common/Tabs';
@@ -643,7 +644,12 @@ const MyPackages = () => {
   );
 
   return (
-    <div className={styles.packagesPage}>
+    <motion.div 
+      className={styles.packagesPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Các gói dịch vụ</h1>
@@ -819,7 +825,7 @@ const MyPackages = () => {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

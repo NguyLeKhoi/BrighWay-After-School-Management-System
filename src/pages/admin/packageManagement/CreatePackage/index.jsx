@@ -15,7 +15,6 @@ import { toast } from 'react-toastify';
 // Step 1: Basic info (no benefits here)
 const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
   const {
-    benefitOptions: rawBenefitOptions,
     studentLevelOptions,
     branchOptions,
     loading: dependenciesLoading,

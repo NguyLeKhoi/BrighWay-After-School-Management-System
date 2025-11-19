@@ -1,7 +1,7 @@
 /* Packages Page Styles */
 .packagesPage {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 24px 0;
 }
 
@@ -16,16 +16,19 @@
 }
 
 .title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #212529;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
   margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+  font-family: var(--font-family-heading);
 }
 
 .subtitle {
-  font-size: 15px;
-  color: #6c757d;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
   margin: 0;
+  font-family: var(--font-family-primary);
 }
 
 .packagesSection {
@@ -39,17 +42,21 @@
 }
 
 .packageCard {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
-  transition: box-shadow 0.2s ease;
+  transition: all var(--transition-base);
+  cursor: pointer;
 }
 
 .packageCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  border-color: var(--color-primary);
 }
 
 .packageHeader {
@@ -60,29 +67,32 @@
 }
 
 .packageName {
-  font-size: 20px;
-  font-weight: 600;
-  color: #212529;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
   margin: 0;
   flex: 1;
+  font-family: var(--font-family-heading);
 }
 
 .statusBadge {
   display: inline-block;
   padding: 4px 12px;
-  background-color: #d4edda;
-  color: #155724;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  background: linear-gradient(135deg, var(--color-success-light) 0%, var(--color-success) 100%);
+  color: var(--color-success-dark);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   margin-left: 12px;
+  font-family: var(--font-family-primary);
 }
 
 .packageDescription {
-  color: #6c757d;
-  font-size: 14px;
-  line-height: 1.5;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
   margin: 0 0 16px 0;
+  font-family: var(--font-family-primary);
 }
 
 .packagePrice {
@@ -515,30 +525,37 @@
 .cancelButton,
 .confirmButton {
   padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
   border: none;
+  font-family: var(--font-family-primary);
 }
 
 .cancelButton {
-  background-color: #6c757d;
+  background: linear-gradient(135deg, var(--color-gray-600) 0%, var(--color-gray-700) 100%);
   color: white;
+  box-shadow: var(--shadow-sm);
 }
 
 .cancelButton:hover:not(:disabled) {
-  background-color: #5a6268;
+  background: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-800) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .confirmButton {
-  background-color: #007bff;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
+  box-shadow: var(--shadow-sm);
 }
 
 .confirmButton:hover:not(:disabled) {
-  background-color: #0056b3;
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--shadow-colored);
 }
 
 .cancelButton:disabled,

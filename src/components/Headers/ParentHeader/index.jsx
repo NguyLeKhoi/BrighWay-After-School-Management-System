@@ -1,33 +1,53 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import styles from './ParentHeader.module.css';
 
 const ParentHeader = () => {
   return (
-    <header className={styles.header}>
+    <motion.header 
+      className={styles.header}
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className={styles.headerContainer}>
         {/* Logo */}
-        <div className={styles.logo}>
+        <motion.div 
+          className={styles.logo}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
           <Link to="/" className={styles.logoLink}>
             <span className={styles.logoText}>BRIGHWAY</span>
             <span className={styles.logoSubtext}>Parent Portal</span>
           </Link>
-        </div>
+        </motion.div>
 
         {/* User Menu */}
-        <div className={styles.userMenu}>
+        <motion.div 
+          className={styles.userMenu}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
           <div className={styles.userInfo}>
             <span className={styles.userName}>Phụ huynh</span>
             <span className={styles.userRole}>Parent</span>
           </div>
           <div className={styles.userActions}>
-            <button className={styles.logoutButton}>
+            <motion.button 
+              className={styles.logoutButton}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               Đăng xuất
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </header>
+    </motion.header>
   );
 };
 

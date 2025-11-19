@@ -1,6 +1,7 @@
 /* Facility Management Page Styles */
 .container {
   padding: 24px;
+  background: var(--bg-secondary);
 }
 
 .header {
@@ -11,32 +12,42 @@
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1976d2;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary-dark);
   margin: 0;
+  letter-spacing: -0.02em;
+  font-family: var(--font-family-heading);
 }
 
 .addButton {
-  background-color: #1976d2;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--bg-primary);
+  padding: 10px 20px;
+  border-radius: var(--radius-lg);
   text-transform: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
+  border: none;
+  cursor: pointer;
 }
 
 .addButton:hover {
-  background-color: #1565c0;
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--shadow-colored);
 }
 
 /* Search Section */
 .searchSection {
   padding: 16px;
   margin-bottom: 24px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
 }
 
 .searchContainer {
@@ -52,33 +63,41 @@
 }
 
 .searchButton {
-  background-color: #1976d2;
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--bg-primary);
   text-transform: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   padding: 8px 24px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
 }
 
 .searchButton:hover {
-  background-color: #1565c0;
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .searchButton:disabled {
-  background-color: #e0e0e0;
-  color: #9e9e9e;
+  background: var(--color-gray-300);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
 }
 
 .clearButton {
   background-color: transparent;
-  color: #1976d2;
-  border: 1px solid #1976d2;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   text-transform: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
   padding: 8px 16px;
+  transition: var(--transition-all);
 }
 
 .clearButton:hover {
-  background-color: rgba(25, 118, 210, 0.08);
+  background: var(--color-primary-50);
 }
 
 /* Error Alert */
@@ -89,9 +108,10 @@
 /* Data Table Container */
 .tableContainer {
   position: relative;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
   overflow: hidden;
 }
 
@@ -101,15 +121,16 @@
   align-items: center;
   gap: 8px;
   padding: 16px 24px;
-  background-color: #1976d2;
-  color: white;
-  border-radius: 8px 8px 0 0;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--bg-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .dialogTitleText {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: white;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  color: var(--bg-primary);
 }
 
 .dialogContent {
@@ -132,18 +153,20 @@
 }
 
 .facilityIcon {
-  color: #1976d2;
+  color: var(--color-primary);
 }
 
 .facilityName {
-  font-weight: 500;
-  color: #333;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  color: var(--text-primary);
 }
 
 .descriptionText {
-  color: #666;
-  font-size: 0.875rem;
-  line-height: 1.4;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  line-height: var(--line-height-relaxed);
 }
 
 .actionsCell {
@@ -156,19 +179,19 @@
 }
 
 .actionButton.edit {
-  color: #1976d2;
+  color: var(--color-primary);
 }
 
 .actionButton.edit:hover {
-  background-color: rgba(25, 118, 210, 0.08);
+  background-color: var(--color-primary-50);
 }
 
 .actionButton.delete {
-  color: #d32f2f;
+  color: var(--color-error);
 }
 
 .actionButton.delete:hover {
-  background-color: rgba(211, 47, 47, 0.08);
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
 /* Loading States */
@@ -178,7 +201,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(245, 245, 245, 0.9);
+  background-color: rgba(249, 250, 251, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,7 +232,7 @@
 
 @media (max-width: 480px) {
   .title {
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
   }
   
   .searchContainer {

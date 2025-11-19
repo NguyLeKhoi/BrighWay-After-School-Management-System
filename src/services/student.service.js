@@ -220,6 +220,38 @@ const approveDocument = async (documentId, approve = true) => {
   }
 };
 
+/**
+ * Update student basic information by parent (name, dateOfBirth, note)
+ * @param {string} studentId - Student ID
+ * @param {Object} studentData - Student data { name, dateOfBirth, note }
+ * @returns {Promise} Updated student
+ */
+const parentUpdateStudent = async (studentId, studentData) => {
+  try {
+    const response = await axiosInstance.put(
+      `${STUDENT_BASE_PATH}/${studentId}/parent-update`,
+      studentData
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Soft delete a student
+ * @param {string} studentId - Student ID
+ * @returns {Promise} Deletion result
+ */
+const deleteStudent = async (studentId) => {
+  try {
+    const response = await axiosInstance.delete(`${STUDENT_BASE_PATH}/${studentId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 const studentService = {
   getAllStudents,
   getStudentsPaged,
@@ -234,7 +266,9 @@ const studentService = {
   addDocument,
   getUnverifiedStudents,
   approveStudent,
-  approveDocument
+  approveDocument,
+  parentUpdateStudent,
+  deleteStudent
 };
 
 export default studentService;

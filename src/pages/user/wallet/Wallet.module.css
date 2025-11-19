@@ -1,7 +1,7 @@
 /* Wallet Management Styles */
 .walletPage {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 20px 0;
 }
 
@@ -12,20 +12,23 @@
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #000;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
   margin: 0 0 30px;
   text-align: center;
+  letter-spacing: -0.02em;
+  font-family: var(--font-family-heading);
 }
 
 .tabContainer {
   display: flex;
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   padding: 4px;
   margin-bottom: 30px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
 }
 
 .tab {
@@ -33,29 +36,39 @@
   background: transparent;
   border: none;
   padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: #666;
+  transition: all var(--transition-base);
+  color: var(--text-secondary);
+  font-family: var(--font-family-primary);
 }
 
 .tab.active {
-  background-color: #007bff;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
+  box-shadow: var(--shadow-sm);
 }
 
 .tab:hover:not(.active) {
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .walletCard {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   padding: 30px;
   margin-bottom: 30px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
+}
+
+.walletCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .walletHeader {
@@ -73,9 +86,10 @@
 }
 
 .balance {
-  font-size: 28px;
-  font-weight: 700;
-  color: #007bff;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary);
+  font-family: var(--font-family-heading);
 }
 
 .walletDescription {

@@ -14,10 +14,10 @@ import { toast } from 'react-toastify';
 
 const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
   const {
-    benefitOptions: rawBenefitOptions,
     studentLevelOptions,
     branchOptions,
-    loading: dependenciesLoading
+    loading: dependenciesLoading,
+    error: dependenciesError
   } = usePackageDependencies();
   const { templateOptions, loadingTemplates } = useFacilityBranchData();
   const [loading, setLoading] = useState(false);

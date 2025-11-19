@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import Tabs from '@components/Common/Tabs';
 import Card from '@components/Common/Card';
@@ -490,7 +491,12 @@ const MyWallet = () => {
   }
 
   return (
-    <div className={styles.walletPage}>
+    <motion.div 
+      className={styles.walletPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <h1 className={styles.title}>Ví của tôi</h1>
 
@@ -736,7 +742,7 @@ const MyWallet = () => {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

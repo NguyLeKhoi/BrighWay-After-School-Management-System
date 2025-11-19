@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useLoading } from '../../../hooks/useLoading';
@@ -143,7 +144,12 @@ const UserProfile = () => {
 
   if (error && !userData) {
     return (
-      <div className={styles.profilePage}>
+      <motion.div 
+        className={styles.profilePage}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className={styles.container}>
           <div className={styles.errorState}>
             <p className={styles.errorMessage}>{error}</p>
@@ -152,12 +158,17 @@ const UserProfile = () => {
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className={styles.profilePage}>
+    <motion.div 
+      className={styles.profilePage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Thông tin tài khoản</h1>
@@ -228,7 +239,7 @@ const UserProfile = () => {
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import Form from '@components/Common/Form';
 import InfoGrid from '@components/Common/InfoGrid';
+import PageTransition from '@components/Common/PageTransition';
 import styles from './Contact.module.css';
 
 const Contact = () => {
@@ -33,53 +35,55 @@ const Contact = () => {
     { name: 'message', label: 'Nội Dung Yêu Cầu', type: 'textarea', value: formData.message, onChange: handleChange, required: true, rows: 6, placeholder: 'Vui lòng cho chúng tôi biết nhu cầu của bạn về dịch vụ giữ trẻ, gói dịch vụ quan tâm, hoặc bất kỳ câu hỏi nào bạn muốn được tư vấn...' }
   ];
 
-  const contactInfo = [
-    { label: 'Hệ Thống Chi Nhánh', value: 'Nhiều chi nhánh trên toàn quốc - Liên hệ để biết chi nhánh gần nhất' },
-    { label: 'Điện Thoại', value: '1900 1234' },
-    { label: 'Email', value: 'info@brighway.com' },
-    { label: 'Giờ Làm Việc', value: 'Thứ 2 - Thứ 6: 7:00 - 18:00' },
-    { label: 'Website', value: 'www.brighway.com' },
-    { label: 'Mạng Xã Hội', value: 'Facebook, Zalo, Instagram' }
-  ];
-
   return (
-    <div className={styles.contact}>
-      <section className={styles.contactFormSection}>
-        <div className={styles.contactContainer}>
-          <div className={styles.formWrapper}>
-            <div className={styles.formContent}>
-              <h1 className={styles.contactTitle}>Liên Hệ Với Chúng Tôi</h1>
-              <p className={styles.contactSubtitle}>
-                Bạn đang tìm kiếm dịch vụ giữ trẻ chất lượng với các hoạt động ngoài giờ phong phú? 
-                Hãy liên hệ với BRIGHWAY ngay hôm nay! Đội ngũ của chúng tôi luôn sẵn sàng tư vấn và hỗ trợ bạn 
-                tìm được giải pháp phù hợp nhất cho con em của bạn.
-              </p>
+    <PageTransition>
+      <div className={styles.contact}>
+        <section className={styles.contactFormSection}>
+          <div className={styles.contactContainer}>
+            <motion.div 
+              className={styles.formWrapper}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.div 
+                className={styles.formContent}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <h1 className={styles.contactTitle}>Liên Hệ Với Chúng Tôi</h1>
+                <p className={styles.contactSubtitle}>
+                  Bạn đang tìm kiếm dịch vụ giữ trẻ chất lượng với các hoạt động ngoài giờ phong phú? 
+                  Hãy liên hệ với BRIGHWAY ngay hôm nay! Đội ngũ của chúng tôi luôn sẵn sàng tư vấn và hỗ trợ bạn 
+                  tìm được giải pháp phù hợp nhất cho con em của bạn.
+                </p>
+                
+                <Form
+                  fields={formFields}
+                  onSubmit={handleSubmit}
+                  submitText="Gửi Tin Nhắn"
+                  className={styles.contactForm}
+                />
+              </motion.div>
               
-              <Form
-                fields={formFields}
-                onSubmit={handleSubmit}
-                submitText="Gửi Tin Nhắn"
-                className={styles.contactForm}
-              />
-            </div>
-            
-            <div className={styles.imageContent}>
-              <img 
-                src={import.meta.env.VITE_IMAGE_CONTACT || ''} 
-                alt="Liên hệ BRIGHWAY - Dịch vụ giữ trẻ an toàn và chất lượng"
-                className={styles.contactImage}
-              />
-            </div>
+              <motion.div 
+                className={styles.imageContent}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <img 
+                  src={import.meta.env.VITE_IMAGE_CONTACT || ''} 
+                  alt="Liên hệ BRIGHWAY - Dịch vụ giữ trẻ an toàn và chất lượng"
+                  className={styles.contactImage}
+                />
+              </motion.div>
+            </motion.div>
           </div>
-        </div>
-      </section>
-
-      <section className={styles.informationSection}>
-        <div className={styles.informationContainer}>
-          <InfoGrid items={contactInfo} columns={3} />
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </PageTransition>
   );
 };
 

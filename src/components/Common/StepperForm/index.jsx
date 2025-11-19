@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Box,
   Stepper,
@@ -174,19 +175,35 @@ const StepperForm = ({
   const CurrentStepComponent = steps[activeStep]?.component;
 
   return (
-    <Box className={styles.container}>
-      <Box className={styles.paper}>
-        {/* Header */}
-        <Box className={styles.header}>
-          {icon && (
-            <Box className={styles.iconContainer}>
-              {icon}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <Box className={styles.container}>
+        <Box className={styles.paper}>
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Box className={styles.header}>
+              {icon && (
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Box className={styles.iconContainer}>
+                    {icon}
+                  </Box>
+                </motion.div>
+              )}
+              <Typography variant="h4" component="h1" className={styles.title}>
+                {title}
+              </Typography>
             </Box>
-          )}
-          <Typography variant="h4" component="h1" className={styles.title}>
-            {title}
-          </Typography>
-        </Box>
+          </motion.div>
 
         {/* Stepper */}
         <Box className={styles.stepperContainer}>
@@ -222,48 +239,88 @@ const StepperForm = ({
         {/* Step Content */}
         <Box className={styles.content}>
           <Box className={styles.scrollWrapper}>
-            {CurrentStepComponent && (
-              <CurrentStepComponent
-                ref={(ref) => {
-                  if (ref) {
-                    stepRefs.current[activeStep] = ref;
-                  }
-                }}
-                data={formData}
-                updateData={updateFormData}
-                stepIndex={activeStep}
-                totalSteps={steps.length}
-                {...stepProps}
-              />
-            )}
+            <AnimatePresence mode="wait">
+              {CurrentStepComponent && (
+                <motion.div
+                  key={activeStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <CurrentStepComponent
+                    ref={(ref) => {
+                      if (ref) {
+                        stepRefs.current[activeStep] = ref;
+                      }
+                    }}
+                    data={formData}
+                    updateData={updateFormData}
+                    stepIndex={activeStep}
+                    totalSteps={steps.length}
+                    {...stepProps}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Box>
         </Box>
 
         {/* Navigation Buttons */}
         <Box className={styles.actions}>
-          <Button
-            type="button"
-            onClick={handleBackButtonClick}
-            disabled={activeStep === 0 && !onCancel}
-            startIcon={<ArrowBack />}
-            size="large"
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {activeStep === 0 ? (onCancel ? 'Hủy' : 'Quay lại') : 'Quay lại'}
-          </Button>
+            <Button
+              type="button"
+              onClick={handleBackButtonClick}
+              disabled={activeStep === 0 && !onCancel}
+              startIcon={<ArrowBack />}
+              size="large"
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                fontWeight: 600,
+                padding: '10px 24px'
+              }}
+            >
+              {activeStep === 0 ? (onCancel ? 'Hủy' : 'Quay lại') : 'Quay lại'}
+            </Button>
+          </motion.div>
           
-          <Button
-            type="button"
-            variant="contained"
-            onClick={handleNext}
-            endIcon={activeStep === steps.length - 1 ? null : <ArrowForward />}
-            size="large"
-            color="primary"
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {activeStep === steps.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
-          </Button>
+            <Button
+              type="button"
+              variant="contained"
+              onClick={handleNext}
+              endIcon={activeStep === steps.length - 1 ? null : <ArrowForward />}
+              size="large"
+              color="primary"
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                fontWeight: 600,
+                padding: '10px 24px',
+                background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
+                  boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)',
+                  transform: 'translateY(-2px)'
+                }
+              }}
+            >
+              {activeStep === steps.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
+            </Button>
+          </motion.div>
         </Box>
       </Box>
     </Box>
+    </motion.div>
   );
 };
 

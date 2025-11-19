@@ -144,12 +144,12 @@ export const routes = createBrowserRouter([
         element: <ChildSchedule />,
       },
       {
-        path: 'wallet',
-        element: <MyWallet />,
+        path: 'children/:childId/schedule/register',
+        element: <MySchedule />,
       },
       {
-        path: 'schedule',
-        element: <MySchedule />,
+        path: 'wallet',
+        element: <MyWallet />,
       },
       {
         path: 'packages',

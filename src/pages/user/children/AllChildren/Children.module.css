@@ -1,7 +1,7 @@
 /* Children Management Styles */
 .childrenPage {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 20px 0;
 }
 
@@ -19,34 +19,46 @@
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #000;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.02em;
+  font-family: var(--font-family-heading);
 }
 
 .addButton {
-  background-color: #007bff;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-family-primary);
 }
 
 .addButton:hover {
-  background-color: #0056b3;
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--shadow-colored);
 }
 
 .addForm {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   padding: 30px;
   margin-bottom: 30px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
+}
+
+.addForm:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .addForm h3 {

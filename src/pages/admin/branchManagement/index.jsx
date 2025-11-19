@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Alert } from '@mui/material';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
+import PageWrapper from '../../../components/Common/PageWrapper';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import ContentLoading from '../../../components/Common/ContentLoading';
@@ -121,7 +123,13 @@ const BranchManagement = () => {
   });
 
   return (
-    <div className={styles.container}>
+    <PageWrapper>
+      <motion.div 
+        className={styles.container}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
@@ -223,7 +231,8 @@ const BranchManagement = () => {
         actionLoading={actionLoading}
         onSubmit={assignStudentLevels.handleSubmit}
       />
-    </div>
+      </motion.div>
+    </PageWrapper>
   );
 };
 

@@ -18,33 +18,46 @@ const PasswordField = ({ name, control, placeholder, required, error, disabled, 
       name={name}
       control={control}
       render={({ field: controllerField }) => (
-        <TextField
-          {...controllerField}
-          type={showPassword ? 'text' : 'password'}
-          id={name}
-          placeholder={placeholder}
-          required={required}
-          fullWidth
-          size="small"
-          error={!!error}
-          helperText={error?.message}
-          disabled={disabled}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label="toggle password visibility"
-                  onClick={() => setShowPassword(!showPassword)}
-                  edge="end"
-                  size="small"
-                >
-                  {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                </IconButton>
-              </InputAdornment>
-            )
-          }}
-          {...fieldProps}
-        />
+        <div style={{ position: 'relative', width: '100%' }}>
+          <input
+            {...controllerField}
+            type={showPassword ? 'text' : 'password'}
+            id={name}
+            name={name}
+            className={styles.formInput}
+            placeholder={placeholder}
+            required={required}
+            disabled={disabled}
+            style={{
+              paddingRight: '45px'
+            }}
+            {...fieldProps}
+          />
+          <IconButton
+            aria-label="toggle password visibility"
+            onClick={() => setShowPassword(!showPassword)}
+            edge="end"
+            size="small"
+            disabled={disabled}
+            sx={{
+              position: 'absolute',
+              right: '8px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              padding: '4px',
+              color: 'var(--text-secondary)',
+              '&:hover': {
+                backgroundColor: 'var(--color-primary-50)',
+                color: 'var(--color-primary)'
+              },
+              '&:disabled': {
+                opacity: 0.5
+              }
+            }}
+          >
+            {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+          </IconButton>
+        </div>
       )}
     />
   );

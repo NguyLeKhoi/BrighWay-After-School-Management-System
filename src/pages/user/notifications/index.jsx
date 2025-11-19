@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Loading from '@components/Common/Loading';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
 import notificationService from '../../../services/notification.service';
+import AnimatedCard from '../../../components/Common/AnimatedCard';
 import styles from './Notifications.module.css';
 
 const Notifications = () => {
@@ -193,7 +195,12 @@ const Notifications = () => {
   }
 
   return (
-    <div className={styles.notificationsPage}>
+    <motion.div 
+      className={styles.notificationsPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Thông báo</h1>
@@ -321,7 +328,7 @@ const Notifications = () => {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

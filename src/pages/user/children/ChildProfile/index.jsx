@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Avatar, Chip, CircularProgress, Alert, Typography, Button, Paper, IconButton } from '@mui/material';
+import { motion } from 'framer-motion';
+import AnimatedCard from '../../../../components/Common/AnimatedCard';
 import {
   Person as PersonIcon,
   School as SchoolIcon,
@@ -14,14 +16,18 @@ import {
   Pending as PendingIcon,
   Add as AddIcon,
   Description as DocumentIcon,
-  OpenInNew as OpenInNewIcon
+  OpenInNew as OpenInNewIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import studentService from '../../../../services/student.service';
 import { useApp } from '../../../../contexts/AppContext';
 import ManagementFormDialog from '../../../../components/Management/FormDialog';
 import Form from '../../../../components/Common/Form';
+import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import { addDocumentSchema } from '../../../../utils/validationSchemas/documentSchemas';
+import * as yup from 'yup';
 import styles from './ChildProfile.module.css';
 
 const getInitials = (name = '') => {
@@ -68,6 +74,8 @@ const ChildProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openAddDocumentDialog, setOpenAddDocumentDialog] = useState(false);
+  const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const fetchChild = async () => {
       if (!childId) {
@@ -78,6 +86,23 @@ const ChildProfile = () => {
       try {
         setLoading(true);
         setError(null);
+        
+        // Kiểm tra xem childId có thuộc về user hiện tại không
+        const myChildren = await studentService.getMyChildren();
+        const childIds = Array.isArray(myChildren) 
+          ? myChildren.map(c => c.id) 
+          : [];
+        
+        if (!childIds.includes(childId)) {
+          // Nếu childId không thuộc về user, chuyển về trang danh sách
+          toast.error('Bạn không có quyền xem thông tin học sinh này', {
+            position: 'top-right',
+            autoClose: 3000
+          });
+          navigate('/family/children');
+          return;
+        }
+
         const data = await studentService.getMyChildById(childId);
         setChild(data);
       } catch (err) {
@@ -85,6 +110,11 @@ const ChildProfile = () => {
         setError(errorMessage);
         showGlobalError(errorMessage);
         console.error('Error fetching child:', err);
+        
+        // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
+        if (err?.response?.status === 403 || err?.response?.status === 404) {
+          navigate('/family/children');
+        }
       } finally {
         setLoading(false);
       }
@@ -133,6 +163,57 @@ const ChildProfile = () => {
   };
 
   const [actionLoading, setActionLoading] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Validation schema for parent update
+  const parentUpdateSchema = yup.object({
+    name: yup
+      .string()
+      .trim()
+      .required('Tên là bắt buộc')
+      .min(2, 'Tên phải có ít nhất 2 ký tự')
+      .max(100, 'Tên không được vượt quá 100 ký tự'),
+    dateOfBirth: yup
+      .date()
+      .typeError('Ngày sinh không hợp lệ')
+      .max(new Date(), 'Ngày sinh không được trong tương lai')
+      .required('Ngày sinh là bắt buộc'),
+    note: yup
+      .string()
+      .trim()
+      .max(500, 'Ghi chú không được vượt quá 500 ký tự')
+      .nullable()
+      .notRequired()
+      .transform((value, originalValue) => (originalValue === '' ? null : value))
+  });
+
+  // Form fields for update
+  const updateFields = [
+    {
+      name: 'name',
+      label: 'Tên học sinh *',
+      type: 'text',
+      required: true,
+      placeholder: 'Nhập tên học sinh',
+      gridSize: 12
+    },
+    {
+      name: 'dateOfBirth',
+      label: 'Ngày sinh *',
+      type: 'date',
+      required: true,
+      gridSize: 6
+    },
+    {
+      name: 'note',
+      label: 'Ghi chú',
+      type: 'textarea',
+      placeholder: 'Nhập ghi chú (nếu có)',
+      rows: 4,
+      gridSize: 12
+    }
+  ];
 
   const DOCUMENT_TYPE_OPTIONS = [
     { value: 'BirthCertificate', label: 'Giấy khai sinh' },
@@ -211,6 +292,76 @@ const ChildProfile = () => {
       helperText: 'Chấp nhận file ảnh (JPG, PNG) hoặc PDF'
     }
   ];
+
+  const handleUpdateSubmit = async (formValues) => {
+    if (!childId) {
+      toast.error('Không tìm thấy thông tin học sinh');
+      return;
+    }
+
+    setUpdateLoading(true);
+    try {
+      // Format dateOfBirth to ISO string
+      let dateOfBirthISO;
+      if (formValues.dateOfBirth instanceof Date) {
+        dateOfBirthISO = formValues.dateOfBirth.toISOString();
+      } else if (typeof formValues.dateOfBirth === 'string') {
+        // If it's already ISO string, use it
+        if (formValues.dateOfBirth.includes('T')) {
+          dateOfBirthISO = formValues.dateOfBirth;
+        } else {
+          // If it's YYYY-MM-DD format, convert to ISO
+          dateOfBirthISO = new Date(formValues.dateOfBirth + 'T00:00:00').toISOString();
+        }
+      } else {
+        dateOfBirthISO = new Date(formValues.dateOfBirth).toISOString();
+      }
+
+      const updateData = {
+        name: formValues.name.trim(),
+        dateOfBirth: dateOfBirthISO,
+        note: formValues.note?.trim() || null
+      };
+
+      await studentService.parentUpdateStudent(childId, updateData);
+      toast.success('Cập nhật thông tin thành công!', {
+        position: 'top-right',
+        autoClose: 3000
+      });
+      
+      // Reload child data
+      await fetchChild();
+      setOpenUpdateDialog(false);
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Không thể cập nhật thông tin';
+      toast.error(message, { position: 'top-right', autoClose: 4000 });
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!childId) {
+      toast.error('Không tìm thấy thông tin học sinh');
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      await studentService.deleteStudent(childId);
+      toast.success('Xóa học sinh thành công!', {
+        position: 'top-right',
+        autoClose: 3000
+      });
+      
+      // Navigate back to children list
+      navigate('/family/children');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Không thể xóa học sinh';
+      toast.error(message, { position: 'top-right', autoClose: 4000 });
+      setDeleteLoading(false);
+    }
+  };
 
   const handleDocumentSubmit = async (formValues) => {
     if (!childId) {
@@ -327,21 +478,79 @@ const ChildProfile = () => {
   const userName = child.userName || child.user?.name || 'Chưa có';
 
   return (
-    <div className={styles.profilePage}>
+    <motion.div 
+      className={styles.profilePage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         {/* Header */}
-        <div className={styles.header}>
-          <button className={styles.backButton} onClick={handleBack}>
+        <motion.div 
+          className={styles.header}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <motion.button 
+            className={styles.backButton} 
+            onClick={handleBack}
+            whileHover={{ scale: 1.05, x: -2 }}
+            whileTap={{ scale: 0.95 }}
+          >
             ← Quay lại
-          </button>
+          </motion.button>
           <h1 className={styles.title}>Thông tin học sinh</h1>
-          <Box />
-        </div>
+          <Box display="flex" gap={1}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<EditIcon />}
+                onClick={() => setOpenUpdateDialog(true)}
+                sx={{ 
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  borderWidth: 2,
+                  '&:hover': {
+                    borderWidth: 2,
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                  }
+                }}
+              >
+                Chỉnh sửa
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={() => setOpenDeleteDialog(true)}
+                sx={{ 
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  borderWidth: 2,
+                  '&:hover': {
+                    borderWidth: 2,
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                  }
+                }}
+              >
+                Xóa
+              </Button>
+            </motion.div>
+          </Box>
+        </motion.div>
 
         {/* Profile Content */}
         <div className={styles.profileContent}>
           {/* Basic Information Card */}
-          <div className={styles.profileCard}>
+          <AnimatedCard delay={0.1} className={styles.profileCard}>
             <Box display="flex" alignItems="center" gap={3} mb={3}>
               <Avatar
                 src={child.image && child.image !== 'string' ? child.image : undefined}
@@ -451,27 +660,29 @@ const ChildProfile = () => {
                   <label className={styles.label}>Ghi chú</label>
                   <div className={styles.fieldValue} style={{ minHeight: '60px', whiteSpace: 'pre-wrap' }}>
                     {child.note}
+                  </div>
                 </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              )}
+            </div>
+          </AnimatedCard>
 
           {/* Documents Card */}
-          <div className={styles.profileCard}>
+          <AnimatedCard delay={0.2} className={styles.profileCard}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6" fontWeight="bold">
                 Thông tin chi tiết
               </Typography>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={() => setOpenAddDocumentDialog(true)}
-                sx={{ textTransform: 'none' }}
-              >
-                Thêm tài liệu
-              </Button>
+              <Box display="flex" gap={1}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => setOpenAddDocumentDialog(true)}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Thêm tài liệu
+                </Button>
+              </Box>
             </Box>
             <div className={styles.form}>
               {child.documents && child.documents.length > 0 ? (
@@ -585,7 +796,7 @@ const ChildProfile = () => {
                 </div>
               )}
             </div>
-          </div>
+          </AnimatedCard>
 
           {/* Add Document Dialog */}
           <ManagementFormDialog
@@ -613,9 +824,49 @@ const ChildProfile = () => {
               fields={documentFields}
             />
           </ManagementFormDialog>
+
+          {/* Update Student Dialog */}
+          <ManagementFormDialog
+            open={openUpdateDialog}
+            onClose={() => !updateLoading && setOpenUpdateDialog(false)}
+            mode="update"
+            title="Chỉnh sửa thông tin học sinh"
+            icon={EditIcon}
+            loading={updateLoading}
+            maxWidth="md"
+          >
+            <Form
+              schema={parentUpdateSchema}
+              defaultValues={{
+                name: child?.name || '',
+                dateOfBirth: child?.dateOfBirth 
+                  ? new Date(child.dateOfBirth).toISOString().split('T')[0]
+                  : '',
+                note: child?.note && child.note !== 'string' ? child.note : ''
+              }}
+              onSubmit={handleUpdateSubmit}
+              submitText="Cập nhật"
+              loading={updateLoading}
+              disabled={updateLoading}
+              fields={updateFields}
+            />
+          </ManagementFormDialog>
+
+          {/* Delete Confirmation Dialog */}
+          <ConfirmDialog
+            open={openDeleteDialog}
+            onClose={() => !deleteLoading && setOpenDeleteDialog(false)}
+            onConfirm={handleDeleteConfirm}
+            title="Xác nhận xóa học sinh"
+            description={`Bạn có chắc chắn muốn xóa học sinh "${child?.name || 'này'}" không? Hành động này không thể hoàn tác.`}
+            confirmText="Xóa"
+            cancelText="Hủy"
+            confirmColor="error"
+            highlightText={child?.name}
+          />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

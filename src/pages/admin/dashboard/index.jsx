@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import {
   Box,
   Grid,
@@ -13,6 +14,7 @@ import {
   Assessment as AssessmentIcon,
   TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
+import AnimatedCard from '../../../components/Common/AnimatedCard';
 import styles from './Dashboard.module.css';
 
 const AdminDashboard = () => {
@@ -44,21 +46,31 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <motion.div 
+      className={styles.container}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div 
+        className={styles.header}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <h1 className={styles.title}>
           Dashboard Admin
         </h1>
         <p className={styles.subtitle}>
           Tổng quan hệ thống quản lý
         </p>
-      </div>
+      </motion.div>
 
       <div className={styles.statsGrid}>
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className={styles.statCard}>
+            <AnimatedCard key={index} delay={index * 0.1} className={styles.statCard}>
               <div className={styles.statHeader}>
                 <span className={styles.statTitle}>
                   {stat.title}
@@ -74,31 +86,31 @@ const AdminDashboard = () => {
                 <TrendingUpIcon fontSize="small" />
                 +12% so với tháng trước
               </div>
-            </div>
+            </AnimatedCard>
           );
         })}
       </div>
 
       <div className={styles.chartsSection}>
-        <div className={styles.chartCard}>
+        <AnimatedCard delay={0.4} className={styles.chartCard}>
           <h3 className={styles.chartTitle}>
             Thống kê User theo tháng
           </h3>
           <div className={styles.chartContent}>
             Biểu đồ sẽ được thêm vào đây
           </div>
-        </div>
+        </AnimatedCard>
         
-        <div className={styles.chartCard}>
+        <AnimatedCard delay={0.5} className={styles.chartCard}>
           <h3 className={styles.chartTitle}>
             User mới nhất
           </h3>
           <div className={styles.chartContent}>
             Danh sách user mới sẽ được thêm vào đây
           </div>
-        </div>
+        </AnimatedCard>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

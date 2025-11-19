@@ -1,7 +1,7 @@
 /* Child Schedule Styles */
 .schedulePage {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 20px 0;
 }
 
@@ -31,19 +31,22 @@
 }
 
 .backButton {
-  background-color: #6c757d;
+  background: linear-gradient(135deg, var(--color-gray-600) 0%, var(--color-gray-700) 100%);
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .backButton:hover {
-  background-color: #5a6268;
+  background: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-800) 100%);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .titleSection {
@@ -52,16 +55,48 @@
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #000;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
   margin: 0 0 5px;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
   font-size: 16px;
   color: #666;
   margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.registerButton {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.registerButton:hover {
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--shadow-colored);
+}
+
+.registerButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .viewInfo {
@@ -307,6 +342,16 @@
     align-items: stretch;
     text-align: center;
     gap: 20px;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .registerButton {
+    width: 100%;
   }
   
   .title {

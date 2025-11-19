@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import Loading from '@components/Common/Loading';
+import AnimatedCard from '../../../components/Common/AnimatedCard';
 import { useApp } from '../../../contexts/AppContext';
 import serviceService from '../../../services/service.service';
 import orderService from '../../../services/order.service';
@@ -248,7 +250,12 @@ const FamilyServices = () => {
   };
 
   return (
-    <div className={styles.servicesPage}>
+    <motion.div 
+      className={styles.servicesPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <div>
@@ -586,7 +593,7 @@ const FamilyServices = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -23,25 +23,28 @@
 }
 
 .sectionHeading {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 1rem;
-  line-height: 1.3;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family);
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-4);
+  line-height: var(--line-height-normal);
 }
 
 .subheading {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #667eea;
-  margin-bottom: 1rem;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-4);
 }
 
 .sectionDescription {
-  font-size: 1.1rem;
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 2rem;
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family);
+  color: var(--color-gray-600);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--spacing-8);
 }
 
 .featuresList {
@@ -49,11 +52,12 @@
 }
 
 .featureTitle {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-  padding-left: 1rem;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-2);
+  padding-left: var(--spacing-4);
   position: relative;
 }
 
@@ -61,8 +65,8 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: #28a745;
-  font-weight: bold;
+  color: var(--color-success);
+  font-weight: var(--font-weight-bold);
 }
 
 .buttonGroup {
@@ -82,24 +86,28 @@
 }
 
 .primaryButton {
-  background: #667eea;
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--bg-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .primaryButton:hover {
-  background: #5a67d8;
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-secondary-dark));
   transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .secondaryButton {
   background: transparent;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
 }
 
 .secondaryButton:hover {
-  background: #667eea;
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--bg-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .imageContent {

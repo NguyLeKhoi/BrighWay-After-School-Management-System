@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Card from '@components/Common/Card';
 import Loading from '@components/Common/Loading';
@@ -128,7 +129,12 @@ const ChildrenList = () => {
   };
 
   return (
-    <div className={styles.childrenPage}>
+    <motion.div 
+      className={styles.childrenPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Quản lý con cái</h1>
@@ -194,7 +200,7 @@ const ChildrenList = () => {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

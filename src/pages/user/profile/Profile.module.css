@@ -1,7 +1,7 @@
 /* User Profile Styles - New Design */
 .profilePage {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 24px 0;
 }
 
@@ -16,26 +16,35 @@
 }
 
 .title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
   margin: 0 0 8px 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
+  font-family: var(--font-family-heading);
 }
 
 .subtitle {
-  font-size: 15px;
-  color: #6b7280;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
   margin: 0;
-  font-weight: 400;
+  font-weight: var(--font-weight-normal);
+  font-family: var(--font-family-primary);
 }
 
 .profileCard {
-  background: white;
-  border-radius: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   padding: 0;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
+}
+
+.profileCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .avatarWrapper {

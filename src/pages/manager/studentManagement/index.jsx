@@ -67,6 +67,7 @@ const StudentManagement = () => {
   const branchIdRef = useRef(user?.branchId || '');
   const isInitialMount = useRef(true);
   const [activeTab, setActiveTab] = useState(0); // 0 = Approved, 1 = Unverified
+  const [parentOptions, setParentOptions] = useState([]);
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [studentLevelOptions, setStudentLevelOptions] = useState([]);
   const [dependenciesLoading, setDependenciesLoading] = useState(true);
@@ -185,7 +186,7 @@ const StudentManagement = () => {
     ensureBranch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.branchId, user?.branchName, branchInfo.id]);
-
+  
   // Handle view detail
   const handleViewDetail = useCallback(async (student) => {
     setDetailDialog({
@@ -894,72 +895,72 @@ const StudentManagement = () => {
                         >
                           <Box>
                             <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                              <Box flex={1}>
-                                <Box display="flex" alignItems="center" gap={1.5} mb={1.5}>
-                                  <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
-                                    {getDocumentTypeLabel(doc.type)}
-                                  </Typography>
-                                  <Chip
-                                    icon={doc.verified ? <VerifiedIcon /> : <PendingIcon />}
-                                    label={doc.verified ? 'Đã xác minh' : 'Chờ xác minh'}
-                                    color={doc.verified ? 'success' : 'default'}
-                                    size="small"
-                                    variant="outlined"
-                                  />
-                                </Box>
+                            <Box flex={1}>
+                              <Box display="flex" alignItems="center" gap={1.5} mb={1.5}>
+                                <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
+                                  {getDocumentTypeLabel(doc.type)}
+                                </Typography>
+                                <Chip
+                                  icon={doc.verified ? <VerifiedIcon /> : <PendingIcon />}
+                                  label={doc.verified ? 'Đã xác minh' : 'Chờ xác minh'}
+                                  color={doc.verified ? 'success' : 'default'}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </Box>
+                              
+                              <Box display="flex" flexDirection="column" gap={1}>
+                                {doc.issuedBy && (
+                                  <Box display="flex" alignItems="flex-start" gap={1}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
+                                      <strong>Nơi cấp:</strong>
+                                    </Typography>
+                                    <Typography variant="body2" color="text.primary">
+                                      {doc.issuedBy}
+                                    </Typography>
+                                  </Box>
+                                )}
                                 
-                                <Box display="flex" flexDirection="column" gap={1}>
-                                  {doc.issuedBy && (
+                                <Box display="flex" gap={3} flexWrap="wrap">
+                                  {doc.issuedDate && (
                                     <Box display="flex" alignItems="flex-start" gap={1}>
                                       <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
-                                        <strong>Nơi cấp:</strong>
+                                        <strong>Ngày cấp:</strong>
                                       </Typography>
                                       <Typography variant="body2" color="text.primary">
-                                        {doc.issuedBy}
+                                        {formatDate(doc.issuedDate)}
                                       </Typography>
                                     </Box>
                                   )}
-                                  
-                                  <Box display="flex" gap={3} flexWrap="wrap">
-                                    {doc.issuedDate && (
-                                      <Box display="flex" alignItems="flex-start" gap={1}>
-                                        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
-                                          <strong>Ngày cấp:</strong>
-                                        </Typography>
-                                        <Typography variant="body2" color="text.primary">
-                                          {formatDate(doc.issuedDate)}
-                                        </Typography>
-                                      </Box>
-                                    )}
-                                    {doc.expirationDate && (
-                                      <Box display="flex" alignItems="flex-start" gap={1}>
-                                        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
-                                          <strong>Ngày hết hạn:</strong>
-                                        </Typography>
-                                        <Typography variant="body2" color="text.primary">
-                                          {formatDate(doc.expirationDate)}
-                                        </Typography>
-                                      </Box>
-                                    )}
-                                  </Box>
+                                  {doc.expirationDate && (
+                                    <Box display="flex" alignItems="flex-start" gap={1}>
+                                      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
+                                        <strong>Ngày hết hạn:</strong>
+                                      </Typography>
+                                      <Typography variant="body2" color="text.primary">
+                                        {formatDate(doc.expirationDate)}
+                                      </Typography>
+                                    </Box>
+                                  )}
                                 </Box>
                               </Box>
-                              
+                            </Box>
+                            
                               <Box display="flex" gap={1} alignItems="center">
-                                {doc.documentImageUrl && doc.documentImageUrl !== 'string' && (
+                            {doc.documentImageUrl && doc.documentImageUrl !== 'string' && (
                                   <Tooltip title="Mở ảnh trong tab mới">
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => window.open(doc.documentImageUrl, '_blank')}
-                                      sx={{ 
-                                        color: 'primary.main',
-                                        '&:hover': {
-                                          bgcolor: 'primary.50'
-                                        }
-                                      }}
-                                    >
-                                      <OpenInNewIcon fontSize="small" />
-                                    </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => window.open(doc.documentImageUrl, '_blank')}
+                                sx={{ 
+                                  color: 'primary.main',
+                                  '&:hover': {
+                                    bgcolor: 'primary.50'
+                                  }
+                                }}
+                              >
+                                <OpenInNewIcon fontSize="small" />
+                              </IconButton>
                                   </Tooltip>
                                 )}
                                 

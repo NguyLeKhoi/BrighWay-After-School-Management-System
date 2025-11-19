@@ -31,11 +31,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border-radius: var(--radius-xl);
   color: white;
+  box-shadow: var(--shadow-colored);
 }
 
 .iconContainer svg {
@@ -43,9 +44,10 @@
 }
 
 .title {
-  font-weight: 600;
-  color: #1976d2;
-  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-3xl);
+  letter-spacing: -0.01em;
 }
 
 .stepperContainer {
