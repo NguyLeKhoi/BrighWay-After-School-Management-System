@@ -33,9 +33,10 @@ import {
   VerifiedUser as VerifiedIcon,
   Pending as PendingIcon,
   Description as DocumentIcon,
-  OpenInNew as OpenInNewIcon
+  OpenInNew as OpenInNewIcon,
+  Cancel as RejectIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
@@ -63,7 +64,9 @@ const StudentManagement = () => {
   const { showGlobalError } = useApp();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const branchIdRef = useRef(user?.branchId || '');
+  const isInitialMount = useRef(true);
   const [activeTab, setActiveTab] = useState(0); // 0 = Approved, 1 = Unverified
   const [parentOptions, setParentOptions] = useState([]);
   const [schoolOptions, setSchoolOptions] = useState([]);
@@ -81,6 +84,14 @@ const StudentManagement = () => {
   const [approvingStudentId, setApprovingStudentId] = useState(null);
   const [approveConfirmDialog, setApproveConfirmDialog] = useState({
     open: false,
+    student: null
+  });
+  
+  // Document approval state
+  const [approvingDocumentId, setApprovingDocumentId] = useState(null);
+  const [rejectConfirmDialog, setRejectConfirmDialog] = useState({
+    open: false,
+    document: null,
     student: null
   });
   
@@ -317,6 +328,25 @@ const StudentManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    // Check if navigating from create/update pages
+    if (location.pathname === '/manager/students') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      
+      if (activeTab === 0) {
+        studentCrud.loadData(false);
+      } else if (activeTab === 1) {
+        loadUnverifiedStudents();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, activeTab]);
+
   // Load unverified students
   const loadUnverifiedStudents = useCallback(async () => {
     setLoadingUnverified(true);
@@ -376,6 +406,63 @@ const StudentManagement = () => {
       });
     }
   }, [detailDialog.student]);
+  
+  // Handle document approve/reject
+  const handleApproveDocument = useCallback(async (documentId, approve = true) => {
+    if (!documentId) return;
+    
+    setApprovingDocumentId(documentId);
+    
+    try {
+      await studentService.approveDocument(documentId, approve);
+      toast.success(approve ? 'Đã phê duyệt tài liệu thành công!' : 'Đã từ chối tài liệu thành công!');
+      
+      // Reload student data to get updated documents
+      if (detailDialog.student) {
+        try {
+          const updatedStudent = await studentService.getStudentById(detailDialog.student.id);
+          setDetailDialog(prev => ({
+            ...prev,
+            student: updatedStudent
+          }));
+        } catch (error) {
+          console.error('Error reloading student:', error);
+        }
+      }
+      
+      // Reload students list in table to update unverified documents count
+      if (activeTab === 0) {
+        studentCrud.loadData(false);
+      }
+      
+      // Close reject dialog if open
+      if (!approve) {
+        setRejectConfirmDialog({ open: false, document: null, student: null });
+      }
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message || error?.message || `Có lỗi xảy ra khi ${approve ? 'phê duyệt' : 'từ chối'} tài liệu`;
+      toast.error(errorMessage);
+      showGlobalError(errorMessage);
+    } finally {
+      setApprovingDocumentId(null);
+    }
+  }, [detailDialog.student, activeTab, studentCrud, showGlobalError]);
+  
+  // Handle document reject click
+  const handleRejectDocumentClick = useCallback((document, student) => {
+    setRejectConfirmDialog({
+      open: true,
+      document,
+      student
+    });
+  }, []);
+  
+  // Handle document reject confirm
+  const handleRejectDocumentConfirm = useCallback(() => {
+    if (rejectConfirmDialog.document) {
+      handleApproveDocument(rejectConfirmDialog.document.id, false);
+    }
+  }, [rejectConfirmDialog.document, handleApproveDocument]);
   
   // Helper functions for detail dialog
   const formatDate = (dateString) => {
@@ -817,73 +904,163 @@ const StudentManagement = () => {
                             }
                           }}
                         >
-                          <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                            <Box flex={1}>
-                              <Box display="flex" alignItems="center" gap={1.5} mb={1.5}>
-                                <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
-                                  {getDocumentTypeLabel(doc.type)}
-                                </Typography>
-                                <Chip
-                                  icon={doc.verified ? <VerifiedIcon /> : <PendingIcon />}
-                                  label={doc.verified ? 'Đã xác minh' : 'Chờ xác minh'}
-                                  color={doc.verified ? 'success' : 'default'}
-                                  size="small"
-                                  variant="outlined"
-                                />
-                              </Box>
-                              
-                              <Box display="flex" flexDirection="column" gap={1}>
-                                {doc.issuedBy && (
-                                  <Box display="flex" alignItems="flex-start" gap={1}>
-                                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
-                                      <strong>Nơi cấp:</strong>
-                                    </Typography>
-                                    <Typography variant="body2" color="text.primary">
-                                      {doc.issuedBy}
-                                    </Typography>
-                                  </Box>
-                                )}
+                          <Box>
+                            <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                              <Box flex={1}>
+                                <Box display="flex" alignItems="center" gap={1.5} mb={1.5}>
+                                  <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
+                                    {getDocumentTypeLabel(doc.type)}
+                                  </Typography>
+                                  <Chip
+                                    icon={doc.verified ? <VerifiedIcon /> : <PendingIcon />}
+                                    label={doc.verified ? 'Đã xác minh' : 'Chờ xác minh'}
+                                    color={doc.verified ? 'success' : 'default'}
+                                    size="small"
+                                    variant="outlined"
+                                  />
+                                </Box>
                                 
-                                <Box display="flex" gap={3} flexWrap="wrap">
-                                  {doc.issuedDate && (
+                                <Box display="flex" flexDirection="column" gap={1}>
+                                  {doc.issuedBy && (
                                     <Box display="flex" alignItems="flex-start" gap={1}>
                                       <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
-                                        <strong>Ngày cấp:</strong>
+                                        <strong>Nơi cấp:</strong>
                                       </Typography>
                                       <Typography variant="body2" color="text.primary">
-                                        {formatDate(doc.issuedDate)}
+                                        {doc.issuedBy}
                                       </Typography>
                                     </Box>
                                   )}
-                                  {doc.expirationDate && (
-                                    <Box display="flex" alignItems="flex-start" gap={1}>
-                                      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
-                                        <strong>Ngày hết hạn:</strong>
-                                      </Typography>
-                                      <Typography variant="body2" color="text.primary">
-                                        {formatDate(doc.expirationDate)}
-                                      </Typography>
-                                    </Box>
-                                  )}
+                                  
+                                  <Box display="flex" gap={3} flexWrap="wrap">
+                                    {doc.issuedDate && (
+                                      <Box display="flex" alignItems="flex-start" gap={1}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
+                                          <strong>Ngày cấp:</strong>
+                                        </Typography>
+                                        <Typography variant="body2" color="text.primary">
+                                          {formatDate(doc.issuedDate)}
+                                        </Typography>
+                                      </Box>
+                                    )}
+                                    {doc.expirationDate && (
+                                      <Box display="flex" alignItems="flex-start" gap={1}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
+                                          <strong>Ngày hết hạn:</strong>
+                                        </Typography>
+                                        <Typography variant="body2" color="text.primary">
+                                          {formatDate(doc.expirationDate)}
+                                        </Typography>
+                                      </Box>
+                                    )}
+                                  </Box>
                                 </Box>
+                              </Box>
+                              
+                              <Box display="flex" gap={1} alignItems="center">
+                                {doc.documentImageUrl && doc.documentImageUrl !== 'string' && (
+                                  <Tooltip title="Mở ảnh trong tab mới">
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => window.open(doc.documentImageUrl, '_blank')}
+                                      sx={{ 
+                                        color: 'primary.main',
+                                        '&:hover': {
+                                          bgcolor: 'primary.50'
+                                        }
+                                      }}
+                                    >
+                                      <OpenInNewIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                                
+                                {/* Approve/Reject buttons */}
+                                {!doc.verified && (
+                                  <Box display="flex" gap={0.5}>
+                                    <Tooltip title="Phê duyệt tài liệu">
+                                      <IconButton
+                                        size="small"
+                                        color="success"
+                                        onClick={() => handleApproveDocument(doc.id, true)}
+                                        disabled={approvingDocumentId === doc.id}
+                                        sx={{
+                                          '&:hover': {
+                                            bgcolor: 'success.50'
+                                          }
+                                        }}
+                                      >
+                                        <ApproveIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Từ chối tài liệu">
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => handleRejectDocumentClick(doc, detailDialog.student)}
+                                        disabled={approvingDocumentId === doc.id}
+                                        sx={{
+                                          '&:hover': {
+                                            bgcolor: 'error.50'
+                                          }
+                                        }}
+                                      >
+                                        <RejectIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Box>
+                                )}
                               </Box>
                             </Box>
                             
+                            {/* Display document image */}
                             {doc.documentImageUrl && doc.documentImageUrl !== 'string' && (
-                              <IconButton
-                                size="small"
-                                onClick={() => window.open(doc.documentImageUrl, '_blank')}
-                                sx={{ 
-                                  ml: 1,
-                                  color: 'primary.main',
+                              <Box
+                                sx={{
+                                  mt: 2,
+                                  borderRadius: 2,
+                                  overflow: 'hidden',
+                                  bgcolor: 'grey.50',
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  minHeight: 200,
+                                  maxHeight: 400,
+                                  cursor: 'pointer',
+                                  position: 'relative',
                                   '&:hover': {
-                                    bgcolor: 'primary.50'
+                                    boxShadow: 2
                                   }
                                 }}
-                                title="Xem tài liệu"
+                                onClick={() => window.open(doc.documentImageUrl, '_blank')}
                               >
-                                <OpenInNewIcon fontSize="small" />
-                              </IconButton>
+                                <img
+                                  src={doc.documentImageUrl}
+                                  alt={`${getDocumentTypeLabel(doc.type)} - ${doc.issuedBy || ''}`}
+                                  style={{
+                                    width: '100%',
+                                    height: 'auto',
+                                    maxHeight: 400,
+                                    objectFit: 'contain',
+                                    display: 'block'
+                                  }}
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    display: 'none',
+                                    position: 'absolute',
+                                    color: 'text.secondary',
+                                    p: 2
+                                  }}
+                                  id={`error-${doc.id || index}`}
+                                >
+                                  Không thể tải ảnh tài liệu
+                                </Typography>
+                              </Box>
                             )}
                           </Box>
                         </Paper>
@@ -929,6 +1106,22 @@ const StudentManagement = () => {
         confirmText="Duyệt"
         cancelText="Hủy"
         confirmColor="success"
+      />
+      
+      {/* Reject Document Confirm Dialog */}
+      <ConfirmDialog
+        open={rejectConfirmDialog.open}
+        onClose={() => setRejectConfirmDialog({ open: false, document: null, student: null })}
+        onConfirm={handleRejectDocumentConfirm}
+        title="Xác nhận từ chối tài liệu"
+        description={
+          rejectConfirmDialog.document
+            ? `Bạn có chắc chắn muốn từ chối tài liệu "${getDocumentTypeLabel(rejectConfirmDialog.document.type)}"? Tài liệu này sẽ bị đánh dấu là không được phê duyệt.`
+            : ''
+        }
+        confirmText="Từ chối"
+        cancelText="Hủy"
+        confirmColor="error"
       />
     </div>
   );

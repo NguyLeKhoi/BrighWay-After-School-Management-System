@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Alert,
@@ -42,6 +42,8 @@ import styles from './staffAndParentManagement.module.css';
 
 const StaffAndParentManagement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = React.useRef(true);
   
   // Tab state
   const [activeTab, setActiveTab] = useState(0); // 0 = Staff, 1 = User
@@ -84,6 +86,25 @@ const StaffAndParentManagement = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  // Reload data when navigate back to this page (e.g., from create pages)
+  useEffect(() => {
+    if (location.pathname === '/manager/staffAndParent') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      
+      // Reload current tab
+      if (activeTab === 0) {
+        staffTab.loadData(false);
+      } else if (activeTab === 1) {
+        userTab.loadData(false);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, activeTab]);
   
   // Common state
   const [actionLoading, setActionLoading] = useState(false);

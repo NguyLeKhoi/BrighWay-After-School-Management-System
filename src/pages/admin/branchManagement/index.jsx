@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Alert } from '@mui/material';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
@@ -16,10 +16,12 @@ import { useAssignSchools } from '../../../hooks/useAssignSchools';
 import { useAssignStudentLevels } from '../../../hooks/useAssignStudentLevels';
 import { createBranchColumns } from '../../../constants/branch/tableColumns';
 import styles from './BranchManagement.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const BranchManagement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = useRef(true);
 
   // Use shared CRUD hook for basic operations
   const {
@@ -93,6 +95,19 @@ const BranchManagement = () => {
   const handleRemoveSchool = (branchId, schoolId, schoolName) => {
     assignSchools.handleRemove(branchId, schoolId, schoolName, setConfirmDialog);
   };
+
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/branches') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Define table columns
   const columns = createBranchColumns({

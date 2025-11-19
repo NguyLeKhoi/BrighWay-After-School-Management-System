@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import Loading from '@components/Common/Loading';
 import { useApp } from '../../../contexts/AppContext';
 import studentService from '../../../services/student.service';
@@ -18,6 +19,8 @@ const WEEKDAY_LABELS = {
 };
 
 const MySchedule = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const [children, setChildren] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [slots, setSlots] = useState([]);
@@ -57,6 +60,19 @@ const MySchedule = () => {
       setBookingForm({ subscriptionId: '', parentNote: '' });
     }
   }, [selectedStudentId]);
+
+  // Reload data when navigate back to this page
+  useEffect(() => {
+    if (location.pathname === '/family/schedule') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadChildren();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const loadChildren = async () => {
     setIsLoadingChildren(true);

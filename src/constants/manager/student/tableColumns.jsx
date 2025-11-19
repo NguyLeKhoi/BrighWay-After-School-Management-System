@@ -1,10 +1,11 @@
 import React from 'react';
-import { Avatar, Box, Chip, Typography } from '@mui/material';
+import { Avatar, Box, Chip, Typography, Tooltip } from '@mui/material';
 import {
   Person as PersonIcon,
   Business as BusinessIcon,
   School as SchoolIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  Description as DocumentIcon
 } from '@mui/icons-material';
 
 export const createManagerStudentColumns = () => [
@@ -87,6 +88,46 @@ export const createManagerStudentColumns = () => [
         size="small"
       />
     )
+  },
+  {
+    key: 'unverifiedDocuments',
+    header: 'Tài Liệu Chưa Duyệt',
+    align: 'center',
+    render: (value, item) => {
+      // Count unverified documents (handle both camelCase and PascalCase)
+      const documents = item?.documents || item?.Documents || [];
+      const unverifiedCount = documents.filter(doc => {
+        const verified = doc.verified ?? doc.Verified ?? false;
+        return !verified;
+      }).length;
+      
+      if (unverifiedCount === 0) {
+        return (
+          <Typography variant="body2" color="text.secondary">
+            -
+          </Typography>
+        );
+      }
+      
+      return (
+        <Tooltip title={`Có ${unverifiedCount} tài liệu chưa được phê duyệt`}>
+          <Chip
+            icon={<DocumentIcon />}
+            label={`${unverifiedCount} chưa duyệt`}
+            color="warning"
+            size="small"
+            variant="outlined"
+            sx={{
+              fontWeight: 500,
+              borderWidth: 1.5,
+              '&:hover': {
+                backgroundColor: 'warning.50'
+              }
+            }}
+          />
+        </Tooltip>
+      );
+    }
   },
   {
     key: 'createdTime',

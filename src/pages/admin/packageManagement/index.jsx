@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -38,7 +38,7 @@ import { createTemplateColumns, createPackageColumns } from '../../../constants/
 import { createTemplateFormFields, createPackageFormFields } from '../../../constants/package/formFields';
 import styles from './PackageManagement.module.css';
 import { packageTemplateSchema, packageSchema } from '../../../utils/validationSchemas/packageSchemas';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const extractBenefitIds = (source) => {
   if (!source) return [];
@@ -55,8 +55,10 @@ const extractBenefitIds = (source) => {
 
 const PackageManagement = () => {
   const [activeTab, setActiveTab] = useState('templates');
+  const isInitialMount = useRef(true);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     benefitOptions: rawBenefitOptions,
     studentLevelOptions,
@@ -92,7 +94,8 @@ const PackageManagement = () => {
     handleClearSearch: templateHandleClearSearch,
     handlePageChange: templateHandlePageChange,
     handleRowsPerPageChange: templateHandleRowsPerPageChange,
-    updateFilter: templateUpdateFilter
+    updateFilter: templateUpdateFilter,
+    loadData: templateLoadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
       return packageTemplateService.getTemplatesPaged({
@@ -135,7 +138,8 @@ const PackageManagement = () => {
     handleClearSearch: packageHandleClearSearch,
     handlePageChange: packageHandlePageChange,
     handleRowsPerPageChange: packageHandleRowsPerPageChange,
-    updateFilter: packageUpdateFilter
+    updateFilter: packageUpdateFilter,
+    loadData: packageLoadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
       return packageService.getPackagesPaged({
@@ -221,6 +225,24 @@ const PackageManagement = () => {
 
   const handleCreatePackage = () => navigate('/admin/packages/create');
   const handleEditPackage = (item) => navigate(`/admin/packages/update/${item.id}`);
+
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/packages') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      // Reload current tab data using loadData from each tab's useBaseCRUD
+      if (activeTab === 'templates') {
+        templateLoadData(false);
+      } else if (activeTab === 'packages') {
+        packageLoadData(false);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, activeTab]);
 
   const toNumber = (value) => {
     if (value === null || value === undefined || value === '') return 0;

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Card from '@components/Common/Card';
 import Loading from '@components/Common/Loading';
 import { useApp } from '../../../../contexts/AppContext';
@@ -57,6 +57,8 @@ const transformStudent = (student) => {
 
 const ChildrenList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const { showGlobalError } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading();
 
@@ -100,6 +102,19 @@ const ChildrenList = () => {
   useEffect(() => {
     fetchChildren();
   }, []);
+
+  // Reload data when navigate back to this page (e.g., from create pages)
+  useEffect(() => {
+    if (location.pathname === '/family/children') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      fetchChildren();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleRetry = () => {
     fetchChildren(pagination.pageIndex, pagination.pageSize);

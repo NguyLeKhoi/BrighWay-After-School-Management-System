@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { Alert } from '@mui/material';
 import { School as StudentLevelIcon } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -16,6 +17,9 @@ import { createStudentLevelFormFields } from '../../../constants/studentLevel/fo
 import styles from './StudentLevelManagement.module.css';
 
 const StudentLevelManagement = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
+  
   // Use shared CRUD hook
   const {
     data: studentLevels,
@@ -41,7 +45,8 @@ const StudentLevelManagement = () => {
     handleKeywordChange,
     handleClearSearch,
     handlePageChange,
-    handleRowsPerPageChange
+    handleRowsPerPageChange,
+    loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await studentLevelService.getStudentLevelsPaged({
@@ -61,6 +66,19 @@ const StudentLevelManagement = () => {
     () => createStudentLevelFormFields(actionLoading),
     [actionLoading]
   );
+
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/student-levels') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <div className={styles.container}>

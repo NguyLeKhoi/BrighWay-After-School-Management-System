@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Tabs from '@components/Common/Tabs';
 import Card from '@components/Common/Card';
 import Loading from '@components/Common/Loading';
@@ -30,6 +31,8 @@ const DEFAULT_WALLET_DATA = {
 };
 
 const MyWallet = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const [activeTab, setActiveTab] = useState('main');
   const [walletError, setWalletError] = useState(null);
   const [childWalletError, setChildWalletError] = useState(null);
@@ -147,6 +150,21 @@ const MyWallet = () => {
     loadChildWallets();
     loadTransactions(1); // Load first page of transactions
   }, []);
+
+  // Reload data when navigate back to this page
+  useEffect(() => {
+    if (location.pathname === '/family/wallet') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadWalletData({ showSpinner: false });
+      loadChildWallets();
+      loadTransactions(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleTransfer = async (event) => {
     event.preventDefault();

@@ -47,7 +47,7 @@ const ContentSection = ({
             <div className={styles.imageContent}>
               {imageContent || (
                 <img 
-                  src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop&q=80" 
+                  src={import.meta.env.VITE_IMAGE_CONTENT_SECTION_DEFAULT || ''} 
                   alt={heading || "Content image"}
                   className={styles.contentImage}
                 />

@@ -40,7 +40,7 @@ const FacilitiesAbout = () => {
   // Ảnh section 1 - cơ sở vật chất (phòng học, thư viện, khu vui chơi)
   const facilitiesImage = (
     <img 
-      src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&h=600&fit=crop&q=80" 
+      src={import.meta.env.VITE_IMAGE_FACILITIES_ABOUT_FACILITIES || ''} 
       alt="Cơ sở vật chất hiện đại - Phòng học và không gian học tập"
       className={styles.contentImage}
     />
@@ -49,7 +49,7 @@ const FacilitiesAbout = () => {
   // Ảnh section 2 - về chúng tôi (môi trường học tập, thiết bị)
   const aboutImage = (
     <img 
-      src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&h=600&fit=crop&q=80" 
+      src={import.meta.env.VITE_IMAGE_FACILITIES_ABOUT_ABOUT || ''} 
       alt="Môi trường học tập với thiết bị hiện đại"
       className={styles.contentImage}
     />

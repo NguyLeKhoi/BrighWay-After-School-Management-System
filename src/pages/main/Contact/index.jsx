@@ -65,7 +65,7 @@ const Contact = () => {
             
             <div className={styles.imageContent}>
               <img 
-                src="https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=600&h=600&fit=crop&q=80" 
+                src={import.meta.env.VITE_IMAGE_CONTACT || ''} 
                 alt="Liên hệ BRIGHWAY - Dịch vụ giữ trẻ an toàn và chất lượng"
                 className={styles.contactImage}
               />

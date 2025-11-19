@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Avatar, Chip, CircularProgress, Alert, Typography, Button, Paper, IconButton } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -61,14 +61,15 @@ const calculateAge = (dateOfBirth) => {
 const ChildProfile = () => {
   const { childId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const { showGlobalError } = useApp();
   const [child, setChild] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openAddDocumentDialog, setOpenAddDocumentDialog] = useState(false);
 
-  useEffect(() => {
-    const fetchChild = async () => {
+  const fetchChild = async () => {
       if (!childId) {
         navigate('/family/children');
         return;
@@ -87,10 +88,25 @@ const ChildProfile = () => {
       } finally {
         setLoading(false);
       }
-    };
+  };
 
+  useEffect(() => {
     fetchChild();
-  }, [childId, navigate, showGlobalError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [childId]);
+
+  // Reload data when navigate back to this page (e.g., from other pages)
+  useEffect(() => {
+    if (location.pathname === `/family/children/${childId}/profile`) {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      fetchChild();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleBack = () => {
     navigate('/family/children');

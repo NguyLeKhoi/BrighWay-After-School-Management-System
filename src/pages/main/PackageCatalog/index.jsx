@@ -106,7 +106,7 @@ const PackageCatalog = () => {
   // Ảnh hero - gói học
   const heroImage = (
     <img 
-      src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&h=600&fit=crop&q=80" 
+      src={import.meta.env.VITE_IMAGE_PACKAGE_CATALOG_HERO || ''} 
       alt="Các gói dịch vụ giữ trẻ tại BRIGHWAY"
       className={styles.heroImageImg}
     />

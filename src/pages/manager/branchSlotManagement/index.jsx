@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -61,6 +61,8 @@ const WEEK_DAYS = [
 
 const ManagerBranchSlotManagement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const {
     timeframeOptions,
     slotTypeOptions,
@@ -238,6 +240,19 @@ const ManagerBranchSlotManagement = () => {
       }
     }
   }, [assignStaffDialog.open, staffOptions.length, roomOptions.length, fetchDependencies]);
+
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/manager/branch-slots') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleCreate = useCallback(() => {
     // Navigate to create page with stepper

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import Loading from '@components/Common/Loading';
 import { useApp } from '../../../contexts/AppContext';
 import serviceService from '../../../services/service.service';
@@ -8,6 +9,8 @@ import studentSlotService from '../../../services/studentSlot.service';
 import styles from './Services.module.css';
 
 const FamilyServices = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const [services, setServices] = useState([]);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const [servicesError, setServicesError] = useState(null);
@@ -33,6 +36,19 @@ const FamilyServices = () => {
   useEffect(() => {
     loadServices();
   }, []);
+
+  // Reload data when navigate back to this page
+  useEffect(() => {
+    if (location.pathname === '/family/services') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadServices();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const loadServices = async () => {
     setIsLoadingServices(true);

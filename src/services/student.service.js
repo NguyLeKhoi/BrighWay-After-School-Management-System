@@ -203,6 +203,23 @@ const approveStudent = async (studentId) => {
   }
 };
 
+/**
+ * Approve or reject a student's document
+ * @param {string} documentId - Document ID
+ * @param {boolean} approve - true to approve, false to reject
+ * @returns {Promise} Updated document
+ */
+const approveDocument = async (documentId, approve = true) => {
+  try {
+    const response = await axiosInstance.post(
+      `${STUDENT_BASE_PATH}/documents/${documentId}/approve?approve=${approve}`
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 const studentService = {
   getAllStudents,
   getStudentsPaged,
@@ -216,7 +233,8 @@ const studentService = {
   registerChild,
   addDocument,
   getUnverifiedStudents,
-  approveStudent
+  approveStudent,
+  approveDocument
 };
 
 export default studentService;

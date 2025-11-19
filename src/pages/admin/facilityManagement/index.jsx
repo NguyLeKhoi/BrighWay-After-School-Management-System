@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { Alert } from '@mui/material';
 import { Room as RoomIcon } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -16,6 +17,9 @@ import { createFacilityFormFields } from '../../../constants/facility/formFields
 import styles from './FacilityManagement.module.css';
 
 const FacilityManagement = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
+  
   // Use shared CRUD hook
   const {
     data: facilities,
@@ -41,7 +45,8 @@ const FacilityManagement = () => {
     handleKeywordChange,
     handleClearSearch,
     handlePageChange,
-    handleRowsPerPageChange
+    handleRowsPerPageChange,
+    loadData
   } = useBaseCRUD({
     loadFunction: facilityService.getFacilitiesPaged,
     createFunction: facilityService.createFacility,
@@ -55,6 +60,19 @@ const FacilityManagement = () => {
     () => createFacilityFormFields(actionLoading),
     [actionLoading]
   );
+
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/facilities') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <div className={styles.container}>

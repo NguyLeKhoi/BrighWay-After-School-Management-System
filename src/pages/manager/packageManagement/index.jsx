@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import {
   Box,
   Alert,
@@ -21,7 +21,7 @@ import {
   Select,
   Chip
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
@@ -36,6 +36,8 @@ import styles from './PackageManagement.module.css';
 
 const ManagerPackageManagement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const {
     templates,
     loading: dependenciesLoading,
@@ -113,6 +115,19 @@ const ManagerPackageManagement = () => {
       fetchDependencies();
     }
   }, [activeTab, dependenciesLoading, templates.length, fetchDependencies]);
+
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/manager/packages' && activeTab === 'packages') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, activeTab]);
 
   const handlePackageCreate = useCallback(() => {
     navigate('/manager/packages/create');

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import Loading from '@components/Common/Loading';
 import Tabs from '@components/Common/Tabs';
 import { useApp } from '../../../contexts/AppContext';
@@ -21,6 +22,8 @@ const getFieldWithFallback = (source, candidates, defaultValue = 0) => {
 };
 
 const MyPackages = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const [activeTab, setActiveTab] = useState('available');
   const [availablePackages, setAvailablePackages] = useState([]);
   const [purchasedPackages, setPurchasedPackages] = useState([]);
@@ -355,6 +358,22 @@ const MyPackages = () => {
     loadServices();
     loadChildren();
   }, []);
+
+  // Reload data when navigate back to this page
+  useEffect(() => {
+    if (location.pathname === '/family/packages') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadAvailablePackages();
+      loadPurchasedPackages();
+      loadServices();
+      loadChildren();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Handle buy package
   const handleBuyClick = (pkg) => {

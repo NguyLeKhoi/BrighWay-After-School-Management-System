@@ -23,7 +23,7 @@ const HeroSection = ({
           <div className={styles.heroImage}>
             {imageContent || (
               <img 
-                src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=400&fit=crop&q=80" 
+                src={import.meta.env.VITE_IMAGE_HERO_SECTION_DEFAULT || ''} 
                 alt={title || "Hero image"}
                 className={styles.heroImageImg}
               />
