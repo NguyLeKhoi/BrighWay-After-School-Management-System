@@ -63,12 +63,10 @@ const mapOptions = (items = [], labelKey = 'name') =>
 const StudentManagement = () => {
   const { showGlobalError } = useApp();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const branchIdRef = useRef(user?.branchId || '');
   const isInitialMount = useRef(true);
   const [activeTab, setActiveTab] = useState(0); // 0 = Approved, 1 = Unverified
-  const [parentOptions, setParentOptions] = useState([]);
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [studentLevelOptions, setStudentLevelOptions] = useState([]);
   const [dependenciesLoading, setDependenciesLoading] = useState(true);
@@ -188,16 +186,6 @@ const StudentManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.branchId, user?.branchName, branchInfo.id]);
 
-  const columns = useMemo(() => createManagerStudentColumns(), []);
-  
-  // Handle approve click
-  const handleApproveClick = useCallback((student) => {
-    setApproveConfirmDialog({
-      open: true,
-      student
-    });
-  }, []);
-  
   // Handle view detail
   const handleViewDetail = useCallback(async (student) => {
     setDetailDialog({

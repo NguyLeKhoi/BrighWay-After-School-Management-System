@@ -37,7 +37,7 @@ const formatDate = (value) => {
   if (!value) return 'Chưa có';
   try {
     return new Date(value).toLocaleDateString('vi-VN');
-  } catch (error) {
+  } catch {
     return 'Chưa có';
   }
 };
@@ -53,7 +53,7 @@ const calculateAge = (dateOfBirth) => {
       age--;
     }
     return age;
-  } catch (error) {
+  } catch {
     return null;
   }
 };

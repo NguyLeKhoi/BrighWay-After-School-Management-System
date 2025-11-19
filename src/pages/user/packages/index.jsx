@@ -167,7 +167,7 @@ const MyPackages = () => {
         try {
           const subscriptionResponse = await packageService.getSubscriptionsByStudent(child.id);
           return { childId: child.id, subscriptionResponse };
-        } catch (error) {
+        } catch {
           return { childId: child.id, subscriptionResponse: null };
         }
       });
@@ -214,7 +214,7 @@ const MyPackages = () => {
           try {
             // Fetch suitable packages một lần cho child
             suitablePackagesForChild = await packageService.getSuitablePackages(childId);
-          } catch (error) {
+          } catch {
             // Silently fail - package details will be null
           }
         }
@@ -347,7 +347,7 @@ const MyPackages = () => {
     try {
       const childrenList = await studentService.getMyChildren();
       setChildren(Array.isArray(childrenList) ? childrenList : []);
-    } catch (err) {
+    } catch {
       // Silently fail
     }
   };

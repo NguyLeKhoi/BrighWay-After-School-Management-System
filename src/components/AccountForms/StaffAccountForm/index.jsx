@@ -34,10 +34,6 @@ const StaffAccountForm = ({
     userData: null
   });
 
-  const roleOptions = [
-    { value: 0, label: 'Staff' }
-  ];
-
   const handleFormSubmit = (data) => {
     setConfirmDialog({
       open: true,

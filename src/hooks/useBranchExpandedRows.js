@@ -23,7 +23,7 @@ export const useBranchExpandedRows = (branches) => {
         try {
           const benefits = await benefitService.getBenefitsByBranchId(branchId);
           setRowBenefits(prev => ({ ...prev, [branchId]: benefits }));
-        } catch (err) {
+        } catch {
           setRowBenefits(prev => ({ ...prev, [branchId]: [] }));
         }
       }
@@ -36,7 +36,7 @@ export const useBranchExpandedRows = (branches) => {
           } else {
             setRowSchools(prev => ({ ...prev, [branchId]: [] }));
           }
-        } catch (err) {
+        } catch {
           setRowSchools(prev => ({ ...prev, [branchId]: [] }));
         }
       }
@@ -49,7 +49,7 @@ export const useBranchExpandedRows = (branches) => {
           } else {
             setRowStudentLevels(prev => ({ ...prev, [branchId]: [] }));
           }
-        } catch (err) {
+        } catch {
           setRowStudentLevels(prev => ({ ...prev, [branchId]: [] }));
         }
       }

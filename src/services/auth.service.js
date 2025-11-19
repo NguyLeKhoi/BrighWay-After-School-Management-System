@@ -128,7 +128,7 @@ const authService = {
       
       // Redirect to login
       window.location.href = '/login';
-    } catch (error) {
+    } catch {
       // Force redirect even if error
       window.location.href = '/login';
     }

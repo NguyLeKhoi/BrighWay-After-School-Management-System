@@ -8,7 +8,6 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import styles from './Form.module.css';
-import { toast } from 'react-toastify';
 
 // Password field component with show/hide toggle
 const PasswordField = ({ name, control, placeholder, required, error, disabled, fieldProps }) => {
@@ -71,7 +70,6 @@ const Form = forwardRef(({
     formState: { errors, isSubmitting },
     reset,
     control,
-    watch,
     trigger,
     getValues,
     setValue
@@ -160,11 +158,7 @@ const Form = forwardRef(({
       type = 'text',
       options = [],
       className = '',
-      section,
-      sectionDescription,
-      gridSize,
       helperText,
-      selectProps,
       fullWidth,
       ...fieldProps
     } = field;
@@ -378,7 +372,7 @@ const Form = forwardRef(({
         <Controller
           name={name}
           control={control}
-          render={({ field: { onChange, value } }) => (
+          render={({ field: { onChange } }) => (
             <Box>
               <input
                 type="file"

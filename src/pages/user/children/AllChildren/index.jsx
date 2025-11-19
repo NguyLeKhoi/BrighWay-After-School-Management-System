@@ -27,7 +27,7 @@ const formatDate = (value) => {
   if (!value) return null;
   try {
     return new Date(value).toLocaleDateString('vi-VN');
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -66,7 +66,7 @@ const ChildrenList = () => {
   const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
   const [error, setError] = useState(null);
 
-  const fetchChildren = async (pageIndex = DEFAULT_PAGINATION.pageIndex, pageSize = DEFAULT_PAGINATION.pageSize) => {
+  const fetchChildren = async () => {
     setError(null);
     showLoading();
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import { Person as PersonIcon, Email as EmailIcon, Visibility as ViewIcon } from '@mui/icons-material';
 
-export const createStaffAndParentColumns = (onViewDetail) => [
+export const createStaffAndParentColumns = () => [
   {
     key: 'name',
     header: 'Họ và Tên',

@@ -2,8 +2,7 @@ export const createManagerStudentFormFields = ({
   parentOptions = [],
   schoolOptions = [],
   studentLevelOptions = [],
-  actionLoading = false,
-  defaultBranchName = ''
+  actionLoading = false
 } = {}) => [
   {
     section: 'Thông tin học sinh',
