@@ -173,18 +173,23 @@
 .orderButton {
   margin-top: auto;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 12px 20px;
-  background: #2563eb;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
+  background: var(--color-secondary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .orderButton:hover {
-  background: #1d4ed8;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .inlineLoading {
@@ -208,7 +213,7 @@
   border-radius: 6px;
   padding: 10px 20px;
   background: #ef4444;
-  color: white;
+  color: var(--text-primary);
   font-weight: 500;
   cursor: pointer;
 }
@@ -369,12 +374,15 @@
 }
 
 .confirmButton {
-  background: #2563eb;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
 }
 
 .confirmButton:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .cancelButton:disabled,
@@ -401,18 +409,23 @@
 
 .walletButton {
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 12px 20px;
-  font-size: 15px;
-  font-weight: 600;
-  background: #10b981;
-  color: white;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .walletButton:hover {
-  background: #059669;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 @media (max-width: 768px) {

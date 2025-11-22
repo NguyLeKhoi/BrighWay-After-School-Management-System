@@ -78,7 +78,6 @@ const Step1BasicInfo = React.forwardRef(
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
             fields={fields}
-            showReset={false}
             hideSubmitButton
           />
         </Box>
@@ -90,6 +89,7 @@ const Step1BasicInfo = React.forwardRef(
 Step1BasicInfo.displayName = 'CreateParentStep1BasicInfo';
 
 export default Step1BasicInfo;
+
 
 
 

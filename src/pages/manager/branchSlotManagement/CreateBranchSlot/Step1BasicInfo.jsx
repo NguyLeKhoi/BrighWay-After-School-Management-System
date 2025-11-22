@@ -108,12 +108,6 @@ const Step1BasicInfo = forwardRef(
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Typography variant="h6" gutterBottom sx={{ mb: 0.75, fontWeight: 600, fontSize: '1.1rem' }}>
-        Bước {stepIndex + 1}/{totalSteps}: Thông tin cơ bản
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.875rem' }}>
-        Điền thông tin cơ bản về ca học. Sau khi hoàn thành, bạn sẽ có thể gán phòng và nhân viên.
-      </Typography>
       <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <Form
         ref={formRef}
@@ -121,7 +115,6 @@ const Step1BasicInfo = forwardRef(
         defaultValues={defaultValues}
         onSubmit={handleSubmit}
         fields={formFields}
-        showReset={false}
         hideSubmitButton={true}
         disabled={dependenciesLoading || actionLoading}
       />

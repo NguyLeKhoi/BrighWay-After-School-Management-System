@@ -564,7 +564,6 @@ const ManagerBranchSlotManagement = () => {
           loading={actionLoading || dependenciesLoading}
           disabled={actionLoading || dependenciesLoading}
           fields={branchSlotFormFields}
-          showReset={dialogMode === 'create'}
         />
       </ManagementFormDialog>
 
@@ -586,7 +585,6 @@ const ManagerBranchSlotManagement = () => {
           loading={assignStaffLoading || loadingRooms || dependenciesLoading}
           disabled={assignStaffLoading || loadingRooms || dependenciesLoading}
           fields={assignStaffFormFields}
-          showReset={true}
         />
       </ManagementFormDialog>
 

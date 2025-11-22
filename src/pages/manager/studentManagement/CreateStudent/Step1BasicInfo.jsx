@@ -71,7 +71,6 @@ const Step1BasicInfo = React.forwardRef(
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
             fields={fields}
-            showReset={false}
             hideSubmitButton
             disabled={dependenciesLoading}
           />

@@ -16,7 +16,7 @@ const ContentLoading = ({
         left: '250px', // Sidebar width from GenericDrawer
         right: 0,
         bottom: 0,
-        backgroundColor: '#f5f5f5', // Match main content background - solid color
+        backgroundColor: 'var(--bg-secondary)', // Match main content background - solid color
         zIndex: 1000,
         display: 'flex',
         alignItems: 'center',

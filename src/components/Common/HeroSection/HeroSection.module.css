@@ -1,7 +1,7 @@
 .heroSection {
   padding: 120px 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  color: var(--bg-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   text-align: center;
 }
 
@@ -15,6 +15,7 @@
   font-size: 4rem;
   font-weight: var(--font-weight-bold);
   font-family: var(--font-family);
+  color: var(--color-primary);
   margin-bottom: var(--spacing-lg);
   line-height: var(--line-height-tight);
 }
@@ -22,8 +23,8 @@
 .heroSubtitle {
   font-size: 1.5rem;
   font-family: var(--font-family);
+  color: var(--text-primary);
   margin-bottom: var(--spacing-2xl);
-  opacity: 0.9;
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
@@ -31,8 +32,8 @@
 }
 
 .heroButton {
-  background: var(--bg-primary);
-  color: var(--color-primary);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border: none;
   padding: 18px 40px;
   font-size: 1.125rem;
@@ -46,6 +47,8 @@
 }
 
 .heroButton:hover {
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
 }
@@ -58,17 +61,17 @@
   width: 100%;
   max-width: 800px;
   height: auto;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
   object-fit: cover;
 }
 
 .imagePlaceholder {
   background: rgba(255, 255, 255, 0.1);
   border: 2px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 60px;
-  font-size: 1.2rem;
+  font-size: var(--font-size-xl);
   color: rgba(255, 255, 255, 0.7);
 }
 

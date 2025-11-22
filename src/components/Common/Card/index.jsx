@@ -89,6 +89,7 @@ const Card = ({
               className={`${styles.actionButton} ${action.primary ? styles.primaryButton : styles.secondaryButton}`}
               onClick={action.onClick}
             >
+              {action.icon}
               {action.text}
             </button>
           ))}

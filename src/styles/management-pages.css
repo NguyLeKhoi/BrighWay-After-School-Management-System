@@ -15,7 +15,7 @@
 .management-title {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-extrabold);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   margin: 0 0 8px 0;
   letter-spacing: -0.02em;
   font-family: var(--font-family-heading);
@@ -30,7 +30,7 @@
 
 /* Buttons */
 .management-button {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: var(--color-secondary);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -44,9 +44,10 @@
 }
 
 .management-button:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-colored);
+  box-shadow: var(--shadow-md);
 }
 
 .management-button-secondary {

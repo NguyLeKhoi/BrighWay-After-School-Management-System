@@ -125,12 +125,12 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
             position: 'absolute',
             top: -60,
             right: 0,
-            color: '#666',
+            color: 'var(--text-secondary)',
             minWidth: 'auto',
             padding: '8px',
             zIndex: 1,
             '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.04)'
+              backgroundColor: 'var(--bg-tertiary)'
             }
           }}
         >
@@ -145,7 +145,7 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
           avatar={<PersonIcon color="primary" />}
           title="Thông Tin User"
           subheader="Thông tin tài khoản chính của gia đình"
-          sx={{ backgroundColor: '#f5f5f5' }}
+          sx={{ backgroundColor: 'var(--bg-secondary)' }}
         />
         <CardContent sx={{ p: 3 }}>
           <Grid container spacing={3}>
@@ -209,7 +209,7 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
           avatar={<HomeIcon color="success" />}
           title="Thông Tin Gia Đình"
           subheader="Thông tin chung về gia đình"
-          sx={{ backgroundColor: '#f5f5f5' }}
+          sx={{ backgroundColor: 'var(--bg-secondary)' }}
         />
         <CardContent sx={{ p: 3 }}>
           <Grid container spacing={3}>
@@ -291,9 +291,9 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
               gap: 1,
               px: 2,
               py: 1,
-              backgroundColor: parentCount >= 5 ? '#ffebee' : '#e3f2fd',
+              backgroundColor: parentCount >= 5 ? 'var(--color-error-light)' : 'var(--color-primary-50)',
               borderRadius: '20px',
-              border: parentCount >= 5 ? '1px solid #f44336' : '1px solid #2196f3'
+              border: parentCount >= 5 ? `1px solid var(--color-error)` : `1px solid var(--color-primary)`
             }}>
               <Typography 
                 variant="body2" 
@@ -304,16 +304,16 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
               </Typography>
             </Box>
           }
-          sx={{ backgroundColor: '#f5f5f5' }}
+          sx={{ backgroundColor: 'var(--bg-secondary)' }}
         />
         <CardContent sx={{ p: 3 }}>
           {parentCount >= 5 && (
             <Box sx={{ 
               mb: 2, 
               p: 2, 
-              backgroundColor: '#fff3e0', 
-              border: '1px solid #ff9800', 
-              borderRadius: '8px',
+              backgroundColor: 'var(--color-warning-light)', 
+              border: `1px solid var(--color-warning)`, 
+              borderRadius: 'var(--radius-lg)',
               display: 'flex',
               alignItems: 'center',
               gap: 1
@@ -327,9 +327,9 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
             <Box sx={{ 
               mb: 2, 
               p: 2, 
-              backgroundColor: '#e8f5e8', 
-              border: '1px solid #4caf50', 
-              borderRadius: '8px',
+              backgroundColor: 'var(--color-success-light)', 
+              border: `1px solid var(--color-success)`, 
+              borderRadius: 'var(--radius-lg)',
               display: 'flex',
               alignItems: 'center',
               gap: 1
@@ -346,13 +346,13 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
               sx={{ 
                 mb: 4, 
                 p: 3, 
-                border: '1px dashed #ccc', 
+                border: `1px dashed var(--border-medium)`, 
                 borderRadius: '12px', 
-                backgroundColor: '#fafafa',
-                transition: 'all 0.3s ease-in-out',
+                backgroundColor: 'var(--bg-secondary)',
+                transition: 'var(--transition-all)',
                 '&:hover': {
-                  borderColor: '#2196f3',
-                  boxShadow: '0 2px 8px rgba(33, 150, 243, 0.1)'
+                  borderColor: 'var(--color-primary)',
+                  boxShadow: 'var(--shadow-sm)'
                 }
               }}
             >
@@ -364,8 +364,8 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
                     width: 32,
                     height: 32,
                     borderRadius: '50%',
-                    backgroundColor: '#2196f3',
-                    color: 'white',
+                    backgroundColor: 'var(--color-secondary)',
+                    color: 'var(--text-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -391,11 +391,11 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
                       textTransform: 'none',
                       fontWeight: 'bold',
                       minWidth: '100px',
-                      borderColor: '#f44336',
-                      color: '#f44336',
+                      borderColor: 'var(--color-error)',
+                      color: 'var(--color-error)',
                       '&:hover': {
-                        backgroundColor: '#ffebee',
-                        borderColor: '#d32f2f'
+                        backgroundColor: 'var(--color-error-light)',
+                        borderColor: 'var(--color-error-dark)'
                       }
                     }}
                   >
@@ -534,13 +534,22 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
       </Card>
 
       {/* Submit Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 3, mt: 4, p: 3, backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 3, mt: 4, p: 3, backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)' }}>
         <Button
           type="submit"
           variant="contained"
           disabled={isSubmitting || loading}
           size="large"
-          sx={{ minWidth: 250, height: 48, fontSize: '16px' }}
+          sx={{ 
+            minWidth: 250, 
+            height: 48, 
+            fontSize: '16px',
+            backgroundColor: 'var(--color-secondary)',
+            color: 'var(--text-primary)',
+            '&:hover': {
+              backgroundColor: 'var(--color-secondary-dark)'
+            }
+          }}
         >
           {isSubmitting || loading ? 
             (isEditMode ? 'Đang cập nhật...' : 'Đang tạo...') : 

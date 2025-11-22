@@ -74,7 +74,6 @@ const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
         loading={loading || dependenciesLoading || loadingTemplates}
         disabled={loading || dependenciesLoading || loadingTemplates}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );
@@ -139,7 +138,6 @@ const Step2Associations = forwardRef(({ data, updateData }, ref) => {
         loading={loading || dependenciesLoading || loadingTemplates}
         disabled={loading || dependenciesLoading || loadingTemplates}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );
@@ -195,7 +193,6 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
         loading={loading}
         disabled={loading}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );

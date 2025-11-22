@@ -122,7 +122,7 @@ const StaffAccountForm = ({
       >
         <DialogTitle
           sx={{
-            backgroundColor: '#1976d2',
+            backgroundColor: 'var(--color-primary)',
             color: 'white',
             display: 'flex',
             alignItems: 'center',

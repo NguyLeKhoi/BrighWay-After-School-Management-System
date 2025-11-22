@@ -35,11 +35,12 @@ const ManagementPageHeader = ({
               textTransform: 'none',
               borderRadius: 2,
               fontWeight: 600,
-              background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+              background: 'var(--color-secondary)',
+              color: 'var(--text-primary)',
+              boxShadow: 'var(--shadow-sm)',
               '&:hover': {
-                background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
-                boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)',
+                background: 'var(--color-secondary-dark)',
+                boxShadow: 'var(--shadow-md)',
                 transform: 'translateY(-2px)'
               }
             }}

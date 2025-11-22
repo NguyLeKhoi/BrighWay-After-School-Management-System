@@ -15,10 +15,11 @@ const Tabs = ({ tabs, activeTab, onTabChange, className = '' }) => {
           key={tab.id}
           className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
           onClick={() => onTabChange(tab.id)}
-          whileHover={{ scale: 1.02 }}
+          whileHover={activeTab !== tab.id ? { scale: 1.02, y: -1 } : {}}
           whileTap={{ scale: 0.98 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.2, type: 'spring', stiffness: 300 }}
         >
+          {tab.icon}
           {tab.label}
         </motion.button>
       ))}

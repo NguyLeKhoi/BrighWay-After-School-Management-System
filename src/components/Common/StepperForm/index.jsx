@@ -10,6 +10,7 @@ import {
   Typography
 } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
+import ConfirmDialog from '../ConfirmDialog';
 import styles from './StepperForm.module.css';
 
 /**
@@ -22,6 +23,7 @@ import styles from './StepperForm.module.css';
  * @param {Object} initialData - Initial form data
  * @param {string} title - Form title
  * @param {ReactNode} icon - Icon to display in header
+ * @param {boolean} showStepConfirmation - Show confirmation dialog after each step
  */
 const StepperForm = ({
   steps = [],
@@ -30,12 +32,19 @@ const StepperForm = ({
   initialData = {},
   title = 'Multi-Step Form',
   icon = null,
-  stepProps = {}
+  stepProps = {},
+  showStepConfirmation = false
 }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState(initialData);
   const [stepErrors, setStepErrors] = useState({});
   const [completedSteps, setCompletedSteps] = useState(new Set()); // Track completed steps
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: null
+  });
 
   const stepRefs = React.useRef({});
   const formDataRef = React.useRef(initialData);
@@ -113,14 +122,28 @@ const StepperForm = ({
 
     // Move to next step only if validation passed
     if (activeStep < steps.length - 1) {
-      setActiveStep(activeStep + 1);
+      // If showStepConfirmation is enabled, show dialog before moving to next step
+      if (showStepConfirmation) {
+        const nextStepLabel = steps[activeStep + 1]?.label || 'bước tiếp theo';
+        setConfirmDialog({
+          open: true,
+          title: 'Hoàn thành bước',
+          description: `Bạn đã hoàn thành "${steps[activeStep]?.label}". Bạn có muốn tiếp tục đến "${nextStepLabel}" không?`,
+          onConfirm: () => {
+            setConfirmDialog(prev => ({ ...prev, open: false }));
+            setActiveStep(activeStep + 1);
+          }
+        });
+      } else {
+        setActiveStep(activeStep + 1);
+      }
     } else {
       // Last step - call onComplete
       if (onComplete) {
         onComplete(formDataRef.current);
       }
     }
-  }, [activeStep, steps, formData, onComplete]);
+  }, [activeStep, steps, formData, onComplete, showStepConfirmation]);
 
   const handleBack = useCallback((e) => {
     if (e) {
@@ -175,152 +198,170 @@ const StepperForm = ({
   const CurrentStepComponent = steps[activeStep]?.component;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <Box className={styles.container}>
-        <Box className={styles.paper}>
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Box className={styles.header}>
-              {icon && (
-                <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Box className={styles.iconContainer}>
-                    {icon}
-                  </Box>
-                </motion.div>
-              )}
-              <Typography variant="h4" component="h1" className={styles.title}>
-                {title}
-              </Typography>
-            </Box>
-          </motion.div>
-
-        {/* Stepper */}
-        <Box className={styles.stepperContainer}>
-          <Stepper activeStep={activeStep} alternativeLabel>
-            {steps.map((step, index) => {
-              const isStepCompleted = completedSteps.has(index);
-              const isNextStep = index === activeStep + 1 && completedSteps.has(activeStep);
-              const isPreviousStep = index < activeStep;
-              const isClickable = isStepCompleted || isNextStep || isPreviousStep;
-              
-              return (
-                <Step 
-                  key={index}
-                  completed={isStepCompleted}
-                  error={stepErrors[index]}
-                  disabled={!isClickable && index !== activeStep}
-                >
-                  <StepLabel
-                    onClick={() => isClickable && handleStepChange(index)}
-                    style={{ 
-                      cursor: isClickable ? 'pointer' : 'not-allowed',
-                      opacity: isClickable || index === activeStep ? 1 : 0.5
-                    }}
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Box className={styles.container}>
+          <Box className={styles.paper}>
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Box className={styles.header}>
+                {icon && (
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    {step.label}
-                  </StepLabel>
-                </Step>
-              );
-            })}
-          </Stepper>
-        </Box>
+                    <Box className={styles.iconContainer}>
+                      {icon}
+                    </Box>
+                  </motion.div>
+                )}
+                <Typography variant="h4" component="h1" className={styles.title}>
+                  {title}
+                </Typography>
+              </Box>
+            </motion.div>
 
-        {/* Step Content */}
-        <Box className={styles.content}>
-          <Box className={styles.scrollWrapper}>
-            <AnimatePresence mode="wait">
-              {CurrentStepComponent && (
-                <motion.div
-                  key={activeStep}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <CurrentStepComponent
-                    ref={(ref) => {
-                      if (ref) {
-                        stepRefs.current[activeStep] = ref;
-                      }
-                    }}
-                    data={formData}
-                    updateData={updateFormData}
-                    stepIndex={activeStep}
-                    totalSteps={steps.length}
-                    {...stepProps}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+          {/* Stepper */}
+          <Box className={styles.stepperContainer}>
+            <Stepper activeStep={activeStep} alternativeLabel>
+              {steps.map((step, index) => {
+                const isStepCompleted = completedSteps.has(index);
+                const isNextStep = index === activeStep + 1 && completedSteps.has(activeStep);
+                const isPreviousStep = index < activeStep;
+                const isClickable = isStepCompleted || isNextStep || isPreviousStep;
+                
+                return (
+                  <Step 
+                    key={index}
+                    completed={isStepCompleted}
+                    error={stepErrors[index]}
+                    disabled={!isClickable && index !== activeStep}
+                  >
+                    <StepLabel
+                      onClick={() => isClickable && handleStepChange(index)}
+                      style={{ 
+                        cursor: isClickable ? 'pointer' : 'not-allowed',
+                        opacity: isClickable || index === activeStep ? 1 : 0.5
+                      }}
+                    >
+                      {step.label}
+                    </StepLabel>
+                  </Step>
+                );
+              })}
+            </Stepper>
+          </Box>
+
+          {/* Step Content */}
+          <Box className={styles.content}>
+            <Box className={styles.scrollWrapper}>
+              <AnimatePresence mode="wait">
+                {CurrentStepComponent && (
+                  <motion.div
+                    key={activeStep}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <CurrentStepComponent
+                      ref={(ref) => {
+                        if (ref) {
+                          stepRefs.current[activeStep] = ref;
+                        }
+                      }}
+                      data={formData}
+                      updateData={updateFormData}
+                      stepIndex={activeStep}
+                      totalSteps={steps.length}
+                      {...stepProps}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Box>
+          </Box>
+
+          {/* Navigation Buttons */}
+          <Box className={styles.actions}>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                type="button"
+                onClick={handleBackButtonClick}
+                disabled={activeStep === 0 && !onCancel}
+                startIcon={<ArrowBack />}
+                size="large"
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  padding: '10px 24px'
+                }}
+              >
+                {activeStep === 0 ? (onCancel ? 'Hủy' : 'Quay lại') : 'Quay lại'}
+              </Button>
+            </motion.div>
+            
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                type="button"
+                variant="contained"
+                onClick={handleNext}
+                endIcon={activeStep === steps.length - 1 ? null : <ArrowForward />}
+                size="large"
+                color="primary"
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  padding: '10px 24px',
+                  background: 'var(--color-secondary)',
+                  color: 'var(--text-primary)',
+                  boxShadow: 'var(--shadow-sm)',
+                  '&:hover': {
+                    background: 'var(--color-secondary-dark)',
+                    boxShadow: 'var(--shadow-md)',
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                {activeStep === steps.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
+              </Button>
+            </motion.div>
           </Box>
         </Box>
-
-        {/* Navigation Buttons */}
-        <Box className={styles.actions}>
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button
-              type="button"
-              onClick={handleBackButtonClick}
-              disabled={activeStep === 0 && !onCancel}
-              startIcon={<ArrowBack />}
-              size="large"
-              sx={{
-                textTransform: 'none',
-                borderRadius: 2,
-                fontWeight: 600,
-                padding: '10px 24px'
-              }}
-            >
-              {activeStep === 0 ? (onCancel ? 'Hủy' : 'Quay lại') : 'Quay lại'}
-            </Button>
-          </motion.div>
-          
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button
-              type="button"
-              variant="contained"
-              onClick={handleNext}
-              endIcon={activeStep === steps.length - 1 ? null : <ArrowForward />}
-              size="large"
-              color="primary"
-              sx={{
-                textTransform: 'none',
-                borderRadius: 2,
-                fontWeight: 600,
-                padding: '10px 24px',
-                background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
-                  boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)',
-                  transform: 'translateY(-2px)'
-                }
-              }}
-            >
-              {activeStep === steps.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
-            </Button>
-          </motion.div>
-        </Box>
       </Box>
-    </Box>
-    </motion.div>
+      </motion.div>
+
+      {/* Step Confirmation Dialog */}
+      {showStepConfirmation && (
+        <ConfirmDialog
+          open={confirmDialog.open}
+          onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+          onConfirm={confirmDialog.onConfirm || (() => {})}
+          title={confirmDialog.title}
+          description={confirmDialog.description}
+          confirmText="Tiếp tục"
+          cancelText="Ở lại"
+          confirmColor="primary"
+          showWarningIcon={false}
+        />
+      )}
+    </>
   );
 };
 

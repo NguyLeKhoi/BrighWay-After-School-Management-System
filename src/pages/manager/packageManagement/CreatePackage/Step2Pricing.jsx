@@ -82,7 +82,6 @@ const Step2Pricing = React.forwardRef(
             onSubmit={handleSubmit}
             fields={fields}
             hideSubmitButton
-            showReset={false}
           />
         </Box>
       </Box>

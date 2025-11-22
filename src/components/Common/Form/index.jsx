@@ -20,24 +20,24 @@ const PasswordField = ({ name, control, placeholder, required, error, disabled, 
       render={({ field: controllerField }) => (
         <div style={{ position: 'relative', width: '100%' }}>
           <input
-            {...controllerField}
-            type={showPassword ? 'text' : 'password'}
-            id={name}
+          {...controllerField}
+          type={showPassword ? 'text' : 'password'}
+          id={name}
             name={name}
             className={styles.formInput}
-            placeholder={placeholder}
-            required={required}
-            disabled={disabled}
+          placeholder={placeholder}
+          required={required}
+          disabled={disabled}
             style={{
               paddingRight: '45px'
             }}
             {...fieldProps}
           />
-          <IconButton
-            aria-label="toggle password visibility"
-            onClick={() => setShowPassword(!showPassword)}
-            edge="end"
-            size="small"
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                  size="small"
             disabled={disabled}
             sx={{
               position: 'absolute',
@@ -54,9 +54,9 @@ const PasswordField = ({ name, control, placeholder, required, error, disabled, 
                 opacity: 0.5
               }
             }}
-          >
+                >
             {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
-          </IconButton>
+                </IconButton>
         </div>
       )}
     />
@@ -73,8 +73,6 @@ const Form = forwardRef(({
   children,
   className = '',
   error = '',
-  showReset = true,
-  resetText = 'Reset',
   hideSubmitButton = false
 }, ref) => {
   const {
@@ -241,7 +239,7 @@ const Form = forwardRef(({
                     borderRadius: '8px'
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#e2e8f0'
+                    borderColor: 'var(--border-light)'
                   }
                 }}
                 {...fieldProps}
@@ -303,7 +301,7 @@ const Form = forwardRef(({
                     paddingY: '2px'
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#e2e8f0'
+                    borderColor: 'var(--border-light)'
                   }
                 }}
                 {...fieldProps}
@@ -354,10 +352,10 @@ const Form = forwardRef(({
                   color="primary"
                   sx={{
                     '& .MuiSwitch-thumb': {
-                      backgroundColor: value ? '#4caf50' : '#f5f5f5'
+                      backgroundColor: value ? 'var(--color-success)' : 'var(--bg-secondary)'
                     },
                     '& .MuiSwitch-track': {
-                      backgroundColor: value ? '#81c784' : '#e0e0e0'
+                      backgroundColor: value ? 'var(--color-success-light)' : 'var(--border-light)'
                     }
                   }}
                   {...fieldProps}
@@ -498,16 +496,6 @@ const Form = forwardRef(({
       
       {!hideSubmitButton && (
         <div className={styles.buttonGroup}>
-          {showReset && (
-            <button
-              type="button"
-              className={`${styles.submitButton} ${styles.resetButton}`}
-              onClick={() => reset()}
-              disabled={isSubmitting || loading}
-            >
-              {resetText}
-            </button>
-          )}
           <button
             type="submit"
             className={styles.submitButton}

@@ -87,7 +87,6 @@ const Step2GeneralInfo = React.forwardRef(
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
             fields={fields}
-            showReset={false}
             hideSubmitButton
           />
         </Box>

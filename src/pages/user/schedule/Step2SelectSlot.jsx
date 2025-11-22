@@ -27,9 +27,52 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
         return false;
       }
       const selectedSlot = slots.find(s => s.id === selectedSlotId);
+      
+      // Auto-assign roomId and room info when submitting
+      let roomData = {};
+      
+      if (selectedSlot?.roomId) {
+        roomData = {
+          roomId: selectedSlot.roomId,
+          room: {
+            id: selectedSlot.roomId,
+            name: selectedSlot.roomName || 'Phòng tự động'
+          }
+        };
+      } else {
+        // Try to get room from API if not already loaded
+        try {
+          const roomsResponse = await branchSlotService.getRoomsByBranchSlot(selectedSlotId, {
+            pageIndex: 1,
+            pageSize: 1
+          });
+          const rooms = Array.isArray(roomsResponse)
+            ? roomsResponse
+            : Array.isArray(roomsResponse?.items)
+              ? roomsResponse.items
+              : [];
+          
+          if (rooms.length > 0) {
+            const firstRoom = rooms[0];
+            roomData = {
+              roomId: firstRoom.id,
+              room: {
+                id: firstRoom.id,
+                name: firstRoom.roomName || 'Phòng tự động',
+                capacity: firstRoom.capacity || 0
+              }
+            };
+          }
+        } catch (err) {
+          console.warn('Could not load room for slot', err);
+          // Continue without room - will be assigned by backend
+        }
+      }
+      
       updateData({ 
         slotId: selectedSlotId,
-        slot: selectedSlot
+        slot: selectedSlot,
+        ...roomData
       });
       return true;
     }
@@ -64,18 +107,27 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
           ? response.items
           : [];
 
-      const mapped = items.map((slot) => ({
-        id: slot.id,
-        branchName: slot.branch?.branchName || slot.branchName || '',
-        weekDay: slot.weekDate,
-        status: slot.status || 'Available',
-        timeframeName: slot.timeframe?.name || slot.timeframeName || '',
-        startTime: slot.timeframe?.startTime || slot.startTime,
-        endTime: slot.timeframe?.endTime || slot.endTime,
-        slotTypeName: slot.slotType?.name || slot.slotTypeName || '',
-        slotTypeDescription: slot.slotType?.description || slot.slotTypeDescription || '',
-        description: slot.description || ''
-      }));
+      const mapped = items.map((slot) => {
+        // Auto-assign room from first staff member if available
+        const firstStaff = Array.isArray(slot.staff) && slot.staff.length > 0 ? slot.staff[0] : null;
+        const roomId = firstStaff?.roomId || null;
+        const roomName = firstStaff?.roomName || null;
+
+        return {
+          id: slot.id,
+          branchName: slot.branch?.branchName || slot.branchName || '',
+          weekDay: slot.weekDate,
+          status: slot.status || 'Available',
+          timeframeName: slot.timeframe?.name || slot.timeframeName || '',
+          startTime: slot.timeframe?.startTime || slot.startTime,
+          endTime: slot.timeframe?.endTime || slot.endTime,
+          slotTypeName: slot.slotType?.name || slot.slotTypeName || '',
+          slotTypeDescription: slot.slotType?.description || slot.slotTypeDescription || '',
+          description: slot.description || '',
+          roomId: roomId,
+          roomName: roomName
+        };
+      });
 
       setSlots(mapped);
     } catch (err) {
@@ -96,31 +148,84 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
     }
   };
 
-  const handleSlotSelect = (slotId) => {
+  const handleSlotSelect = async (slotId) => {
+    // If clicking the same slot that's already selected, deselect it
+    if (selectedSlotId === slotId) {
+      handleSlotDeselect();
+      return;
+    }
+
     setSelectedSlotId(slotId);
     const selectedSlot = slots.find(s => s.id === slotId);
+    
+    // Auto-assign roomId and room info when slot is selected
+    let roomData = {};
+    
+    if (selectedSlot?.roomId) {
+      // Room already available from slot data
+      roomData = {
+        roomId: selectedSlot.roomId,
+        room: {
+          id: selectedSlot.roomId,
+          name: selectedSlot.roomName || 'Phòng tự động'
+        }
+      };
+    } else {
+      // Try to get room from API
+      try {
+        const roomsResponse = await branchSlotService.getRoomsByBranchSlot(slotId, {
+          pageIndex: 1,
+          pageSize: 1
+        });
+        const rooms = Array.isArray(roomsResponse)
+          ? roomsResponse
+          : Array.isArray(roomsResponse?.items)
+            ? roomsResponse.items
+            : [];
+        
+        if (rooms.length > 0) {
+          const firstRoom = rooms[0];
+          roomData = {
+            roomId: firstRoom.id,
+            room: {
+              id: firstRoom.id,
+              name: firstRoom.roomName || 'Phòng tự động',
+              capacity: firstRoom.capacity || 0
+            }
+          };
+        }
+      } catch (err) {
+        console.warn('Could not load room for slot', err);
+        // Continue without room - will be assigned by backend
+      }
+    }
+    
     updateData({ 
       slotId: slotId,
-      slot: selectedSlot
+      slot: selectedSlot,
+      ...roomData
     });
+  };
+
+  const handleSlotDeselect = () => {
+    setSelectedSlotId('');
+    updateData({ 
+      slotId: null,
+      slot: null,
+      roomId: null,
+      room: null
+    });
+  };
+
+  const handleCancelClick = (e, slotId) => {
+    e.stopPropagation(); // Prevent card click event
+    if (selectedSlotId === slotId) {
+      handleSlotDeselect();
+    }
   };
 
   return (
     <div className={styles.stepContainer}>
-      <div className={styles.stepHeader}>
-        <h2 className={styles.stepTitle}>Chọn slot phù hợp</h2>
-        <p className={styles.stepSubtitle}>
-          Danh sách khung giờ học mà chi nhánh có thể xếp cho học sinh
-        </p>
-        <button
-          className={styles.secondaryButton}
-          onClick={() => loadAvailableSlots(data?.studentId)}
-          disabled={!data?.studentId}
-        >
-          Tải lại
-        </button>
-      </div>
-
       {isLoading ? (
         <div className={styles.inlineLoading}>
           <Loading />
@@ -184,10 +289,25 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
                 </div>
               )}
 
-              {selectedSlotId === slot.id && (
-                <div className={styles.selectedIndicator}>
-                  ✓ Đã chọn
-                </div>
+              {selectedSlotId === slot.id ? (
+                <button
+                  className={styles.cancelButton}
+                  onClick={(e) => handleCancelClick(e, slot.id)}
+                  type="button"
+                >
+                  ✕ Hủy chọn
+                </button>
+              ) : (
+                <button
+                  className={styles.selectButton}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSlotSelect(slot.id);
+                  }}
+                  type="button"
+                >
+                  ✓ Chọn
+                </button>
               )}
             </div>
           ))}

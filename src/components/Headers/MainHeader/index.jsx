@@ -61,7 +61,7 @@ const MainHeader = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Link to="/login" className={`${styles.btn} ${styles.btnOutline}`}>
+            <Link to="/login" className={`${styles.btn} ${styles.btnPrimary}`}>
               Đăng Nhập
             </Link>
           </motion.div>

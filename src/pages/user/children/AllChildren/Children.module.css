@@ -28,8 +28,8 @@
 }
 
 .addButton {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border: none;
   padding: 12px 24px;
   border-radius: var(--radius-lg);
@@ -42,9 +42,10 @@
 }
 
 .addButton:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-colored);
+  box-shadow: var(--shadow-md);
 }
 
 .addForm {
@@ -111,7 +112,7 @@
 
 .saveButton {
   background-color: #28a745;
-  color: white;
+  color: var(--text-primary);
   border: none;
   padding: 12px 24px;
   border-radius: 6px;
@@ -127,7 +128,7 @@
 
 .cancelButton {
   background-color: #6c757d;
-  color: white;
+  color: var(--text-primary);
   border: none;
   padding: 12px 24px;
   border-radius: 6px;
@@ -224,38 +225,46 @@
 
 .profileButton {
   flex: 1;
-  background-color: #007bff;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   text-decoration: none;
   text-align: center;
   padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .profileButton:hover {
-  background-color: #0056b3;
-  color: white;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .scheduleButton {
   flex: 1;
-  background-color: #28a745;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   text-decoration: none;
   text-align: center;
   padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .scheduleButton:hover {
-  background-color: #218838;
-  color: white;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .emptyState {
@@ -285,19 +294,24 @@
 }
 
 .addFirstButton {
-  background-color: #007bff;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border: none;
   padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .addFirstButton:hover {
-  background-color: #0056b3;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .loadingState {
@@ -325,7 +339,7 @@
 
 .retryButton {
   background-color: #b02a37;
-  color: white;
+  color: var(--text-primary);
   border: none;
   padding: 10px 20px;
   border-radius: 6px;

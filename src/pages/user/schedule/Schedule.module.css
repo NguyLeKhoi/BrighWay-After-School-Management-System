@@ -121,17 +121,19 @@
   padding: 10px 18px;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: white;
+  font-family: var(--font-family);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-base);
   box-shadow: var(--shadow-sm);
 }
 
 .primaryButton:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-colored);
+  box-shadow: var(--shadow-md);
 }
 
 .primaryButton.activeButton {
@@ -443,17 +445,19 @@
   padding: 12px 24px;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
-  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
-  color: white;
+  font-family: var(--font-family);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-base);
   box-shadow: var(--shadow-sm);
 }
 
 .bookButton:hover {
-  background: linear-gradient(135deg, var(--color-success-dark) 0%, var(--color-success) 100%);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), 0 10px 30px -5px rgba(16, 185, 129, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .bookButton:disabled {
@@ -498,6 +502,58 @@
   font-size: 14px;
   font-weight: 600;
   text-align: center;
+}
+
+.selectButton,
+.cancelButton {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  min-height: 40px; /* Ensure consistent height */
+}
+
+.selectButton {
+  background: var(--color-primary);
+  color: white;
+}
+
+.selectButton:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.selectButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.cancelButton {
+  background: var(--color-error);
+  color: white;
+}
+
+.cancelButton:hover {
+  background: var(--color-error-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.cancelButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .selectedSlotInfo {
@@ -552,6 +608,150 @@
   white-space: pre-wrap;
 }
 
+.calendarContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.calendarContainer :global(.fc) {
+  font-family: var(--font-family);
+}
+
+.calendarContainer :global(.fc-header-toolbar) {
+  margin-bottom: 16px;
+}
+
+.calendarContainer :global(.fc-toolbar-title) {
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.calendarContainer :global(.fc-button) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.calendarContainer :global(.fc-button:hover) {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.calendarContainer :global(.fc-button:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.calendarContainer :global(.fc-daygrid-day) {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.calendarContainer :global(.fc-daygrid-day:hover:not(.fc-day-disabled)) {
+  background-color: var(--color-primary-50);
+}
+
+/* Highlight selected date cell background */
+.calendarContainer :global(.fc-daygrid-day.fc-day-selected) {
+  background-color: #dcfce7 !important; /* Light green background */
+}
+
+.calendarContainer :global(.fc-daygrid-day.fc-day-selected .fc-daygrid-day-frame) {
+  background-color: #dcfce7 !important;
+}
+
+.calendarContainer :global(.fc-day-disabled) {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.disabledDate {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.selectedDateCell {
+  background: #22c55e !important; /* Green color */
+  color: white !important;
+  border-radius: 8px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 8px !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3) !important;
+  transition: all 0.2s ease !important;
+  gap: 2px !important;
+}
+
+.selectedDateCell:hover {
+  background: #16a34a !important; /* Darker green on hover */
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
+  transform: scale(1.05) !important;
+}
+
+.dateNumber {
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+  color: white !important;
+  margin: 0 !important;
+}
+
+.checkIcon {
+  font-size: 16px !important;
+  color: white !important;
+  margin: 0 !important;
+  animation: checkIn 0.3s ease-out !important;
+  flex-shrink: 0 !important;
+}
+
+@keyframes checkIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.calendarContainer :global(.fc-daygrid-day-number) {
+  padding: 4px;
+}
+
+.calendarContainer :global(.fc-day-today) {
+  background-color: var(--bg-tertiary);
+}
+
+.summaryTitle {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.helperText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0 16px;
@@ -579,6 +779,10 @@
 
   .confirmInfoGrid {
     grid-template-columns: 1fr;
+  }
+
+  .calendarContainer {
+    padding: 12px;
   }
 }
 

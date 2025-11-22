@@ -37,7 +37,7 @@ const ManagerStaffHeader = () => {
 
   if (loading) {
     return (
-      <AppBar position="fixed" sx={{ bgcolor: '#1976d2' }}>
+      <AppBar position="fixed" sx={{ bgcolor: 'var(--color-primary)' }}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Đang tải...

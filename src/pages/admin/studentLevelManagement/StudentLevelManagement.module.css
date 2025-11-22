@@ -21,8 +21,8 @@
 }
 
 .addButton {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
-  color: var(--bg-primary) !important;
+  background: var(--color-secondary) !important;
+  color: var(--text-primary) !important;
   font-weight: var(--font-weight-semibold);
   font-family: var(--font-family);
   padding: 10px 20px;
@@ -34,9 +34,10 @@
 }
 
 .addButton:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%) !important;
+  background: var(--color-secondary-dark) !important;
+  color: var(--text-inverse) !important;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-colored);
+  box-shadow: var(--shadow-md);
 }
 
 .searchSection {
@@ -62,8 +63,8 @@
 }
 
 .searchButton {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
-  color: var(--bg-primary) !important;
+  background: var(--color-secondary) !important;
+  color: var(--text-primary) !important;
   font-weight: var(--font-weight-semibold);
   font-family: var(--font-family);
   padding: 10px 20px;
@@ -76,7 +77,8 @@
 }
 
 .searchButton:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%) !important;
+  background: var(--color-secondary-dark) !important;
+  color: var(--text-inverse) !important;
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }

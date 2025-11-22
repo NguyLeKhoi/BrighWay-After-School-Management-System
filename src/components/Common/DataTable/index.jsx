@@ -156,7 +156,7 @@ const DataTable = ({
                     <TableRow>
                       <TableCell
                         colSpan={columns.length + (showActions ? 1 : 0) + 1}
-                        sx={{ backgroundColor: '#f9f9f9', p: 2 }}
+                        sx={{ backgroundColor: 'var(--bg-secondary)', p: 2 }}
                       >
                         {renderExpandedContent(item)}
                       </TableCell>

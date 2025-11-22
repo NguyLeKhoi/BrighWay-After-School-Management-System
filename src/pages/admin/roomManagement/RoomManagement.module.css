@@ -21,8 +21,8 @@
 }
 
 .addButton {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: var(--bg-primary);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   padding: 10px 20px;
   border-radius: var(--radius-lg);
   text-transform: none;
@@ -35,9 +35,10 @@
 }
 
 .addButton:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-colored);
+  box-shadow: var(--shadow-md);
 }
 
 /* Filter Section */
@@ -115,8 +116,8 @@
 }
 
 .filterButton {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: var(--bg-primary);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   text-transform: none;
   font-weight: var(--font-weight-semibold);
   font-family: var(--font-family);
@@ -125,7 +126,8 @@
 }
 
 .filterButton:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
@@ -157,8 +159,8 @@
   align-items: center;
   gap: 8px;
   padding: 16px 24px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: var(--bg-primary);
+  background: var(--color-primary);
+  color: var(--text-primary);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
@@ -166,7 +168,7 @@
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
   font-family: var(--font-family);
-  color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .dialogContent {

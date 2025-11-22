@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import StepperForm from '../../../components/Common/StepperForm';
 import Step1SelectStudent from './Step1SelectStudent';
 import Step2SelectSlot from './Step2SelectSlot';
-import Step3SelectRoom from './Step3SelectRoom';
+import Step3SelectDate from './Step3SelectDate';
 import Step4SelectPackage from './Step4SelectPackage';
 import Step5Confirm from './Step5Confirm';
 import studentSlotService from '../../../services/studentSlot.service';
@@ -73,13 +73,16 @@ const MySchedule = () => {
   };
 
   const handleComplete = useCallback(async (formData) => {
-    if (!formData.studentId || !formData.slotId || !formData.roomId || !formData.subscriptionId) {
+    if (!formData.studentId || !formData.slotId || !formData.subscriptionId || !formData.selectedDate) {
       addNotification({
         message: 'Vui lòng hoàn thành đầy đủ thông tin',
         severity: 'warning'
       });
       return;
     }
+    
+    // RoomId is optional - backend will auto-assign if not provided
+    // But we'll try to use it if available
 
     setIsBooking(true);
     try {
@@ -107,14 +110,17 @@ const MySchedule = () => {
         console.warn('Could not fetch subscription name', err);
       }
 
-      const slotDateTime = getNextSlotDate(formData.slot);
-      const isoDate = slotDateTime.toISOString();
+      // Use selected date from formData, or fallback to calculated date
+      const selectedDate = formData.selectedDate instanceof Date 
+        ? formData.selectedDate 
+        : new Date(formData.selectedDate);
+      const isoDate = selectedDate.toISOString();
 
       await studentSlotService.bookSlot({
         studentId: formData.studentId,
         branchSlotId: formData.slotId,
         packageSubscriptionId: formData.subscriptionId,
-        roomId: formData.roomId,
+        roomId: formData.roomId || null, // Optional - backend will auto-assign if null
         date: isoDate,
         parentNote: formData.parentNote || ''
       });
@@ -190,12 +196,12 @@ const MySchedule = () => {
       }
     },
     {
-      label: 'Chọn phòng',
-      component: Step3SelectRoom,
+      label: 'Chọn ngày',
+      component: Step3SelectDate,
       validation: async (data) => {
-        if (!data.roomId) {
+        if (!data.selectedDate) {
           addNotification({
-            message: 'Vui lòng chọn phòng',
+            message: 'Vui lòng chọn ngày học',
             severity: 'warning'
           });
           return false;

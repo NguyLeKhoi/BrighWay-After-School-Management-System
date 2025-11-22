@@ -55,9 +55,13 @@ const Step5Confirm = forwardRef(({ data }, ref) => {
     return result;
   };
 
-  const slotDate = data?.slot ? getNextSlotDate(data.slot) : null;
-  const formattedDate = slotDate
-    ? slotDate.toLocaleDateString('vi-VN', {
+  // Use selectedDate from formData, or calculate from slot
+  const selectedDate = data?.selectedDate 
+    ? (data.selectedDate instanceof Date ? data.selectedDate : new Date(data.selectedDate))
+    : (data?.slot ? getNextSlotDate(data.slot) : null);
+  
+  const formattedDate = selectedDate
+    ? selectedDate.toLocaleDateString('vi-VN', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -107,6 +111,14 @@ const Step5Confirm = forwardRef(({ data }, ref) => {
               <p className={styles.infoLabel}>Ngày học</p>
               <p className={styles.infoValue}>{formattedDate}</p>
             </div>
+            {selectedDate && (
+              <div>
+                <p className={styles.infoLabel}>Giờ học</p>
+                <p className={styles.infoValue}>
+                  {formatTime(data?.slot?.startTime)} - {formatTime(data?.slot?.endTime)}
+                </p>
+              </div>
+            )}
             <div>
               <p className={styles.infoLabel}>Chi nhánh</p>
               <p className={styles.infoValue}>{data?.slot?.branchName || '—'}</p>
@@ -119,12 +131,14 @@ const Step5Confirm = forwardRef(({ data }, ref) => {
           <div className={styles.confirmInfoGrid}>
             <div>
               <p className={styles.infoLabel}>Tên phòng</p>
-              <p className={styles.infoValue}>{data?.room?.name || '—'}</p>
+              <p className={styles.infoValue}>{data?.room?.name || 'Tự động gán'}</p>
             </div>
-            <div>
-              <p className={styles.infoLabel}>Sức chứa</p>
-              <p className={styles.infoValue}>{data?.room?.capacity || '—'} chỗ</p>
-            </div>
+            {data?.room?.capacity && (
+              <div>
+                <p className={styles.infoLabel}>Sức chứa</p>
+                <p className={styles.infoValue}>{data.room.capacity} chỗ</p>
+              </div>
+            )}
           </div>
         </div>
 

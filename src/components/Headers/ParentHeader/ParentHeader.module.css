@@ -25,7 +25,7 @@
 
 .logoLink {
   text-decoration: none;
-  color: #000;
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -93,8 +93,8 @@
 }
 
 .logoutButton:hover {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  color: var(--bg-primary);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border-color: transparent;
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);

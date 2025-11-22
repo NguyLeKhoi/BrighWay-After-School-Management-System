@@ -9,7 +9,7 @@ const buttonVariants = {
   },
   hover: {
     scale: 1.02,
-    boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.3)',
+    boxShadow: 'var(--shadow-md)',
     transition: {
       duration: 0.2,
       ease: [0.4, 0, 0.2, 1]

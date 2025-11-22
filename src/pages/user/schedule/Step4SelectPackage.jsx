@@ -126,11 +126,16 @@ const Step4SelectPackage = forwardRef(({ data, updateData }, ref) => {
                 </p>
               </div>
             )}
-            {data?.room && (
+            {data?.selectedDate && (
               <div>
-                <p className={styles.infoLabel}>Phòng</p>
+                <p className={styles.infoLabel}>Ngày học</p>
                 <p className={styles.infoValue}>
-                  {data.room.name} · {data.room.capacity} chỗ
+                  {new Date(data.selectedDate).toLocaleDateString('vi-VN', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
                 </p>
               </div>
             )}

@@ -87,13 +87,14 @@
 }
 
 .homeButton {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  color: var(--bg-primary);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   box-shadow: var(--shadow-md);
 }
 
 .homeButton:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-secondary-dark));
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -105,8 +106,8 @@
 }
 
 .backButton:hover {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  color: var(--bg-primary);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
@@ -117,10 +118,11 @@
 }
 
 .helpText {
-  font-size: 14px;
-  color: #666;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
   margin-bottom: 15px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
 }
 
 .helpList {
@@ -137,21 +139,22 @@
 }
 
 .helpLink {
-  color: #1976d2;
+  color: var(--color-primary);
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
   padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-md);
+  transition: var(--transition-all);
   display: block;
   text-align: center;
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
 }
 
 .helpLink:hover {
-  background-color: #e3f2fd;
-  color: #1565c0;
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-dark);
 }
 
 .notfoundIllustration {

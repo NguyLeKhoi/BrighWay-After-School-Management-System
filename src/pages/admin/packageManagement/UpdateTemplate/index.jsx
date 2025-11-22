@@ -56,7 +56,6 @@ const Step1TemplateBasic = forwardRef(({ data, updateData }, ref) => {
         loading={loading}
         disabled={loading}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );
@@ -108,7 +107,6 @@ const Step2PricingDuration = forwardRef(({ data, updateData }, ref) => {
         loading={loading}
         disabled={loading}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );
@@ -159,7 +157,6 @@ const Step3Slots = forwardRef(({ data, updateData }, ref) => {
         loading={loading}
         disabled={loading}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );

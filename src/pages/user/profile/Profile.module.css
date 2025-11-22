@@ -60,7 +60,7 @@
   height: 80px;
   border-radius: 50%;
   background: #007bff;
-  color: white;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -179,18 +179,23 @@
 
 .saveButton {
   padding: 10px 24px;
-  background: #007bff;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .saveButton:hover {
-  background: #0056b3;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .cancelButton {
@@ -227,19 +232,24 @@
 }
 
 .retryButton {
-  background: #007bff;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border: none;
   padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .retryButton:hover {
-  background: #0056b3;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Mobile Responsive */

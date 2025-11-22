@@ -91,7 +91,7 @@
 }
 
 .filterButton.active {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: var(--color-primary);
   color: white;
   border-color: var(--color-primary);
   box-shadow: var(--shadow-sm);
@@ -287,17 +287,22 @@
 }
 
 .retryButton {
-  background-color: #007bff;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .retryButton:hover {
-  background-color: #0056b3;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }

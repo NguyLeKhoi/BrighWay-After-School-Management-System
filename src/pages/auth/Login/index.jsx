@@ -69,9 +69,9 @@ const Login = () => {
               <IconButton
                 onClick={() => navigate('/')}
                 sx={{
-                  color: '#1976d2',
+                  color: 'var(--color-primary)',
                   '&:hover': {
-                    backgroundColor: 'rgba(25, 118, 210, 0.08)'
+                    backgroundColor: 'var(--color-primary-50)'
                   }
                 }}
                 title="Về trang chủ"
@@ -84,14 +84,16 @@ const Login = () => {
             <Box sx={{ mb: 3, textAlign: 'center' }}>
               <Typography variant="h4" component="h1" sx={{ 
                 fontWeight: 'bold', 
-                color: '#1976d2',
-                mb: 1
+                color: 'var(--color-primary)',
+                mb: 1,
+                fontFamily: 'var(--font-family-heading)'
               }}>
                 BRIGHWAY
               </Typography>
               <Typography variant="h6" component="h2" sx={{ 
-                color: '#666',
-                fontWeight: 'normal'
+                color: 'var(--text-secondary)',
+                fontWeight: 'normal',
+                fontFamily: 'var(--font-family)'
               }}>
                 After School Management Portal
               </Typography>

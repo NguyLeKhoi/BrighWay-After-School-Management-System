@@ -95,7 +95,7 @@
   transform: translateY(-50%);
   pointer-events: none;
   font-size: 0.85rem;
-  color: #4a5568;
+  color: var(--text-secondary);
 }
 
 .checkboxGroup {
@@ -107,19 +107,20 @@
 .checkbox {
   width: 18px;
   height: 18px;
-  accent-color: #667eea;
+  accent-color: var(--color-primary);
 }
 
 .checkboxLabel {
-  font-weight: 500;
-  color: #374151;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
   cursor: pointer;
   margin-bottom: 0;
+  font-family: var(--font-family);
 }
 
 .submitButton {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  color: var(--bg-primary);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border: none;
   padding: 14px 32px;
   border-radius: var(--radius-lg);
@@ -133,7 +134,8 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-secondary-dark));
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -163,9 +165,9 @@
 
 /* Highlight field styles */
 .highlightField {
-  background-color: #f8f9fa;
-  border: 2px solid #007bff;
-  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
   padding: 16px;
   margin-bottom: 16px;
   position: relative;
@@ -176,28 +178,29 @@
   position: absolute;
   top: -8px;
   left: 12px;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--text-inverse);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 12px;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .highlightField .formLabel {
-  color: #007bff;
-  font-weight: bold;
-  font-size: 14px;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
 }
 
 .highlightField .formInput {
-  border-color: #007bff;
-  background-color: white;
+  border-color: var(--color-primary);
+  background-color: var(--bg-primary);
 }
 
 .highlightField .formInput:focus {
-  border-color: #0056b3;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--color-primary-dark);
+  box-shadow: 0 0 0 2px var(--color-primary-50);
 }
 
 .sectionHeader {

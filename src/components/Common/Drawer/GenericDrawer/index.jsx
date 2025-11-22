@@ -62,7 +62,7 @@ const GenericDrawer = ({
           textAlign: 'center', 
           borderBottom: 1, 
           borderColor: 'divider',
-          background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+          background: 'var(--color-primary)',
           color: 'white'
         }}>
           <Typography 

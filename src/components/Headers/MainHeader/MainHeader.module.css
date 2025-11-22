@@ -20,7 +20,7 @@
 
 .headerLogo .logoLink {
   text-decoration: none;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .headerLogo h1 {
@@ -105,14 +105,16 @@
 }
 
 .btnPrimary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: var(--text-inverse);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border-color: transparent;
   box-shadow: var(--shadow-sm);
 }
 
 .btnPrimary:hover {
-  box-shadow: var(--shadow-md), var(--shadow-colored);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
@@ -124,7 +126,7 @@
 
 .btnOutline:hover {
   background: var(--color-primary);
-  color: var(--text-inverse);
+  color: var(--text-primary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }

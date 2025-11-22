@@ -104,7 +104,6 @@ const Step2Associations = React.forwardRef(
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
             fields={fields}
-            showReset={false}
             hideSubmitButton
             disabled={dependenciesLoading}
           />
