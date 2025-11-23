@@ -1,22 +1,30 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
-  Alert
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
 import {
-  Person as PersonIcon,
-  Groups as GroupsIcon
+  FamilyRestroom as FamilyIcon,
+  PhotoCamera as PhotoCameraIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
-import StaffAccountForm from '../../../components/AccountForms/StaffAccountForm';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
-import { createUserSchema, updateManagerUserSchema } from '../../../utils/validationSchemas/userSchemas';
+import { updateManagerUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
@@ -25,31 +33,31 @@ import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
 import { createManagerUserFormFields } from '../../../constants/manager/staff/formFields';
 import { toast } from 'react-toastify';
-import styles from './staffAndParentManagement.module.css';
+import styles from '../staffAndParentManagement/staffAndParentManagement.module.css';
 
-const StaffAndParentManagement = () => {
+const ParentManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isInitialMount = React.useRef(true);
+  const isInitialMount = useRef(true);
   
-  // Staff CRUD - memoize loadFunction to prevent unnecessary re-renders
-  const loadStaffFunction = useCallback(async (params) => {
+  // Parent CRUD - memoize loadFunction to prevent unnecessary re-renders
+  const loadParentFunction = useCallback(async (params) => {
     return await userService.getUsersPagedByRole({
       pageIndex: params.page || params.pageIndex || 1,
       pageSize: params.pageSize || params.rowsPerPage || 10,
-      Role: 'Staff',
+      Role: 'User',
       Keyword: params.Keyword || params.searchTerm || ''
     });
   }, []);
 
-  const staffCrud = useBaseCRUD({
-    loadFunction: loadStaffFunction,
+  const parentCrud = useBaseCRUD({
+    loadFunction: loadParentFunction,
     loadOnMount: true
   });
 
   // Reload data when navigate back to this page (e.g., from create pages)
   useEffect(() => {
-    if (location.pathname === '/manager/staff') {
+    if (location.pathname === '/manager/parents') {
       // Skip first mount to avoid double loading
       if (isInitialMount.current) {
         isInitialMount.current = false;
@@ -59,7 +67,7 @@ const StaffAndParentManagement = () => {
       // Only reload if we're actually navigating back (not just re-rendering)
       // Use a ref to track if we've already reloaded for this pathname
       const timeoutId = setTimeout(() => {
-        staffCrud.loadData(false);
+        parentCrud.loadData(false);
       }, 100);
       
       return () => clearTimeout(timeoutId);
@@ -73,9 +81,7 @@ const StaffAndParentManagement = () => {
   
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
-  const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -122,9 +128,13 @@ const StaffAndParentManagement = () => {
   );
   
   // Create handler
-  const handleCreateStaff = () => {
-    setIsSubmitting(false);
-    setOpenCreateDialog(true);
+  const handleCreateParent = () => {
+    // Show mode selection dialog for parent
+    setShowParentModeDialog(true);
+  };
+
+  const handleNavigateToCreateParent = (parentMode) => {
+    navigate(`/manager/parents/create?mode=${parentMode}`);
   };
   
   // Edit handler
@@ -132,14 +142,8 @@ const StaffAndParentManagement = () => {
     setActionLoading(true);
     
     try {
-      const isUser = user.roles && user.roles.includes('User');
-      
-      if (isUser) {
-        const expandedUser = await userService.getUserById(user.id, true);
-        setSelectedUser(expandedUser);
-      } else {
-        setSelectedUser(user);
-      }
+      const expandedUser = await userService.getUserById(user.id, true);
+      setSelectedUser(expandedUser);
       setOpenDialog(true);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi lấy thông tin người dùng';
@@ -173,8 +177,8 @@ const StaffAndParentManagement = () => {
       toast.success('Xóa người dùng thành công!');
       
       // Reload data
-      if (staffCrud.loadData) {
-        staffCrud.loadData(false);
+      if (parentCrud.loadData) {
+        parentCrud.loadData(false);
       }
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa người dùng';
@@ -215,8 +219,8 @@ const StaffAndParentManagement = () => {
       toast.success(`Cập nhật người dùng "${data.name || data.fullName}" thành công!`);
       
       // Reload data
-      if (staffCrud.loadData) {
-        staffCrud.loadData(false);
+      if (parentCrud.loadData) {
+        parentCrud.loadData(false);
       }
       setOpenDialog(false);
     } catch (err) {
@@ -229,36 +233,23 @@ const StaffAndParentManagement = () => {
     }
   };
   
-  // Staff submit handler
-  const handleStaffSubmit = async (data) => {
-    try {
-      await userService.createStaff(data);
-      toast.success('Tạo tài khoản Staff thành công!');
-      if (staffCrud.loadData) {
-        staffCrud.loadData(false);
-      }
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage);
-      throw err;
-    }
-  };
+  // Parent creation mode state
+  const [parentCreationMode, setParentCreationMode] = useState('ocr'); // 'ocr' or 'manual'
+  const [showParentModeDialog, setShowParentModeDialog] = useState(false);
   
   return (
     <div className={styles.container}>
-      {staffCrud.isPageLoading && <ContentLoading isLoading={staffCrud.isPageLoading} text={staffCrud.loadingText} />}
+      {parentCrud.isPageLoading && <ContentLoading isLoading={parentCrud.isPageLoading} text={parentCrud.loadingText} />}
       
       {/* Header */}
       <ManagementPageHeader
-        title="Quản lý Nhân Viên"
-        createButtonText="Tạo Nhân Viên"
-        onCreateClick={handleCreateStaff}
+        title="Quản lý Phụ Huynh"
+        createButtonText="Tạo Phụ Huynh"
+        onCreateClick={handleCreateParent}
       />
 
       {/* Error Alert */}
-      {(error || staffCrud.error) && (
+      {(error || parentCrud.error) && (
         <Alert 
           severity="error" 
           className={styles.errorAlert} 
@@ -266,33 +257,33 @@ const StaffAndParentManagement = () => {
             setError(null);
           }}
         >
-          {error || staffCrud.error}
+          {error || parentCrud.error}
         </Alert>
       )}
 
       {/* Content */}
       <Box sx={{ mt: 2 }}>
         <ManagementSearchSection
-          keyword={staffCrud.keyword}
-          onKeywordChange={staffCrud.handleKeywordChange}
-          onSearch={staffCrud.handleKeywordSearch}
-          onClear={staffCrud.handleClearSearch}
-          placeholder="Tìm kiếm nhân viên theo tên, email..."
+          keyword={parentCrud.keyword}
+          onKeywordChange={parentCrud.handleKeywordChange}
+          onSearch={parentCrud.handleKeywordSearch}
+          onClear={parentCrud.handleClearSearch}
+          placeholder="Tìm kiếm phụ huynh theo tên, email..."
         />
 
         <div className={styles.tableContainer}>
           <DataTable
-            data={staffCrud.data}
+            data={parentCrud.data}
             columns={columns}
-            loading={staffCrud.isPageLoading}
-            page={staffCrud.page}
-            rowsPerPage={staffCrud.rowsPerPage}
-            totalCount={staffCrud.totalCount}
-            onPageChange={staffCrud.handlePageChange}
-            onRowsPerPageChange={staffCrud.handleRowsPerPageChange}
+            loading={parentCrud.isPageLoading}
+            page={parentCrud.page}
+            rowsPerPage={parentCrud.rowsPerPage}
+            totalCount={parentCrud.totalCount}
+            onPageChange={parentCrud.handlePageChange}
+            onRowsPerPageChange={parentCrud.handleRowsPerPageChange}
             onEdit={handleEditUser}
             onDelete={handleDeleteUser}
-            emptyMessage="Không có nhân viên nào. Hãy tạo tài khoản nhân viên đầu tiên để bắt đầu."
+            emptyMessage="Không có phụ huynh nào. Hãy tạo tài khoản phụ huynh đầu tiên để bắt đầu."
           />
         </div>
       </Box>
@@ -302,8 +293,8 @@ const StaffAndParentManagement = () => {
         open={openDialog}
         onClose={() => !actionLoading && setOpenDialog(false)}
         mode="edit"
-        title="Người Dùng"
-        icon={PersonIcon}
+        title="Phụ Huynh"
+        icon={FamilyIcon}
         loading={actionLoading}
         maxWidth="sm"
       >
@@ -335,32 +326,98 @@ const StaffAndParentManagement = () => {
         confirmColor="error"
       />
 
-      {/* Create Account Dialog */}
-      <ManagementFormDialog
-        open={openCreateDialog}
-        onClose={() => {
-          if (!isSubmitting) {
-            setOpenCreateDialog(false);
-            setIsSubmitting(false);
-          }
-        }}
-        mode="create"
-        title="Tài Khoản Nhân Viên"
-        icon={GroupsIcon}
-        loading={isSubmitting}
-        maxWidth="md"
+      {/* Parent Mode Selection Dialog */}
+      <Dialog
+        open={showParentModeDialog}
+        onClose={() => setShowParentModeDialog(false)}
+        maxWidth="sm"
+        fullWidth
       >
-        <StaffAccountForm
-          isSubmitting={isSubmitting}
-          setIsSubmitting={setIsSubmitting}
-          onStaffSubmit={handleStaffSubmit}
-          onSuccess={() => {
-            setOpenCreateDialog(false);
-          }}
-        />
-      </ManagementFormDialog>
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          Chọn phương thức tạo tài khoản Phụ huynh
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Vui lòng chọn một trong hai phương thức sau:
+          </Typography>
+          <ToggleButtonGroup
+            value={parentCreationMode}
+            exclusive
+            onChange={(e, value) => value && setParentCreationMode(value)}
+            fullWidth
+            orientation="vertical"
+            sx={{ gap: 2 }}
+          >
+            <ToggleButton
+              value="ocr"
+              sx={{
+                p: 3,
+                textAlign: 'left',
+                justifyContent: 'flex-start',
+                '&.Mui-selected': {
+                  backgroundColor: 'primary.50',
+                  borderColor: 'primary.main',
+                  borderWidth: 2
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <PhotoCameraIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Sử dụng OCR (Chụp CCCD)
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Tự động trích xuất thông tin từ ảnh CCCD
+                  </Typography>
+                </Box>
+              </Box>
+            </ToggleButton>
+            <ToggleButton
+              value="manual"
+              sx={{
+                p: 3,
+                textAlign: 'left',
+                justifyContent: 'flex-start',
+                '&.Mui-selected': {
+                  backgroundColor: 'primary.50',
+                  borderColor: 'primary.main',
+                  borderWidth: 2
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <EditIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Nhập thủ công
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Nhập thông tin từng bước bằng form
+                  </Typography>
+                </Box>
+              </Box>
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowParentModeDialog(false)}>
+            Hủy
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setShowParentModeDialog(false);
+              handleNavigateToCreateParent(parentCreationMode);
+            }}
+          >
+            Tiếp tục
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
 
-export default StaffAndParentManagement;
+export default ParentManagement;
+

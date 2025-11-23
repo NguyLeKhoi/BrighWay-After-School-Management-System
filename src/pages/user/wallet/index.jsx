@@ -47,9 +47,9 @@ import {
 } from '@mui/icons-material';
 import Tabs from '@components/Common/Tabs';
 import Card from '@components/Common/Card';
-import Loading from '@components/Common/Loading';
+import ContentLoading from '@components/Common/ContentLoading';
 import { useApp } from '../../../contexts/AppContext';
-import { useLoading } from '../../../hooks/useLoading';
+import useContentLoading from '../../../hooks/useContentLoading';
 import depositService from '../../../services/deposit.service';
 import walletService from '../../../services/wallet.service';
 import studentService from '../../../services/student.service';
@@ -111,7 +111,7 @@ const MyWallet = () => {
   const [showTopUpForm, setShowTopUpForm] = useState(false);
 
   const { showGlobalError, addNotification } = useApp();
-  const { showLoading, hideLoading } = useLoading();
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading();
 
   const loadWalletData = async ({ showSpinner = false } = {}) => {
     setWalletError(null);
@@ -591,7 +591,7 @@ const MyWallet = () => {
   ].filter(Boolean);
 
   if (isWalletLoading) {
-    return <Loading />;
+    return <ContentLoading isLoading={isWalletLoading} text={loadingText || 'Đang tải thông tin ví...'} />;
   }
 
   return (

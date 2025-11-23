@@ -9,7 +9,7 @@ const Homepage = () => {
   // Ảnh section 1 - giáo viên và học sinh
   const section1Image = (
     <img 
-      src={import.meta.env.VITE_IMAGE_HOMEPAGE_SECTION1 || ''} 
+      src="/images/1.png" 
       alt="Giáo viên và học sinh"
       className={styles.contentImage}
     />
@@ -18,7 +18,7 @@ const Homepage = () => {
   // Ảnh section 2 - môi trường học tập
   const section2Image = (
     <img 
-      src={import.meta.env.VITE_IMAGE_HOMEPAGE_SECTION2 || ''} 
+      src="/images/2.png" 
       alt="Môi trường học tập hiện đại"
       className={styles.contentImage}
     />

@@ -283,9 +283,6 @@ const ChildSchedule = () => {
             >
               + Đăng ký ca học
             </button>
-          <div className={styles.viewInfo}>
-            <span className={styles.infoText}>Chế độ xem</span>
-            </div>
           </div>
         </div>
 

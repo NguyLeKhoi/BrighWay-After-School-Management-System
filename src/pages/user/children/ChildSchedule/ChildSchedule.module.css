@@ -225,8 +225,9 @@
 }
 
 :global(.fc-header-toolbar .fc-button-primary:not(:disabled).fc-button-active) {
-  background-color: #0056b3 !important;
-  border-color: #0056b3 !important;
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: white !important;
 }
 
 :global(.fc-toolbar-title) {

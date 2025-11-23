@@ -42,6 +42,7 @@ import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -52,6 +53,7 @@ import userService from '../../../services/user.service';
 import { createManagerStudentColumns } from '../../../constants/manager/student/tableColumns';
 import styles from './StudentManagement.module.css';
 
+// Pure function - no memoization needed (doesn't depend on component state)
 const mapOptions = (items = [], labelKey = 'name') =>
   items
     .filter((item) => item && item.id && item[labelKey])
@@ -66,7 +68,7 @@ const StudentManagement = () => {
   const location = useLocation();
   const branchIdRef = useRef(user?.branchId || '');
   const isInitialMount = useRef(true);
-  const [activeTab, setActiveTab] = useState(0); // 0 = Approved, 1 = Unverified
+  const [activeTab, setActiveTab] = useState(0); // 0 = Approved, 1 = Unverified, 2 = Approved with Unverified Documents
   const [parentOptions, setParentOptions] = useState([]);
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [studentLevelOptions, setStudentLevelOptions] = useState([]);
@@ -80,6 +82,24 @@ const StudentManagement = () => {
   // Unverified students state
   const [unverifiedStudents, setUnverifiedStudents] = useState([]);
   const [loadingUnverified, setLoadingUnverified] = useState(false);
+  
+  // Approved students with unverified documents state
+  const [approvedWithUnverifiedDocs, setApprovedWithUnverifiedDocs] = useState([]);
+  const [loadingApprovedWithDocs, setLoadingApprovedWithDocs] = useState(false);
+  
+  // Search and filter state for tab 1 (Unverified Students)
+  const [unverifiedSearchKeyword, setUnverifiedSearchKeyword] = useState('');
+  const [unverifiedFilters, setUnverifiedFilters] = useState({
+    schoolId: '',
+    studentLevelId: ''
+  });
+  
+  // Search and filter state for tab 2 (Approved with Unverified Docs)
+  const [approvedDocsSearchKeyword, setApprovedDocsSearchKeyword] = useState('');
+  const [approvedDocsFilters, setApprovedDocsFilters] = useState({
+    schoolId: '',
+    studentLevelId: ''
+  });
   const [approvingStudentId, setApprovingStudentId] = useState(null);
   const [approveConfirmDialog, setApproveConfirmDialog] = useState({
     open: false,
@@ -103,19 +123,29 @@ const StudentManagement = () => {
 
   const studentCrud = useBaseCRUD({
     loadFunction: async (params) => {
+      // Đảm bảo branchId luôn được set từ manager
+      // Ưu tiên: params.branchId (từ filters) > branchIdRef > user?.branchId > branchInfo.id
+      let resolvedBranchId = params.branchId;
+      
+      // Nếu không có trong params hoặc là chuỗi rỗng, lấy từ các nguồn khác
+      if (!resolvedBranchId || resolvedBranchId === '') {
+        resolvedBranchId = branchIdRef.current || user?.branchId || branchInfo.id;
+      }
+      
+      // Không load nếu không có branchId
+      if (!resolvedBranchId) {
+        throw new Error('Không thể xác định chi nhánh. Vui lòng đăng nhập lại.');
+      }
+      
       const pageIndex = params.page || params.pageIndex || 1;
       const pageSize = params.pageSize || params.rowsPerPage || 10;
       const keyword = params.Keyword || params.searchTerm || '';
-      const resolvedBranchId =
-        params.branchId ||
-        branchIdRef.current ||
-        user?.branchId ||
-        undefined;
+      
       return await studentService.getStudentsPaged({
         pageIndex,
         pageSize,
         name: keyword || undefined,
-        branchId: resolvedBranchId,
+        branchId: resolvedBranchId, // Luôn filter theo branchId của manager
         schoolId: params.schoolId || undefined,
         levelId: params.studentLevelId || params.levelId || undefined,
         userId: params.userId || undefined,
@@ -177,15 +207,19 @@ const StudentManagement = () => {
             ...prev,
             branchId: managerBranchId
           }));
+        } else {
+          console.error('Manager không có chi nhánh được gán');
+          showGlobalError('Manager không có chi nhánh được gán. Vui lòng liên hệ quản trị viên.');
         }
       } catch (error) {
         console.warn('Unable to resolve manager branch info', error);
+        showGlobalError('Không thể xác định chi nhánh. Vui lòng đăng nhập lại.');
       }
     };
 
     ensureBranch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.branchId, user?.branchName, branchInfo.id]);
+  }, [user?.branchId, user?.branchName]);
   
   // Handle view detail
   const handleViewDetail = useCallback(async (student) => {
@@ -240,8 +274,36 @@ const StudentManagement = () => {
     ];
   }, [handleViewDetail]);
   
-  // Columns for approved students (with view detail button)
+  // Columns for approved students (with view detail button, without unverified documents column)
   const approvedColumns = useMemo(() => {
+    const baseColumns = createManagerStudentColumns();
+    // Filter out unverifiedDocuments column for approved students tab
+    const filteredColumns = baseColumns.filter(col => col.key !== 'unverifiedDocuments');
+    return [
+      ...filteredColumns,
+      {
+        key: 'actions',
+        header: 'Thao Tác',
+        align: 'center',
+        render: (_, item) => (
+          <Box display="flex" gap={0.5} justifyContent="center">
+            <Tooltip title="Xem chi tiết">
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => handleViewDetail(item)}
+              >
+                <ViewIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )
+      }
+    ];
+  }, [handleViewDetail]);
+  
+  // Columns for approved students with unverified documents (keep unverified documents column)
+  const approvedWithDocsColumns = useMemo(() => {
     const baseColumns = createManagerStudentColumns();
     return [
       ...baseColumns,
@@ -266,7 +328,7 @@ const StudentManagement = () => {
     ];
   }, [handleViewDetail]);
 
-  const fetchDependencies = async () => {
+  const fetchDependencies = useCallback(async () => {
     setDependenciesLoading(true);
     setDependenciesError(null);
     try {
@@ -298,27 +360,42 @@ const StudentManagement = () => {
     } finally {
       setDependenciesLoading(false);
     }
-  };
+  }, [showGlobalError]);
 
   useEffect(() => {
     fetchDependencies();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load data when tab changes
+  // Load data when tab changes hoặc khi branchId được set (chỉ load khi đã có branchId)
   useEffect(() => {
+    // Chỉ load khi đã có branchId
+    const currentBranchId = branchInfo.id || user?.branchId;
+    if (!currentBranchId) {
+      return;
+    }
+    
     if (activeTab === 0) {
       // Load approved students
       studentCrud.loadData();
     } else if (activeTab === 1) {
       // Load unverified students
       loadUnverifiedStudents();
+    } else if (activeTab === 2) {
+      // Load approved students with unverified documents
+      loadApprovedWithUnverifiedDocs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, branchInfo.id, user?.branchId]);
 
   // Reload data when navigate back to this page (e.g., from create/update pages)
   useEffect(() => {
+    // Chỉ load khi đã có branchId
+    const currentBranchId = branchInfo.id || user?.branchId;
+    if (!currentBranchId) {
+      return;
+    }
+    
     // Check if navigating from create/update pages
     if (location.pathname === '/manager/students') {
       // Skip first mount to avoid double loading
@@ -327,23 +404,47 @@ const StudentManagement = () => {
         return;
       }
       
+      // Đảm bảo branchId được set trong filters trước khi reload
+      studentCrud.setFilters((prev) => ({
+        ...prev,
+        branchId: currentBranchId
+      }));
+      
       if (activeTab === 0) {
         studentCrud.loadData(false);
       } else if (activeTab === 1) {
         loadUnverifiedStudents();
+      } else if (activeTab === 2) {
+        loadApprovedWithUnverifiedDocs();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, activeTab]);
+  }, [location.pathname, activeTab, branchInfo.id, user?.branchId]);
 
-  // Load unverified students
+  // Load unverified students (backend đã tự filter theo branch của manager)
   const loadUnverifiedStudents = useCallback(async () => {
+    // Đảm bảo có branchId trước khi load
+    if (!branchIdRef.current && !user?.branchId && !branchInfo.id) {
+      console.warn('Không thể load học sinh chưa duyệt: chưa có branchId');
+      setUnverifiedStudents([]);
+      return;
+    }
+    
     setLoadingUnverified(true);
     try {
+      // Backend tự động filter theo branch của manager qua ClaimsPrincipal
       const response = await studentService.getUnverifiedStudents();
       // Handle both array and object responses
       const students = Array.isArray(response) ? response : (response.items || []);
-      setUnverifiedStudents(students);
+      
+      // Filter thêm ở frontend để đảm bảo (nếu backend chưa filter đúng)
+      const branchId = branchIdRef.current || user?.branchId || branchInfo.id;
+      const filteredStudents = students.filter(student => {
+        const studentBranchId = student.branchId || student.BranchId;
+        return studentBranchId === branchId;
+      });
+      
+      setUnverifiedStudents(filteredStudents);
     } catch (error) {
       const errorMessage = error?.response?.data?.message || error?.message || 'Không thể tải danh sách học sinh chưa duyệt';
       setDependenciesError(errorMessage);
@@ -352,7 +453,65 @@ const StudentManagement = () => {
     } finally {
       setLoadingUnverified(false);
     }
-  }, [showGlobalError]);
+  }, [showGlobalError, user?.branchId, branchInfo.id]);
+
+  // Load approved students with unverified documents
+  const loadApprovedWithUnverifiedDocs = useCallback(async () => {
+    // Đảm bảo có branchId trước khi load
+    if (!branchIdRef.current && !user?.branchId && !branchInfo.id) {
+      console.warn('Không thể load học sinh đã duyệt có tài liệu chưa duyệt: chưa có branchId');
+      setApprovedWithUnverifiedDocs([]);
+      return;
+    }
+    
+    setLoadingApprovedWithDocs(true);
+    try {
+      const branchId = branchIdRef.current || user?.branchId || branchInfo.id;
+      
+      // Load tất cả approved students
+      const response = await studentService.getStudentsPaged({
+        pageIndex: 1,
+        pageSize: 1000, // Load nhiều để filter
+        branchId: branchId,
+        isApproved: true,
+        IsApproved: true
+      });
+      
+      const students = response?.items || response || [];
+      
+      // Filter: chỉ lấy những học sinh đã duyệt (status === true) và có documents chưa duyệt
+      const filteredStudents = students.filter(student => {
+        // Kiểm tra status (phải là approved)
+        const status = student.status !== undefined 
+          ? student.status 
+          : student.Status !== undefined 
+            ? student.Status 
+            : null;
+        
+        if (status !== true && status !== 'true') {
+          return false; // Không phải approved
+        }
+        
+        // Kiểm tra có documents chưa duyệt không
+        const documents = student.documents || student.Documents || [];
+        const hasUnverifiedDocs = documents.some(doc => {
+          const verified = doc.verified ?? doc.Verified ?? false;
+          return !verified;
+        });
+        
+        return hasUnverifiedDocs;
+      });
+      
+      setApprovedWithUnverifiedDocs(filteredStudents);
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Không thể tải danh sách học sinh đã duyệt có tài liệu chưa duyệt';
+      setDependenciesError(errorMessage);
+      showGlobalError(errorMessage);
+      setApprovedWithUnverifiedDocs([]);
+    } finally {
+      setLoadingApprovedWithDocs(false);
+    }
+  }, [showGlobalError, user?.branchId, branchInfo.id]);
 
   // Handle approve confirm
   const handleApproveConfirm = useCallback(async () => {
@@ -371,9 +530,20 @@ const StudentManagement = () => {
       // Close detail dialog if open
       setDetailDialog({ open: false, student: null, loading: false });
       
+      // Đảm bảo branchId vẫn được giữ trong filters trước khi reload
+      const currentBranchId = branchIdRef.current || user?.branchId || branchInfo.id;
+      if (currentBranchId) {
+        studentCrud.setFilters((prev) => ({
+          ...prev,
+          branchId: currentBranchId
+        }));
+      }
+      
       // Reload approved students
       if (activeTab === 0) {
         studentCrud.loadData(false);
+      } else if (activeTab === 2) {
+        loadApprovedWithUnverifiedDocs();
       }
       
       setApproveConfirmDialog({ open: false, student: null });
@@ -384,7 +554,7 @@ const StudentManagement = () => {
     } finally {
       setApprovingStudentId(null);
     }
-  }, [approveConfirmDialog, activeTab, studentCrud, showGlobalError]);
+  }, [approveConfirmDialog, activeTab, studentCrud, showGlobalError, user?.branchId, branchInfo.id, loadApprovedWithUnverifiedDocs]);
   
   // Handle approve from detail dialog
   const handleApproveFromDetail = useCallback(() => {
@@ -419,9 +589,20 @@ const StudentManagement = () => {
         }
       }
       
+      // Đảm bảo branchId vẫn được giữ trong filters trước khi reload
+      const currentBranchId = branchIdRef.current || user?.branchId || branchInfo.id;
+      if (currentBranchId) {
+        studentCrud.setFilters((prev) => ({
+          ...prev,
+          branchId: currentBranchId
+        }));
+      }
+      
       // Reload students list in table to update unverified documents count
       if (activeTab === 0) {
         studentCrud.loadData(false);
+      } else if (activeTab === 2) {
+        loadApprovedWithUnverifiedDocs();
       }
       
       // Close reject dialog if open
@@ -435,7 +616,7 @@ const StudentManagement = () => {
     } finally {
       setApprovingDocumentId(null);
     }
-  }, [detailDialog.student, activeTab, studentCrud, showGlobalError]);
+  }, [detailDialog.student, activeTab, studentCrud, showGlobalError, user?.branchId, branchInfo.id]);
   
   // Handle document reject click
   const handleRejectDocumentClick = useCallback((document, student) => {
@@ -507,14 +688,7 @@ const StudentManagement = () => {
 
   const renderDependencyState = () => {
     if (dependenciesLoading) {
-      return (
-        <Box display="flex" alignItems="center" gap={1.5} className={styles.dependenciesHint}>
-          <CircularProgress size={18} />
-          <Typography variant="body2" color="text.secondary">
-            Đang tải dữ liệu phụ trợ...
-          </Typography>
-        </Box>
-      );
+      return null; // ContentLoading will handle this
     }
 
     if (dependenciesError) {
@@ -534,6 +708,13 @@ const StudentManagement = () => {
 
   return (
     <div className={styles.container}>
+      {(dependenciesLoading || studentCrud.isPageLoading || loadingUnverified || loadingApprovedWithDocs) && (
+        <ContentLoading 
+          isLoading={dependenciesLoading || studentCrud.isPageLoading || loadingUnverified || loadingApprovedWithDocs} 
+          text={dependenciesLoading ? 'Đang tải dữ liệu phụ trợ...' : studentCrud.loadingText || 'Đang tải dữ liệu...'} 
+        />
+      )}
+      
       <ManagementPageHeader
         title="Quản lý học sinh"
       />
@@ -591,6 +772,7 @@ const StudentManagement = () => {
         >
           <Tab label="Học Sinh Đã Duyệt" />
           <Tab label="Học Sinh Chưa Duyệt" />
+          <Tab label="Đã Duyệt - Tài Liệu Chưa Duyệt" />
         </Tabs>
       </Paper>
 
@@ -673,12 +855,31 @@ const StudentManagement = () => {
 
       <div className={styles.tableContainer}>
         <DataTable
-          data={studentCrud.data}
+          data={studentCrud.data.filter(student => {
+            // Đảm bảo chỉ hiển thị học sinh đã được duyệt
+            // Backend dùng field 'status' (true = approved/active, false = unapproved/inactive)
+            // Kiểm tra cả status và Status (case-insensitive)
+            const status = student.status !== undefined 
+              ? student.status 
+              : student.Status !== undefined 
+                ? student.Status 
+                : null;
+            // Chỉ hiển thị học sinh có status === true (đã được duyệt và hoạt động)
+            // Nếu không có field status, không hiển thị (để an toàn)
+            return status === true || status === 'true';
+          })}
               columns={approvedColumns}
           loading={studentCrud.isPageLoading}
           page={studentCrud.page}
           rowsPerPage={studentCrud.rowsPerPage}
-          totalCount={studentCrud.totalCount}
+          totalCount={studentCrud.data.filter(student => {
+            const status = student.status !== undefined 
+              ? student.status 
+              : student.Status !== undefined 
+                ? student.Status 
+                : null;
+            return status === true || status === 'true';
+          }).length}
           onPageChange={studentCrud.handlePageChange}
           onRowsPerPageChange={studentCrud.handleRowsPerPageChange}
               showActions={false}
@@ -689,20 +890,291 @@ const StudentManagement = () => {
       )}
 
       {activeTab === 1 && (
-        <div className={styles.tableContainer}>
-          <DataTable
-            data={unverifiedStudents}
-            columns={unverifiedColumns}
-            loading={loadingUnverified}
-            page={0}
-            rowsPerPage={unverifiedStudents.length || 10}
-            totalCount={unverifiedStudents.length}
-            onPageChange={() => {}}
-            onRowsPerPageChange={() => {}}
-            showActions={false}
-            emptyMessage="Không có học sinh nào chưa được duyệt."
-        />
-      </div>
+        <>
+          <ManagementSearchSection
+            keyword={unverifiedSearchKeyword}
+            onKeywordChange={(e) => setUnverifiedSearchKeyword(e.target.value)}
+            onSearch={() => loadUnverifiedStudents()}
+            onClear={() => {
+              setUnverifiedSearchKeyword('');
+              setUnverifiedFilters({ schoolId: '', studentLevelId: '' });
+              loadUnverifiedStudents();
+            }}
+            placeholder="Tìm kiếm theo tên học sinh hoặc phụ huynh..."
+          >
+            <Box className={styles.filterRow}>
+              <FormControl size="small" className={styles.filterControl}>
+                <InputLabel id="unverified-school-filter-label" shrink>
+                  Trường học
+                </InputLabel>
+                <Select
+                  labelId="unverified-school-filter-label"
+                  value={unverifiedFilters.schoolId || ''}
+                  label="Trường học"
+                  notched
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return <span className={styles.filterPlaceholder}>Tất cả trường học</span>;
+                    }
+                    const option = schoolOptions.find((opt) => opt.value === selected);
+                    return option?.label || 'Trường học không xác định';
+                  }}
+                  onChange={(event) => {
+                    setUnverifiedFilters(prev => ({ ...prev, schoolId: event.target.value || '' }));
+                    loadUnverifiedStudents();
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Tất cả trường học</em>
+                  </MenuItem>
+                  {schoolOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl size="small" className={styles.filterControl}>
+                <InputLabel id="unverified-level-filter-label" shrink>
+                  Cấp độ
+                </InputLabel>
+                <Select
+                  labelId="unverified-level-filter-label"
+                  value={unverifiedFilters.studentLevelId || ''}
+                  label="Cấp độ"
+                  notched
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return <span className={styles.filterPlaceholder}>Tất cả cấp độ</span>;
+                    }
+                    const option = studentLevelOptions.find((opt) => opt.value === selected);
+                    return option?.label || 'Cấp độ không xác định';
+                  }}
+                  onChange={(event) => {
+                    setUnverifiedFilters(prev => ({ ...prev, studentLevelId: event.target.value || '' }));
+                    loadUnverifiedStudents();
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Tất cả cấp độ</em>
+                  </MenuItem>
+                  {studentLevelOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            {renderDependencyState()}
+          </ManagementSearchSection>
+
+          <div className={styles.tableContainer}>
+            <DataTable
+              data={unverifiedStudents.filter(student => {
+                // Filter by keyword
+                if (unverifiedSearchKeyword.trim()) {
+                  const keyword = unverifiedSearchKeyword.toLowerCase();
+                  const nameMatch = (student.name || '').toLowerCase().includes(keyword);
+                  const parentMatch = (student.userName || student.user?.name || '').toLowerCase().includes(keyword);
+                  if (!nameMatch && !parentMatch) {
+                    return false;
+                  }
+                }
+                
+                // Filter by school
+                if (unverifiedFilters.schoolId) {
+                  const studentSchoolId = student.schoolId || student.SchoolId;
+                  if (studentSchoolId !== unverifiedFilters.schoolId) {
+                    return false;
+                  }
+                }
+                
+                // Filter by level
+                if (unverifiedFilters.studentLevelId) {
+                  const studentLevelId = student.studentLevelId || student.StudentLevelId;
+                  if (studentLevelId !== unverifiedFilters.studentLevelId) {
+                    return false;
+                  }
+                }
+                
+                return true;
+              })}
+              columns={unverifiedColumns}
+              loading={loadingUnverified}
+              page={0}
+              rowsPerPage={unverifiedStudents.length || 10}
+              totalCount={unverifiedStudents.filter(student => {
+                if (unverifiedSearchKeyword.trim()) {
+                  const keyword = unverifiedSearchKeyword.toLowerCase();
+                  const nameMatch = (student.name || '').toLowerCase().includes(keyword);
+                  const parentMatch = (student.userName || student.user?.name || '').toLowerCase().includes(keyword);
+                  if (!nameMatch && !parentMatch) return false;
+                }
+                if (unverifiedFilters.schoolId) {
+                  const studentSchoolId = student.schoolId || student.SchoolId;
+                  if (studentSchoolId !== unverifiedFilters.schoolId) return false;
+                }
+                if (unverifiedFilters.studentLevelId) {
+                  const studentLevelId = student.studentLevelId || student.StudentLevelId;
+                  if (studentLevelId !== unverifiedFilters.studentLevelId) return false;
+                }
+                return true;
+              }).length}
+              onPageChange={() => {}}
+              onRowsPerPageChange={() => {}}
+              showActions={false}
+              emptyMessage="Không có học sinh nào chưa được duyệt."
+          />
+        </div>
+        </>
+      )}
+
+      {activeTab === 2 && (
+        <>
+          <ManagementSearchSection
+            keyword={approvedDocsSearchKeyword}
+            onKeywordChange={(e) => setApprovedDocsSearchKeyword(e.target.value)}
+            onSearch={() => loadApprovedWithUnverifiedDocs()}
+            onClear={() => {
+              setApprovedDocsSearchKeyword('');
+              setApprovedDocsFilters({ schoolId: '', studentLevelId: '' });
+              loadApprovedWithUnverifiedDocs();
+            }}
+            placeholder="Tìm kiếm theo tên học sinh hoặc phụ huynh..."
+          >
+            <Box className={styles.filterRow}>
+              <FormControl size="small" className={styles.filterControl}>
+                <InputLabel id="approved-docs-school-filter-label" shrink>
+                  Trường học
+                </InputLabel>
+                <Select
+                  labelId="approved-docs-school-filter-label"
+                  value={approvedDocsFilters.schoolId || ''}
+                  label="Trường học"
+                  notched
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return <span className={styles.filterPlaceholder}>Tất cả trường học</span>;
+                    }
+                    const option = schoolOptions.find((opt) => opt.value === selected);
+                    return option?.label || 'Trường học không xác định';
+                  }}
+                  onChange={(event) => {
+                    setApprovedDocsFilters(prev => ({ ...prev, schoolId: event.target.value || '' }));
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Tất cả trường học</em>
+                  </MenuItem>
+                  {schoolOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl size="small" className={styles.filterControl}>
+                <InputLabel id="approved-docs-level-filter-label" shrink>
+                  Cấp độ
+                </InputLabel>
+                <Select
+                  labelId="approved-docs-level-filter-label"
+                  value={approvedDocsFilters.studentLevelId || ''}
+                  label="Cấp độ"
+                  notched
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return <span className={styles.filterPlaceholder}>Tất cả cấp độ</span>;
+                    }
+                    const option = studentLevelOptions.find((opt) => opt.value === selected);
+                    return option?.label || 'Cấp độ không xác định';
+                  }}
+                  onChange={(event) => {
+                    setApprovedDocsFilters(prev => ({ ...prev, studentLevelId: event.target.value || '' }));
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Tất cả cấp độ</em>
+                  </MenuItem>
+                  {studentLevelOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            {renderDependencyState()}
+          </ManagementSearchSection>
+
+          <div className={styles.tableContainer}>
+            <DataTable
+              data={approvedWithUnverifiedDocs.filter(student => {
+                // Filter by keyword
+                if (approvedDocsSearchKeyword.trim()) {
+                  const keyword = approvedDocsSearchKeyword.toLowerCase();
+                  const nameMatch = (student.name || '').toLowerCase().includes(keyword);
+                  const parentMatch = (student.userName || student.user?.name || '').toLowerCase().includes(keyword);
+                  if (!nameMatch && !parentMatch) {
+                    return false;
+                  }
+                }
+                
+                // Filter by school
+                if (approvedDocsFilters.schoolId) {
+                  const studentSchoolId = student.schoolId || student.SchoolId;
+                  if (studentSchoolId !== approvedDocsFilters.schoolId) {
+                    return false;
+                  }
+                }
+                
+                // Filter by level
+                if (approvedDocsFilters.studentLevelId) {
+                  const studentLevelId = student.studentLevelId || student.StudentLevelId;
+                  if (studentLevelId !== approvedDocsFilters.studentLevelId) {
+                    return false;
+                  }
+                }
+                
+                return true;
+              })}
+              columns={approvedWithDocsColumns}
+              loading={loadingApprovedWithDocs}
+              page={0}
+              rowsPerPage={approvedWithUnverifiedDocs.length || 10}
+              totalCount={approvedWithUnverifiedDocs.filter(student => {
+                if (approvedDocsSearchKeyword.trim()) {
+                  const keyword = approvedDocsSearchKeyword.toLowerCase();
+                  const nameMatch = (student.name || '').toLowerCase().includes(keyword);
+                  const parentMatch = (student.userName || student.user?.name || '').toLowerCase().includes(keyword);
+                  if (!nameMatch && !parentMatch) return false;
+                }
+                if (approvedDocsFilters.schoolId) {
+                  const studentSchoolId = student.schoolId || student.SchoolId;
+                  if (studentSchoolId !== approvedDocsFilters.schoolId) return false;
+                }
+                if (approvedDocsFilters.studentLevelId) {
+                  const studentLevelId = student.studentLevelId || student.StudentLevelId;
+                  if (studentLevelId !== approvedDocsFilters.studentLevelId) return false;
+                }
+                return true;
+              }).length}
+              onPageChange={() => {}}
+              onRowsPerPageChange={() => {}}
+              showActions={false}
+              emptyMessage="Không có học sinh nào đã duyệt nhưng có tài liệu chưa duyệt."
+          />
+        </div>
+        </>
       )}
 
       {/* Detail Dialog */}
@@ -728,7 +1200,7 @@ const StudentManagement = () => {
         <DialogContent>
           {detailDialog.loading ? (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-              <CircularProgress />
+              <CircularProgress size={40} />
             </Box>
           ) : detailDialog.student ? (
             <Box>

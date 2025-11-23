@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import { Inventory as PackageIcon } from '@mui/icons-material';
 import Loading from '../../../components/Common/Loading';
 import packageService from '../../../services/package.service';
 import { useApp } from '../../../contexts/AppContext';
@@ -170,7 +171,9 @@ const Step4SelectPackage = forwardRef(({ data, updateData }, ref) => {
         </div>
       ) : (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>📦</div>
+          <div className={styles.emptyIcon}>
+            <PackageIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+          </div>
           <h3>Chưa có gói đã mua</h3>
           <p>Bạn cần mua gói học trước khi đặt lịch.</p>
         </div>

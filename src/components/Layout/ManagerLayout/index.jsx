@@ -10,7 +10,8 @@ import {
   Dashboard as DashboardIcon,
   MeetingRoom as RoomIcon,
   Group as StudentIcon,
-  AccessTime as BranchSlotIcon
+  AccessTime as BranchSlotIcon,
+  FamilyRestroom as ParentIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -29,9 +30,14 @@ const ManagerLayout = () => {
       icon: DashboardIcon
     },
     {
-      path: '/manager/staffAndParent',
-      label: 'Nhân Viên & ParentParent',
+      path: '/manager/staff',
+      label: 'Nhân Viên',
       icon: UserIcon
+    },
+    {
+      path: '/manager/parents',
+      label: 'Phụ Huynh',
+      icon: ParentIcon
     },
     {
       path: '/manager/students',

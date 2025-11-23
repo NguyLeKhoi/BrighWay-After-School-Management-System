@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import { ChildCare as ChildIcon, CheckCircle as CheckIcon } from '@mui/icons-material';
 import Loading from '../../../components/Common/Loading';
 import studentService from '../../../services/student.service';
 import { useApp } from '../../../contexts/AppContext';
@@ -178,7 +179,8 @@ const Step1SelectStudent = forwardRef(({ data, updateData }, ref) => {
 
               {selectedStudentId === child.id && (
                 <div className={styles.selectedIndicator}>
-                  ✓ Đã chọn
+                  <CheckIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
+                  Đã chọn
                 </div>
               )}
             </div>
@@ -186,7 +188,9 @@ const Step1SelectStudent = forwardRef(({ data, updateData }, ref) => {
         </div>
       ) : (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>👶</div>
+          <div className={styles.emptyIcon}>
+            <ChildIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+          </div>
           <h3>Chưa có học sinh</h3>
           <p>Bạn chưa có học sinh nào. Vui lòng thêm học sinh trước khi đăng ký ca học.</p>
         </div>

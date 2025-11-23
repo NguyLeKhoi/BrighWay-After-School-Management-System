@@ -20,12 +20,26 @@ export const userChildStep1Schema = yup.object({
     .notRequired()
     .transform((value, originalValue) => (originalValue === '' ? null : value)),
   image: yup
-    .string()
-    .trim()
-    .url('Đường dẫn ảnh không hợp lệ')
+    .mixed()
     .nullable()
     .notRequired()
-    .transform((value, originalValue) => (originalValue === '' ? null : value))
+    .test('is-file-or-null', 'Ảnh phải là file hợp lệ', (value) => {
+      if (!value || value === '') return true; // null/undefined/empty string is allowed
+      if (value instanceof File) {
+        // Validate file type
+        return value.type.startsWith('image/');
+      }
+      // Allow string URL for backward compatibility
+      if (typeof value === 'string') {
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+      return false;
+    })
 });
 
 export const userChildStep2Schema = yup.object({

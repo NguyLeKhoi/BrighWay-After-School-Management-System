@@ -1,10 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
-import Loading from '@components/Common/Loading';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { 
+  ChildCare as ChildIcon,
+  Inventory as PackageIcon,
+  Receipt as ServiceIcon
+} from '@mui/icons-material';
+import ContentLoading from '@components/Common/ContentLoading';
 import Tabs from '@components/Common/Tabs';
 import { useApp } from '../../../contexts/AppContext';
-import { useLoading } from '../../../hooks/useLoading';
+import useContentLoading from '../../../hooks/useContentLoading';
 import packageService from '../../../services/package.service';
 import studentService from '../../../services/student.service';
 import serviceService from '../../../services/service.service';
@@ -24,6 +29,7 @@ const getFieldWithFallback = (source, candidates, defaultValue = 0) => {
 
 const MyPackages = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isInitialMount = useRef(true);
   const [activeTab, setActiveTab] = useState('available');
   const [availablePackages, setAvailablePackages] = useState([]);
@@ -40,6 +46,7 @@ const MyPackages = () => {
   const [showBuyDialog, setShowBuyDialog] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [children, setChildren] = useState([]);
+  const [hasChildren, setHasChildren] = useState(false);
   const [buyForm, setBuyForm] = useState({
     studentId: '',
     startDate: new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD format
@@ -47,10 +54,10 @@ const MyPackages = () => {
   const [isBuying, setIsBuying] = useState(false);
 
   const { showGlobalError, addNotification } = useApp();
-  const { showLoading, hideLoading } = useLoading();
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading();
 
   // Load available packages (suitable packages) from API
-  const loadAvailablePackages = async () => {
+  const loadAvailablePackages = useCallback(async () => {
     setIsLoadingAvailable(true);
     setAvailableError(null);
 
@@ -60,8 +67,11 @@ const MyPackages = () => {
       
       if (!Array.isArray(children) || children.length === 0) {
         setAvailablePackages([]);
+        setHasChildren(false);
         return;
       }
+      
+      setHasChildren(true);
 
       // Fetch suitable packages for each child
       const packagesPromises = children.map(child => 
@@ -136,10 +146,10 @@ const MyPackages = () => {
     } finally {
       setIsLoadingAvailable(false);
     }
-  };
+  }, [showGlobalError]);
 
   // Load purchased packages (subscriptions) from API
-  const loadPurchasedPackages = async () => {
+  const loadPurchasedPackages = useCallback(async () => {
     setIsLoadingPurchased(true);
     setError(null);
 
@@ -149,8 +159,11 @@ const MyPackages = () => {
       
       if (!Array.isArray(children) || children.length === 0) {
         setPurchasedPackages([]);
+        setHasChildren(false);
         return;
       }
+      
+      setHasChildren(true);
 
       // Create a map of studentId to student info (including branch)
       const childrenMap = new Map();
@@ -307,9 +320,9 @@ const MyPackages = () => {
     } finally {
       setIsLoadingPurchased(false);
     }
-  };
+  }, [showGlobalError]);
 
-  const loadServices = async () => {
+  const loadServices = useCallback(async () => {
     setIsLoadingServices(true);
     setServicesError(null);
 
@@ -341,15 +354,18 @@ const MyPackages = () => {
     } finally {
       setIsLoadingServices(false);
     }
-  };
+  }, [showGlobalError]);
 
   // Load children list
   const loadChildren = async () => {
     try {
       const childrenList = await studentService.getMyChildren();
-      setChildren(Array.isArray(childrenList) ? childrenList : []);
+      const childrenArray = Array.isArray(childrenList) ? childrenList : [];
+      setChildren(childrenArray);
+      setHasChildren(childrenArray.length > 0);
     } catch {
       // Silently fail
+      setHasChildren(false);
     }
   };
 
@@ -650,6 +666,7 @@ const MyPackages = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
+      {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Các gói dịch vụ</h1>
@@ -666,7 +683,9 @@ const MyPackages = () => {
         {activeTab === 'available' && (
           <div className={styles.packagesSection}>
             {isLoadingAvailable ? (
-              <Loading />
+              <div className={styles.inlineLoading}>
+                <ContentLoading isLoading={true} text="Đang tải gói dịch vụ..." />
+              </div>
             ) : availableError ? (
               <div className={styles.errorState}>
                 <p className={styles.errorMessage}>{availableError}</p>
@@ -678,9 +697,25 @@ const MyPackages = () => {
               <div className={styles.packagesGrid}>
                 {availablePackages.map((pkg) => renderPackageCard(pkg, false))}
               </div>
+            ) : !hasChildren ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>
+                  <ChildIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+                </div>
+                <h3>Chưa có học sinh</h3>
+                <p>Bạn cần thêm thông tin học sinh trước khi xem các gói dịch vụ. Các gói sẽ được hiển thị dựa trên thông tin học sinh của bạn.</p>
+                <button 
+                  className={styles.browseButton}
+                  onClick={() => navigate('/family/children/create')}
+                >
+                  Thêm học sinh ngay
+                </button>
+              </div>
             ) : (
               <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>📦</div>
+                <div className={styles.emptyIcon}>
+                  <PackageIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+                </div>
                 <h3>Không có gói nào</h3>
                 <p>Hiện tại không có gói dịch vụ nào phù hợp với con của bạn</p>
               </div>
@@ -692,7 +727,9 @@ const MyPackages = () => {
         {activeTab === 'purchased' && (
           <div className={styles.packagesSection}>
             {isLoadingPurchased ? (
-              <Loading />
+              <div className={styles.inlineLoading}>
+                <ContentLoading isLoading={true} text="Đang tải gói đã mua..." />
+              </div>
             ) : error ? (
               <div className={styles.errorState}>
                 <p className={styles.errorMessage}>{error}</p>
@@ -706,7 +743,9 @@ const MyPackages = () => {
               </div>
             ) : (
               <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>📦</div>
+                <div className={styles.emptyIcon}>
+                  <PackageIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+                </div>
                 <h3>Chưa mua gói nào</h3>
                 <p>Bạn chưa mua gói dịch vụ nào. Hãy xem các gói có sẵn và đăng ký ngay!</p>
                 <button 
@@ -724,7 +763,9 @@ const MyPackages = () => {
         {activeTab === 'services' && (
           <div className={styles.packagesSection}>
             {isLoadingServices ? (
-              <Loading />
+              <div className={styles.inlineLoading}>
+                <ContentLoading isLoading={true} text="Đang tải dịch vụ..." />
+              </div>
             ) : servicesError ? (
               <div className={styles.errorState}>
                 <p className={styles.errorMessage}>{servicesError}</p>
@@ -738,7 +779,9 @@ const MyPackages = () => {
               </div>
             ) : (
               <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>🧾</div>
+                <div className={styles.emptyIcon}>
+                  <ServiceIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+                </div>
                 <h3>Chưa có dịch vụ nào</h3>
                 <p>Hiện tại chi nhánh chưa cung cấp dịch vụ add-on nào cho phụ huynh.</p>
               </div>

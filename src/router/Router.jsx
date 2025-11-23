@@ -49,6 +49,7 @@ import SchoolManagement from '../pages/admin/schoolManagement';
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
+import ParentManagement from '../pages/manager/parentManagement';
 import CreateParent from '../pages/manager/staffAndParentManagement/CreateParent';
 import ManagerPackageManagement from '../pages/manager/packageManagement';
 import CreatePackage from '../pages/manager/packageManagement/CreatePackage';
@@ -244,11 +245,15 @@ export const routes = createBrowserRouter([
         element: <ManagerDashboard />,
       },
       {
-        path: 'staffAndParent',
+        path: 'staff',
         element: <StaffAndParentManagement />,
       },
       {
-        path: 'staffAndParent/create-parent',
+        path: 'parents',
+        element: <ParentManagement />,
+      },
+      {
+        path: 'parents/create',
         element: <CreateParent />,
       },
       {

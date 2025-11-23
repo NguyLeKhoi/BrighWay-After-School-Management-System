@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { ChildCare as ChildIcon } from '@mui/icons-material';
 import Card from '@components/Common/Card';
-import Loading from '@components/Common/Loading';
+import ContentLoading from '@components/Common/ContentLoading';
 import { useApp } from '../../../../contexts/AppContext';
-import { useLoading } from '../../../../hooks/useLoading';
+import useContentLoading from '../../../../hooks/useContentLoading';
 import studentService from '../../../../services/student.service';
 import styles from './Children.module.css';
 
@@ -61,7 +62,7 @@ const ChildrenList = () => {
   const location = useLocation();
   const isInitialMount = useRef(true);
   const { showGlobalError } = useApp();
-  const { isLoading, showLoading, hideLoading } = useLoading();
+  const { isLoading, loadingText, showLoading, hideLoading } = useContentLoading();
 
   const [children, setChildren] = useState([]);
   const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
@@ -124,8 +125,7 @@ const ChildrenList = () => {
   const renderSubtitle = (child) => {
     const ageText = child.age ? `${child.age} tuổi` : null;
     const level = child.studentLevelName;
-    const branch = child.branchName;
-    return [ageText, level, branch].filter(Boolean).join(' • ');
+    return [ageText, level].filter(Boolean).join(' • ');
   };
 
   return (
@@ -147,9 +147,7 @@ const ChildrenList = () => {
         </div>
 
         {isLoading && children.length === 0 && (
-          <div className={styles.loadingState}>
-            <Loading />
-          </div>
+          <ContentLoading isLoading={isLoading} text={loadingText} />
         )}
 
         {error && children.length === 0 && !isLoading && (
@@ -163,10 +161,12 @@ const ChildrenList = () => {
 
         {!isLoading && !error && children.length === 0 && (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>👶</div>
+            <div className={styles.emptyIcon}>
+              <ChildIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+            </div>
             <h3>Chưa có thông tin con</h3>
             <p>
-              Bạn chưa có thêm con vào trung tâm, vui lòng liên hệ Staff/Manager để thêm.
+              Bạn chưa có thêm con vào trung tâm, vui lòng tạo hồ sơ con để có thể sử dụng các dịch vụ của trung tâm.
             </p>
           </div>
         )}
@@ -179,9 +179,7 @@ const ChildrenList = () => {
                 title={child.name}
                 subtitle={renderSubtitle(child)}
                 avatar={child.avatar}
-                badges={[
-                  { text: child.membershipType, type: 'price' }
-                ]}
+                badges={[]}
                 status={{
                   text: child.status === 'active' ? 'Hoạt động' : 'Chờ duyệt',
                   type: child.status

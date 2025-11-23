@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Box,
@@ -24,6 +25,8 @@ import styles from './StepperForm.module.css';
  * @param {string} title - Form title
  * @param {ReactNode} icon - Icon to display in header
  * @param {boolean} showStepConfirmation - Show confirmation dialog after each step
+ * @param {string} storageKey - Optional custom storage key. If not provided, will use location.pathname
+ * @param {boolean} enableLocalStorage - Enable localStorage persistence (default: true)
  */
 const StepperForm = ({
   steps = [],
@@ -33,12 +36,103 @@ const StepperForm = ({
   title = 'Multi-Step Form',
   icon = null,
   stepProps = {},
-  showStepConfirmation = false
+  showStepConfirmation = false,
+  storageKey = null,
+  enableLocalStorage = true
 }) => {
-  const [activeStep, setActiveStep] = useState(0);
-  const [formData, setFormData] = useState(initialData);
+  const location = useLocation();
+  
+  // Generate storage key from pathname if not provided
+  const getStorageKey = useCallback(() => {
+    if (storageKey) return storageKey;
+    // Use pathname as storage key, replace slashes with underscores
+    return `stepperForm_${location.pathname.replace(/\//g, '_')}`;
+  }, [storageKey, location.pathname]);
+
+  // Load saved data from localStorage on mount
+  const loadSavedData = useCallback(() => {
+    if (!enableLocalStorage) return null;
+    
+    try {
+      const key = getStorageKey();
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Filter out File objects (can't be serialized)
+        const sanitized = Object.entries(parsed.formData || {}).reduce((acc, [key, value]) => {
+          // Skip File objects - they will be lost on refresh but that's expected
+          if (value instanceof File) {
+            return acc;
+          }
+          acc[key] = value;
+          return acc;
+        }, {});
+        return {
+          formData: sanitized,
+          activeStep: parsed.activeStep || 0,
+          completedSteps: parsed.completedSteps ? new Set(parsed.completedSteps) : new Set()
+        };
+      }
+    } catch (error) {
+      console.error('Error loading saved form data:', error);
+    }
+    return null;
+  }, [enableLocalStorage, getStorageKey]);
+
+  // Save data to localStorage
+  const saveData = useCallback((data, step, completed) => {
+    if (!enableLocalStorage) return;
+    
+    try {
+      const key = getStorageKey();
+      // Filter out File objects before saving
+      const sanitized = Object.entries(data).reduce((acc, [key, value]) => {
+        if (value instanceof File) {
+          // Don't save File objects - they can't be serialized
+          return acc;
+        }
+        acc[key] = value;
+        return acc;
+      }, {});
+      
+      const toSave = {
+        formData: sanitized,
+        activeStep: step,
+        completedSteps: Array.from(completed)
+      };
+      localStorage.setItem(key, JSON.stringify(toSave));
+    } catch (error) {
+      console.error('Error saving form data:', error);
+    }
+  }, [enableLocalStorage, getStorageKey]);
+
+  // Clear saved data
+  const clearSavedData = useCallback(() => {
+    if (!enableLocalStorage) return;
+    
+    try {
+      const key = getStorageKey();
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error('Error clearing saved form data:', error);
+    }
+  }, [enableLocalStorage, getStorageKey]);
+
+  // Load saved data on mount - use lazy initialization to only run once
+  const savedDataOnMountRef = React.useRef(null);
+  if (savedDataOnMountRef.current === null) {
+    savedDataOnMountRef.current = loadSavedData();
+  }
+  const savedDataOnMount = savedDataOnMountRef.current;
+  
+  const [activeStep, setActiveStep] = useState(savedDataOnMount?.activeStep || 0);
+  // Merge initialData with saved data, prioritizing initialData for critical fields like studentId
+  const [formData, setFormData] = useState(() => {
+    const saved = savedDataOnMount?.formData || {};
+    return { ...saved, ...initialData };
+  });
   const [stepErrors, setStepErrors] = useState({});
-  const [completedSteps, setCompletedSteps] = useState(new Set()); // Track completed steps
+  const [completedSteps, setCompletedSteps] = useState(savedDataOnMount?.completedSteps || new Set());
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     title: '',
@@ -47,13 +141,41 @@ const StepperForm = ({
   });
 
   const stepRefs = React.useRef({});
-  const formDataRef = React.useRef(initialData);
+  // Initialize formDataRef with merged saved data and initialData
+  const getInitialFormDataForRef = () => {
+    const saved = savedDataOnMount?.formData || {};
+    return { ...saved, ...initialData };
+  };
+  const formDataRef = React.useRef(getInitialFormDataForRef());
+  const hasLoadedSavedData = React.useRef(false);
+  
+  // Load saved data on mount (only once)
+  React.useEffect(() => {
+    if (!hasLoadedSavedData.current && enableLocalStorage) {
+      const saved = loadSavedData();
+      if (saved) {
+        // Merge saved data with initialData, prioritizing initialData for critical fields
+        const merged = { ...saved.formData, ...initialData };
+        setFormData(merged);
+        setActiveStep(saved.activeStep);
+        setCompletedSteps(saved.completedSteps);
+        formDataRef.current = merged;
+        hasLoadedSavedData.current = true;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableLocalStorage]); // Only depend on enableLocalStorage, not loadSavedData
   
   // Update formData when initialData changes (for update scenarios)
+  // Merge initialData into formData to ensure important fields like studentId are always present
   React.useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      setFormData(initialData);
-      formDataRef.current = initialData;
+      setFormData(prev => {
+        // Merge initialData with existing formData, prioritizing initialData for critical fields
+        const merged = { ...prev, ...initialData };
+        formDataRef.current = merged;
+        return merged;
+      });
     }
   }, [initialData]);
   
@@ -61,6 +183,63 @@ const StepperForm = ({
   React.useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
+
+  // Save to localStorage whenever formData or activeStep changes
+  // Use a ref to debounce saves and avoid saving on initial mount
+  const saveTimeoutRef = React.useRef(null);
+  const prevFormDataRef = React.useRef(formData);
+  const prevActiveStepRef = React.useRef(activeStep);
+  
+  useEffect(() => {
+    if (enableLocalStorage && hasLoadedSavedData.current) {
+      // Only save if data actually changed (deep comparison for formData is expensive, so use ref)
+      const formDataChanged = prevFormDataRef.current !== formData;
+      const stepChanged = prevActiveStepRef.current !== activeStep;
+      
+      if (formDataChanged || stepChanged) {
+        prevFormDataRef.current = formData;
+        prevActiveStepRef.current = activeStep;
+        
+        // Debounce saves to avoid too many writes
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+        saveTimeoutRef.current = setTimeout(() => {
+          saveData(formData, activeStep, completedSteps);
+        }, 300); // 300ms debounce
+      }
+      
+      return () => {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, activeStep, completedSteps, enableLocalStorage]); // Remove saveData from deps
+  
+  // Save on unmount (beforeunload)
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (enableLocalStorage) {
+        // Use refs to get latest values
+        saveData(formDataRef.current, activeStep, completedSteps);
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Final save on cleanup - use refs for latest values
+      if (enableLocalStorage && saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (enableLocalStorage) {
+        saveData(formDataRef.current, activeStep, completedSteps);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableLocalStorage]); // Only depend on enableLocalStorage, use refs for values
 
   const handleNext = useCallback(async (e) => {
     // Prevent default form submission
@@ -138,12 +317,13 @@ const StepperForm = ({
         setActiveStep(activeStep + 1);
       }
     } else {
-      // Last step - call onComplete
+      // Last step - call onComplete and clear saved data
+      clearSavedData();
       if (onComplete) {
         onComplete(formDataRef.current);
       }
     }
-  }, [activeStep, steps, formData, onComplete, showStepConfirmation]);
+  }, [activeStep, steps, formData, onComplete, showStepConfirmation, clearSavedData]);
 
   const handleBack = useCallback((e) => {
     if (e) {
@@ -152,6 +332,8 @@ const StepperForm = ({
     }
 
     if (activeStep === 0) {
+      // Clear saved data when canceling
+      clearSavedData();
       if (onCancel) {
         onCancel();
       }
@@ -159,7 +341,7 @@ const StepperForm = ({
     }
 
     setActiveStep((prev) => Math.max(prev - 1, 0));
-  }, [activeStep, onCancel]);
+  }, [activeStep, onCancel, clearSavedData]);
 
   const handleBackButtonClick = useCallback(
     (e) => {

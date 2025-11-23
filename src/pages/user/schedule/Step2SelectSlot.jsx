@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
-import Loading from '../../../components/Common/Loading';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import branchSlotService from '../../../services/branchSlot.service';
 import { useApp } from '../../../contexts/AppContext';
 import styles from './Schedule.module.css';
@@ -91,24 +91,41 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
   }, [data?.slotId]);
 
   const loadAvailableSlots = async (studentId) => {
-    if (!studentId) return;
+    if (!studentId) {
+      console.warn('loadAvailableSlots: studentId is missing');
+      return;
+    }
     
     setIsLoading(true);
     setError(null);
 
     try {
+      console.log('Loading available slots for studentId:', studentId);
       const response = await branchSlotService.getAvailableSlotsForStudent(studentId, {
         pageIndex: 1,
         pageSize: 20
       });
+      
+      console.log('API Response:', response);
+      
       const items = Array.isArray(response)
         ? response
         : Array.isArray(response?.items)
           ? response.items
           : [];
 
+      console.log('Extracted items:', items);
+      console.log('Items count:', items.length);
+
+      if (items.length === 0) {
+        console.warn('No slots found in response');
+        setSlots([]);
+        return;
+      }
+
       const mapped = items.map((slot) => {
         // Auto-assign room from first staff member if available
+        // From Swagger, staff is an array, but may be empty
         const firstStaff = Array.isArray(slot.staff) && slot.staff.length > 0 ? slot.staff[0] : null;
         const roomId = firstStaff?.roomId || null;
         const roomName = firstStaff?.roomName || null;
@@ -129,9 +146,37 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
         };
       });
 
+      console.log('Mapped slots:', mapped);
       setSlots(mapped);
     } catch (err) {
-      const errorMessage = err?.message || err?.error || 'Không thể tải slot phù hợp';
+      console.error('Error loading available slots:', err);
+      console.error('Error details:', {
+        message: err?.message,
+        response: err?.response,
+        data: err?.response?.data,
+        status: err?.response?.status,
+        studentId: studentId
+      });
+      
+      // Extract error message from various possible locations
+      let errorMessage = 'Không thể tải slot phù hợp';
+      
+      if (err?.response?.data) {
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (err.response.data?.errors && Array.isArray(err.response.data.errors)) {
+          errorMessage = err.response.data.errors.join(', ');
+        }
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      
       setError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
@@ -226,11 +271,8 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
 
   return (
     <div className={styles.stepContainer}>
-      {isLoading ? (
-        <div className={styles.inlineLoading}>
-          <Loading />
-        </div>
-      ) : error ? (
+      {isLoading && <ContentLoading isLoading={isLoading} text="Đang tải slot phù hợp..." />}
+      {!isLoading && error ? (
         <div className={styles.errorState}>
           <p>{error}</p>
           <button

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useLoading } from '../../../hooks/useLoading';
-import Loading from '../../../components/Common/Loading';
+import useContentLoading from '../../../hooks/useContentLoading';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import userService from '../../../services/user.service';
 import styles from './Profile.module.css';
 
@@ -17,7 +17,7 @@ const UserProfile = () => {
   });
 
   const { showGlobalError, addNotification } = useApp();
-  const { isLoading, showLoading, hideLoading } = useLoading();
+  const { isLoading, loadingText, showLoading, hideLoading } = useContentLoading();
   const { user, updateUser } = useAuth();
 
   useEffect(() => {
@@ -43,7 +43,7 @@ const UserProfile = () => {
         email: userInfo.email
       });
     } catch (err) {
-      console.error('❌ Error loading user data:', err);
+      console.error('Error loading user data:', err);
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải thông tin tài khoản';
       setError(errorMessage);
       showGlobalError(errorMessage);
@@ -117,7 +117,7 @@ const UserProfile = () => {
         severity: 'success'
       });
     } catch (err) {
-      console.error('❌ Update error:', err);
+      console.error('Update error:', err);
       const errorMessage = err?.response?.data?.message || err?.message || 'Có lỗi xảy ra khi cập nhật thông tin';
       showGlobalError(errorMessage);
       addNotification({
@@ -139,7 +139,7 @@ const UserProfile = () => {
   };
 
   if (isLoading && !userData) {
-    return <Loading />;
+    return <ContentLoading isLoading={isLoading} text={loadingText} />;
   }
 
   if (error && !userData) {

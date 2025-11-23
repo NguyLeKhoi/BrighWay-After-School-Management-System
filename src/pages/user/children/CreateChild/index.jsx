@@ -108,20 +108,30 @@ const CreateChild = () => {
       // Create FormData for multipart/form-data
       const formDataToSend = new FormData();
       
-      // Basic info
+      // Basic info (required)
       formDataToSend.append('Name', finalData.name);
       formDataToSend.append('DateOfBirth', finalData.dateOfBirth);
+      
+      // Optional fields
       if (finalData.note) {
         formDataToSend.append('Note', finalData.note);
       }
+      
+      // ImageFile (optional) - if image is a File object, append it; if it's a URL string, skip
       if (finalData.image) {
-        formDataToSend.append('Image', finalData.image);
+        if (finalData.image instanceof File) {
+          formDataToSend.append('ImageFile', finalData.image);
+        }
+        // If image is a URL string, we don't send it as ImageFile
+        // Backend expects ImageFile to be a file, not a URL
       }
       
-      // Associations
+      // Associations (required)
       formDataToSend.append('BranchId', finalData.branchId);
       formDataToSend.append('SchoolId', finalData.schoolId);
       formDataToSend.append('StudentLevelId', finalData.studentLevelId);
+      
+      // Document fields are NOT included - user requested to remove document section
 
       await studentService.registerChild(formDataToSend);
       toast.success('Đăng ký con thành công! Hồ sơ sẽ được xem xét và duyệt bởi quản lý.', {

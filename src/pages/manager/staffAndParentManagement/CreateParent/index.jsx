@@ -19,6 +19,7 @@ const CreateParent = () => {
     name: '',
     email: '',
     password: '',
+    avatarFile: null,
     identityCardNumber: '',
     dateOfBirth: '',
     gender: '',
@@ -123,24 +124,59 @@ const CreateParent = () => {
 
       // If has CCCD data, use with CCCD endpoint
       if (confirmData.identityCardNumber || confirmData.identityCardPublicId) {
-        const payload = {
-          ...confirmData,
-          dateOfBirth: formatDateForAPI(confirmData.dateOfBirth),
-          issuedDate: formatDateForAPI(confirmData.issuedDate)
-        };
-        await userService.createParentWithCCCD(payload);
+        // Create FormData for multipart/form-data
+        const formData = new FormData();
+        formData.append('Email', confirmData.email);
+        formData.append('Password', confirmData.password);
+        formData.append('Name', confirmData.name);
+        
+        // Optional CCCD fields
+        if (confirmData.identityCardNumber) {
+          formData.append('IdentityCardNumber', confirmData.identityCardNumber);
+        }
+        if (confirmData.dateOfBirth) {
+          const dob = formatDateForAPI(confirmData.dateOfBirth);
+          if (dob) formData.append('DateOfBirth', dob);
+        }
+        if (confirmData.gender) {
+          formData.append('Gender', confirmData.gender);
+        }
+        if (confirmData.address) {
+          formData.append('Address', confirmData.address);
+        }
+        if (confirmData.issuedDate) {
+          const issued = formatDateForAPI(confirmData.issuedDate);
+          if (issued) formData.append('IssuedDate', issued);
+        }
+        if (confirmData.issuedPlace) {
+          formData.append('IssuedPlace', confirmData.issuedPlace);
+        }
+        if (confirmData.identityCardPublicId) {
+          formData.append('IdentityCardPublicId', confirmData.identityCardPublicId);
+        }
+        // AvatarFile (optional)
+        if (confirmData.avatarFile && confirmData.avatarFile instanceof File) {
+          formData.append('AvatarFile', confirmData.avatarFile);
+        }
+        
+        await userService.createParentWithCCCD(formData);
       } else {
-        // Otherwise use regular endpoint
-        const parentData = {
-          email: confirmData.email,
-          password: confirmData.password,
-          name: confirmData.name
-        };
-        await userService.createParent(parentData);
+        // Otherwise use regular endpoint - create FormData for multipart/form-data
+        const formData = new FormData();
+        formData.append('Email', confirmData.email);
+        formData.append('Password', confirmData.password);
+        formData.append('Name', confirmData.name);
+        // BranchId will be set automatically by backend from manager's branch
+        // AvatarFile (optional)
+        if (confirmData.avatarFile && confirmData.avatarFile instanceof File) {
+          formData.append('AvatarFile', confirmData.avatarFile);
+        }
+        
+        await userService.createParent(formData);
       }
 
       toast.success(`Tạo tài khoản User (Parent) "${confirmData.name}" thành công!`);
-      navigate('/manager/staffAndParent');
+      navigate('/manager/parents');
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
       toast.error(errorMessage);

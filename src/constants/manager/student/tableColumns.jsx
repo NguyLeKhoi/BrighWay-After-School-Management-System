@@ -2,9 +2,7 @@ import React from 'react';
 import { Avatar, Box, Chip, Typography, Tooltip } from '@mui/material';
 import {
   Person as PersonIcon,
-  Business as BusinessIcon,
   School as SchoolIcon,
-  CalendarToday as CalendarIcon,
   Description as DocumentIcon
 } from '@mui/icons-material';
 
@@ -24,35 +22,11 @@ export const createManagerStudentColumns = () => [
     )
   },
   {
-    key: 'dateOfBirth',
-    header: 'Ngày Sinh',
-    render: (value) => (
-      <Box display="flex" alignItems="center" gap={0.5}>
-        <CalendarIcon fontSize="small" color="action" />
-        <Typography variant="body2" color="text.secondary">
-          {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
-        </Typography>
-      </Box>
-    )
-  },
-  {
     key: 'userName',
     header: 'Phụ Huynh',
     render: (value) => (
       <Box display="flex" alignItems="center" gap={1}>
         <PersonIcon fontSize="small" color="action" />
-        <Typography variant="body2" color="text.secondary">
-          {value || 'N/A'}
-        </Typography>
-      </Box>
-    )
-  },
-  {
-    key: 'branchName',
-    header: 'Chi Nhánh',
-    render: (value) => (
-      <Box display="flex" alignItems="center" gap={1}>
-        <BusinessIcon fontSize="small" color="action" />
         <Typography variant="body2" color="text.secondary">
           {value || 'N/A'}
         </Typography>
@@ -128,15 +102,6 @@ export const createManagerStudentColumns = () => [
         </Tooltip>
       );
     }
-  },
-  {
-    key: 'createdTime',
-    header: 'Ngày Tạo',
-    render: (value) => (
-      <Typography variant="body2" color="text.secondary">
-        {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
-      </Typography>
-    )
   }
 ];
 

@@ -23,7 +23,10 @@ import {
   Home as HomeIcon,
   FamilyRestroom as FamilyIcon,
   Add as AddIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Close as CloseIcon,
+  Warning as WarningIcon,
+  Lightbulb as LightbulbIcon
 } from '@mui/icons-material';
 import { createFamilyAccountSchema } from '../../../utils/validationSchemas/familySchemas';
 
@@ -134,7 +137,8 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
             }
           }}
         >
-          ✕ Hủy
+          <CloseIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
+          Hủy
         </Button>
       )}
       
@@ -318,8 +322,9 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
               alignItems: 'center',
               gap: 1
             }}>
-              <Typography variant="body2" color="warning.main" sx={{ fontWeight: 'bold' }}>
-                ⚠️ Đã đạt giới hạn tối đa 5 phụ huynh
+              <Typography variant="body2" color="warning.main" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <WarningIcon sx={{ fontSize: 18 }} />
+                Đã đạt giới hạn tối đa 5 phụ huynh
               </Typography>
             </Box>
           )}
@@ -334,8 +339,9 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
               alignItems: 'center',
               gap: 1
             }}>
-              <Typography variant="body2" color="success.main" sx={{ fontWeight: 'bold' }}>
-                💡 Bạn có thể thêm tối đa 4 phụ huynh nữa bằng cách nhấn nút "Thêm Phụ Huynh"
+              <Typography variant="body2" color="success.main" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <LightbulbIcon sx={{ fontSize: 18 }} />
+                Bạn có thể thêm tối đa 4 phụ huynh nữa bằng cách nhấn nút "Thêm Phụ Huynh"
               </Typography>
             </Box>
           )}

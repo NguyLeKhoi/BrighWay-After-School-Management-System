@@ -1,17 +1,18 @@
 .contentSection {
-  padding: 80px 0;
+  padding: 60px 0;
+  background-color: #ffffff;
 }
 
 .contentContainer {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 40px;
 }
 
 .contentWrapper {
   display: flex;
   align-items: center;
-  gap: 60px;
+  gap: 40px;
 }
 
 .contentWrapper.reverse {
@@ -20,6 +21,8 @@
 
 .textContent {
   flex: 1;
+  min-width: 0;
+  padding-right: 20px;
 }
 
 .sectionHeading {
@@ -27,7 +30,7 @@
   font-weight: var(--font-weight-bold);
   font-family: var(--font-family);
   color: var(--color-primary);
-  margin-bottom: var(--spacing-4);
+  margin-bottom: 16px;
   line-height: var(--line-height-normal);
 }
 
@@ -36,7 +39,7 @@
   font-weight: var(--font-weight-semibold);
   font-family: var(--font-family);
   color: var(--color-primary);
-  margin-bottom: var(--spacing-4);
+  margin-bottom: 20px;
 }
 
 .sectionDescription {
@@ -44,11 +47,11 @@
   font-family: var(--font-family);
   color: var(--color-gray-600);
   line-height: var(--line-height-relaxed);
-  margin-bottom: var(--spacing-8);
+  margin-bottom: 24px;
 }
 
 .featuresList {
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
 .featureTitle {
@@ -57,7 +60,7 @@
   font-family: var(--font-family);
   color: var(--color-gray-900);
   margin-bottom: var(--spacing-2);
-  padding-left: var(--spacing-4);
+  padding-left: 28px;
   position: relative;
 }
 
@@ -65,8 +68,13 @@
   content: '✓';
   position: absolute;
   left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--color-success);
   font-weight: var(--font-weight-bold);
+  font-size: 1.2em;
+  line-height: 1;
+  z-index: 1;
 }
 
 .buttonGroup {
@@ -113,15 +121,21 @@
 
 .imageContent {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .contentImage {
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   height: auto;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  object-fit: contain;
+  display: block;
 }
 
 .imagePlaceholder {
@@ -136,13 +150,21 @@
 }
 
 @media (max-width: 768px) {
+  .contentContainer {
+    padding: 0 20px;
+  }
+  
   .contentWrapper {
     flex-direction: column;
-    gap: 40px;
+    gap: 30px;
   }
   
   .contentWrapper.reverse {
     flex-direction: column;
+  }
+  
+  .textContent {
+    padding-right: 0;
   }
   
   .sectionHeading {
@@ -155,6 +177,10 @@
   
   .button {
     width: 100%;
+  }
+  
+  .contentImage {
+    max-width: 100%;
   }
 }
 

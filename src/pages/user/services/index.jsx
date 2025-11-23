@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import Loading from '@components/Common/Loading';
+import { Receipt as ServiceIcon } from '@mui/icons-material';
+import ContentLoading from '@components/Common/ContentLoading';
 import AnimatedCard from '../../../components/Common/AnimatedCard';
 import { useApp } from '../../../contexts/AppContext';
 import serviceService from '../../../services/service.service';
@@ -271,7 +272,7 @@ const FamilyServices = () => {
 
         {isLoadingServices ? (
           <div className={styles.inlineLoading}>
-            <Loading />
+            <ContentLoading isLoading={true} text="Đang tải dịch vụ..." />
           </div>
         ) : servicesError ? (
           <div className={styles.errorState}>
@@ -341,7 +342,9 @@ const FamilyServices = () => {
           </div>
         ) : (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>🧾</div>
+            <div className={styles.emptyIcon}>
+              <ServiceIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+            </div>
             <h3>Chưa có dịch vụ add-on</h3>
             <p>Chi nhánh của bạn chưa cung cấp dịch vụ nào. Vui lòng quay lại sau.</p>
           </div>
@@ -377,7 +380,7 @@ const FamilyServices = () => {
                 </label>
                 {isLoadingChildren ? (
                   <div className={styles.inlineLoading}>
-                    <Loading />
+                    <ContentLoading isLoading={true} text="Đang tải danh sách con..." />
                   </div>
                 ) : childrenError ? (
                   <div className={styles.errorState}>
@@ -414,7 +417,7 @@ const FamilyServices = () => {
                   </label>
                   {isLoadingSlots ? (
                     <div className={styles.inlineLoading}>
-                      <Loading />
+                      <ContentLoading isLoading={true} text="Đang tải ca học..." />
                     </div>
                   ) : slotsError ? (
                     <div className={styles.errorState}>

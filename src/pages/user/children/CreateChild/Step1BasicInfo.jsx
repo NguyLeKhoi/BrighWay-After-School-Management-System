@@ -1,6 +1,7 @@
 import React, { useImperativeHandle, useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Grid } from '@mui/material';
 import Form from '../../../../components/Common/Form';
+import ImageUpload from '../../../../components/Common/ImageUpload';
 import { userChildStep1Schema } from '../../../../utils/validationSchemas/userChildSchemas';
 
 const Step1BasicInfo = React.forwardRef(
@@ -37,14 +38,6 @@ const Step1BasicInfo = React.forwardRef(
           rows: 4,
           gridSize: 12,
           disabled: dependenciesLoading
-        },
-        {
-          name: 'image',
-          label: 'Ảnh đại diện (URL - tùy chọn)',
-          type: 'text',
-          placeholder: 'Nhập đường dẫn ảnh (ví dụ: https://...)',
-          gridSize: 12,
-          disabled: dependenciesLoading
         }
       ],
       [dependenciesLoading]
@@ -61,13 +54,22 @@ const Step1BasicInfo = React.forwardRef(
     );
 
     const handleSubmit = async (formValues) => {
-      updateData(formValues);
+      // Merge image from data into formValues
+      const mergedData = {
+        ...formValues,
+        image: data.image instanceof File ? data.image : (formValues.image || null)
+      };
+      updateData(mergedData);
       return true;
     };
 
     useImperativeHandle(ref, () => ({
       submit: async () => {
         if (formRef.current?.submit) {
+          // Ensure image is set in form before submitting
+          if (data.image instanceof File && formRef.current?.setValue) {
+            formRef.current.setValue('image', data.image, { shouldValidate: false });
+          }
           return await formRef.current.submit();
         }
         return false;
@@ -76,13 +78,6 @@ const Step1BasicInfo = React.forwardRef(
 
     return (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Typography variant="h6" gutterBottom sx={{ mb: 0.75, fontWeight: 600, fontSize: '1.1rem' }}>
-          Bước {stepIndex + 1}/{totalSteps}: Thông tin cơ bản
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.875rem' }}>
-          Nhập tên và ngày sinh của con bạn. Đây là các thông tin bắt buộc để đăng ký.
-        </Typography>
-
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <Form
             ref={formRef}
@@ -93,6 +88,36 @@ const Step1BasicInfo = React.forwardRef(
             hideSubmitButton
             disabled={dependenciesLoading}
           />
+          
+          {/* Image Upload Section */}
+          <Box sx={{ mt: 2 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <ImageUpload
+                  value={data.image instanceof File ? data.image : null}
+                  onChange={(file) => {
+                    // Get current form values to preserve them
+                    const currentFormValues = formRef.current?.getValues ? formRef.current.getValues() : {};
+                    // Merge current form values with new image
+                    updateData({ 
+                      ...data, 
+                      ...currentFormValues, // Preserve form values
+                      image: file 
+                    });
+                    // Also update form value
+                    if (formRef.current?.setValue) {
+                      formRef.current.setValue('image', file, { shouldValidate: false });
+                    }
+                  }}
+                  label="Ảnh đại diện (tùy chọn)"
+                  helperText="Chọn file ảnh để tải lên (JPG, PNG, etc.) - Tối đa 10MB"
+                  accept="image/*"
+                  maxSize={10 * 1024 * 1024}
+                  disabled={dependenciesLoading}
+                />
+              </Grid>
+            </Grid>
+          </Box>
         </Box>
       </Box>
     );

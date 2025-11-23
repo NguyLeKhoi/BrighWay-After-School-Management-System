@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Grid, Switch, Box, Typography, TextField, Checkbox, InputAdornment, IconButton } from '@mui/material';
+import { Grid, Switch, Box, Typography, TextField, Checkbox, InputAdornment, IconButton, ListItemText } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -94,10 +94,45 @@ const Form = forwardRef(({
   const previousErrorMessages = useRef({});
 
   // Reset form when defaultValues change (for update scenarios)
+  // Use a ref to track previous defaultValues to avoid unnecessary resets
+  const prevDefaultValuesRef = useRef(defaultValues);
+  const isInitialMount = useRef(true);
+  
   useEffect(() => {
     if (defaultValues && Object.keys(defaultValues).length > 0) {
-      // Use reset with keepDefaultValues option to properly update form
-      reset(defaultValues, { keepDefaultValues: true });
+      // Skip on initial mount
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        prevDefaultValuesRef.current = defaultValues;
+        return;
+      }
+      
+      const prev = prevDefaultValuesRef.current || {};
+      const current = defaultValues || {};
+      
+      // Check if only file fields (avatarFile, image) changed
+      const nonFileKeys = Object.keys(current).filter(key => key !== 'avatarFile' && key !== 'image');
+      const onlyFileFieldsChanged = nonFileKeys.every(key => {
+        return prev[key] === current[key];
+      }) && (
+        (prev.avatarFile !== current.avatarFile) || 
+        (prev.image !== current.image)
+      );
+      
+      if (onlyFileFieldsChanged) {
+        // Only update file fields without resetting the form
+        if (current.avatarFile !== undefined && formRef.current?.setValue) {
+          formRef.current.setValue('avatarFile', current.avatarFile, { shouldValidate: false });
+        }
+        if (current.image !== undefined && formRef.current?.setValue) {
+          formRef.current.setValue('image', current.image, { shouldValidate: false });
+        }
+      } else {
+        // Other fields changed, reset form
+        reset(defaultValues, { keepDefaultValues: true });
+      }
+      
+      prevDefaultValuesRef.current = defaultValues;
     }
   }, [defaultValues, reset]);
 
@@ -171,6 +206,9 @@ const Form = forwardRef(({
       className = '',
       helperText,
       fullWidth,
+      section, // Remove from fieldProps
+      sectionDescription, // Remove from fieldProps
+      gridSize, // Remove from fieldProps
       ...fieldProps
     } = field;
     const error = errors[name];
@@ -217,14 +255,48 @@ const Form = forwardRef(({
                   return option.label || '';
                 }}
                 filterOptions={(x) => x}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder={field.placeholder}
-                    size="small"
-                    disabled={field.disabled}
-                  />
-                )}
+                renderOption={(props, option) => {
+                  const { key, ...optionProps } = props;
+                  return (
+                    <Box component="li" {...optionProps} key={key} sx={{ py: 1.5 }}>
+                      {option.description ? (
+                        <ListItemText
+                          primary={option.label}
+                          secondary={option.description}
+                          primaryTypographyProps={{
+                            fontSize: '0.875rem',
+                            fontWeight: 500
+                          }}
+                          secondaryTypographyProps={{
+                            fontSize: '0.75rem',
+                            color: 'text.secondary'
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body2">{option.label}</Typography>
+                      )}
+                    </Box>
+                  );
+                }}
+                renderInput={(params) => {
+                  // Ưu tiên helperText của field, nếu không có thì hiển thị description của option đã chọn
+                  const displayHelperText = field.helperText || (selectedOption?.description || undefined);
+                  return (
+                    <TextField
+                      {...params}
+                      placeholder={field.placeholder}
+                      size="small"
+                      disabled={field.disabled}
+                      helperText={displayHelperText}
+                      FormHelperTextProps={{
+                        sx: {
+                          marginTop: 0.5,
+                          fontSize: '0.75rem'
+                        }
+                      }}
+                    />
+                  );
+                }}
                 isOptionEqualToValue={(option, value) => {
                   if (!option || !value) return false;
                   // Handle both string and number comparison

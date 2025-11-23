@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Avatar, Chip, CircularProgress, Alert, Typography, Button, Paper, IconButton } from '@mui/material';
+import ContentLoading from '../../../../components/Common/ContentLoading';
 import { motion } from 'framer-motion';
 import AnimatedCard from '../../../../components/Common/AnimatedCard';
 import {
@@ -445,11 +446,7 @@ const ChildProfile = () => {
   if (loading) {
     return (
       <div className={styles.profilePage}>
-        <div className={styles.container}>
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-            <CircularProgress />
-          </Box>
-        </div>
+        <ContentLoading isLoading={loading} text="Đang tải thông tin học sinh..." />
       </div>
     );
   }

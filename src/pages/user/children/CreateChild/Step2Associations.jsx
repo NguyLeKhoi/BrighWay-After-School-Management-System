@@ -25,12 +25,9 @@ const Step2Associations = React.forwardRef(
     
     // Lấy schools và studentLevels theo branchId
     const finalBranchId = userBranchId || data.branchId || null;
-    console.log('Step2Associations - finalBranchId:', finalBranchId, 'userBranchId:', userBranchId, 'data.branchId:', data.branchId);
     const { schools: branchSchools, loading: loadingBranchSchools, error: schoolsError } = useBranchSchools(finalBranchId);
     const { studentLevels: branchStudentLevels, loading: loadingBranchLevels, error: levelsError } = useBranchStudentLevels(finalBranchId);
     
-    console.log('Step2Associations - branchSchools:', branchSchools, 'branchStudentLevels:', branchStudentLevels);
-    console.log('Step2Associations - loadingBranchSchools:', loadingBranchSchools, 'loadingBranchLevels:', loadingBranchLevels);
     
     // Map schools từ branch thành options format
     const branchSchoolOptions = useMemo(() => {
@@ -44,7 +41,8 @@ const Step2Associations = React.forwardRef(
     const branchStudentLevelOptions = useMemo(() => {
       return branchStudentLevels.map(level => ({
         value: level.id || level.studentLevelId,
-        label: level.name || level.levelName || 'Không xác định'
+        label: level.name || level.levelName || 'Không xác định',
+        description: level.description || level.desc || null
       }));
     }, [branchStudentLevels]);
     

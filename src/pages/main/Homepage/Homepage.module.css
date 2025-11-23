@@ -1,6 +1,7 @@
 /* Homepage Styles */
 .homepage {
   width: 100%;
+  background-color: #ffffff;
 }
 
 /* Hero Section */
@@ -72,10 +73,11 @@
 /* Content Sections */
 .contentSection {
   padding: 80px 0;
+  background-color: #ffffff;
 }
 
 .contentSection:nth-child(even) {
-  background-color: #f8f9fa;
+  background-color: #ffffff;
 }
 
 .contentContainer {
@@ -190,8 +192,9 @@
   width: 100%;
   max-width: 500px;
   height: auto;
-  border-radius: 10px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
   object-fit: cover;
 }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Search as SearchIcon } from '@mui/icons-material';
 import Threads from '../../Animation/Background/Threads';
 import styles from './NotFound.module.css';
 
@@ -112,7 +113,9 @@ const NotFound = () => {
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity, repeatDelay: 2 }}
           >
-            <div className={styles.illustrationIcon}>🔍</div>
+            <div className={styles.illustrationIcon}>
+              <SearchIcon sx={{ fontSize: 80, color: 'text.secondary' }} />
+            </div>
           </motion.div>
         </motion.div>
       </motion.div>

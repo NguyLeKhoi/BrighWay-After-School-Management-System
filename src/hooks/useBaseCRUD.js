@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import { useApp } from '../contexts/AppContext';
 import useContentLoading from './useContentLoading';
@@ -55,6 +55,10 @@ const useBaseCRUD = ({
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading(minLoadingDuration);
   const { showGlobalError } = useApp();
   
+  // Memoize filters to prevent unnecessary re-renders
+  const filtersString = useMemo(() => JSON.stringify(filters), [filters]);
+  const prevFiltersStringRef = useRef(filtersString);
+  
   // Load data
   const loadData = useCallback(async (showLoadingIndicator = true) => {
     if (!loadFunction) return;
@@ -101,15 +105,20 @@ const useBaseCRUD = ({
         hideLoading();
       }
     }
-  }, [page, rowsPerPage, keyword, filters, loadFunction, showLoading, hideLoading, showGlobalError]);
+  }, [page, rowsPerPage, keyword, filtersString, loadFunction, showLoading, hideLoading, showGlobalError]);
   
   // Load data when page, rowsPerPage, or filters change
   useEffect(() => {
     if (loadOnMount) {
+      // Only load if filters actually changed (deep comparison via JSON.stringify)
+      const filtersChanged = prevFiltersStringRef.current !== filtersString;
+      if (filtersChanged) {
+        prevFiltersStringRef.current = filtersString;
+      }
       loadData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, rowsPerPage, filters]);
+  }, [page, rowsPerPage, filtersString]); // Removed loadData from dependencies to prevent infinite loop
   
   // Debounced search
   useEffect(() => {

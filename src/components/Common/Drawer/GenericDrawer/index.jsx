@@ -58,7 +58,14 @@ const GenericDrawer = ({
         transition={{ duration: 0.3 }}
       >
         <Box sx={{ 
-          p: 2, 
+          minHeight: '64px',
+          height: '64px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          px: 2,
+          py: 1,
           textAlign: 'center', 
           borderBottom: 1, 
           borderColor: 'divider',
@@ -72,7 +79,8 @@ const GenericDrawer = ({
               fontWeight: 800,
               fontSize: '1.5rem',
               letterSpacing: '0.05em',
-              mb: 0.5
+              mb: 0.5,
+              lineHeight: 1.2
             }}
           >
             {title}
@@ -84,7 +92,8 @@ const GenericDrawer = ({
               fontSize: '0.75rem',
               fontWeight: 500,
               letterSpacing: '0.1em',
-              textTransform: 'uppercase'
+              textTransform: 'uppercase',
+              lineHeight: 1
             }}
           >
             {subtitle}

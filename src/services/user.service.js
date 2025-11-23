@@ -74,19 +74,35 @@ const userService = {
 
    /**
     * Create new parent account (for Staff role only)
-    * @param {Object} userData - User data { email, password, name, branchId }
+    * @param {FormData|Object} userData - User data as FormData (multipart/form-data) or Object { email, password, name, branchId }
     * @returns {Promise} Created parent user
     */
    createParent: async (userData) => {
      try {
-       // Backend expects { email, password, name, branchId }
-       const payload = {
-         email: userData.email,
-         password: userData.password,
-         name: userData.name || userData.fullName,
-         branchId: userData.branchId
-       };
-       const response = await axiosInstance.post('/User/parent', payload);
+       // If FormData, send directly (for multipart/form-data)
+       if (userData instanceof FormData) {
+         const response = await axiosInstance.post('/User/parent', userData, {
+           headers: {
+             'Content-Type': 'multipart/form-data'
+           }
+         });
+         return response.data;
+       }
+       
+       // Otherwise, create FormData from object
+       const formData = new FormData();
+       formData.append('Email', userData.email);
+       formData.append('Password', userData.password);
+       formData.append('Name', userData.name || userData.fullName);
+       if (userData.branchId) {
+         formData.append('BranchId', userData.branchId);
+       }
+       
+       const response = await axiosInstance.post('/User/parent', formData, {
+         headers: {
+           'Content-Type': 'multipart/form-data'
+         }
+       });
        return response.data;
      } catch (error) {
        throw error.response?.data || error.message;
@@ -95,24 +111,54 @@ const userService = {
 
    /**
     * Create new parent account with CCCD data (for Manager role)
-    * @param {Object} userData - User data with CCCD information
+    * @param {FormData|Object} userData - User data as FormData (multipart/form-data) or Object with CCCD information
     * @returns {Promise} Created parent user
     */
    createParentWithCCCD: async (userData) => {
      try {
-       const payload = {
-         email: userData.email,
-         password: userData.password,
-         name: userData.name || userData.fullName,
-         identityCardNumber: userData.identityCardNumber,
-         dateOfBirth: userData.dateOfBirth,
-         gender: userData.gender,
-         address: userData.address,
-         issuedDate: userData.issuedDate,
-         issuedPlace: userData.issuedPlace,
-         identityCardPublicId: userData.identityCardPublicId
-       };
-       const response = await axiosInstance.post('/User/parent-with-cccd', payload);
+       // If FormData, send directly (for multipart/form-data)
+       if (userData instanceof FormData) {
+         const response = await axiosInstance.post('/User/parent-with-cccd', userData, {
+           headers: {
+             'Content-Type': 'multipart/form-data'
+           }
+         });
+         return response.data;
+       }
+       
+       // Otherwise, create FormData from object
+       const formData = new FormData();
+       formData.append('Email', userData.email);
+       formData.append('Password', userData.password);
+       formData.append('Name', userData.name || userData.fullName);
+       
+       if (userData.identityCardNumber) {
+         formData.append('IdentityCardNumber', userData.identityCardNumber);
+       }
+       if (userData.dateOfBirth) {
+         formData.append('DateOfBirth', userData.dateOfBirth);
+       }
+       if (userData.gender) {
+         formData.append('Gender', userData.gender);
+       }
+       if (userData.address) {
+         formData.append('Address', userData.address);
+       }
+       if (userData.issuedDate) {
+         formData.append('IssuedDate', userData.issuedDate);
+       }
+       if (userData.issuedPlace) {
+         formData.append('IssuedPlace', userData.issuedPlace);
+       }
+       if (userData.identityCardPublicId) {
+         formData.append('IdentityCardPublicId', userData.identityCardPublicId);
+       }
+       
+       const response = await axiosInstance.post('/User/parent-with-cccd', formData, {
+         headers: {
+           'Content-Type': 'multipart/form-data'
+         }
+       });
        return response.data;
      } catch (error) {
        throw error.response?.data || error.message;
