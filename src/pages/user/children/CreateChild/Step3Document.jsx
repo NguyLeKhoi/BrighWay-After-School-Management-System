@@ -10,7 +10,7 @@ const DOCUMENT_TYPE_OPTIONS = [
   { value: 'AuthorizationLetter', label: 'Giấy ủy quyền' },
   { value: 'AdoptionCertificate', label: 'Giấy chứng nhận nhận nuôi' },
   { value: 'DivorceCustodyDecision', label: 'Quyết định quyền nuôi con sau ly hôn' },
-  { value: 'StudentCard', label: 'Thẻ học sinh' },
+  { value: 'StudentCard', label: 'Thẻ trẻ em' },
   { value: 'SchoolEnrollmentConfirmation', label: 'Xác nhận nhập học' },
   { value: 'AcademicRecordBook', label: 'Sổ học bạ' },
   { value: 'VnEduScreenshot', label: 'Ảnh chụp màn hình VnEdu' },

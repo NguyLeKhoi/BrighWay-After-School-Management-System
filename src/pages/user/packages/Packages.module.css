@@ -79,7 +79,7 @@
   display: inline-block;
   padding: 4px 12px;
   background: linear-gradient(135deg, var(--color-success-light) 0%, var(--color-success) 100%);
-  color: var(--color-success-dark);
+  color: white;
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);

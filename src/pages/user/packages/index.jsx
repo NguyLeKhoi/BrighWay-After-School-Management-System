@@ -4,16 +4,26 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   ChildCare as ChildIcon,
   Inventory as PackageIcon,
-  Receipt as ServiceIcon
+  Receipt as ServiceIcon,
+  ShoppingCart as ShoppingCartIcon
 } from '@mui/icons-material';
+import { Box, Typography, Chip } from '@mui/material';
 import ContentLoading from '@components/Common/ContentLoading';
 import Tabs from '@components/Common/Tabs';
+import Card from '@components/Common/Card';
+import ManagementFormDialog from '@components/Management/FormDialog';
+import Form from '@components/Common/Form';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import packageService from '../../../services/package.service';
 import studentService from '../../../services/student.service';
 import serviceService from '../../../services/service.service';
+import * as yup from 'yup';
 import styles from './Packages.module.css';
+
+const buyPackageSchema = yup.object().shape({
+  studentId: yup.string().required('Vui lòng chọn con')
+});
 
 const getFieldWithFallback = (source, candidates, defaultValue = 0) => {
   if (!source) return defaultValue;
@@ -48,8 +58,7 @@ const MyPackages = () => {
   const [children, setChildren] = useState([]);
   const [hasChildren, setHasChildren] = useState(false);
   const [buyForm, setBuyForm] = useState({
-    studentId: '',
-    startDate: new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD format
+    studentId: ''
   });
   const [isBuying, setIsBuying] = useState(false);
 
@@ -396,43 +405,26 @@ const MyPackages = () => {
   const handleBuyClick = (pkg) => {
     setSelectedPackage(pkg);
     setBuyForm({
-      studentId: '',
-      startDate: new Date().toISOString().split('T')[0]
+      studentId: ''
     });
     setShowBuyDialog(true);
   };
 
-  const handleBuyPackage = async (e) => {
-    e.preventDefault();
-    
+  const handleBuyPackage = async (data) => {
     if (!selectedPackage) return;
-    
-    if (!buyForm.studentId) {
-      addNotification({
-        message: 'Vui lòng chọn con để mua gói',
-        severity: 'warning'
-      });
-      return;
-    }
-
-    if (!buyForm.startDate) {
-      addNotification({
-        message: 'Vui lòng chọn ngày bắt đầu',
-        severity: 'warning'
-      });
-      return;
-    }
 
     setIsBuying(true);
     showLoading();
 
     try {
-      // Convert startDate to ISO format
-      const startDateISO = new Date(buyForm.startDate + 'T00:00:00').toISOString();
+      // Always use current date as start date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startDateISO = today.toISOString();
       
       await packageService.buyPackageForChild({
         packageId: selectedPackage.id,
-        studentId: buyForm.studentId,
+        studentId: data.studentId,
         startDate: startDateISO
       });
 
@@ -443,11 +435,18 @@ const MyPackages = () => {
 
       setShowBuyDialog(false);
       setSelectedPackage(null);
+      setBuyForm({
+        studentId: ''
+      });
       
-      // Refresh purchased packages list
-      if (activeTab === 'purchased') {
+      // Always refresh purchased packages list after successful purchase
         await loadPurchasedPackages();
-      }
+      
+      // Also refresh available packages to update counts
+      await loadAvailablePackages();
+      
+      // Switch to purchased tab to show the newly purchased package
+      setActiveTab('purchased');
     } catch (err) {
       const errorMessage = typeof err === 'string'
         ? err
@@ -581,9 +580,6 @@ const MyPackages = () => {
       <div className={styles.packageActions}>
         {isPurchased ? (
           <>
-            <button className={styles.viewButton}>
-              Xem chi tiết
-            </button>
             {pkg.status === 'active' && (
               <button className={styles.extendButton}>
                 Gia hạn
@@ -592,9 +588,6 @@ const MyPackages = () => {
           </>
         ) : (
           <>
-            <button className={styles.viewButton}>
-              Xem chi tiết
-            </button>
             <button 
               className={styles.registerButton}
               onClick={() => handleBuyClick(pkg)}
@@ -702,13 +695,13 @@ const MyPackages = () => {
                 <div className={styles.emptyIcon}>
                   <ChildIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
                 </div>
-                <h3>Chưa có học sinh</h3>
-                <p>Bạn cần thêm thông tin học sinh trước khi xem các gói dịch vụ. Các gói sẽ được hiển thị dựa trên thông tin học sinh của bạn.</p>
+                <h3>Chưa có trẻ em</h3>
+                <p>Bạn cần thêm thông tin trẻ em trước khi xem các gói dịch vụ. Các gói sẽ được hiển thị dựa trên thông tin trẻ em của bạn.</p>
                 <button 
                   className={styles.browseButton}
                   onClick={() => navigate('/family/children/create')}
                 >
-                  Thêm học sinh ngay
+                  Thêm trẻ em ngay
                 </button>
               </div>
             ) : (
@@ -739,7 +732,64 @@ const MyPackages = () => {
               </div>
             ) : purchasedPackages.length > 0 ? (
               <div className={styles.packagesGrid}>
-                {purchasedPackages.map((pkg) => renderPackageCard(pkg, true))}
+                {purchasedPackages.map((pkg) => {
+                  const infoRows = [
+                    { label: 'Giá', value: formatCurrency(pkg.price) },
+                    { label: 'Thời hạn', value: `${pkg.durationInMonths} tháng` },
+                    { label: 'Ngày mua', value: formatDate(pkg.purchasedDate) },
+                    { label: 'Hết hạn', value: formatDate(pkg.expiryDate) },
+                    { label: 'Con', value: pkg.childName || '—' }
+                  ];
+
+                  if (pkg.usedSlots !== undefined && pkg.totalSlots !== undefined) {
+                    infoRows.push({
+                      label: 'Đã dùng',
+                      value: `${pkg.usedSlots}/${pkg.totalSlots} slot${pkg.remainingSlots !== undefined ? ` (Còn lại: ${pkg.remainingSlots} slot)` : ''}`
+                    });
+                  }
+
+                  if (pkg.branch?.branchName) {
+                    infoRows.push({ label: 'Chi nhánh', value: pkg.branch.branchName });
+                  }
+
+                  if (pkg.studentLevel?.levelName) {
+                    infoRows.push({ label: 'Cấp độ', value: pkg.studentLevel.levelName });
+                  }
+
+                  const badges = pkg.benefits && pkg.benefits.length > 0
+                    ? pkg.benefits.map((benefit, index) => ({
+                        text: benefit.name || benefit,
+                        type: 'fullweek'
+                      }))
+                    : [];
+
+                  return (
+                    <Card
+                      key={pkg.id}
+                      title={pkg.name}
+                      subtitle={pkg.desc || undefined}
+                      status={{
+                        text: pkg.status === 'active' ? 'Đang sử dụng' : 'Đã hết hạn',
+                        type: pkg.status === 'active' ? 'active' : 'pending'
+                      }}
+                      infoRows={infoRows}
+                      badges={badges}
+                      actions={pkg.status === 'active' ? [
+                        {
+                          text: 'Gia hạn',
+                          primary: true,
+                          onClick: () => {
+                            // TODO: Implement extend functionality
+                            addNotification({
+                              message: 'Tính năng gia hạn đang được phát triển',
+                              severity: 'info'
+                            });
+                          }
+                        }
+                      ] : []}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className={styles.emptyState}>
@@ -790,83 +840,86 @@ const MyPackages = () => {
         )}
 
         {/* Buy Package Dialog */}
-        {showBuyDialog && (
-          <div className={styles.dialogOverlay} onClick={() => setShowBuyDialog(false)}>
-            <div className={styles.dialogContent} onClick={(e) => e.stopPropagation()}>
-              <div className={styles.dialogHeader}>
-                <h2 className={styles.dialogTitle}>Mua gói dịch vụ</h2>
-                <button 
-                  className={styles.dialogClose}
-                  onClick={() => setShowBuyDialog(false)}
-                >
-                  ×
-                </button>
-              </div>
-
+        <ManagementFormDialog
+          open={showBuyDialog}
+          onClose={() => {
+            setShowBuyDialog(false);
+            setSelectedPackage(null);
+            setBuyForm({
+              studentId: ''
+            });
+          }}
+          mode="create"
+          title="Mua gói dịch vụ"
+          icon={ShoppingCartIcon}
+          loading={isBuying}
+          maxWidth="md"
+        >
               {selectedPackage && (
-                <div className={styles.dialogPackageInfo}>
-                  <h3 className={styles.dialogPackageName}>{selectedPackage.name}</h3>
-                  <p className={styles.dialogPackagePrice}>
-                    Giá: {formatCurrency(selectedPackage.price)}
-                  </p>
-                </div>
-              )}
-
-              <form onSubmit={handleBuyPackage} className={styles.buyForm}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Chọn con <span className={styles.required}>*</span>
-                  </label>
-                  <select
-                    className={styles.formSelect}
-                    value={buyForm.studentId}
-                    onChange={(e) => setBuyForm({ ...buyForm, studentId: e.target.value })}
-                    required
-                  >
-                    <option value="">-- Chọn con --</option>
-                    {children.map((child) => (
-                      <option key={child.id} value={child.id}>
-                        {child.name || 'Không tên'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Ngày bắt đầu <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type="date"
-                    className={styles.formInput}
-                    value={buyForm.startDate}
-                    onChange={(e) => setBuyForm({ ...buyForm, startDate: e.target.value })}
-                    min={new Date().toISOString().split('T')[0]}
-                    required
+            <Box sx={{ 
+              mb: 3,
+              p: 3,
+              backgroundColor: 'rgba(0, 123, 255, 0.05)',
+              borderRadius: 2,
+              border: '1px solid rgba(0, 123, 255, 0.1)'
+            }}>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 600, 
+                mb: 1,
+                color: 'text.primary'
+              }}>
+                {selectedPackage.name}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Chip 
+                  label={`Giá: ${formatCurrency(selectedPackage.price)}`}
+                  sx={{
+                    backgroundColor: 'var(--color-primary)',
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '0.9rem'
+                  }}
+                />
+                {selectedPackage.durationInMonths && (
+                  <Chip 
+                    label={`Thời hạn: ${selectedPackage.durationInMonths} tháng`}
+                    variant="outlined"
+                    sx={{ fontSize: '0.85rem' }}
                   />
-                </div>
+                )}
+                {selectedPackage.totalSlots && (
+                  <Chip 
+                    label={`${selectedPackage.totalSlots} slot`}
+                    variant="outlined"
+                    sx={{ fontSize: '0.85rem' }}
+                  />
+                )}
+              </Box>
+            </Box>
+          )}
 
-                <div className={styles.dialogActions}>
-                  <button
-                    type="button"
-                    className={styles.cancelButton}
-                    onClick={() => setShowBuyDialog(false)}
+          <Form
+            schema={buyPackageSchema}
+            defaultValues={buyForm}
+            onSubmit={handleBuyPackage}
+            submitText="Xác nhận mua"
+            loading={isBuying}
                     disabled={isBuying}
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    type="submit"
-                    className={styles.confirmButton}
-                    disabled={isBuying}
-                  >
-                    {isBuying ? 'Đang xử lý...' : 'Xác nhận mua'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+            fields={[
+              {
+                name: 'studentId',
+                label: 'Chọn con',
+                type: 'select',
+                required: true,
+                placeholder: '-- Chọn con --',
+                options: children.map(child => ({
+                  value: child.id,
+                  label: child.name || 'Không tên'
+                }))
+              }
+            ]}
+          />
+        </ManagementFormDialog>
       </div>
     </motion.div>
   );

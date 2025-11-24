@@ -19,7 +19,7 @@ const ManagerDashboard = () => {
       color: '#1976d2'
     },
     {
-      title: 'Tổng Giáo Viên',
+      title: 'Tổng Nhân Viên',
       value: '12',
       icon: <SchoolIcon />,
       color: '#2e7d32'
@@ -74,7 +74,7 @@ const ManagerDashboard = () => {
           Thông tin hệ thống
         </h2>
         <p className={styles.infoText}>
-          Đây là trang dashboard dành cho Manager. Tại đây bạn có thể quản lý nhân viên và giáo viên,
+          Đây là trang dashboard dành cho Manager. Tại đây bạn có thể quản lý nhân viên chăm sóc,
           xem báo cáo và thực hiện các tác vụ quản lý khác.
         </p>
       </AnimatedCard>

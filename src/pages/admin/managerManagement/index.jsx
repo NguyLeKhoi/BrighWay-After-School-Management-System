@@ -125,7 +125,12 @@ const ManagerManagement = () => {
       };
       await baseHandleFormSubmit(submitData);
     } else {
-      await baseHandleFormSubmit(formData);
+      // Only allow updating name and branchId
+      const updateData = {
+        name: formData.name || selectedUser?.name || '',
+        branchId: formData.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null
+      };
+      await baseHandleFormSubmit(updateData);
     }
   };
 
@@ -247,13 +252,20 @@ const ManagerManagement = () => {
       >
         <Form
           schema={dialogMode === 'create' ? createManagerSchema : updateUserSchema}
-          defaultValues={{
-            name: selectedUser?.name || '',
-            email: selectedUser?.email || '',
-            password: '',
-            branchId: selectedUser?.branchId || '',
-            isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
-          }}
+          defaultValues={
+            dialogMode === 'create'
+              ? {
+                  name: selectedUser?.name || '',
+                  email: selectedUser?.email || '',
+                  password: '',
+                  branchId: selectedUser?.branchId || '',
+                  isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
+                }
+              : {
+                  name: selectedUser?.name || '',
+                  branchId: selectedUser?.branchId || selectedUser?.branch?.id || ''
+                }
+          }
           onSubmit={handleFormSubmit}
           submitText={dialogMode === 'create' ? 'Tạo Manager' : 'Cập nhật Thông Tin'}
           loading={actionLoading}

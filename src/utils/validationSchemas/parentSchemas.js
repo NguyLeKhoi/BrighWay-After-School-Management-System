@@ -11,6 +11,10 @@ export const createParentBasicInfoSchema = yup.object({
     .string()
     .required('Email là bắt buộc')
     .email('Email không hợp lệ'),
+  phoneNumber: yup
+    .string()
+    .optional()
+    .matches(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
   password: yup
     .string()
     .required('Mật khẩu là bắt buộc')

@@ -17,6 +17,7 @@ const PasswordField = ({ name, control, placeholder, required, error, disabled, 
     <Controller
       name={name}
       control={control}
+      defaultValue=""
       render={({ field: controllerField }) => (
         <div style={{ position: 'relative', width: '100%' }}>
           <input
@@ -28,6 +29,7 @@ const PasswordField = ({ name, control, placeholder, required, error, disabled, 
           placeholder={placeholder}
           required={required}
           disabled={disabled}
+            value={controllerField.value || ''}
             style={{
               paddingRight: '45px'
             }}
@@ -129,7 +131,7 @@ const Form = forwardRef(({
         }
       } else {
         // Other fields changed, reset form
-        reset(defaultValues, { keepDefaultValues: true });
+      reset(defaultValues, { keepDefaultValues: true });
       }
       
       prevDefaultValuesRef.current = defaultValues;

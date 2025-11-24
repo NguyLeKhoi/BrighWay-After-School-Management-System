@@ -6,20 +6,20 @@ import styles from './Homepage.module.css';
 const Homepage = () => {
   const features = ['Chăm Sóc Chuyên Nghiệp', 'Hoạt Động Đa Dạng', 'Cơ Sở Vật Chất An Toàn'];
 
-  // Ảnh section 1 - giáo viên và học sinh
+  // Ảnh section 1 - nhân viên chăm sóc và trẻ em
   const section1Image = (
     <img 
       src="/images/1.png" 
-      alt="Giáo viên và học sinh"
+      alt="Nhân viên chăm sóc và trẻ em"
       className={styles.contentImage}
     />
   );
 
-  // Ảnh section 2 - môi trường học tập
+  // Ảnh section 2 - môi trường chăm sóc trẻ
   const section2Image = (
     <img 
       src="/images/2.png" 
-      alt="Môi trường học tập hiện đại"
+      alt="Môi trường chăm sóc trẻ an toàn và hiện đại"
       className={styles.contentImage}
     />
   );

@@ -96,7 +96,7 @@ const ChildProfile = () => {
         
         if (!childIds.includes(childId)) {
           // Nếu childId không thuộc về user, chuyển về trang danh sách
-          toast.error('Bạn không có quyền xem thông tin học sinh này', {
+          toast.error('Bạn không có quyền xem thông tin trẻ em này', {
             position: 'top-right',
             autoClose: 3000
           });
@@ -107,7 +107,7 @@ const ChildProfile = () => {
         const data = await studentService.getMyChildById(childId);
         setChild(data);
       } catch (err) {
-        const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin học sinh';
+        const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin trẻ em';
         setError(errorMessage);
         showGlobalError(errorMessage);
         console.error('Error fetching child:', err);
@@ -152,7 +152,7 @@ const ChildProfile = () => {
         const data = await studentService.getMyChildById(childId);
         setChild(data);
       } catch (err) {
-        const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin học sinh';
+        const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin trẻ em';
         setError(errorMessage);
         showGlobalError(errorMessage);
         console.error('Error fetching child:', err);
@@ -193,10 +193,10 @@ const ChildProfile = () => {
   const updateFields = [
     {
       name: 'name',
-      label: 'Tên học sinh *',
+      label: 'Tên trẻ em *',
       type: 'text',
       required: true,
-      placeholder: 'Nhập tên học sinh',
+      placeholder: 'Nhập tên trẻ em',
       gridSize: 12
     },
     {
@@ -223,7 +223,7 @@ const ChildProfile = () => {
     { value: 'AuthorizationLetter', label: 'Giấy ủy quyền' },
     { value: 'AdoptionCertificate', label: 'Giấy chứng nhận nhận nuôi' },
     { value: 'DivorceCustodyDecision', label: 'Quyết định quyền nuôi con sau ly hôn' },
-    { value: 'StudentCard', label: 'Thẻ học sinh' },
+    { value: 'StudentCard', label: 'Thẻ trẻ em' },
     { value: 'SchoolEnrollmentConfirmation', label: 'Xác nhận nhập học' },
     { value: 'AcademicRecordBook', label: 'Sổ học bạ' },
     { value: 'VnEduScreenshot', label: 'Ảnh chụp màn hình VnEdu' },
@@ -241,7 +241,7 @@ const ChildProfile = () => {
       'AuthorizationLetter': 'Giấy ủy quyền',
       'AdoptionCertificate': 'Giấy chứng nhận nhận nuôi',
       'DivorceCustodyDecision': 'Quyết định quyền nuôi con sau ly hôn',
-      'StudentCard': 'Thẻ học sinh',
+      'StudentCard': 'Thẻ trẻ em',
       'SchoolEnrollmentConfirmation': 'Xác nhận nhập học',
       'AcademicRecordBook': 'Sổ học bạ',
       'VnEduScreenshot': 'Ảnh chụp màn hình VnEdu',
@@ -296,7 +296,7 @@ const ChildProfile = () => {
 
   const handleUpdateSubmit = async (formValues) => {
     if (!childId) {
-      toast.error('Không tìm thấy thông tin học sinh');
+      toast.error('Không tìm thấy thông tin trẻ em');
       return;
     }
 
@@ -343,14 +343,14 @@ const ChildProfile = () => {
 
   const handleDeleteConfirm = async () => {
     if (!childId) {
-      toast.error('Không tìm thấy thông tin học sinh');
+      toast.error('Không tìm thấy thông tin trẻ em');
       return;
     }
 
     setDeleteLoading(true);
     try {
       await studentService.deleteStudent(childId);
-      toast.success('Xóa học sinh thành công!', {
+      toast.success('Xóa trẻ em thành công!', {
         position: 'top-right',
         autoClose: 3000
       });
@@ -358,7 +358,7 @@ const ChildProfile = () => {
       // Navigate back to children list
       navigate('/family/children');
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message || 'Không thể xóa học sinh';
+        const message = err?.response?.data?.message || err?.message || 'Không thể xóa trẻ em';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
       setDeleteLoading(false);
     }
@@ -366,7 +366,7 @@ const ChildProfile = () => {
 
   const handleDocumentSubmit = async (formValues) => {
     if (!childId) {
-      toast.error('Không tìm thấy thông tin học sinh');
+      toast.error('Không tìm thấy thông tin trẻ em');
       return;
     }
 
@@ -446,7 +446,7 @@ const ChildProfile = () => {
   if (loading) {
     return (
       <div className={styles.profilePage}>
-        <ContentLoading isLoading={loading} text="Đang tải thông tin học sinh..." />
+          <ContentLoading isLoading={loading} text="Đang tải thông tin trẻ em..." />
       </div>
     );
   }
@@ -461,7 +461,7 @@ const ChildProfile = () => {
             </button>
           </div>
           <Alert severity="error" sx={{ mt: 2 }}>
-            {error || 'Không tìm thấy thông tin học sinh'}
+            {error || 'Không tìm thấy thông tin trẻ em'}
           </Alert>
         </div>
       </div>
@@ -497,7 +497,7 @@ const ChildProfile = () => {
           >
             ← Quay lại
           </motion.button>
-          <h1 className={styles.title}>Thông tin học sinh</h1>
+          <h1 className={styles.title}>Thông tin trẻ em</h1>
           <Box display="flex" gap={1}>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
@@ -634,7 +634,7 @@ const ChildProfile = () => {
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     <SchoolIcon sx={{ fontSize: 18, mr: 0.5, verticalAlign: 'middle' }} />
-                    Cấp độ học sinh
+                    Cấp độ trẻ em
                   </label>
                   <div className={styles.fieldValue}>
                     {studentLevelName}
@@ -827,7 +827,7 @@ const ChildProfile = () => {
             open={openUpdateDialog}
             onClose={() => !updateLoading && setOpenUpdateDialog(false)}
             mode="update"
-            title="Chỉnh sửa thông tin học sinh"
+            title="Chỉnh sửa thông tin trẻ em"
             icon={EditIcon}
             loading={updateLoading}
             maxWidth="md"
@@ -854,8 +854,8 @@ const ChildProfile = () => {
             open={openDeleteDialog}
             onClose={() => !deleteLoading && setOpenDeleteDialog(false)}
             onConfirm={handleDeleteConfirm}
-            title="Xác nhận xóa học sinh"
-            description={`Bạn có chắc chắn muốn xóa học sinh "${child?.name || 'này'}" không? Hành động này không thể hoàn tác.`}
+            title="Xác nhận xóa trẻ em"
+            description={`Bạn có chắc chắn muốn xóa trẻ em "${child?.name || 'này'}" không? Hành động này không thể hoàn tác.`}
             confirmText="Xóa"
             cancelText="Hủy"
             confirmColor="error"

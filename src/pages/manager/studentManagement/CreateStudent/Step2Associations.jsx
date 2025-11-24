@@ -24,7 +24,7 @@ const Step2Associations = React.forwardRef(
       () => [
         {
           section: 'Thông tin liên kết',
-          sectionDescription: 'Liên kết học sinh với phụ huynh, trường học và cấp độ.',
+          sectionDescription: 'Liên kết trẻ em với phụ huynh, trường học và cấp độ.',
           name: 'userId',
           label: 'Phụ huynh',
           type: 'select',
@@ -87,13 +87,13 @@ const Step2Associations = React.forwardRef(
           Bước {stepIndex + 1}/{totalSteps}: Liên kết phụ huynh & trường học
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.875rem' }}>
-          Chọn phụ huynh, trường học và cấp độ tương ứng cho học sinh. Chi nhánh hiện tại:{' '}
+          Chọn phụ huynh, trường học và cấp độ tương ứng cho trẻ em. Chi nhánh hiện tại:{' '}
           <strong>{branchInfo?.name || 'Chưa xác định'}</strong>
         </Typography>
 
         {(parentOptions.length === 0 || schoolOptions.length === 0 || studentLevelOptions.length === 0) && (
           <Alert severity="info" sx={{ mb: 1 }}>
-            Vui lòng đảm bảo đã thiết lập đầy đủ phụ huynh, trường học và cấp độ trước khi tạo học sinh.
+            Vui lòng đảm bảo đã thiết lập đầy đủ phụ huynh, trường học và cấp độ trước khi tạo trẻ em.
           </Alert>
         )}
 

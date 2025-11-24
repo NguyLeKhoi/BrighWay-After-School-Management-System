@@ -163,7 +163,7 @@ const Step4SelectPackage = forwardRef(({ data, updateData }, ref) => {
             <textarea
               className={styles.formTextarea}
               rows={4}
-              placeholder="Ví dụ: Con cần giáo viên hỗ trợ bơi..."
+              placeholder="Ví dụ: Con cần nhân viên hỗ trợ bơi..."
               value={parentNote}
               onChange={handleNoteChange}
             />

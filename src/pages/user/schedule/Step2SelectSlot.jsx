@@ -358,7 +358,7 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>⏱️</div>
           <h3>Chưa có slot phù hợp</h3>
-          <p>Chi nhánh chưa có slot trống cho học sinh này.</p>
+          <p>Chi nhánh chưa có slot trống cho trẻ em này.</p>
         </div>
       )}
     </div>

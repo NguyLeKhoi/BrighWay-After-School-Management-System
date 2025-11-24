@@ -96,21 +96,28 @@ const Step3SelectDate = forwardRef(({ data, updateData }, ref) => {
 
     if (data?.selectedDate) {
       const date = data.selectedDate instanceof Date 
-        ? data.selectedDate 
+        ? new Date(data.selectedDate) 
         : new Date(data.selectedDate);
       
-      // Normalize date to midnight for consistent comparison
-      date.setHours(0, 0, 0, 0);
+      // Preserve time from date, but ensure it has time from slot if available
+      if (data?.slot) {
+        const time = data.slot.startTime || '08:00';
+        const [hours = '8', minutes = '0'] = time.split(':');
+        date.setHours(Number(hours), Number(minutes), 0, 0);
+      }
       
       // Only update if it's different from current selectedDate
       if (!selectedDate || !isSameDate(date, selectedDate)) {
-        // Normalize current selectedDate for comparison
+        // Normalize current selectedDate for comparison (only date part)
         const currentNormalized = selectedDate ? new Date(selectedDate) : null;
         if (currentNormalized) {
           currentNormalized.setHours(0, 0, 0, 0);
         }
         
-        if (!currentNormalized || currentNormalized.getTime() !== date.getTime()) {
+        const dateForComparison = new Date(date);
+        dateForComparison.setHours(0, 0, 0, 0);
+        
+        if (!currentNormalized || currentNormalized.getTime() !== dateForComparison.getTime()) {
           setSelectedDate(date);
           
           // Navigate calendar to the selected date's month
@@ -129,7 +136,7 @@ const Step3SelectDate = forwardRef(({ data, updateData }, ref) => {
     } else if (data?.slot && !selectedDate) {
       // Auto-calculate next slot date only if no date is selected
       const nextDate = getNextSlotDate(data.slot);
-      nextDate.setHours(0, 0, 0, 0);
+      // getNextSlotDate already sets the time from slot, so don't reset it
       setSelectedDate(nextDate);
       updateData({ selectedDate: nextDate });
       
@@ -341,19 +348,21 @@ const Step3SelectDate = forwardRef(({ data, updateData }, ref) => {
       return; // Already selected, keep it
     }
 
-    // Set time from slot
+    // Create a new date object to avoid reference issues
+    const newSelectedDate = new Date(clickedDate);
+    
+    // Set time from slot (preserve the time, don't reset to 0:0:0:0)
     if (data?.slot) {
       const time = data.slot.startTime || '08:00';
       const [hours = '8', minutes = '0'] = time.split(':');
-      clickedDate.setHours(Number(hours), Number(minutes), 0, 0);
+      newSelectedDate.setHours(Number(hours), Number(minutes), 0, 0);
+    } else {
+      // If no slot, set to start of day
+      newSelectedDate.setHours(0, 0, 0, 0);
     }
 
     // Mark that user is actively selecting to prevent useEffect from overriding
     isUserSelectingRef.current = true;
-
-    // Create a new date object with normalized time to avoid reference issues
-    const newSelectedDate = new Date(clickedDate);
-    newSelectedDate.setHours(0, 0, 0, 0);
     
     // Only one date can be selected at a time
     // Setting new date automatically replaces the previous one

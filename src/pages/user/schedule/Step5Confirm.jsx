@@ -80,10 +80,10 @@ const Step5Confirm = forwardRef(({ data }, ref) => {
 
       <div className={styles.confirmCard}>
         <div className={styles.confirmSection}>
-          <h3 className={styles.confirmSectionTitle}>Thông tin học sinh</h3>
+          <h3 className={styles.confirmSectionTitle}>Thông tin trẻ em</h3>
           <div className={styles.confirmInfoGrid}>
             <div>
-              <p className={styles.infoLabel}>Học sinh</p>
+              <p className={styles.infoLabel}>Trẻ em</p>
               <p className={styles.infoValue}>
                 {data?.studentName || 'Chưa chọn'}
               </p>
@@ -108,12 +108,12 @@ const Step5Confirm = forwardRef(({ data }, ref) => {
               </p>
             </div>
             <div>
-              <p className={styles.infoLabel}>Ngày học</p>
+              <p className={styles.infoLabel}>Ngày</p>
               <p className={styles.infoValue}>{formattedDate}</p>
             </div>
             {selectedDate && (
               <div>
-                <p className={styles.infoLabel}>Giờ học</p>
+                <p className={styles.infoLabel}>Giờ</p>
                 <p className={styles.infoValue}>
                   {formatTime(data?.slot?.startTime)} - {formatTime(data?.slot?.endTime)}
                 </p>

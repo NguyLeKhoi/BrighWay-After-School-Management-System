@@ -41,7 +41,7 @@ const NotFound = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
           >
-            Page Not Found
+            Trang không tìm thấy
           </motion.h1>
           <motion.p 
             className={styles.errorDescription}
@@ -49,7 +49,7 @@ const NotFound = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
           >
-            Sorry, the page you are looking for doesn't exist or has been moved.
+            Xin lỗi, trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
           </motion.p>
 
           <motion.div 
@@ -60,7 +60,7 @@ const NotFound = () => {
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link to="/" className={styles.homeButton}>
-                Go Home
+                Về trang chủ
               </Link>
             </motion.div>
             <motion.button
@@ -69,7 +69,7 @@ const NotFound = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Go Back
+              Quay lại
             </motion.button>
           </motion.div>
 
@@ -79,21 +79,26 @@ const NotFound = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7, duration: 0.5 }}
           >
-            <p className={styles.helpText}>Maybe you were looking for:</p>
+            <p className={styles.helpText}>Có thể bạn đang tìm:</p>
             <ul className={styles.helpList}>
-              {['/login', '/register', '/', '/contact'].map((path, index) => (
+              {[
+                { path: '/', label: 'Trang chủ' },
+                { path: '/packages', label: 'Gói dịch vụ' },
+                { path: '/login', label: 'Đăng nhập' },
+                { path: '/contact', label: 'Liên hệ' }
+              ].map((item, index) => (
                 <motion.li
-                  key={path}
+                  key={item.path}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.8 + index * 0.1, duration: 0.3 }}
                 >
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link 
-                      to={path} 
+                      to={item.path} 
                       className={styles.helpLink}
                     >
-                      {path === '/' ? 'Home' : path.slice(1).charAt(0).toUpperCase() + path.slice(2)}
+                      {item.label}
                     </Link>
                   </motion.div>
                 </motion.li>

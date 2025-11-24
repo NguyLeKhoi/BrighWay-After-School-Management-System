@@ -1,6 +1,6 @@
 .contentSection {
   padding: 60px 0;
-  background-color: #ffffff;
+  background-color: white;
 }
 
 .contentContainer {
@@ -131,11 +131,10 @@
   width: 100%;
   max-width: 600px;
   height: auto;
-  border-radius: 0;
-  box-shadow: none;
-  border: none;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
+  transition: all 0.3s ease;
+  background: white;
 }
 
 .imagePlaceholder {

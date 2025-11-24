@@ -1,18 +1,21 @@
 .packageCatalog {
   min-height: 100vh;
+  background-color: white;
 }
 
 .heroImageImg {
-  width: 100%;
+  width: 70%;
+  max-width: 600px;
   height: auto;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   object-fit: cover;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+  display: block;
 }
 
 .contentSection {
   padding: 60px 20px;
-  background-color: #f8f9fa;
+  background-color: white;
 }
 
 .contentContainer {

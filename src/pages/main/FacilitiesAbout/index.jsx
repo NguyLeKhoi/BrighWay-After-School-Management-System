@@ -37,36 +37,36 @@ const FacilitiesAbout = () => {
   // Giới hạn số lượng facilities hiển thị
   const MAX_FACILITIES_DISPLAY = 6; // Tổng số facilities tối đa hiển thị
 
-  // Ảnh section 1 - cơ sở vật chất (phòng học, thư viện, khu vui chơi)
+  // Ảnh section 1 - cơ sở vật chất (không gian chăm sóc trẻ, khu vui chơi)
   const facilitiesImage = (
     <img 
-      src={import.meta.env.VITE_IMAGE_FACILITIES_ABOUT_FACILITIES || ''} 
-      alt="Cơ sở vật chất hiện đại - Phòng học và không gian học tập"
+      src="/images/4.jpg" 
+      alt="Cơ sở vật chất hiện đại - Không gian chăm sóc trẻ an toàn"
       className={styles.contentImage}
     />
   );
 
-  // Ảnh section 2 - về chúng tôi (môi trường học tập, thiết bị)
+  // Ảnh section 2 - về chúng tôi (môi trường chăm sóc trẻ, thiết bị)
   const aboutImage = (
     <img 
-      src={import.meta.env.VITE_IMAGE_FACILITIES_ABOUT_ABOUT || ''} 
-      alt="Môi trường học tập với thiết bị hiện đại"
+      src="/images/5.jpg" 
+      alt="Môi trường chăm sóc trẻ với thiết bị hiện đại"
       className={styles.contentImage}
     />
   );
 
   const facilitiesSection = {
     heading: 'Cơ Sở Vật Chất Của Chúng Tôi',
-    subheading: 'Môi trường học tập đẳng cấp thế giới',
-    description: 'Chúng tôi tự hào về hệ thống cơ sở vật chất hiện đại, được trang bị đầy đủ thiết bị và công nghệ tiên tiến để mang đến trải nghiệm học tập tốt nhất cho học sinh.',
+    subheading: 'Môi trường chăm sóc trẻ an toàn và hiện đại',
+    description: 'Chúng tôi tự hào về hệ thống cơ sở vật chất hiện đại, được trang bị đầy đủ thiết bị và không gian an toàn để mang đến trải nghiệm chăm sóc tốt nhất cho trẻ em sau giờ học.',
     hasImage: true,
     imageContent: facilitiesImage
   };
 
   const aboutSection = {
     heading: 'Về Chúng Tôi',
-    subheading: 'Cam kết với sự xuất sắc trong giáo dục',
-    description: 'Với nhiều năm kinh nghiệm trong lĩnh vực giáo dục, chúng tôi luôn đặt chất lượng và sự phát triển của học sinh lên hàng đầu. Đội ngũ giáo viên của chúng tôi được tuyển chọn kỹ lưỡng và thường xuyên được đào tạo nâng cao.',
+    subheading: 'Cam kết với chất lượng chăm sóc trẻ',
+    description: 'Với nhiều năm kinh nghiệm trong lĩnh vực chăm sóc trẻ sau giờ học, chúng tôi luôn đặt chất lượng và sự phát triển của trẻ em lên hàng đầu. Đội ngũ nhân viên chăm sóc của chúng tôi được tuyển chọn kỹ lưỡng và thường xuyên được đào tạo nâng cao.',
     hasImage: true,
     reverse: true,
     imageContent: aboutImage
@@ -74,7 +74,7 @@ const FacilitiesAbout = () => {
 
   const missionData = {
     heading: 'Sứ Mệnh Của Chúng Tôi',
-    description: 'BRIGHWAY cam kết mang đến môi trường học tập tốt nhất cho học sinh, với đội ngũ giáo viên chuyên nghiệp, cơ sở vật chất hiện đại và phương pháp giảng dạy tiên tiến. Chúng tôi tin rằng mỗi học sinh đều có tiềm năng phát triển và chúng tôi sẽ đồng hành cùng các em trên con đường học tập.',
+    description: 'BRIGHWAY cam kết mang đến môi trường chăm sóc tốt nhất cho trẻ em sau giờ học, với đội ngũ nhân viên chăm sóc chuyên nghiệp, cơ sở vật chất hiện đại và các hoạt động ngoài giờ đa dạng, phong phú. Chúng tôi tin rằng mỗi trẻ em đều có tiềm năng phát triển và chúng tôi sẽ đồng hành cùng các em trong quá trình phát triển toàn diện.',
     hasImage: false
   };
 

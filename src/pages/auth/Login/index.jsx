@@ -107,9 +107,6 @@ const Login = () => {
                 { name: 'password', label: 'Mật khẩu', type: 'password', required: true }
               ]}
             />
-            <Link to="/forgot-password" className={styles.forgotLink}>
-              Quên mật khẩu?
-            </Link>
           </AuthCard>
         </div>
       </div>

@@ -14,6 +14,16 @@ import studentService from '../../../services/student.service';
 import packageService from '../../../services/package.service';
 import { useApp } from '../../../contexts/AppContext';
 
+const WEEKDAY_LABELS = {
+  0: 'Chủ nhật',
+  1: 'Thứ hai',
+  2: 'Thứ ba',
+  3: 'Thứ tư',
+  4: 'Thứ năm',
+  5: 'Thứ sáu',
+  6: 'Thứ bảy'
+};
+
 const MySchedule = () => {
   const navigate = useNavigate();
   const { childId } = useParams(); // Get childId from URL if coming from child schedule page
@@ -111,9 +121,33 @@ const MySchedule = () => {
       }
 
       // Use selected date from formData, or fallback to calculated date
-      const selectedDate = formData.selectedDate instanceof Date 
-        ? formData.selectedDate 
+      let selectedDate = formData.selectedDate instanceof Date 
+        ? new Date(formData.selectedDate) 
         : new Date(formData.selectedDate);
+      
+      // Validate that selected date matches slot's weekday
+      if (formData.slot?.weekDay !== undefined) {
+        const selectedWeekDay = selectedDate.getDay();
+        const slotWeekDay = formData.slot.weekDay;
+        
+        if (selectedWeekDay !== slotWeekDay) {
+          addNotification({
+            message: `Ngày đã chọn không khớp với lịch học của slot. Slot này chỉ có vào ${WEEKDAY_LABELS[slotWeekDay] || 'ngày phù hợp'}.`,
+            severity: 'error'
+          });
+          setIsBooking(false);
+          return;
+        }
+      }
+      
+      // Ensure date has time from slot
+      if (formData.slot?.startTime) {
+        const time = formData.slot.startTime;
+        const [hours = '8', minutes = '0'] = time.split(':');
+        selectedDate.setHours(Number(hours), Number(minutes), 0, 0);
+      }
+      
+      // Convert to ISO string for API
       const isoDate = selectedDate.toISOString();
 
       await studentSlotService.bookSlot({
@@ -165,15 +199,15 @@ const MySchedule = () => {
     }
   }, [navigate, childId]);
 
-  // Filter steps - skip step 1 (chọn học sinh) if childId is provided
+  // Filter steps - skip step 1 (chọn trẻ em) if childId is provided
   const allSteps = [
     {
-      label: 'Chọn học sinh',
+      label: 'Chọn trẻ em',
       component: Step1SelectStudent,
       validation: async (data) => {
         if (!data.studentId) {
           addNotification({
-            message: 'Vui lòng chọn học sinh',
+            message: 'Vui lòng chọn trẻ em',
             severity: 'warning'
           });
           return false;
@@ -248,7 +282,7 @@ const MySchedule = () => {
       onComplete={handleComplete}
       onCancel={handleCancel}
       initialData={initialData}
-      title={childId ? `Đăng ký ca học cho ${initialData.studentName || 'con'}` : 'Đăng ký ca học'}
+      title={childId ? `Đăng ký ca chăm sóc cho ${initialData.studentName || 'con'}` : 'Đăng ký ca chăm sóc'}
       icon={<ScheduleIcon />}
     />
   );

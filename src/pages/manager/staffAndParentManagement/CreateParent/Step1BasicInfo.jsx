@@ -29,6 +29,14 @@ const Step1BasicInfo = React.forwardRef(
           gridSize: 6
         },
         {
+          name: 'phoneNumber',
+          label: 'Số điện thoại',
+          type: 'tel',
+          required: false,
+          placeholder: 'Ví dụ: 0901234567',
+          gridSize: 6
+        },
+        {
           name: 'password',
           label: 'Mật khẩu',
           type: 'password',
@@ -44,6 +52,7 @@ const Step1BasicInfo = React.forwardRef(
       () => ({
         name: data.name || '',
         email: data.email || '',
+        phoneNumber: data.phoneNumber || '',
         password: data.password || '',
         avatarFile: data.avatarFile || null
       }),
@@ -129,6 +138,7 @@ const Step1BasicInfo = React.forwardRef(
 Step1BasicInfo.displayName = 'CreateParentStep1BasicInfo';
 
 export default Step1BasicInfo;
+export { Step1BasicInfo };
 
 
 

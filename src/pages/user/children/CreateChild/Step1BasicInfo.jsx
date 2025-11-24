@@ -11,7 +11,7 @@ const Step1BasicInfo = React.forwardRef(
     const fields = useMemo(
       () => [
         {
-          section: 'Thông tin học sinh',
+          section: 'Thông tin trẻ em',
           sectionDescription: 'Điền thông tin cơ bản của con bạn.',
           name: 'name',
           label: 'Họ và tên',

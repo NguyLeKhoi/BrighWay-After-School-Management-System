@@ -18,6 +18,7 @@ import Login from '../pages/auth/Login';
 
 // useruser Pages
 import FamilyProfile from '../pages/user/profile';
+import ChangePassword from '../pages/user/changePassword';
 import FamilyServices from '../pages/user/services';
 import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
@@ -94,7 +95,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // Auth Routes (Authentication Pages)
   {
     path: '/login',
@@ -106,7 +107,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // Parent Layout Routes (Parent Portal)
   {
     path: '/family',
@@ -127,6 +128,10 @@ export const routes = createBrowserRouter([
       {
         path: 'profile',
         element: <FamilyProfile />,
+      },
+      {
+        path: 'change-password',
+        element: <ChangePassword />,
       },
       {
         path: 'children',
@@ -162,7 +167,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // Admin Layout Routes (Admin Portal)
   {
     path: '/admin',
@@ -216,7 +221,10 @@ export const routes = createBrowserRouter([
         path: 'packages',
         element: <PackageManagement />,
       },
-      { path: 'packages/templates/create', element: <AdminCreateTemplate /> },
+      {
+        path: 'packages/templates/create',
+        element: <AdminCreateTemplate />
+      },
       { path: 'packages/templates/update/:id', element: <AdminUpdateTemplate /> },
       { path: 'packages/create', element: <AdminCreatePackage /> },
       { path: 'packages/update/:id', element: <AdminUpdatePackage /> },
@@ -226,7 +234,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // Manager Layout Routes (Manager Portal)
   {
     path: '/manager',
@@ -298,8 +306,8 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
-  
+
+
   // Staff Layout Routes (Staff Portal)
   {
     path: '/staff',
@@ -327,7 +335,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // 404 Page
   {
     path: '*',

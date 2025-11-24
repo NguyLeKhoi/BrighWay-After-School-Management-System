@@ -74,7 +74,7 @@ const Contact = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <img 
-                  src={import.meta.env.VITE_IMAGE_CONTACT || ''} 
+                  src="/images/6.jpg" 
                   alt="Liên hệ BRIGHWAY - Dịch vụ giữ trẻ an toàn và chất lượng"
                   className={styles.contactImage}
                 />

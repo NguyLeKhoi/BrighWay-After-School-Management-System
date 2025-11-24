@@ -6,7 +6,7 @@
 /* Contact Form Section */
 .contactFormSection {
   padding: var(--spacing-3xl) 0;
-  background: var(--bg-primary);
+  background: white;
 }
 
 .contactContainer {
@@ -135,15 +135,9 @@
   width: 100%;
   max-width: 500px;
   height: auto;
-  border-radius: var(--radius-xl);
   object-fit: cover;
-  box-shadow: var(--shadow-xl);
-  transition: var(--transition-all);
-}
-
-.contactImage:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-2xl);
+  transition: all 0.3s ease;
+  background: white;
 }
 
 .imagePlaceholder {

@@ -189,7 +189,7 @@ const FamilyServices = () => {
 
     if (!orderForm.childId) {
       addNotification({
-        message: 'Vui lòng chọn học sinh.',
+        message: 'Vui lòng chọn trẻ em.',
         severity: 'warning'
       });
       return;
@@ -376,7 +376,7 @@ const FamilyServices = () => {
             <form className={styles.orderForm} onSubmit={handleOrderSubmit}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  Chọn học sinh <span className={styles.required}>*</span>
+                  Chọn trẻ em <span className={styles.required}>*</span>
                 </label>
                 {isLoadingChildren ? (
                   <div className={styles.inlineLoading}>
@@ -400,7 +400,7 @@ const FamilyServices = () => {
                     onChange={(e) => handleChildChange(e.target.value)}
                     disabled={isOrdering || children.length === 0}
                   >
-                    <option value="">-- Chọn học sinh --</option>
+                    <option value="">-- Chọn trẻ em --</option>
                     {children.map((child) => (
                       <option key={child.id} value={child.id}>
                         {child.name || child.userName || 'Không tên'}
@@ -583,7 +583,7 @@ const FamilyServices = () => {
                     }
                   }}
                 >
-                  Ví học sinh
+                  Ví trẻ em
                 </button>
                 <button
                   className={styles.cancelButton}

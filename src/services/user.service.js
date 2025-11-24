@@ -489,6 +489,46 @@ const userService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Update current user's profile (Name, PhoneNumber, Avatar)
+   * @param {FormData|Object} profileData - Profile data as FormData (multipart/form-data) or Object { name, phoneNumber, avatarFile }
+   * @returns {Promise} Updated user profile
+   */
+  updateMyProfile: async (profileData) => {
+    try {
+      // If FormData, send directly (for multipart/form-data)
+      if (profileData instanceof FormData) {
+        const response = await axiosInstance.put('/User/my-profile', profileData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        return response.data;
+      }
+      
+      // Otherwise, create FormData from object
+      const formData = new FormData();
+      if (profileData.name) {
+        formData.append('Name', profileData.name);
+      }
+      if (profileData.phoneNumber) {
+        formData.append('PhoneNumber', profileData.phoneNumber);
+      }
+      if (profileData.avatarFile instanceof File) {
+        formData.append('AvatarFile', profileData.avatarFile);
+      }
+      
+      const response = await axiosInstance.put('/User/my-profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

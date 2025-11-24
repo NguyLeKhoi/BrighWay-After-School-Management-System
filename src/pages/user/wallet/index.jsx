@@ -19,7 +19,8 @@ import {
   FormHelperText,
   Paper,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Pagination
 } from '@mui/material';
 import {
   AccountBalanceWallet,
@@ -291,17 +292,30 @@ const MyWallet = () => {
       const deposits = response.items || [];
       
       // Map deposits từ API sang format của component
-      const mappedTransactions = deposits.map((deposit) => ({
-        id: deposit.id,
-        type: 'topup', // Tất cả deposits đều là topup
-        amount: deposit.amount || 0,
-        description: `Nạp tiền - Order #${deposit.payOSOrderCode || 'N/A'}`,
-        date: deposit.timestamp || new Date().toISOString(),
-        status: deposit.status?.toLowerCase() || 'pending',
-        wallet: 'main',
-        payOSOrderCode: deposit.payOSOrderCode,
-        payOSTransactionId: deposit.payOSTransactionId
-      }));
+      const mappedTransactions = deposits.map((deposit) => {
+        // Ensure timestamp is treated as UTC
+        let timestamp = deposit.timestamp || new Date().toISOString();
+        // If timestamp doesn't have timezone indicator (Z or +HH:MM), add Z to indicate UTC
+        if (timestamp && typeof timestamp === 'string') {
+          // Check if it's ISO format without timezone
+          if (timestamp.includes('T') && !timestamp.endsWith('Z') && !timestamp.match(/[+-]\d{2}:\d{2}$/)) {
+            // Remove fractional seconds if present and add Z
+            timestamp = timestamp.replace(/\.\d+$/, '') + 'Z';
+          }
+        }
+        
+        return {
+          id: deposit.id,
+          type: 'topup', // Tất cả deposits đều là topup
+          amount: deposit.amount || 0,
+          description: `Nạp tiền - Order #${deposit.payOSOrderCode || 'N/A'}`,
+          date: timestamp,
+          status: deposit.status?.toLowerCase() || 'pending',
+          wallet: 'main',
+          payOSOrderCode: deposit.payOSOrderCode,
+          payOSTransactionId: deposit.payOSTransactionId
+        };
+      });
 
       setTransactions(mappedTransactions);
       
@@ -1633,13 +1647,18 @@ const MyWallet = () => {
                                 marginBottom: 0.5
                               }}
                             >
-                              {new Date(transaction.date).toLocaleDateString('vi-VN', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
+                              {(() => {
+                                // Parse timestamp from API (UTC) and convert to VN time
+                                const date = new Date(transaction.date);
+                                // Browser will automatically convert UTC to local time (VN timezone)
+                                return date.toLocaleString('vi-VN', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric'
+                                });
+                              })()}
                             </Typography>
                             {transaction.status && (
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, marginTop: 0.5 }}>
@@ -1715,11 +1734,11 @@ const MyWallet = () => {
                   </Box>
                   
                   {/* Pagination Controls */}
-                  {pagination.totalPages > 1 && (
+                  {pagination.totalCount > 0 && (
                     <Box
                       sx={{
                         display: 'flex',
-                        justifyContent: 'center',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         gap: 2,
                         marginTop: 3,
@@ -1727,76 +1746,53 @@ const MyWallet = () => {
                         borderTop: '1px solid var(--border-light)'
                       }}
                     >
-                      <Button
-                        variant="outlined"
-                        onClick={() => handlePageChange(pagination.pageIndex - 1)}
-                        disabled={pagination.pageIndex === 1 || isLoadingTransactions}
+                      <Box
                         sx={{
-                          borderColor: 'var(--border-light)',
-                          color: 'var(--text-primary)',
-                          fontFamily: 'var(--font-family)',
-                          fontWeight: 'var(--font-weight-semibold)',
-                          textTransform: 'none',
-                          borderRadius: 'var(--radius-lg)',
-                          padding: '10px 20px',
-                          '&:hover': {
-                            borderColor: 'var(--color-primary)',
-                            backgroundColor: 'var(--color-primary-50)'
-                          },
-                          '&:disabled': {
-                            opacity: 0.5
-                          }
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          flexWrap: 'wrap',
+                          justifyContent: 'center'
                         }}
                       >
-                        Trước
-                      </Button>
+                        <Pagination
+                          count={pagination.totalPages}
+                          page={pagination.pageIndex}
+                          onChange={(event, value) => handlePageChange(value)}
+                          disabled={isLoadingTransactions}
+                          color="primary"
+                          size="large"
+                          showFirstButton
+                          showLastButton
+                          sx={{
+                            '& .MuiPaginationItem-root': {
+                              fontFamily: 'var(--font-family)',
+                              fontWeight: 'var(--font-weight-medium)',
+                              '&.Mui-selected': {
+                                background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+                                color: 'white',
+                                fontWeight: 'var(--font-weight-bold)',
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)'
+                                }
+                              },
+                              '&:hover': {
+                                backgroundColor: 'var(--color-primary-50)'
+                              }
+                            }
+                          }}
+                        />
+                      </Box>
                       <Typography
                         variant="body2"
                         sx={{
                           fontFamily: 'var(--font-family)',
                           color: 'var(--text-secondary)',
-                          minWidth: 200,
                           textAlign: 'center'
                         }}
                       >
-                        Trang {pagination.pageIndex} / {pagination.totalPages}
-                        {pagination.totalCount > 0 && (
-                          <Typography
-                            component="span"
-                            variant="caption"
-                            sx={{
-                              display: 'block',
-                              color: 'var(--text-tertiary)',
-                              marginTop: 0.5
-                            }}
-                          >
-                            ({pagination.totalCount} giao dịch)
-                          </Typography>
-                        )}
+                        Hiển thị {((pagination.pageIndex - 1) * pagination.pageSize + 1)} - {Math.min(pagination.pageIndex * pagination.pageSize, pagination.totalCount)} trong tổng số {pagination.totalCount} giao dịch
                       </Typography>
-                      <Button
-                        variant="outlined"
-                        onClick={() => handlePageChange(pagination.pageIndex + 1)}
-                        disabled={pagination.pageIndex >= pagination.totalPages || isLoadingTransactions}
-                        sx={{
-                          borderColor: 'var(--border-light)',
-                          color: 'var(--text-primary)',
-                          fontFamily: 'var(--font-family)',
-                          fontWeight: 'var(--font-weight-semibold)',
-                          textTransform: 'none',
-                          borderRadius: 'var(--radius-lg)',
-                          padding: '10px 20px',
-                          '&:hover': {
-                            borderColor: 'var(--color-primary)',
-                            backgroundColor: 'var(--color-primary-50)'
-                          },
-                          '&:disabled': {
-                            opacity: 0.5
-                          }
-                        }}
-                      >
-                        Sau
-                      </Button>
                     </Box>
                   )}
                 </>

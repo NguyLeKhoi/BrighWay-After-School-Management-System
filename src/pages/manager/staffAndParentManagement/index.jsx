@@ -34,14 +34,14 @@ const StaffAndParentManagement = () => {
   
   // Staff CRUD - memoize loadFunction to prevent unnecessary re-renders
   const loadStaffFunction = useCallback(async (params) => {
-    return await userService.getUsersPagedByRole({
-      pageIndex: params.page || params.pageIndex || 1,
-      pageSize: params.pageSize || params.rowsPerPage || 10,
-      Role: 'Staff',
-      Keyword: params.Keyword || params.searchTerm || ''
-    });
+      return await userService.getUsersPagedByRole({
+        pageIndex: params.page || params.pageIndex || 1,
+        pageSize: params.pageSize || params.rowsPerPage || 10,
+        Role: 'Staff',
+        Keyword: params.Keyword || params.searchTerm || ''
+      });
   }, []);
-
+  
   const staffCrud = useBaseCRUD({
     loadFunction: loadStaffFunction,
     loadOnMount: true
@@ -124,7 +124,7 @@ const StaffAndParentManagement = () => {
   // Create handler
   const handleCreateStaff = () => {
     setIsSubmitting(false);
-    setOpenCreateDialog(true);
+      setOpenCreateDialog(true);
   };
   
   // Edit handler
@@ -191,24 +191,11 @@ const StaffAndParentManagement = () => {
     setActionLoading(true);
     
     try {
-      // Map fields according to API endpoint: PUT /api/User/{id}
-      // Required fields: name, isActive, branchId
-      // Optional: profilePictureUrl, password
+      // Only allow updating name and branchId
       const updateData = {
         name: data.name || data.fullName || selectedUser?.name || selectedUser?.fullName || '',
-        isActive: data.isActive !== undefined ? data.isActive : (selectedUser?.isActive !== undefined ? selectedUser.isActive : true),
         branchId: data.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null
       };
-      
-      // Add profilePictureUrl if provided
-      if (data.profilePictureUrl) {
-        updateData.profilePictureUrl = data.profilePictureUrl;
-      }
-      
-      // Add password if provided
-      if (data.password && data.password.trim()) {
-        updateData.password = data.password;
-      }
       
       await userService.updateUserByManager(selectedUser.id, updateData);
       
@@ -272,29 +259,29 @@ const StaffAndParentManagement = () => {
 
       {/* Content */}
       <Box sx={{ mt: 2 }}>
-        <ManagementSearchSection
+            <ManagementSearchSection
           keyword={staffCrud.keyword}
           onKeywordChange={staffCrud.handleKeywordChange}
           onSearch={staffCrud.handleKeywordSearch}
           onClear={staffCrud.handleClearSearch}
-          placeholder="Tìm kiếm nhân viên theo tên, email..."
-        />
+              placeholder="Tìm kiếm nhân viên theo tên, email..."
+            />
 
-        <div className={styles.tableContainer}>
-          <DataTable
+            <div className={styles.tableContainer}>
+              <DataTable
             data={staffCrud.data}
-            columns={columns}
+                columns={columns}
             loading={staffCrud.isPageLoading}
             page={staffCrud.page}
             rowsPerPage={staffCrud.rowsPerPage}
             totalCount={staffCrud.totalCount}
             onPageChange={staffCrud.handlePageChange}
             onRowsPerPageChange={staffCrud.handleRowsPerPageChange}
-            onEdit={handleEditUser}
-            onDelete={handleDeleteUser}
-            emptyMessage="Không có nhân viên nào. Hãy tạo tài khoản nhân viên đầu tiên để bắt đầu."
-          />
-        </div>
+                onEdit={handleEditUser}
+                onDelete={handleDeleteUser}
+                emptyMessage="Không có nhân viên nào. Hãy tạo tài khoản nhân viên đầu tiên để bắt đầu."
+              />
+            </div>
       </Box>
 
       {/* Edit Dialog */}
@@ -311,9 +298,7 @@ const StaffAndParentManagement = () => {
           schema={updateManagerUserSchema}
           defaultValues={{
             name: selectedUser?.name || selectedUser?.fullName || '',
-            branchId: selectedUser?.branchId || selectedUser?.branch?.id || '',
-            profilePictureUrl: selectedUser?.profilePictureUrl || '',
-            isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
+            branchId: selectedUser?.branchId || selectedUser?.branch?.id || ''
           }}
           onSubmit={handleFormSubmit}
           submitText="Cập nhật Thông Tin"
@@ -350,14 +335,14 @@ const StaffAndParentManagement = () => {
         loading={isSubmitting}
         maxWidth="md"
       >
-        <StaffAccountForm
-          isSubmitting={isSubmitting}
-          setIsSubmitting={setIsSubmitting}
-          onStaffSubmit={handleStaffSubmit}
-          onSuccess={() => {
-            setOpenCreateDialog(false);
-          }}
-        />
+          <StaffAccountForm
+            isSubmitting={isSubmitting}
+            setIsSubmitting={setIsSubmitting}
+            onStaffSubmit={handleStaffSubmit}
+            onSuccess={() => {
+              setOpenCreateDialog(false);
+            }}
+          />
       </ManagementFormDialog>
     </div>
   );

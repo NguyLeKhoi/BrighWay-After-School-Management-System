@@ -106,7 +106,7 @@ const PackageCatalog = () => {
   // Ảnh hero - gói học
   const heroImage = (
     <img 
-      src={import.meta.env.VITE_IMAGE_PACKAGE_CATALOG_HERO || ''} 
+      src="/images/3.jpg" 
       alt="Các gói dịch vụ giữ trẻ tại BRIGHWAY"
       className={styles.heroImageImg}
     />
@@ -167,8 +167,8 @@ const PackageCatalog = () => {
         <div className={styles.bestPackagesContainer}>
           <h2 className={styles.sectionHeading}>Các Gói Dịch Vụ Nổi Bật</h2>
           {loading ? (
-            <ContentLoading text="Đang tải danh sách gói học..." />
-          ) : bestPackages.length > 0 ? (
+              <ContentLoading text="Đang tải danh sách gói dịch vụ..." />
+            ) : bestPackages.length > 0 ? (
             <div className={styles.bestPackagesGrid}>
               {bestPackages.map((pkg) => (
                 <Card

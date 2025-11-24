@@ -30,7 +30,11 @@ const Card = ({
       
       {avatar && (
         <div className={styles.cardAvatar}>
-          <span>{avatar}</span>
+          {typeof avatar === 'string' && (avatar.startsWith('http') || avatar.startsWith('/')) ? (
+            <img src={avatar} alt={title || 'Avatar'} className={styles.avatarImage} />
+          ) : (
+            <span>{avatar}</span>
+          )}
         </div>
       )}
       

@@ -262,7 +262,7 @@ const PackageManagement = () => {
 
   const studentLevelSelectOptions = useMemo(
     () => [
-      { value: '', label: 'Chọn cấp độ học sinh' },
+      { value: '', label: 'Chọn cấp độ trẻ em' },
       ...studentLevelOptions.map((level) => ({
         value: level.id,
         label: level.name

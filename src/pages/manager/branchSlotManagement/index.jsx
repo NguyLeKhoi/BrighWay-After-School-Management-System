@@ -359,7 +359,7 @@ const ManagerBranchSlotManagement = () => {
         name: 'name',
         label: 'Tên vai trò (tùy chọn)',
         type: 'text',
-        placeholder: 'Ví dụ: Giáo viên chính, Trợ giảng...',
+        placeholder: 'Ví dụ: Nhân viên chăm sóc chính, Nhân viên hỗ trợ...',
         gridSize: 4,
         disabled: assignStaffLoading
       }

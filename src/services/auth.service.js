@@ -156,6 +156,57 @@ const authService = {
    */
   ping: async () => Promise.resolve(),
 
+  /**
+   * Send reset code to email
+   * @param {Object} data - { email }
+   * @returns {Promise} Response indicating success
+   */
+  sendResetCode: async (data) => {
+    try {
+      const response = await axiosInstance.post('/Auth/send-reset-code', {
+        email: data.email
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Validate reset code before showing new password form (optional)
+   * @param {Object} data - { email, code }
+   * @returns {Promise} Response indicating if code is valid
+   */
+  validateResetCode: async (data) => {
+    try {
+      const response = await axiosInstance.post('/Auth/validate-reset-code', {
+        email: data.email,
+        code: data.code
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Reset password using short 5-character code
+   * @param {Object} data - { email, code, newPassword }
+   * @returns {Promise} Response indicating success
+   */
+  resetPasswordWithCode: async (data) => {
+    try {
+      const response = await axiosInstance.post('/Auth/reset-password-with-code', {
+        email: data.email,
+        code: data.code,
+        newPassword: data.newPassword
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
 };
 
 export default authService;

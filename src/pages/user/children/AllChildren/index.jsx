@@ -51,7 +51,7 @@ const transformStudent = (student) => {
     branchName,
     status: student.status ? 'active' : 'pending',
     createdTime: student.createdTime,
-    avatar: getInitials(student.name || student.userName),
+    avatar: student.image || getInitials(student.name || student.userName),
     membershipType: studentLevelName || 'Chưa phân cấp',
     allowanceWalletData: student.allowanceWallet || null
   };

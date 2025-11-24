@@ -44,7 +44,7 @@ const Step2GeneralInfo = React.forwardRef(
         {
           section: 'Liên kết dữ liệu',
           name: 'studentLevelId',
-          label: 'Cấp độ học sinh',
+          label: 'Cấp độ trẻ em',
           type: 'select',
           required: true,
           gridSize: 6,
@@ -77,7 +77,7 @@ const Step2GeneralInfo = React.forwardRef(
           Bước {stepIndex + 1}/{totalSteps}: Thông tin chung
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.875rem' }}>
-          Kiểm tra và cập nhật tên gói, mô tả cũng như cấp độ học sinh áp dụng.
+          Kiểm tra và cập nhật tên gói, mô tả cũng như cấp độ trẻ em áp dụng.
         </Typography>
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

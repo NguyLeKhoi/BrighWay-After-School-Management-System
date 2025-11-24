@@ -86,7 +86,7 @@ const StudentLevelManagement = () => {
       
       {/* Header */}
       <ManagementPageHeader
-        title="Quản lý Cấp Độ Học Sinh"
+        title="Quản lý Cấp Độ Trẻ Em"
         createButtonText="Thêm Cấp Độ"
         onCreateClick={handleCreate}
       />
@@ -97,7 +97,7 @@ const StudentLevelManagement = () => {
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
         onClear={handleClearSearch}
-        placeholder="Tìm kiếm theo tên cấp độ học sinh..."
+        placeholder="Tìm kiếm theo tên cấp độ trẻ em..."
       />
 
       {/* Error Alert */}
@@ -120,7 +120,7 @@ const StudentLevelManagement = () => {
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          emptyMessage="Không có cấp độ học sinh nào. Hãy thêm cấp độ đầu tiên để bắt đầu."
+          emptyMessage="Không có cấp độ trẻ em nào. Hãy thêm cấp độ đầu tiên để bắt đầu."
         />
       </div>
 
@@ -129,7 +129,7 @@ const StudentLevelManagement = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
-        title="Cấp Độ Học Sinh"
+        title="Cấp Độ Trẻ Em"
         icon={StudentLevelIcon}
         loading={actionLoading}
         maxWidth="md"

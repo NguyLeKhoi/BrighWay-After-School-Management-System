@@ -10,10 +10,10 @@ const Step1BasicInfo = React.forwardRef(
     const fields = useMemo(
       () => [
         {
-          section: 'Thông tin học sinh',
-          sectionDescription: 'Điền thông tin cơ bản của học sinh.',
+          section: 'Thông tin trẻ em',
+          sectionDescription: 'Điền thông tin cơ bản của trẻ em.',
           name: 'name',
-          label: 'Họ và tên học sinh',
+          label: 'Họ và tên trẻ em',
           type: 'text',
           required: true,
           placeholder: 'Ví dụ: Nguyễn Minh Anh',
@@ -58,10 +58,10 @@ const Step1BasicInfo = React.forwardRef(
     return (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Typography variant="h6" gutterBottom sx={{ mb: 0.75, fontWeight: 600, fontSize: '1.1rem' }}>
-          Bước {stepIndex + 1}/{totalSteps}: Thông tin học sinh
+          Bước {stepIndex + 1}/{totalSteps}: Thông tin trẻ em
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.875rem' }}>
-          Nhập tên và ngày sinh của học sinh. Đây là các thông tin bắt buộc để tạo hồ sơ.
+          Nhập tên và ngày sinh của trẻ em. Đây là các thông tin bắt buộc để tạo hồ sơ.
         </Typography>
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

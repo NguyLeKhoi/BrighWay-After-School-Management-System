@@ -88,9 +88,9 @@ const Step1SelectStudent = forwardRef(({ data, updateData }, ref) => {
   return (
     <div className={styles.stepContainer}>
       <div className={styles.stepHeader}>
-        <h2 className={styles.stepTitle}>Chọn học sinh</h2>
+        <h2 className={styles.stepTitle}>Chọn trẻ em</h2>
         <p className={styles.stepSubtitle}>
-          Chọn học sinh để đăng ký ca học
+          Chọn trẻ em để đăng ký ca chăm sóc
         </p>
         <button
           className={styles.secondaryButton}
@@ -146,7 +146,7 @@ const Step1SelectStudent = forwardRef(({ data, updateData }, ref) => {
                     {getInitials(child.name)}
                   </div>
                   <div>
-                    <p className={styles.cardLabel}>Học sinh</p>
+                    <p className={styles.cardLabel}>Trẻ em</p>
                     <h3 className={styles.cardTitle}>{child.name}</h3>
                   </div>
                 </div>
@@ -191,8 +191,8 @@ const Step1SelectStudent = forwardRef(({ data, updateData }, ref) => {
           <div className={styles.emptyIcon}>
             <ChildIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
           </div>
-          <h3>Chưa có học sinh</h3>
-          <p>Bạn chưa có học sinh nào. Vui lòng thêm học sinh trước khi đăng ký ca học.</p>
+          <h3>Chưa có trẻ em</h3>
+          <p>Bạn chưa có trẻ em nào. Vui lòng thêm trẻ em trước khi đăng ký ca chăm sóc.</p>
         </div>
       )}
     </div>

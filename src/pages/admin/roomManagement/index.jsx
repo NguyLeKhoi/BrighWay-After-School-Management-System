@@ -140,8 +140,8 @@ const RoomManagement = () => {
       
       {/* Header */}
       <ManagementPageHeader
-        title="Quản lý Phòng Học"
-        createButtonText="Thêm Phòng Học"
+        title="Quản lý Phòng"
+        createButtonText="Thêm Phòng"
         onCreateClick={handleCreateWithData}
       />
 
@@ -156,7 +156,7 @@ const RoomManagement = () => {
             updateFilter('facilityFilter', '');
             updateFilter('branchFilter', '');
           }}
-          placeholder="Tìm kiếm theo tên phòng học..."
+          placeholder="Tìm kiếm theo tên phòng..."
         >
           {/* Facility Filter */}
           <Autocomplete
@@ -230,8 +230,8 @@ const RoomManagement = () => {
           onDelete={handleDelete}
           emptyMessage={
             error && error.includes('Không tìm thấy') 
-              ? "Không có phòng học nào phù hợp với bộ lọc đã chọn" 
-              : "Không có phòng học nào. Hãy thêm phòng học đầu tiên để bắt đầu."
+              ? "Không có phòng nào phù hợp với bộ lọc đã chọn" 
+              : "Không có phòng nào. Hãy thêm phòng đầu tiên để bắt đầu."
           }
         />
       </div>
@@ -241,7 +241,7 @@ const RoomManagement = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
-        title="Phòng Học"
+        title="Phòng"
         icon={RoomIcon}
         loading={actionLoading}
         maxWidth="md"
@@ -259,7 +259,7 @@ const RoomManagement = () => {
             schema={roomSchema}
             defaultValues={selectedRoom || {}}
             onSubmit={handleFormSubmit}
-            submitText={dialogMode === 'create' ? 'Tạo Phòng Học' : 'Cập nhật Phòng Học'}
+            submitText={dialogMode === 'create' ? 'Tạo Phòng' : 'Cập nhật Phòng'}
             loading={actionLoading}
             disabled={actionLoading}
             fields={formFields}

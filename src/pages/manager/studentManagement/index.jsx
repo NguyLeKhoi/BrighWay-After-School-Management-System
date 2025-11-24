@@ -425,7 +425,7 @@ const StudentManagement = () => {
   const loadUnverifiedStudents = useCallback(async () => {
     // Đảm bảo có branchId trước khi load
     if (!branchIdRef.current && !user?.branchId && !branchInfo.id) {
-      console.warn('Không thể load học sinh chưa duyệt: chưa có branchId');
+      console.warn('Không thể load trẻ em chưa duyệt: chưa có branchId');
       setUnverifiedStudents([]);
       return;
     }
@@ -446,7 +446,7 @@ const StudentManagement = () => {
       
       setUnverifiedStudents(filteredStudents);
     } catch (error) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Không thể tải danh sách học sinh chưa duyệt';
+      const errorMessage = error?.response?.data?.message || error?.message || 'Không thể tải danh sách trẻ em chưa duyệt';
       setDependenciesError(errorMessage);
       showGlobalError(errorMessage);
       setUnverifiedStudents([]);
@@ -459,7 +459,7 @@ const StudentManagement = () => {
   const loadApprovedWithUnverifiedDocs = useCallback(async () => {
     // Đảm bảo có branchId trước khi load
     if (!branchIdRef.current && !user?.branchId && !branchInfo.id) {
-      console.warn('Không thể load học sinh đã duyệt có tài liệu chưa duyệt: chưa có branchId');
+      console.warn('Không thể load trẻ em đã duyệt có tài liệu chưa duyệt: chưa có branchId');
       setApprovedWithUnverifiedDocs([]);
       return;
     }
@@ -504,7 +504,7 @@ const StudentManagement = () => {
       
       setApprovedWithUnverifiedDocs(filteredStudents);
     } catch (error) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Không thể tải danh sách học sinh đã duyệt có tài liệu chưa duyệt';
+      const errorMessage = error?.response?.data?.message || error?.message || 'Không thể tải danh sách trẻ em đã duyệt có tài liệu chưa duyệt';
       setDependenciesError(errorMessage);
       showGlobalError(errorMessage);
       setApprovedWithUnverifiedDocs([]);
@@ -522,7 +522,7 @@ const StudentManagement = () => {
     
     try {
       await studentService.approveStudent(studentId);
-      toast.success(`Đã duyệt học sinh "${approveConfirmDialog.student.name}" thành công!`);
+      toast.success(`Đã duyệt trẻ em "${approveConfirmDialog.student.name}" thành công!`);
       
       // Remove from unverified list
       setUnverifiedStudents(prev => prev.filter(s => s.id !== studentId));
@@ -548,7 +548,7 @@ const StudentManagement = () => {
       
       setApproveConfirmDialog({ open: false, student: null });
     } catch (error) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi duyệt học sinh';
+        const errorMessage = error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi duyệt trẻ em';
       toast.error(errorMessage);
       showGlobalError(errorMessage);
     } finally {
@@ -716,7 +716,7 @@ const StudentManagement = () => {
       )}
       
       <ManagementPageHeader
-        title="Quản lý học sinh"
+        title="Quản lý trẻ em"
       />
 
       {(studentCrud.error || dependenciesError) && (
@@ -770,8 +770,8 @@ const StudentManagement = () => {
             }
           }}
         >
-          <Tab label="Học Sinh Đã Duyệt" />
-          <Tab label="Học Sinh Chưa Duyệt" />
+          <Tab label="Trẻ Em Đã Duyệt" />
+          <Tab label="Trẻ Em Chưa Duyệt" />
           <Tab label="Đã Duyệt - Tài Liệu Chưa Duyệt" />
         </Tabs>
       </Paper>
@@ -784,7 +784,7 @@ const StudentManagement = () => {
         onKeywordChange={studentCrud.handleKeywordChange}
         onSearch={studentCrud.handleKeywordSearch}
         onClear={studentCrud.handleClearSearch}
-        placeholder="Tìm kiếm theo tên học sinh hoặc phụ huynh..."
+        placeholder="Tìm kiếm theo tên trẻ em hoặc phụ huynh..."
       >
         <Box className={styles.filterRow}>
           <FormControl size="small" className={styles.filterControl}>
@@ -883,7 +883,7 @@ const StudentManagement = () => {
           onPageChange={studentCrud.handlePageChange}
           onRowsPerPageChange={studentCrud.handleRowsPerPageChange}
               showActions={false}
-              emptyMessage="Chưa có học sinh nào đã được duyệt."
+              emptyMessage="Chưa có trẻ em nào đã được duyệt."
             />
           </div>
         </>
@@ -900,7 +900,7 @@ const StudentManagement = () => {
               setUnverifiedFilters({ schoolId: '', studentLevelId: '' });
               loadUnverifiedStudents();
             }}
-            placeholder="Tìm kiếm theo tên học sinh hoặc phụ huynh..."
+            placeholder="Tìm kiếm theo tên trẻ em hoặc phụ huynh..."
           >
             <Box className={styles.filterRow}>
               <FormControl size="small" className={styles.filterControl}>
@@ -973,8 +973,8 @@ const StudentManagement = () => {
             {renderDependencyState()}
           </ManagementSearchSection>
 
-          <div className={styles.tableContainer}>
-            <DataTable
+        <div className={styles.tableContainer}>
+          <DataTable
               data={unverifiedStudents.filter(student => {
                 // Filter by keyword
                 if (unverifiedSearchKeyword.trim()) {
@@ -1004,10 +1004,10 @@ const StudentManagement = () => {
                 
                 return true;
               })}
-              columns={unverifiedColumns}
-              loading={loadingUnverified}
-              page={0}
-              rowsPerPage={unverifiedStudents.length || 10}
+            columns={unverifiedColumns}
+            loading={loadingUnverified}
+            page={0}
+            rowsPerPage={unverifiedStudents.length || 10}
               totalCount={unverifiedStudents.filter(student => {
                 if (unverifiedSearchKeyword.trim()) {
                   const keyword = unverifiedSearchKeyword.toLowerCase();
@@ -1025,12 +1025,12 @@ const StudentManagement = () => {
                 }
                 return true;
               }).length}
-              onPageChange={() => {}}
-              onRowsPerPageChange={() => {}}
-              showActions={false}
-              emptyMessage="Không có học sinh nào chưa được duyệt."
-          />
-        </div>
+            onPageChange={() => {}}
+            onRowsPerPageChange={() => {}}
+            showActions={false}
+              emptyMessage="Không có trẻ em nào chưa được duyệt."
+        />
+      </div>
         </>
       )}
 
@@ -1045,7 +1045,7 @@ const StudentManagement = () => {
               setApprovedDocsFilters({ schoolId: '', studentLevelId: '' });
               loadApprovedWithUnverifiedDocs();
             }}
-            placeholder="Tìm kiếm theo tên học sinh hoặc phụ huynh..."
+            placeholder="Tìm kiếm theo tên trẻ em hoặc phụ huynh..."
           >
             <Box className={styles.filterRow}>
               <FormControl size="small" className={styles.filterControl}>
@@ -1171,7 +1171,7 @@ const StudentManagement = () => {
               onPageChange={() => {}}
               onRowsPerPageChange={() => {}}
               showActions={false}
-              emptyMessage="Không có học sinh nào đã duyệt nhưng có tài liệu chưa duyệt."
+              emptyMessage="Không có trẻ em nào đã duyệt nhưng có tài liệu chưa duyệt."
           />
         </div>
         </>
@@ -1187,7 +1187,7 @@ const StudentManagement = () => {
         <DialogTitle>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="h6" fontWeight="bold">
-              Chi tiết học sinh
+              Chi tiết trẻ em
             </Typography>
             <IconButton
               size="small"
@@ -1302,7 +1302,7 @@ const StudentManagement = () => {
                   <Grid item xs={12} sm={6}>
                     <Box mb={2}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
-                        Cấp độ học sinh
+                        Cấp độ trẻ em
                       </Typography>
                       <Typography variant="body1">
                         {detailDialog.student.studentLevelName}
@@ -1558,10 +1558,10 @@ const StudentManagement = () => {
         open={approveConfirmDialog.open}
         onClose={() => setApproveConfirmDialog({ open: false, student: null })}
         onConfirm={handleApproveConfirm}
-        title="Xác nhận duyệt học sinh"
+        title="Xác nhận duyệt trẻ em"
         description={
           approveConfirmDialog.student
-            ? `Bạn có chắc chắn muốn duyệt học sinh "${approveConfirmDialog.student.name}"? Học sinh này sẽ được chuyển sang danh sách đã duyệt.`
+            ? `Bạn có chắc chắn muốn duyệt trẻ em "${approveConfirmDialog.student.name}"? Trẻ em này sẽ được chuyển sang danh sách đã duyệt.`
             : ''
         }
         confirmText="Duyệt"

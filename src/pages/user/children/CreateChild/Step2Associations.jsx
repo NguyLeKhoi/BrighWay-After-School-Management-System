@@ -97,7 +97,7 @@ const Step2Associations = React.forwardRef(
           },
           {
             name: 'studentLevelId',
-            label: 'Cấp độ học sinh',
+            label: 'Cấp độ trẻ em',
             type: 'select',
             required: true,
             options: availableStudentLevelOptions,
@@ -107,7 +107,7 @@ const Step2Associations = React.forwardRef(
               : loadingBranchLevels 
                 ? 'Đang tải danh sách cấp độ...' 
                 : availableStudentLevelOptions.length === 0 
-                  ? 'Chi nhánh này chưa có cấp độ học sinh được gán' 
+                  ? 'Chi nhánh này chưa có cấp độ trẻ em được gán' 
                   : undefined,
             gridSize: userBranchId ? 6 : 6
           }

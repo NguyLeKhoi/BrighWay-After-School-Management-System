@@ -14,28 +14,11 @@ export const createManagerUserFormFields = (actionLoading, branchOptions = []) =
     name: 'branchId',
     label: 'Chi Nhánh',
     type: 'select',
-    required: true,
+    required: false,
     options: branchOptions,
     disabled: actionLoading || branchOptions.length === 0,
     helperText: branchOptions.length === 0 ? 'Chưa có chi nhánh khả dụng' : undefined,
     gridSize: 6
-  },
-  {
-    name: 'profilePictureUrl',
-    label: 'URL Ảnh Đại Diện',
-    type: 'text',
-    required: false,
-    placeholder: 'Nhập URL ảnh đại diện (tùy chọn)',
-    disabled: actionLoading,
-    gridSize: 12
-  },
-  {
-    name: 'isActive',
-    label: 'Trạng thái hoạt động',
-    type: 'switch',
-    required: true,
-    disabled: actionLoading,
-    gridSize: 12
   }
 ];
 
