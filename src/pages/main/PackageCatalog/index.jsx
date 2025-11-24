@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import HeroSection from '@components/Common/HeroSection';
 import Card from '@components/Common/Card';
 import ContentLoading from '@components/Common/ContentLoading';
@@ -112,39 +113,99 @@ const PackageCatalog = () => {
     />
   );
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut'
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        ease: 'easeOut'
+      }
+    }
+  };
+
   return (
-    <div className={styles.packageCatalog}>
-      <HeroSection
-        title="Danh Mục Gói Dịch Vụ"
-        subtitle="Khám phá các gói dịch vụ giữ trẻ với hoạt động ngoài giờ đa dạng"
-        hasImage={true}
-        imageContent={heroImage}
-      />
+    <motion.div 
+      className={styles.packageCatalog}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={itemVariants}>
+        <HeroSection
+          title="Danh Mục Gói Dịch Vụ"
+          subtitle="Khám phá các gói dịch vụ giữ trẻ với hoạt động ngoài giờ đa dạng"
+          hasImage={true}
+          imageContent={heroImage}
+        />
+      </motion.div>
 
       {/* Article Section */}
-      <section className={styles.contentSection}>
+      <motion.section 
+        className={styles.contentSection}
+        variants={itemVariants}
+      >
         <div className={styles.contentContainer}>
           <article className={styles.article}>
-            <p className={styles.articleText}>
+            <motion.p 
+              className={styles.articleText}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
               Chào mừng bạn đến với danh mục gói dịch vụ của BRIGHWAY! Chúng tôi cung cấp các gói dịch vụ giữ trẻ đa dạng, 
               được thiết kế phù hợp với từng độ tuổi và nhu cầu của trẻ em. Mỗi gói dịch vụ bao gồm các hoạt động ngoài giờ 
               phong phú, giúp trẻ phát triển toàn diện về thể chất, tinh thần và kỹ năng xã hội trong môi trường an toàn và vui vẻ.
-            </p>
+            </motion.p>
             
             {loading ? (
               <ContentLoading text="Đang tải danh sách gói dịch vụ..." />
             ) : featuredPackages.length > 0 ? (
-              <div className={styles.cardGrid}>
-                {featuredPackages.map((pkg) => (
-                  <Card
+              <motion.div 
+                className={styles.cardGrid}
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {featuredPackages.map((pkg, index) => (
+                  <motion.div
                     key={pkg.id}
-                    title={pkg.title}
-                    description={pkg.description}
-                    infoRows={pkg.infoRows}
-                    actions={pkg.actions}
-                  />
+                    variants={cardVariants}
+                    whileHover={{ scale: 1.03, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card
+                      title={pkg.title}
+                      description={pkg.description}
+                      infoRows={pkg.infoRows}
+                      actions={pkg.actions}
+                    />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
               <div className={styles.cardGrid}>
                 <div className={styles.card}>
@@ -153,41 +214,67 @@ const PackageCatalog = () => {
               </div>
             )}
 
-            <p className={styles.articleText}>
+            <motion.p 
+              className={styles.articleText}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
               Tất cả các gói dịch vụ của chúng tôi đều được quản lý bởi đội ngũ nhân viên chăm sóc trẻ chuyên nghiệp, 
               giàu kinh nghiệm. Các hoạt động được thiết kế đa dạng, từ vui chơi, thể thao, nghệ thuật đến các hoạt động 
               phát triển kỹ năng. Chúng tôi cam kết mang đến môi trường an toàn, vui vẻ và bổ ích cho trẻ em.
-            </p>
+            </motion.p>
           </article>
         </div>
-      </section>
+      </motion.section>
 
       {/* Best Packages Section */}
-      <section className={styles.bestPackagesSection}>
+      <motion.section 
+        className={styles.bestPackagesSection}
+        variants={itemVariants}
+      >
         <div className={styles.bestPackagesContainer}>
-          <h2 className={styles.sectionHeading}>Các Gói Dịch Vụ Nổi Bật</h2>
+          <motion.h2 
+            className={styles.sectionHeading}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            Các Gói Dịch Vụ Nổi Bật
+          </motion.h2>
           {loading ? (
               <ContentLoading text="Đang tải danh sách gói dịch vụ..." />
             ) : bestPackages.length > 0 ? (
-            <div className={styles.bestPackagesGrid}>
-              {bestPackages.map((pkg) => (
-                <Card
+            <motion.div 
+              className={styles.bestPackagesGrid}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {bestPackages.map((pkg, index) => (
+                <motion.div
                   key={pkg.id}
-                  title={pkg.title}
-                  description={pkg.description}
-                  infoRows={pkg.infoRows}
-                  actions={pkg.actions}
-                />
+                  variants={cardVariants}
+                  whileHover={{ scale: 1.03, y: -5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card
+                    title={pkg.title}
+                    description={pkg.description}
+                    infoRows={pkg.infoRows}
+                    actions={pkg.actions}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
               <p>Hiện tại chưa có gói dịch vụ nào. Vui lòng quay lại sau.</p>
             </div>
           )}
         </div>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 };
 

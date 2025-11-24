@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import ContentSection from '@components/Common/ContentSection';
 import ContentLoading from '@components/Common/ContentLoading';
 import Card from '@components/Common/Card';
@@ -78,36 +79,104 @@ const FacilitiesAbout = () => {
     hasImage: false
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut'
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        ease: 'easeOut'
+      }
+    }
+  };
+
   return (
-    <div className={styles.facilitiesAbout}>
-      <ContentSection {...facilitiesSection} />
-      <ContentSection {...aboutSection} />
-      <ContentSection {...missionData} />
+    <motion.div 
+      className={styles.facilitiesAbout}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={itemVariants}>
+        <ContentSection {...facilitiesSection} />
+      </motion.div>
+      
+      <motion.div variants={itemVariants}>
+        <ContentSection {...aboutSection} />
+      </motion.div>
+      
+      <motion.div variants={itemVariants}>
+        <ContentSection {...missionData} />
+      </motion.div>
       
       {/* Facilities List Section */}
-      <section className={styles.contentSection}>
+      <motion.section 
+        className={styles.contentSection}
+        variants={itemVariants}
+      >
         <div className={styles.contentContainer}>
-          <h2 className={styles.sectionHeading}>Danh Sách Cơ Sở Vật Chất</h2>
+          <motion.h2 
+            className={styles.sectionHeading}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            Danh Sách Cơ Sở Vật Chất
+          </motion.h2>
           {loading ? (
             <ContentLoading text="Đang tải thông tin cơ sở vật chất..." />
           ) : facilities.length > 0 ? (
-            <div className={styles.facilitiesGrid}>
+            <motion.div 
+              className={styles.facilitiesGrid}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {facilities.slice(0, MAX_FACILITIES_DISPLAY).map((facility) => (
-                <Card
+                <motion.div
                   key={facility.id}
-                  title={facility.facilityName || 'Cơ sở vật chất'}
-                  description={facility.description || 'Không có mô tả'}
-                />
+                  variants={cardVariants}
+                  whileHover={{ scale: 1.03, y: -5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card
+                    title={facility.facilityName || 'Cơ sở vật chất'}
+                    description={facility.description || 'Không có mô tả'}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
               <p>Hiện tại chưa có cơ sở vật chất nào. Vui lòng quay lại sau.</p>
             </div>
           )}
         </div>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 };
 
