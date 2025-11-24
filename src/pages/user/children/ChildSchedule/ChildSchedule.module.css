@@ -1,7 +1,7 @@
 /* Child Schedule Styles */
 .schedulePage {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 20px 0;
 }
 
@@ -31,19 +31,22 @@
 }
 
 .backButton {
-  background-color: #6c757d;
+  background: linear-gradient(135deg, var(--color-gray-600) 0%, var(--color-gray-700) 100%);
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .backButton:hover {
-  background-color: #5a6268;
+  background: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-800) 100%);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .titleSection {
@@ -52,16 +55,50 @@
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #000;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
   margin: 0 0 5px;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
   font-size: 16px;
   color: #666;
   margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.registerButton {
+  background: var(--color-secondary);
+  color: var(--text-primary);
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.registerButton:hover {
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.registerButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .viewInfo {
@@ -167,19 +204,20 @@
 }
 
 :global(.fc-header-toolbar .fc-button) {
-  background-color: #007bff !important;
-  border-color: #007bff !important;
-  border-radius: 6px !important;
+  background: var(--color-secondary) !important;
+  border-color: var(--color-secondary) !important;
+  border-radius: var(--radius-lg) !important;
   padding: 8px 16px !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  font-family: var(--font-family) !important;
   color: white !important;
   margin: 0 4px !important;
 }
 
 :global(.fc-header-toolbar .fc-button:hover) {
-  background-color: #0056b3 !important;
-  border-color: #0056b3 !important;
+  background: var(--color-secondary-dark) !important;
+  border-color: var(--color-secondary-dark) !important;
 }
 
 :global(.fc-header-toolbar .fc-button:focus) {
@@ -187,8 +225,9 @@
 }
 
 :global(.fc-header-toolbar .fc-button-primary:not(:disabled).fc-button-active) {
-  background-color: #0056b3 !important;
-  border-color: #0056b3 !important;
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: white !important;
 }
 
 :global(.fc-toolbar-title) {
@@ -215,8 +254,25 @@
   border: none !important;
   font-size: 12px !important;
   font-weight: 500 !important;
-  padding: 2px 6px !important;
+  padding: 0 !important;
   cursor: pointer !important;
+  overflow: visible !important;
+}
+
+:global(.fc-event.custom-event) {
+  padding: 0 !important;
+  margin: 1px !important;
+  overflow: visible !important;
+}
+
+:global(.fc-event.custom-event .fc-event-main) {
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+:global(.fc-event.custom-event .fc-event-main-frame) {
+  padding: 0 !important;
+  overflow: visible !important;
 }
 
 :global(.fc-event:hover) {
@@ -307,6 +363,16 @@
     align-items: stretch;
     text-align: center;
     gap: 20px;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .registerButton {
+    width: 100%;
   }
   
   .title {

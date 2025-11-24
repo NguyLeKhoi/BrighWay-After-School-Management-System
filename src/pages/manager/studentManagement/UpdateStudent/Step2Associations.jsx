@@ -24,7 +24,7 @@ const Step2Associations = React.forwardRef(
       () => [
         {
           section: 'Thông tin liên kết',
-          sectionDescription: 'Liên kết học sinh với phụ huynh, trường học và cấp độ.',
+          sectionDescription: 'Liên kết trẻ em với phụ huynh, trường học và cấp độ.',
           name: 'userId',
           label: 'Phụ huynh',
           type: 'select',
@@ -64,7 +64,7 @@ const Step2Associations = React.forwardRef(
         schoolId: data.schoolId || '',
         studentLevelId: data.studentLevelId || ''
       }),
-      [data]
+      [data.userId, data.schoolId, data.studentLevelId, parentOptions.length, schoolOptions.length, studentLevelOptions.length]
     );
 
     const handleSubmit = async (formValues) => {
@@ -87,23 +87,23 @@ const Step2Associations = React.forwardRef(
           Bước {stepIndex + 1}/{totalSteps}: Liên kết phụ huynh & trường học
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.875rem' }}>
-          Kiểm tra hoặc cập nhật phụ huynh, trường học và cấp độ của học sinh.
+          Kiểm tra hoặc cập nhật phụ huynh, trường học và cấp độ của trẻ em.
         </Typography>
 
         {(parentOptions.length === 0 || schoolOptions.length === 0 || studentLevelOptions.length === 0) && (
           <Alert severity="info" sx={{ mb: 1 }}>
-            Vui lòng đảm bảo đã thiết lập đầy đủ phụ huynh, trường học và cấp độ trước khi cập nhật học sinh.
+            Vui lòng đảm bảo đã thiết lập đầy đủ phụ huynh, trường học và cấp độ trước khi cập nhật trẻ em.
           </Alert>
         )}
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <Form
+            key={`step2-${data.userId}-${parentOptions.length}-${schoolOptions.length}-${studentLevelOptions.length}`}
             ref={formRef}
             schema={studentStep2Schema}
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
             fields={fields}
-            showReset={false}
             hideSubmitButton
             disabled={dependenciesLoading}
           />

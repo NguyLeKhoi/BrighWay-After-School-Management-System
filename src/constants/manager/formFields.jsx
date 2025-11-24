@@ -62,32 +62,12 @@ export const createManagerFormFields = ({
       gridSize: 6
     },
     {
-      name: 'email',
-      label: 'Email',
-      type: 'email',
-      required: true,
-      placeholder: 'Ví dụ: email@example.com',
-      disabled: actionLoading,
-      gridSize: 6
-    },
-    {
-      section: 'Bảo mật & Trạng thái',
-      sectionDescription: 'Bạn có thể đổi mật khẩu hoặc kích hoạt/ngưng hoạt động tài khoản.',
-      name: 'password',
-      label: 'Mật Khẩu Mới',
-      type: 'password',
+      name: 'branchId',
+      label: 'Chi Nhánh',
+      type: 'select',
       required: false,
-      placeholder: 'Để trống nếu không muốn thay đổi mật khẩu',
-      disabled: actionLoading,
-      gridSize: 6,
-      helperText: 'Để trống nếu không muốn thay đổi mật khẩu'
-    },
-    {
-      name: 'isActive',
-      label: 'Trạng thái hoạt động',
-      type: 'switch',
-      required: true,
-      disabled: actionLoading,
+      options: branchOptions,
+      disabled: actionLoading || branchLoading,
       gridSize: 6
     }
   ];

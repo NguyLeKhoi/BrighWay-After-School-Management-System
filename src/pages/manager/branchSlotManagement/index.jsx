@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -61,6 +61,8 @@ const WEEK_DAYS = [
 
 const ManagerBranchSlotManagement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const {
     timeframeOptions,
     slotTypeOptions,
@@ -239,6 +241,19 @@ const ManagerBranchSlotManagement = () => {
     }
   }, [assignStaffDialog.open, staffOptions.length, roomOptions.length, fetchDependencies]);
 
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/manager/branch-slots') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   const handleCreate = useCallback(() => {
     // Navigate to create page with stepper
     navigate('/manager/branch-slots/create');
@@ -344,7 +359,7 @@ const ManagerBranchSlotManagement = () => {
         name: 'name',
         label: 'Tên vai trò (tùy chọn)',
         type: 'text',
-        placeholder: 'Ví dụ: Giáo viên chính, Trợ giảng...',
+        placeholder: 'Ví dụ: Nhân viên chăm sóc chính, Nhân viên hỗ trợ...',
         gridSize: 4,
         disabled: assignStaffLoading
       }
@@ -549,7 +564,6 @@ const ManagerBranchSlotManagement = () => {
           loading={actionLoading || dependenciesLoading}
           disabled={actionLoading || dependenciesLoading}
           fields={branchSlotFormFields}
-          showReset={dialogMode === 'create'}
         />
       </ManagementFormDialog>
 
@@ -571,7 +585,6 @@ const ManagerBranchSlotManagement = () => {
           loading={assignStaffLoading || loadingRooms || dependenciesLoading}
           disabled={assignStaffLoading || loadingRooms || dependenciesLoading}
           fields={assignStaffFormFields}
-          showReset={true}
         />
       </ManagementFormDialog>
 

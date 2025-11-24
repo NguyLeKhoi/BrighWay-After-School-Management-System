@@ -1,10 +1,10 @@
 /* Content Loading Styles - Same as Loading.module.css */
 .loadingContainer {
   text-align: center;
-  color: #333333;
+  color: var(--color-gray-900);
   max-width: 400px;
   width: 100%;
-  padding: 2rem;
+  padding: var(--spacing-8);
 }
 
 /* Logo Styles */
@@ -21,24 +21,26 @@
 .logoIcon {
   width: 80px;
   height: 80px;
-  background: #f8f9fa;
-  border-radius: 20px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
-  font-weight: bold;
-  color: #333333;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family);
+  color: var(--color-gray-900);
   margin: 0 auto;
-  border: 2px solid #e9ecef;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--color-gray-200);
+  box-shadow: var(--shadow-lg);
 }
 
 .logoText {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family);
   margin: 0;
-  color: #333333;
+  color: var(--color-gray-900);
   letter-spacing: 2px;
 }
 
@@ -59,7 +61,7 @@
   width: 100%;
   height: 100%;
   border: 3px solid transparent;
-  border-top: 3px solid #667eea;
+  border-top: 3px solid var(--color-primary);
   border-radius: 50%;
   animation: spin 1.5s linear infinite;
 }
@@ -69,7 +71,7 @@
   height: 60px;
   top: 10px;
   left: 10px;
-  border-top-color: #764ba2;
+  border-top-color: var(--color-secondary);
   animation-duration: 1.2s;
   animation-direction: reverse;
 }
@@ -79,7 +81,7 @@
   height: 40px;
   top: 20px;
   left: 20px;
-  border-top-color: #667eea;
+  border-top-color: var(--color-primary);
   animation-duration: 0.9s;
 }
 
@@ -89,18 +91,20 @@
 }
 
 .loadingTitle {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: #333333;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--color-gray-900);
 }
 
 .loadingSubtitle {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
   margin: 0;
   opacity: 0.7;
-  font-weight: 300;
-  color: #666666;
+  font-weight: var(--font-weight-light);
+  color: var(--color-gray-600);
 }
 
 /* Dots Animation */
@@ -113,7 +117,7 @@
 .dot {
   width: 8px;
   height: 8px;
-  background: #667eea;
+  background: var(--color-primary);
   border-radius: 50%;
   animation: bounce 1.4s ease-in-out infinite both;
 }

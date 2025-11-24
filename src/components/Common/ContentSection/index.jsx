@@ -45,7 +45,13 @@ const ContentSection = ({
           
           {hasImage && (
             <div className={styles.imageContent}>
-              {imageContent || <div className={styles.imagePlaceholder}>Image</div>}
+              {imageContent || (
+                <img 
+                  src={import.meta.env.VITE_IMAGE_CONTENT_SECTION_DEFAULT || ''} 
+                  alt={heading || "Content image"}
+                  className={styles.contentImage}
+                />
+              )}
             </div>
           )}
         </div>

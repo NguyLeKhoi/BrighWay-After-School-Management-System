@@ -6,6 +6,8 @@ import StepperForm from '../../../../components/Common/StepperForm';
 import useLocationData from '../../../../hooks/useLocationData';
 import branchService from '../../../../services/branch.service';
 import benefitService from '../../../../services/benefit.service';
+import schoolService from '../../../../services/school.service';
+import studentLevelService from '../../../../services/studentLevel.service';
 import { toast } from 'react-toastify';
 
 const Step1BranchInfo = forwardRef(({ data, updateData }, ref) => {
@@ -172,6 +174,182 @@ const Step2AssignBenefits = forwardRef(({ data }, ref) => {
   );
 });
 
+const Step3AssignSchools = forwardRef(({ data }, ref) => {
+  const [loading, setLoading] = useState(true);
+  const [availableSchools, setAvailableSchools] = useState([]);
+  const [selectedSchoolIds, setSelectedSchoolIds] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const allSchools = await schoolService.getAllSchools();
+        setAvailableSchools(allSchools || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    async submit() {
+      if (!data?.createdBranchId) {
+        toast.error('Không tìm thấy chi nhánh vừa tạo');
+        return false;
+      }
+      try {
+        // Gán từng school một
+        for (const schoolId of selectedSchoolIds) {
+          if (schoolId) {
+            await branchService.connectSchool({
+              branchId: data.createdBranchId,
+              schoolId: schoolId
+            });
+          }
+        }
+        if (selectedSchoolIds.length > 0) {
+          toast.success('Gán trường thành công');
+        }
+        return true;
+      } catch (err) {
+        toast.error(err.response?.data?.message || err.message || 'Gán trường thất bại');
+        return false;
+      }
+    }
+  }));
+
+  return (
+    <Box sx={{ display: 'grid', gap: 2 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Gán Trường cho Chi Nhánh</Typography>
+      {loading ? (
+        <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box>
+      ) : (
+        <Autocomplete
+          multiple
+          options={availableSchools}
+          getOptionLabel={(option) => option.name || option.schoolName || 'Không rõ tên'}
+          getOptionKey={(option) => option.id || option.schoolId}
+          value={availableSchools.filter(s => {
+            const schoolId = s.id || s.schoolId;
+            return schoolId && selectedSchoolIds.includes(schoolId);
+          })}
+          onChange={(event, newValue) => {
+            const ids = newValue
+              .map(s => s.id || s.schoolId)
+              .filter(id => id != null && id !== '');
+            setSelectedSchoolIds(ids);
+          }}
+          renderOption={(props, option) => {
+            const schoolId = option.id || option.schoolId;
+            const isSelected = schoolId && selectedSchoolIds.includes(schoolId);
+            return (
+              <Box component="li" {...props}>
+                <Checkbox checked={isSelected} />
+                <ListItemText
+                  primary={option.name || option.schoolName || 'Không rõ tên'}
+                  secondary={option.address || 'Không có địa chỉ'}
+                />
+              </Box>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField {...params} placeholder="Tìm và chọn trường..." />
+          )}
+        />
+      )}
+      <Typography variant="body2" color="text.secondary">Đã chọn: <b>{selectedSchoolIds.length}</b> trường</Typography>
+    </Box>
+  );
+});
+
+const Step4AssignStudentLevels = forwardRef(({ data }, ref) => {
+  const [loading, setLoading] = useState(true);
+  const [availableStudentLevels, setAvailableStudentLevels] = useState([]);
+  const [selectedStudentLevelIds, setSelectedStudentLevelIds] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const allStudentLevels = await studentLevelService.getAllStudentLevels();
+        setAvailableStudentLevels(allStudentLevels || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    async submit() {
+      if (!data?.createdBranchId) {
+        toast.error('Không tìm thấy chi nhánh vừa tạo');
+        return false;
+      }
+      try {
+        // Gán từng student level một
+        for (const studentLevelId of selectedStudentLevelIds) {
+          if (studentLevelId) {
+            await branchService.addStudentLevel({
+              branchId: data.createdBranchId,
+              studentLevelId: studentLevelId
+            });
+          }
+        }
+        if (selectedStudentLevelIds.length > 0) {
+          toast.success('Gán cấp độ học sinh thành công');
+        }
+        return true;
+      } catch (err) {
+        toast.error(err.response?.data?.message || err.message || 'Gán cấp độ học sinh thất bại');
+        return false;
+      }
+    }
+  }));
+
+  return (
+    <Box sx={{ display: 'grid', gap: 2 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Gán Cấp Độ Học Sinh cho Chi Nhánh</Typography>
+      {loading ? (
+        <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box>
+      ) : (
+        <Autocomplete
+          multiple
+          options={availableStudentLevels}
+          getOptionLabel={(option) => option.name || option.levelName || 'Không rõ tên'}
+          getOptionKey={(option) => option.id || option.studentLevelId}
+          value={availableStudentLevels.filter(sl => {
+            const levelId = sl.id || sl.studentLevelId;
+            return levelId && selectedStudentLevelIds.includes(levelId);
+          })}
+          onChange={(event, newValue) => {
+            const ids = newValue
+              .map(sl => sl.id || sl.studentLevelId)
+              .filter(id => id != null && id !== '');
+            setSelectedStudentLevelIds(ids);
+          }}
+          renderOption={(props, option) => {
+            const levelId = option.id || option.studentLevelId;
+            const isSelected = levelId && selectedStudentLevelIds.includes(levelId);
+            return (
+              <Box component="li" {...props}>
+                <Checkbox checked={isSelected} />
+                <ListItemText
+                  primary={option.name || option.levelName || 'Không rõ tên'}
+                  secondary={option.description || option.desc || 'Không có mô tả'}
+                />
+              </Box>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField {...params} placeholder="Tìm và chọn cấp độ học sinh..." />
+          )}
+        />
+      )}
+      <Typography variant="body2" color="text.secondary">Đã chọn: <b>{selectedStudentLevelIds.length}</b> cấp độ học sinh</Typography>
+    </Box>
+  );
+});
+
 const CreateBranch = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
@@ -204,7 +382,9 @@ const CreateBranch = () => {
   const steps = useMemo(() => ([
     { label: 'Thông tin cơ bản', component: Step1BranchInfo },
     { label: 'Địa chỉ & Liên hệ', component: Step1AddressContact, validation: handleStep1Create },
-    { label: 'Gán Lợi Ích', component: Step2AssignBenefits }
+    { label: 'Gán Lợi Ích', component: Step2AssignBenefits },
+    { label: 'Gán Trường', component: Step3AssignSchools },
+    { label: 'Gán Cấp Độ Học Sinh', component: Step4AssignStudentLevels }
   ]), [handleStep1Create]);
 
   return (

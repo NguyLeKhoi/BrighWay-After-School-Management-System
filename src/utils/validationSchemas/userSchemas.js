@@ -41,7 +41,8 @@ export const createStaffSchema = yup.object({
     .max(50, 'Mật khẩu không được quá 50 ký tự')
 });
 
-// Schema for updating user (Admin updates Manager)
+// Schema for updating user (Admin updates Manager, Manager updates Staff)
+// Only allows updating name and branchId
 export const updateUserSchema = yup.object({
   name: yup
     .string()
@@ -49,24 +50,10 @@ export const updateUserSchema = yup.object({
     .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
     .max(100, 'Họ và tên không được quá 100 ký tự')
     .matches(/^[a-zA-ZÀ-ỹ\s]+$/, 'Họ và tên chỉ được chứa chữ cái và khoảng trắng'),
-  email: yup
-    .string()
-    .required('Email là bắt buộc')
-    .email('Email không hợp lệ'),
-  isActive: yup
-    .boolean()
-    .default(true),
-  password: yup
+  branchId: yup
     .string()
     .optional()
-    .test('password-length', 'Mật khẩu phải có ít nhất 6 ký tự', function(value) {
-      if (!value || value.trim() === '') return true; // Allow empty
-      return value.length >= 6;
-    })
-    .test('password-max', 'Mật khẩu không được quá 50 ký tự', function(value) {
-      if (!value || value.trim() === '') return true; // Allow empty
-      return value.length <= 50;
-    })
+    .nullable()
 });
 
 // Deprecated schemas for backward compatibility

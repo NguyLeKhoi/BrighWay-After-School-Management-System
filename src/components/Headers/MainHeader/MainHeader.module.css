@@ -1,9 +1,11 @@
 .header {
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: var(--z-sticky);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .headerContainer {
@@ -18,14 +20,19 @@
 
 .headerLogo .logoLink {
   text-decoration: none;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .headerLogo h1 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: #000;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary-dark);
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .headerNav {
@@ -48,15 +55,34 @@
 
 .navLink {
   text-decoration: none;
-  color: #000;
-  font-weight: 500;
-  font-size: 16px;
-  transition: color 0.3s ease;
-  padding: 8px 0;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-base);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  position: relative;
 }
 
 .navLink:hover {
-  color: #666;
+  color: var(--color-primary);
+  background: var(--color-primary-50);
+}
+
+.navLink::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--color-primary);
+  transition: width var(--transition-base);
+}
+
+.navLink:hover::after {
+  width: 80%;
 }
 
 .headerActions {
@@ -66,37 +92,43 @@
 }
 
 .btn {
-  padding: 10px 20px;
-  border-radius: 6px;
+  padding: 10px 24px;
+  border-radius: var(--radius-lg);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-base);
   border: 2px solid transparent;
   cursor: pointer;
   display: inline-block;
+  font-family: var(--font-family-primary);
 }
 
 .btnPrimary {
-  background-color: #fff;
-  color: #000;
-  border-color: #000;
+  background: var(--color-secondary);
+  color: var(--text-primary);
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
 }
 
 .btnPrimary:hover {
-  background-color: #f0f0f0;
-  border-color: #000;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .btnOutline {
   background-color: transparent;
-  color: #000;
-  border-color: #000;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .btnOutline:hover {
-  background-color: #f0f0f0;
-  color: #000;
+  background: var(--color-primary);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Mobile responsive */

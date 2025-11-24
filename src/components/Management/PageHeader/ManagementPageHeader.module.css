@@ -6,10 +6,12 @@
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1976d2;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary);
   margin: 0;
+  font-family: var(--font-family-heading);
+  letter-spacing: -0.02em;
 }
 
 .actions {
@@ -19,16 +21,22 @@
 }
 
 .addButton {
-  background-color: #1976d2;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   text-transform: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
 }
 
 .addButton:hover {
-  background-color: #1565c0;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 @media (max-width: 768px) {

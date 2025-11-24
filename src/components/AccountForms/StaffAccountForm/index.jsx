@@ -34,10 +34,6 @@ const StaffAccountForm = ({
     userData: null
   });
 
-  const roleOptions = [
-    { value: 0, label: 'Staff' }
-  ];
-
   const handleFormSubmit = (data) => {
     setConfirmDialog({
       open: true,
@@ -126,7 +122,7 @@ const StaffAccountForm = ({
       >
         <DialogTitle
           sx={{
-            backgroundColor: '#1976d2',
+            backgroundColor: 'var(--color-primary)',
             color: 'white',
             display: 'flex',
             alignItems: 'center',

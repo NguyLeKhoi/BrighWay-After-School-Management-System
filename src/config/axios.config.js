@@ -93,7 +93,11 @@ axiosInstance.interceptors.response.use(
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
+              
+              // Only redirect if not already on login page
+              if (window.location.pathname !== '/login') {
               window.location.href = '/login';
+              }
               return Promise.reject(refreshError);
             } finally {
               isRefreshing = false;
@@ -103,7 +107,11 @@ axiosInstance.interceptors.response.use(
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
+            
+            // Only redirect if not already on login page
+            if (window.location.pathname !== '/login') {
             window.location.href = '/login';
+            }
           }
           break;
         

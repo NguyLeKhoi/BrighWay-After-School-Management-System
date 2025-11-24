@@ -3,6 +3,8 @@ import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import {
   Business as BusinessIcon,
   Assignment as AssignIcon,
+  School as SchoolIcon,
+  Class as ClassIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Edit as EditIcon,
@@ -13,6 +15,8 @@ export const createBranchColumns = ({
   expandedRows,
   onToggleExpand,
   onAssignBenefits,
+  onAssignSchools,
+  onAssignStudentLevels,
   onEditBranch,
   onDeleteBranch
 }) => [
@@ -65,14 +69,33 @@ export const createBranchColumns = ({
     align: 'center',
     render: (_, item) => (
       <Box display="flex" gap={0.5} justifyContent="center">
-        <IconButton
-          size="small"
-          color="info"
-          onClick={() => onAssignBenefits(item)}
-          title="Gán lợi ích"
-        >
-          <AssignIcon fontSize="small" />
-        </IconButton>
+        <Tooltip title="Gán lợi ích">
+          <IconButton
+            size="small"
+            color="info"
+            onClick={() => onAssignBenefits(item)}
+          >
+            <AssignIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Gán trường">
+          <IconButton
+            size="small"
+            color="success"
+            onClick={() => onAssignSchools(item)}
+          >
+            <SchoolIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Gán cấp độ học sinh">
+          <IconButton
+            size="small"
+            color="warning"
+            onClick={() => onAssignStudentLevels(item)}
+          >
+            <ClassIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Sửa">
           <IconButton
             size="small"

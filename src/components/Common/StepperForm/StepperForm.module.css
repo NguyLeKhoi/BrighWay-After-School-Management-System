@@ -23,7 +23,7 @@
   gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 2px solid var(--border-light);
   flex-shrink: 0;
 }
 
@@ -31,11 +31,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-  border-radius: 12px;
-  color: white;
+  width: 48px;
+  height: 48px;
+  background: var(--color-primary);
+  border-radius: var(--radius-xl);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
 }
 
 .iconContainer svg {
@@ -43,9 +44,10 @@
 }
 
 .title {
-  font-weight: 600;
-  color: #1976d2;
-  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-3xl);
+  letter-spacing: -0.01em;
 }
 
 .stepperContainer {
@@ -78,7 +80,7 @@
   justify-content: space-between;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 2px solid rgba(0, 0, 0, 0.1);
+  border-top: 2px solid var(--border-light);
   flex-shrink: 0;
 }
 

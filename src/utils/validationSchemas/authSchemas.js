@@ -28,3 +28,45 @@ export const validatePassword = (password) => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
   return passwordRegex.test(password);
 };
+
+// Forgot password (send reset code) validation schema
+export const forgotPasswordSchema = yup.object({
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ')
+});
+
+// Reset code validation schema
+export const resetCodeSchema = yup.object({
+  code: yup
+    .string()
+    .required('Mã xác nhận là bắt buộc')
+    .length(5, 'Mã xác nhận phải có đúng 5 ký tự')
+    .matches(/^[A-Z0-9]+$/, 'Mã xác nhận chỉ chứa chữ cái in hoa và số')
+});
+
+// Reset password with code validation schema
+export const resetPasswordSchema = yup.object({
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ'),
+  code: yup
+    .string()
+    .required('Mã xác nhận là bắt buộc')
+    .length(5, 'Mã xác nhận phải có đúng 5 ký tự')
+    .matches(/^[A-Z0-9]+$/, 'Mã xác nhận chỉ chứa chữ cái in hoa và số'),
+  newPassword: yup
+    .string()
+    .required('Mật khẩu mới là bắt buộc')
+    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số'
+    ),
+  confirmPassword: yup
+    .string()
+    .required('Xác nhận mật khẩu là bắt buộc')
+    .oneOf([yup.ref('newPassword')], 'Mật khẩu xác nhận không khớp')
+});

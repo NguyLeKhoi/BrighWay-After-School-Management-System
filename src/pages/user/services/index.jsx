@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import Loading from '@components/Common/Loading';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
+import { Receipt as ServiceIcon } from '@mui/icons-material';
+import ContentLoading from '@components/Common/ContentLoading';
+import AnimatedCard from '../../../components/Common/AnimatedCard';
 import { useApp } from '../../../contexts/AppContext';
 import serviceService from '../../../services/service.service';
 import orderService from '../../../services/order.service';
@@ -8,6 +12,8 @@ import studentSlotService from '../../../services/studentSlot.service';
 import styles from './Services.module.css';
 
 const FamilyServices = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const [services, setServices] = useState([]);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const [servicesError, setServicesError] = useState(null);
@@ -33,6 +39,19 @@ const FamilyServices = () => {
   useEffect(() => {
     loadServices();
   }, []);
+
+  // Reload data when navigate back to this page
+  useEffect(() => {
+    if (location.pathname === '/family/services') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadServices();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const loadServices = async () => {
     setIsLoadingServices(true);
@@ -170,7 +189,7 @@ const FamilyServices = () => {
 
     if (!orderForm.childId) {
       addNotification({
-        message: 'Vui lòng chọn học sinh.',
+        message: 'Vui lòng chọn trẻ em.',
         severity: 'warning'
       });
       return;
@@ -232,7 +251,12 @@ const FamilyServices = () => {
   };
 
   return (
-    <div className={styles.servicesPage}>
+    <motion.div 
+      className={styles.servicesPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <div>
@@ -248,7 +272,7 @@ const FamilyServices = () => {
 
         {isLoadingServices ? (
           <div className={styles.inlineLoading}>
-            <Loading />
+            <ContentLoading isLoading={true} text="Đang tải dịch vụ..." />
           </div>
         ) : servicesError ? (
           <div className={styles.errorState}>
@@ -318,7 +342,9 @@ const FamilyServices = () => {
           </div>
         ) : (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>🧾</div>
+            <div className={styles.emptyIcon}>
+              <ServiceIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+            </div>
             <h3>Chưa có dịch vụ add-on</h3>
             <p>Chi nhánh của bạn chưa cung cấp dịch vụ nào. Vui lòng quay lại sau.</p>
           </div>
@@ -350,11 +376,11 @@ const FamilyServices = () => {
             <form className={styles.orderForm} onSubmit={handleOrderSubmit}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  Chọn học sinh <span className={styles.required}>*</span>
+                  Chọn trẻ em <span className={styles.required}>*</span>
                 </label>
                 {isLoadingChildren ? (
                   <div className={styles.inlineLoading}>
-                    <Loading />
+                    <ContentLoading isLoading={true} text="Đang tải danh sách con..." />
                   </div>
                 ) : childrenError ? (
                   <div className={styles.errorState}>
@@ -374,7 +400,7 @@ const FamilyServices = () => {
                     onChange={(e) => handleChildChange(e.target.value)}
                     disabled={isOrdering || children.length === 0}
                   >
-                    <option value="">-- Chọn học sinh --</option>
+                    <option value="">-- Chọn trẻ em --</option>
                     {children.map((child) => (
                       <option key={child.id} value={child.id}>
                         {child.name || child.userName || 'Không tên'}
@@ -391,7 +417,7 @@ const FamilyServices = () => {
                   </label>
                   {isLoadingSlots ? (
                     <div className={styles.inlineLoading}>
-                      <Loading />
+                      <ContentLoading isLoading={true} text="Đang tải ca học..." />
                     </div>
                   ) : slotsError ? (
                     <div className={styles.errorState}>
@@ -557,7 +583,7 @@ const FamilyServices = () => {
                     }
                   }}
                 >
-                  Ví học sinh
+                  Ví trẻ em
                 </button>
                 <button
                   className={styles.cancelButton}
@@ -570,7 +596,7 @@ const FamilyServices = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

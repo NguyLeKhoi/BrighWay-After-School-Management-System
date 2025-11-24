@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { Alert } from '@mui/material';
 import { School as StudentLevelIcon } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -16,6 +17,9 @@ import { createStudentLevelFormFields } from '../../../constants/studentLevel/fo
 import styles from './StudentLevelManagement.module.css';
 
 const StudentLevelManagement = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
+  
   // Use shared CRUD hook
   const {
     data: studentLevels,
@@ -41,7 +45,8 @@ const StudentLevelManagement = () => {
     handleKeywordChange,
     handleClearSearch,
     handlePageChange,
-    handleRowsPerPageChange
+    handleRowsPerPageChange,
+    loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await studentLevelService.getStudentLevelsPaged({
@@ -62,13 +67,26 @@ const StudentLevelManagement = () => {
     [actionLoading]
   );
 
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/student-levels') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
       <ManagementPageHeader
-        title="Quản lý Cấp Độ Học Sinh"
+        title="Quản lý Cấp Độ Trẻ Em"
         createButtonText="Thêm Cấp Độ"
         onCreateClick={handleCreate}
       />
@@ -79,7 +97,7 @@ const StudentLevelManagement = () => {
         onKeywordChange={handleKeywordChange}
         onSearch={handleKeywordSearch}
         onClear={handleClearSearch}
-        placeholder="Tìm kiếm theo tên cấp độ học sinh..."
+        placeholder="Tìm kiếm theo tên cấp độ trẻ em..."
       />
 
       {/* Error Alert */}
@@ -102,7 +120,7 @@ const StudentLevelManagement = () => {
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          emptyMessage="Không có cấp độ học sinh nào. Hãy thêm cấp độ đầu tiên để bắt đầu."
+          emptyMessage="Không có cấp độ trẻ em nào. Hãy thêm cấp độ đầu tiên để bắt đầu."
         />
       </div>
 
@@ -111,7 +129,7 @@ const StudentLevelManagement = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
-        title="Cấp Độ Học Sinh"
+        title="Cấp Độ Trẻ Em"
         icon={StudentLevelIcon}
         loading={actionLoading}
         maxWidth="md"

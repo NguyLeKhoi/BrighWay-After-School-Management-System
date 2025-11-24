@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import {
   Alert,
   Box,
@@ -9,6 +9,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import {
   MeetingRoom as RoomIcon
 } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -25,6 +26,8 @@ import { createRoomFormFields } from '../../../constants/room/formFields';
 import styles from './RoomManagement.module.css';
 
 const RoomManagement = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   // Facility and Branch data
   const {
     facilities,
@@ -118,14 +121,27 @@ const RoomManagement = () => {
     [actionLoading, isDataLoading, facilityOptions, branchOptions]
   );
 
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/rooms') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   return (
     <div className={styles.container}>
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       
       {/* Header */}
       <ManagementPageHeader
-        title="Quản lý Phòng Học"
-        createButtonText="Thêm Phòng Học"
+        title="Quản lý Phòng"
+        createButtonText="Thêm Phòng"
         onCreateClick={handleCreateWithData}
       />
 
@@ -140,7 +156,7 @@ const RoomManagement = () => {
             updateFilter('facilityFilter', '');
             updateFilter('branchFilter', '');
           }}
-          placeholder="Tìm kiếm theo tên phòng học..."
+          placeholder="Tìm kiếm theo tên phòng..."
         >
           {/* Facility Filter */}
           <Autocomplete
@@ -214,8 +230,8 @@ const RoomManagement = () => {
           onDelete={handleDelete}
           emptyMessage={
             error && error.includes('Không tìm thấy') 
-              ? "Không có phòng học nào phù hợp với bộ lọc đã chọn" 
-              : "Không có phòng học nào. Hãy thêm phòng học đầu tiên để bắt đầu."
+              ? "Không có phòng nào phù hợp với bộ lọc đã chọn" 
+              : "Không có phòng nào. Hãy thêm phòng đầu tiên để bắt đầu."
           }
         />
       </div>
@@ -225,7 +241,7 @@ const RoomManagement = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
-        title="Phòng Học"
+        title="Phòng"
         icon={RoomIcon}
         loading={actionLoading}
         maxWidth="md"
@@ -243,7 +259,7 @@ const RoomManagement = () => {
             schema={roomSchema}
             defaultValues={selectedRoom || {}}
             onSubmit={handleFormSubmit}
-            submitText={dialogMode === 'create' ? 'Tạo Phòng Học' : 'Cập nhật Phòng Học'}
+            submitText={dialogMode === 'create' ? 'Tạo Phòng' : 'Cập nhật Phòng'}
             loading={actionLoading}
             disabled={actionLoading}
             fields={formFields}

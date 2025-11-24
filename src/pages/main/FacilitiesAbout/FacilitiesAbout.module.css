@@ -1,15 +1,17 @@
 /* Facilities About Styles */
 .facilitiesAbout {
   width: 100%;
+  background-color: white;
 }
 
 /* Content Sections */
 .contentSection {
   padding: 80px 0;
+  background-color: white;
 }
 
 .contentSection:nth-child(even) {
-  background-color: #f8f9fa;
+  background-color: white;
 }
 
 .contentContainer {
@@ -88,6 +90,15 @@
   justify-content: center;
 }
 
+.contentImage {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  object-fit: cover;
+  transition: all 0.3s ease;
+  background: white;
+}
+
 .imagePlaceholder {
   width: 100%;
   max-width: 500px;
@@ -126,6 +137,14 @@
   line-height: 1.6;
   color: #333;
   margin-bottom: 20px;
+}
+
+/* Facilities Grid */
+.facilitiesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
 }
 
 /* Features Grid */
@@ -194,6 +213,11 @@
   
   .buttonGroup {
     justify-content: center;
+  }
+  
+  .facilitiesGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
   
   .featuresGrid {

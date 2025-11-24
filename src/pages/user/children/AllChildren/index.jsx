@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ChildCare as ChildIcon } from '@mui/icons-material';
 import Card from '@components/Common/Card';
-import Loading from '@components/Common/Loading';
+import ContentLoading from '@components/Common/ContentLoading';
 import { useApp } from '../../../../contexts/AppContext';
-import { useLoading } from '../../../../hooks/useLoading';
+import useContentLoading from '../../../../hooks/useContentLoading';
 import studentService from '../../../../services/student.service';
 import styles from './Children.module.css';
 
@@ -27,7 +29,7 @@ const formatDate = (value) => {
   if (!value) return null;
   try {
     return new Date(value).toLocaleDateString('vi-VN');
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -49,7 +51,7 @@ const transformStudent = (student) => {
     branchName,
     status: student.status ? 'active' : 'pending',
     createdTime: student.createdTime,
-    avatar: getInitials(student.name || student.userName),
+    avatar: student.image || getInitials(student.name || student.userName),
     membershipType: studentLevelName || 'Chưa phân cấp',
     allowanceWalletData: student.allowanceWallet || null
   };
@@ -57,14 +59,16 @@ const transformStudent = (student) => {
 
 const ChildrenList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   const { showGlobalError } = useApp();
-  const { isLoading, showLoading, hideLoading } = useLoading();
+  const { isLoading, loadingText, showLoading, hideLoading } = useContentLoading();
 
   const [children, setChildren] = useState([]);
   const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
   const [error, setError] = useState(null);
 
-  const fetchChildren = async (pageIndex = DEFAULT_PAGINATION.pageIndex, pageSize = DEFAULT_PAGINATION.pageSize) => {
+  const fetchChildren = async () => {
     setError(null);
     showLoading();
 
@@ -101,6 +105,19 @@ const ChildrenList = () => {
     fetchChildren();
   }, []);
 
+  // Reload data when navigate back to this page (e.g., from create pages)
+  useEffect(() => {
+    if (location.pathname === '/family/children') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      fetchChildren();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   const handleRetry = () => {
     fetchChildren(pagination.pageIndex, pagination.pageSize);
   };
@@ -108,21 +125,29 @@ const ChildrenList = () => {
   const renderSubtitle = (child) => {
     const ageText = child.age ? `${child.age} tuổi` : null;
     const level = child.studentLevelName;
-    const branch = child.branchName;
-    return [ageText, level, branch].filter(Boolean).join(' • ');
+    return [ageText, level].filter(Boolean).join(' • ');
   };
 
   return (
-    <div className={styles.childrenPage}>
+    <motion.div 
+      className={styles.childrenPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Quản lý con cái</h1>
+          <button 
+            className={styles.addButton} 
+            onClick={() => navigate('/family/children/create')}
+          >
+            + Thêm con
+          </button>
         </div>
 
         {isLoading && children.length === 0 && (
-          <div className={styles.loadingState}>
-            <Loading />
-          </div>
+          <ContentLoading isLoading={isLoading} text={loadingText} />
         )}
 
         {error && children.length === 0 && !isLoading && (
@@ -136,10 +161,12 @@ const ChildrenList = () => {
 
         {!isLoading && !error && children.length === 0 && (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>👶</div>
+            <div className={styles.emptyIcon}>
+              <ChildIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+            </div>
             <h3>Chưa có thông tin con</h3>
             <p>
-              Bạn chưa có thêm con vào trung tâm, vui lòng liên hệ Staff/Manager để thêm.
+              Bạn chưa có thêm con vào trung tâm, vui lòng tạo hồ sơ con để có thể sử dụng các dịch vụ của trung tâm.
             </p>
           </div>
         )}
@@ -152,9 +179,7 @@ const ChildrenList = () => {
                 title={child.name}
                 subtitle={renderSubtitle(child)}
                 avatar={child.avatar}
-                badges={[
-                  { text: child.membershipType, type: 'price' }
-                ]}
+                badges={[]}
                 status={{
                   text: child.status === 'active' ? 'Hoạt động' : 'Chờ duyệt',
                   type: child.status
@@ -165,15 +190,15 @@ const ChildrenList = () => {
                   formatDate(child.createdTime) ? { label: 'Ngày tham gia', value: formatDate(child.createdTime) } : null
                 ].filter(Boolean)}
                 actions={[
-                  { text: 'Xem Profile', primary: false, onClick: () => navigate(`/parent/children/${child.id}/profile`) },
-                  { text: 'Lịch học', primary: true, onClick: () => navigate(`/parent/children/${child.id}/schedule`) }
+                  { text: 'Xem Profile', primary: false, onClick: () => navigate(`/family/children/${child.id}/profile`) },
+                  { text: 'Lịch học', primary: true, onClick: () => navigate(`/family/children/${child.id}/schedule`) }
                 ]}
               />
             ))}
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

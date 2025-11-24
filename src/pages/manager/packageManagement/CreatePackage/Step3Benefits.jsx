@@ -60,7 +60,6 @@ const Step3Benefits = React.forwardRef(
             onSubmit={handleSubmit}
             fields={fields}
             hideSubmitButton
-            showReset={false}
           />
         </Box>
       </Box>

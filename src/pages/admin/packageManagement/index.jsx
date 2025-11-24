@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -37,8 +37,7 @@ import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import { createTemplateColumns, createPackageColumns } from '../../../constants/package/tableColumns';
 import { createTemplateFormFields, createPackageFormFields } from '../../../constants/package/formFields';
 import styles from './PackageManagement.module.css';
-import { packageTemplateSchema, packageSchema } from '../../../utils/validationSchemas/packageSchemas';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const extractBenefitIds = (source) => {
   if (!source) return [];
@@ -55,10 +54,13 @@ const extractBenefitIds = (source) => {
 
 const PackageManagement = () => {
   const [activeTab, setActiveTab] = useState('templates');
+  const isInitialMount = useRef(true);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const {
-    benefitOptions: rawBenefitOptions,
+    benefits,
+    benefitOptions,
     studentLevelOptions,
     branchOptions,
     loading: dependenciesLoading,
@@ -77,14 +79,9 @@ const PackageManagement = () => {
     actionLoading: templateActionLoading,
     isPageLoading: templateIsPageLoading,
     loadingText: templateLoadingText,
-    openDialog: templateDialogOpen,
-    setOpenDialog: setTemplateDialogOpen,
-    dialogMode: templateDialogMode,
     selectedItem: selectedTemplate,
     confirmDialog: templateConfirmDialog,
     setConfirmDialog: setTemplateConfirmDialog,
-    handleCreate: templateHandleCreateBase,
-    handleEdit: templateHandleEditBase,
     handleDelete: templateHandleDelete,
     handleFormSubmit: templateHandleFormSubmitBase,
     handleKeywordSearch: templateHandleKeywordSearch,
@@ -92,7 +89,8 @@ const PackageManagement = () => {
     handleClearSearch: templateHandleClearSearch,
     handlePageChange: templateHandlePageChange,
     handleRowsPerPageChange: templateHandleRowsPerPageChange,
-    updateFilter: templateUpdateFilter
+    updateFilter: templateUpdateFilter,
+    loadData: templateLoadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
       return packageTemplateService.getTemplatesPaged({
@@ -135,7 +133,8 @@ const PackageManagement = () => {
     handleClearSearch: packageHandleClearSearch,
     handlePageChange: packageHandlePageChange,
     handleRowsPerPageChange: packageHandleRowsPerPageChange,
-    updateFilter: packageUpdateFilter
+    updateFilter: packageUpdateFilter,
+    loadData: packageLoadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
       return packageService.getPackagesPaged({
@@ -158,14 +157,14 @@ const PackageManagement = () => {
   const [branchFilterLoading, setBranchFilterLoading] = useState(false);
 
   const benefitSelectOptions = useMemo(() => {
-    if (!rawBenefitOptions?.length) {
+    if (!benefitOptions?.length) {
       return [];
     }
-    return rawBenefitOptions.map((benefit) => ({
+    return benefitOptions.map((benefit) => ({
       value: benefit.id,
       label: benefit.name
     }));
-  }, [rawBenefitOptions]);
+  }, [benefitOptions]);
 
   const { branches, fetchBranches } = useFacilityBranchData();
 
@@ -206,15 +205,15 @@ const PackageManagement = () => {
     try {
       const templatesData = await packageTemplateService.getAllTemplates();
       setTemplateOptions(templatesData || []);
-    } catch (err) {
+    } catch {
       setTemplateOptions([]);
     } finally {
       setLoadingTemplates(false);
     }
   }, []);
 
-  const templateColumns = useMemo(() => createTemplateColumns(styles), [styles]);
-  const packageColumns = useMemo(() => createPackageColumns(styles), [styles]);
+  const templateColumns = useMemo(() => createTemplateColumns(styles), []);
+  const packageColumns = useMemo(() => createPackageColumns(styles), []);
 
   const handleCreateTemplate = () => navigate('/admin/packages/templates/create');
   const handleEditTemplate = (item) => navigate(`/admin/packages/templates/update/${item.id}`);
@@ -222,92 +221,33 @@ const PackageManagement = () => {
   const handleCreatePackage = () => navigate('/admin/packages/create');
   const handleEditPackage = (item) => navigate(`/admin/packages/update/${item.id}`);
 
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/packages') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      // Reload current tab data using loadData from each tab's useBaseCRUD
+      if (activeTab === 'templates') {
+        templateLoadData(false);
+      } else if (activeTab === 'packages') {
+        packageLoadData(false);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, activeTab]);
+
   const toNumber = (value) => {
     if (value === null || value === undefined || value === '') return 0;
     const numericValue = Number(value);
     return Number.isNaN(numericValue) ? 0 : numericValue;
   };
 
-  const handleTemplateFormSubmit = async (data) => {
-    const submitData = {
-      name: data.name,
-      desc: data.desc,
-      minPrice: toNumber(data.minPrice),
-      maxPrice: toNumber(data.maxPrice),
-      minSlots: toNumber(data.minSlots),
-      maxSlots: toNumber(data.maxSlots),
-      minDurationInMonths: toNumber(data.minDurationInMonths),
-      maxDurationInMonths: toNumber(data.maxDurationInMonths),
-      defaultPrice: toNumber(data.defaultPrice),
-      defaultTotalSlots: toNumber(data.defaultTotalSlots),
-      defaultDurationInMonths: toNumber(data.defaultDurationInMonths),
-      isActive: data.isActive ?? true
-    };
-    await templateHandleFormSubmitBase(submitData);
-  };
+  // Template and Package form handlers are defined in CreateTemplate/UpdateTemplate/CreatePackage/UpdatePackage components
 
-  const handlePackageCreate = async () => {
-    if (studentLevelOptions.length === 0 && branchOptions.length === 0) {
-      await fetchDependencies();
-    }
-    await fetchTemplateOptions();
-    packageHandleCreateBase();
-  };
-
-  const handlePackageEdit = async (packageItem) => {
-    if (studentLevelOptions.length === 0 && branchOptions.length === 0) {
-      await fetchDependencies();
-    }
-    await fetchTemplateOptions();
-    packageHandleEditBase(packageItem);
-  };
-
-  const handlePackageFormSubmit = async (data) => {
-    const existingBenefitIds =
-      packageDialogMode === 'edit'
-        ? extractBenefitIds(selectedPackage)
-        : [];
-
-    const benefitIdsFromForm = Array.isArray(data.benefitIds)
-      ? data.benefitIds.filter(Boolean)
-      : data.benefitIds
-      ? [data.benefitIds].filter(Boolean)
-      : [];
-
-    const submitData = {
-      name: data.name,
-      desc: data.desc,
-      durationInMonths: toNumber(data.durationInMonths),
-      totalSlots: toNumber(data.totalSlots),
-      price: toNumber(data.price),
-      isActive: data.isActive ?? true,
-      studentLevelId: data.studentLevelId,
-      branchId: data.branchId,
-      packageTemplateId: data.packageTemplateId,
-      benefitIds: benefitIdsFromForm.length ? benefitIdsFromForm : existingBenefitIds
-    };
-    await packageHandleFormSubmitBase(submitData);
-  };
-
-  const templateFormFields = useMemo(
-    () => createTemplateFormFields({ templateActionLoading }),
-    [templateActionLoading]
-  );
-
-  const templateDefaultValues = useMemo(() => ({
-    name: selectedTemplate?.name || '',
-    desc: selectedTemplate?.desc || '',
-    minPrice: selectedTemplate?.minPrice ?? '',
-    maxPrice: selectedTemplate?.maxPrice ?? '',
-    defaultPrice: selectedTemplate?.defaultPrice ?? '',
-    minDurationInMonths: selectedTemplate?.minDurationInMonths ?? '',
-    maxDurationInMonths: selectedTemplate?.maxDurationInMonths ?? '',
-    defaultDurationInMonths: selectedTemplate?.defaultDurationInMonths ?? '',
-    minSlots: selectedTemplate?.minSlots ?? '',
-    maxSlots: selectedTemplate?.maxSlots ?? '',
-    defaultTotalSlots: selectedTemplate?.defaultTotalSlots ?? '',
-    isActive: selectedTemplate?.isActive ?? true
-  }), [selectedTemplate]);
+  // Template form fields and default values are defined in CreateTemplate/UpdateTemplate components
 
   const branchSelectOptions = useMemo(
     () => [
@@ -322,7 +262,7 @@ const PackageManagement = () => {
 
   const studentLevelSelectOptions = useMemo(
     () => [
-      { value: '', label: 'Chọn cấp độ học sinh' },
+      { value: '', label: 'Chọn cấp độ trẻ em' },
       ...studentLevelOptions.map((level) => ({
         value: level.id,
         label: level.name
@@ -366,27 +306,28 @@ const PackageManagement = () => {
     return options;
   }, [loadingTemplates, templateOptions, selectedPackage]);
 
-  const packageFormFields = useMemo(
-    () =>
-      createPackageFormFields({
-        packageActionLoading,
-        dependenciesLoading,
-        loadingTemplates,
-        templateSelectOptions,
-        branchSelectOptions,
-        studentLevelSelectOptions,
-        benefitSelectOptions
-      }),
-    [
-      packageActionLoading,
-      dependenciesLoading,
-      loadingTemplates,
-      templateSelectOptions,
-      branchSelectOptions,
-      studentLevelSelectOptions,
-      benefitSelectOptions
-    ]
-  );
+  // Package form fields are defined in CreatePackage/UpdatePackage components
+  // const packageFormFields = useMemo(
+  //   () =>
+  //     createPackageFormFields({
+  //       packageActionLoading,
+  //       dependenciesLoading,
+  //       loadingTemplates,
+  //       templateSelectOptions,
+  //       branchSelectOptions,
+  //       studentLevelSelectOptions,
+  //       benefitSelectOptions
+  //     }),
+  //   [
+  //     packageActionLoading,
+  //     dependenciesLoading,
+  //     loadingTemplates,
+  //     templateSelectOptions,
+  //     branchSelectOptions,
+  //     studentLevelSelectOptions,
+  //     benefitSelectOptions
+  //   ]
+  // );
 
   const renderBenefitDetails = useCallback((benefits = []) => {
     if (!benefits.length) {
@@ -454,25 +395,7 @@ const PackageManagement = () => {
     );
   }, []);
 
-  const packageDefaultValues = useMemo(
-    () => ({
-      name: selectedPackage?.name || '',
-      desc: selectedPackage?.desc || '',
-      price: selectedPackage?.price ?? '',
-      durationInMonths: selectedPackage?.durationInMonths ?? '',
-      totalSlots: selectedPackage?.totalSlots ?? '',
-      studentLevelId:
-        selectedPackage?.studentLevelId || selectedPackage?.studentLevel?.id || '',
-      branchId: selectedPackage?.branchId || selectedPackage?.branch?.id || '',
-      packageTemplateId:
-        selectedPackage?.packageTemplateId ||
-        selectedPackage?.packageTemplate?.id ||
-        '',
-      isActive: selectedPackage?.isActive ?? true,
-      benefitIds: extractBenefitIds(selectedPackage).map(String)
-    }),
-    [selectedPackage]
-  );
+  // Package default values are defined in CreatePackage/UpdatePackage components
 
   const isTemplateTab = activeTab === 'templates';
   const activeLoading = isTemplateTab ? templateIsPageLoading : packageIsPageLoading;

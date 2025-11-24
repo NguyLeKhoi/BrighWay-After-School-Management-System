@@ -74,8 +74,6 @@ const ParentForm = ({
       submitText="Thêm Phụ Huynh"
       loading={isSubmitting}
       fields={parentFields}
-      showReset={true}
-      resetText="Làm Mới"
     />
   );
 };

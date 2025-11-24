@@ -21,19 +21,19 @@ class ErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
     // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('ErrorBoundary caught an error:', error, errorInfo);
     }
 
     // Log error to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // Example: Send to Sentry, LogRocket, etc.
       // Sentry.captureException(error, { extra: errorInfo });
     }
@@ -90,7 +90,7 @@ class ErrorBoundary extends React.Component {
             </Button>
 
             {/* Show error details in development */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <Box sx={{ mt: 4, textAlign: 'left' }}>
                 <Alert severity="error" sx={{ mb: 2 }}>
                   <Typography variant="h6" gutterBottom>

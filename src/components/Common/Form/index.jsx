@@ -1,12 +1,69 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Grid, Switch, Box, Typography, TextField, Checkbox } from '@mui/material';
+import { Grid, Switch, Box, Typography, TextField, Checkbox, InputAdornment, IconButton, ListItemText } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import styles from './Form.module.css';
-import { toast } from 'react-toastify';
+
+// Password field component with show/hide toggle
+const PasswordField = ({ name, control, placeholder, required, error, disabled, fieldProps }) => {
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  return (
+    <Controller
+      name={name}
+      control={control}
+      defaultValue=""
+      render={({ field: controllerField }) => (
+        <div style={{ position: 'relative', width: '100%' }}>
+          <input
+          {...controllerField}
+          type={showPassword ? 'text' : 'password'}
+          id={name}
+            name={name}
+            className={styles.formInput}
+          placeholder={placeholder}
+          required={required}
+          disabled={disabled}
+            value={controllerField.value || ''}
+            style={{
+              paddingRight: '45px'
+            }}
+            {...fieldProps}
+          />
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                  size="small"
+            disabled={disabled}
+            sx={{
+              position: 'absolute',
+              right: '8px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              padding: '4px',
+              color: 'var(--text-secondary)',
+              '&:hover': {
+                backgroundColor: 'var(--color-primary-50)',
+                color: 'var(--color-primary)'
+              },
+              '&:disabled': {
+                opacity: 0.5
+              }
+            }}
+                >
+            {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                </IconButton>
+        </div>
+      )}
+    />
+  );
+};
 
 const Form = forwardRef(({
   schema,
@@ -18,8 +75,6 @@ const Form = forwardRef(({
   children,
   className = '',
   error = '',
-  showReset = true,
-  resetText = 'Reset',
   hideSubmitButton = false
 }, ref) => {
   const {
@@ -28,9 +83,9 @@ const Form = forwardRef(({
     formState: { errors, isSubmitting },
     reset,
     control,
-    watch,
     trigger,
-    getValues
+    getValues,
+    setValue
   } = useForm({
     resolver: schema ? yupResolver(schema) : undefined,
     defaultValues,
@@ -41,10 +96,45 @@ const Form = forwardRef(({
   const previousErrorMessages = useRef({});
 
   // Reset form when defaultValues change (for update scenarios)
+  // Use a ref to track previous defaultValues to avoid unnecessary resets
+  const prevDefaultValuesRef = useRef(defaultValues);
+  const isInitialMount = useRef(true);
+  
   useEffect(() => {
     if (defaultValues && Object.keys(defaultValues).length > 0) {
-      // Use reset with keepDefaultValues option to properly update form
+      // Skip on initial mount
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        prevDefaultValuesRef.current = defaultValues;
+        return;
+      }
+      
+      const prev = prevDefaultValuesRef.current || {};
+      const current = defaultValues || {};
+      
+      // Check if only file fields (avatarFile, image) changed
+      const nonFileKeys = Object.keys(current).filter(key => key !== 'avatarFile' && key !== 'image');
+      const onlyFileFieldsChanged = nonFileKeys.every(key => {
+        return prev[key] === current[key];
+      }) && (
+        (prev.avatarFile !== current.avatarFile) || 
+        (prev.image !== current.image)
+      );
+      
+      if (onlyFileFieldsChanged) {
+        // Only update file fields without resetting the form
+        if (current.avatarFile !== undefined && formRef.current?.setValue) {
+          formRef.current.setValue('avatarFile', current.avatarFile, { shouldValidate: false });
+        }
+        if (current.image !== undefined && formRef.current?.setValue) {
+          formRef.current.setValue('image', current.image, { shouldValidate: false });
+        }
+      } else {
+        // Other fields changed, reset form
       reset(defaultValues, { keepDefaultValues: true });
+      }
+      
+      prevDefaultValuesRef.current = defaultValues;
     }
   }, [defaultValues, reset]);
 
@@ -103,7 +193,10 @@ const Form = forwardRef(({
     validate: async () => {
       return await trigger();
     },
-    getValues: () => getValues()
+    getValues: () => getValues(),
+    setValue: (name, value, options) => {
+      setValue(name, value, options);
+    }
   }));
 
   const renderField = (field) => {
@@ -113,12 +206,11 @@ const Form = forwardRef(({
       type = 'text',
       options = [],
       className = '',
-      section,
-      sectionDescription,
-      gridSize,
       helperText,
-      selectProps,
       fullWidth,
+      section, // Remove from fieldProps
+      sectionDescription, // Remove from fieldProps
+      gridSize, // Remove from fieldProps
       ...fieldProps
     } = field;
     const error = errors[name];
@@ -165,14 +257,48 @@ const Form = forwardRef(({
                   return option.label || '';
                 }}
                 filterOptions={(x) => x}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder={field.placeholder}
-                    size="small"
-                    disabled={field.disabled}
-                  />
-                )}
+                renderOption={(props, option) => {
+                  const { key, ...optionProps } = props;
+                  return (
+                    <Box component="li" {...optionProps} key={key} sx={{ py: 1.5 }}>
+                      {option.description ? (
+                        <ListItemText
+                          primary={option.label}
+                          secondary={option.description}
+                          primaryTypographyProps={{
+                            fontSize: '0.875rem',
+                            fontWeight: 500
+                          }}
+                          secondaryTypographyProps={{
+                            fontSize: '0.75rem',
+                            color: 'text.secondary'
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body2">{option.label}</Typography>
+                      )}
+                    </Box>
+                  );
+                }}
+                renderInput={(params) => {
+                  // Ưu tiên helperText của field, nếu không có thì hiển thị description của option đã chọn
+                  const displayHelperText = field.helperText || (selectedOption?.description || undefined);
+                  return (
+                    <TextField
+                      {...params}
+                      placeholder={field.placeholder}
+                      size="small"
+                      disabled={field.disabled}
+                      helperText={displayHelperText}
+                      FormHelperTextProps={{
+                        sx: {
+                          marginTop: 0.5,
+                          fontSize: '0.75rem'
+                        }
+                      }}
+                    />
+                  );
+                }}
                 isOptionEqualToValue={(option, value) => {
                   if (!option || !value) return false;
                   // Handle both string and number comparison
@@ -187,7 +313,7 @@ const Form = forwardRef(({
                     borderRadius: '8px'
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#e2e8f0'
+                    borderColor: 'var(--border-light)'
                   }
                 }}
                 {...fieldProps}
@@ -249,7 +375,7 @@ const Form = forwardRef(({
                     paddingY: '2px'
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#e2e8f0'
+                    borderColor: 'var(--border-light)'
                   }
                 }}
                 {...fieldProps}
@@ -300,15 +426,61 @@ const Form = forwardRef(({
                   color="primary"
                   sx={{
                     '& .MuiSwitch-thumb': {
-                      backgroundColor: value ? '#4caf50' : '#f5f5f5'
+                      backgroundColor: value ? 'var(--color-success)' : 'var(--bg-secondary)'
                     },
                     '& .MuiSwitch-track': {
-                      backgroundColor: value ? '#81c784' : '#e0e0e0'
+                      backgroundColor: value ? 'var(--color-success-light)' : 'var(--border-light)'
                     }
                   }}
                   {...fieldProps}
                 />
               </Box>
+            </Box>
+          )}
+        />
+      );
+    } else if (type === 'password') {
+      // Password field with show/hide toggle
+      inputElement = (
+        <PasswordField
+          name={name}
+          control={control}
+          placeholder={field.placeholder}
+          required={field.required}
+          error={error}
+          disabled={field.disabled}
+          fieldProps={fieldProps}
+        />
+      );
+    } else if (type === 'file') {
+      inputElement = (
+        <Controller
+          name={name}
+          control={control}
+          render={({ field: { onChange } }) => (
+            <Box>
+              <input
+                type="file"
+                accept={fieldProps.accept}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  onChange(file);
+                }}
+                disabled={field.disabled}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '14px'
+                }}
+                {...fieldProps}
+              />
+              {helperText && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                  {helperText}
+                </Typography>
+              )}
             </Box>
           )}
         />
@@ -398,16 +570,6 @@ const Form = forwardRef(({
       
       {!hideSubmitButton && (
         <div className={styles.buttonGroup}>
-          {showReset && (
-            <button
-              type="button"
-              className={`${styles.submitButton} ${styles.resetButton}`}
-              onClick={() => reset()}
-              disabled={isSubmitting || loading}
-            >
-              {resetText}
-            </button>
-          )}
           <button
             type="submit"
             className={styles.submitButton}

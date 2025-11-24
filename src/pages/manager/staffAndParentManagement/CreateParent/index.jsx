@@ -1,10 +1,30 @@
 import React, { useCallback, useMemo, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
-import { FamilyRestroom as FamilyIcon } from '@mui/icons-material';
+import { 
+  Box, 
+  Typography, 
+  Dialog,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Divider,
+  Grid,
+  Paper
+} from '@mui/material';
+import { 
+  FamilyRestroom as FamilyIcon,
+  Close as CloseIcon,
+  CheckCircle as CheckCircleIcon,
+  Person as PersonIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  Badge as BadgeIcon,
+  CalendarToday as CalendarIcon,
+  LocationOn as LocationIcon
+} from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import StepperForm from '../../../../components/Common/StepperForm';
-import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import Step1OCR from './Step1OCR';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2CCCDInfo from './Step2CCCDInfo';
@@ -19,6 +39,8 @@ const CreateParent = () => {
     name: '',
     email: '',
     password: '',
+    phoneNumber: '',
+    avatarFile: null,
     identityCardNumber: '',
     dateOfBirth: '',
     gender: '',
@@ -123,24 +145,65 @@ const CreateParent = () => {
 
       // If has CCCD data, use with CCCD endpoint
       if (confirmData.identityCardNumber || confirmData.identityCardPublicId) {
-        const payload = {
-          ...confirmData,
-          dateOfBirth: formatDateForAPI(confirmData.dateOfBirth),
-          issuedDate: formatDateForAPI(confirmData.issuedDate)
-        };
-        await userService.createParentWithCCCD(payload);
+        // Create FormData for multipart/form-data
+        const formData = new FormData();
+        formData.append('Email', confirmData.email);
+        formData.append('Password', confirmData.password);
+        formData.append('Name', confirmData.name);
+        if (confirmData.phoneNumber) {
+          formData.append('PhoneNumber', confirmData.phoneNumber);
+        }
+        
+        // Optional CCCD fields
+        if (confirmData.identityCardNumber) {
+          formData.append('IdentityCardNumber', confirmData.identityCardNumber);
+        }
+        if (confirmData.dateOfBirth) {
+          const dob = formatDateForAPI(confirmData.dateOfBirth);
+          if (dob) formData.append('DateOfBirth', dob);
+        }
+        if (confirmData.gender) {
+          formData.append('Gender', confirmData.gender);
+        }
+        if (confirmData.address) {
+          formData.append('Address', confirmData.address);
+        }
+        if (confirmData.issuedDate) {
+          const issued = formatDateForAPI(confirmData.issuedDate);
+          if (issued) formData.append('IssuedDate', issued);
+        }
+        if (confirmData.issuedPlace) {
+          formData.append('IssuedPlace', confirmData.issuedPlace);
+        }
+        if (confirmData.identityCardPublicId) {
+          formData.append('IdentityCardPublicId', confirmData.identityCardPublicId);
+        }
+        // AvatarFile (optional)
+        if (confirmData.avatarFile && confirmData.avatarFile instanceof File) {
+          formData.append('AvatarFile', confirmData.avatarFile);
+        }
+        
+        await userService.createParentWithCCCD(formData);
       } else {
-        // Otherwise use regular endpoint
-        const parentData = {
-          email: confirmData.email,
-          password: confirmData.password,
-          name: confirmData.name
-        };
-        await userService.createParent(parentData);
+        // Otherwise use regular endpoint - create FormData for multipart/form-data
+        const formData = new FormData();
+        formData.append('Email', confirmData.email);
+        formData.append('Password', confirmData.password);
+        formData.append('Name', confirmData.name);
+        if (confirmData.phoneNumber) {
+          formData.append('PhoneNumber', confirmData.phoneNumber);
+        }
+        // BranchId will be set automatically by backend from manager's branch
+        // AvatarFile (optional)
+        if (confirmData.avatarFile && confirmData.avatarFile instanceof File) {
+          formData.append('AvatarFile', confirmData.avatarFile);
+        }
+        
+        await userService.createParent(formData);
       }
 
       toast.success(`Tạo tài khoản User (Parent) "${confirmData.name}" thành công!`);
-      navigate('/manager/staffAndParent');
+      navigate('/manager/parents');
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
       toast.error(errorMessage);
@@ -150,7 +213,7 @@ const CreateParent = () => {
   }, [confirmData, navigate]);
 
   const handleCancel = useCallback(() => {
-    navigate('/manager/staffAndParent');
+    navigate('/manager/parents');
   }, [navigate]);
 
   const steps = useMemo(
@@ -207,22 +270,35 @@ const CreateParent = () => {
     }
   };
 
-  const getConfirmDescription = () => {
-    if (!confirmData) return '';
-    
-    const parts = [
-      `Họ và tên: ${confirmData.name || 'Chưa có'}`,
-      `Email: ${confirmData.email || 'Chưa có'}`,
-      `Số CCCD: ${confirmData.identityCardNumber || 'Chưa có'}`,
-      `Ngày sinh: ${formatDate(confirmData.dateOfBirth)}`,
-      `Giới tính: ${confirmData.gender || 'Chưa có'}`,
-      `Địa chỉ: ${confirmData.address || 'Chưa có'}`,
-      `Ngày cấp: ${formatDate(confirmData.issuedDate)}`,
-      `Nơi cấp: ${confirmData.issuedPlace || 'Chưa có'}`
-    ];
-
-    return parts.join('\n');
-  };
+  const InfoItem = ({ icon, label, value }) => (
+    <Box sx={{ mb: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            backgroundColor: 'primary.50',
+            color: 'primary.main',
+            flexShrink: 0
+          }}
+        >
+          {icon}
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, display: 'block', mb: 0.5 }}>
+            {label}
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 500 }}>
+            {value || 'Chưa có'}
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
 
   return (
     <Box sx={{ minHeight: 'calc(100vh - 64px - 48px)', display: 'flex', flexDirection: 'column' }}>
@@ -238,17 +314,237 @@ const CreateParent = () => {
         }}
       />
 
-      <ConfirmDialog
+      <Dialog
         open={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        onConfirm={handleConfirm}
-        title="Xác nhận tạo tài khoản Phụ huynh"
-        description={getConfirmDescription()}
-        confirmText="Xác nhận tạo"
-        cancelText="Hủy"
-        confirmColor="primary"
-        showWarningIcon={true}
-      />
+        onClose={() => !loading && setShowConfirmDialog(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 'var(--radius-xl)',
+            overflow: 'hidden',
+            boxShadow: 'var(--shadow-2xl)'
+          }
+        }}
+      >
+        <Box
+          sx={{
+            position: 'relative',
+            backgroundColor: 'primary.50',
+            padding: '24px 24px 20px 24px'
+          }}
+        >
+          <IconButton
+            onClick={() => !loading && setShowConfirmDialog(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: 'text.secondary',
+              '&:hover': {
+                backgroundColor: 'action.hover'
+              }
+            }}
+            size="small"
+            disabled={loading}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%)',
+                color: 'white',
+                flexShrink: 0,
+                boxShadow: 'var(--shadow-md)'
+              }}
+            >
+              <CheckCircleIcon sx={{ fontSize: 32 }} />
+            </Box>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: 'text.primary',
+                flex: 1
+              }}
+            >
+              Xác nhận tạo tài khoản Phụ huynh
+            </Typography>
+          </Box>
+        </Box>
+
+        <DialogContent sx={{ padding: '24px', backgroundColor: 'var(--bg-primary)' }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              backgroundColor: 'grey.50',
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'grey.200'
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: 'text.primary' }}>
+              Thông tin tài khoản
+            </Typography>
+            
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <InfoItem
+                  icon={<PersonIcon sx={{ fontSize: 20 }} />}
+                  label="Họ và tên"
+                  value={confirmData?.name}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <InfoItem
+                  icon={<EmailIcon sx={{ fontSize: 20 }} />}
+                  label="Email"
+                  value={confirmData?.email}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <InfoItem
+                  icon={<PhoneIcon sx={{ fontSize: 20 }} />}
+                  label="Số điện thoại"
+                  value={confirmData?.phoneNumber}
+                />
+              </Grid>
+            </Grid>
+
+            {(confirmData?.identityCardNumber || confirmData?.dateOfBirth || confirmData?.gender || 
+              confirmData?.address || confirmData?.issuedDate || confirmData?.issuedPlace) && (
+              <>
+                <Divider sx={{ my: 3 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: 'text.primary' }}>
+                  Thông tin CCCD
+                </Typography>
+                
+                <Grid container spacing={2}>
+                  {confirmData?.identityCardNumber && (
+                    <Grid item xs={12} md={6}>
+                      <InfoItem
+                        icon={<BadgeIcon sx={{ fontSize: 20 }} />}
+                        label="Số CCCD"
+                        value={confirmData.identityCardNumber}
+                      />
+                    </Grid>
+                  )}
+                  {confirmData?.dateOfBirth && (
+                    <Grid item xs={12} md={6}>
+                      <InfoItem
+                        icon={<CalendarIcon sx={{ fontSize: 20 }} />}
+                        label="Ngày sinh"
+                        value={formatDate(confirmData.dateOfBirth)}
+                      />
+                    </Grid>
+                  )}
+                  {confirmData?.gender && (
+                    <Grid item xs={12} md={6}>
+                      <InfoItem
+                        icon={<PersonIcon sx={{ fontSize: 20 }} />}
+                        label="Giới tính"
+                        value={confirmData.gender}
+                      />
+                    </Grid>
+                  )}
+                  {confirmData?.address && (
+                    <Grid item xs={12} md={6}>
+                      <InfoItem
+                        icon={<LocationIcon sx={{ fontSize: 20 }} />}
+                        label="Địa chỉ"
+                        value={confirmData.address}
+                      />
+                    </Grid>
+                  )}
+                  {confirmData?.issuedDate && (
+                    <Grid item xs={12} md={6}>
+                      <InfoItem
+                        icon={<CalendarIcon sx={{ fontSize: 20 }} />}
+                        label="Ngày cấp"
+                        value={formatDate(confirmData.issuedDate)}
+                      />
+                    </Grid>
+                  )}
+                  {confirmData?.issuedPlace && (
+                    <Grid item xs={12} md={6}>
+                      <InfoItem
+                        icon={<LocationIcon sx={{ fontSize: 20 }} />}
+                        label="Nơi cấp"
+                        value={confirmData.issuedPlace}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              </>
+            )}
+          </Paper>
+        </DialogContent>
+
+        <DialogActions
+          sx={{
+            padding: '16px 24px',
+            gap: 2,
+            backgroundColor: 'var(--bg-tertiary)',
+            borderTop: '1px solid var(--border-light)'
+          }}
+        >
+          <Button
+            onClick={() => setShowConfirmDialog(false)}
+            variant="outlined"
+            disabled={loading}
+            sx={{
+              minWidth: 100,
+              textTransform: 'none',
+              borderRadius: 'var(--radius-lg)',
+              padding: '10px 24px',
+              fontWeight: 600,
+              borderColor: 'var(--border-medium)',
+              color: 'var(--text-primary)',
+              '&:hover': {
+                borderColor: 'var(--color-primary)',
+                backgroundColor: 'var(--bg-tertiary)'
+              }
+            }}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            variant="contained"
+            disabled={loading}
+            autoFocus
+            sx={{
+              minWidth: 120,
+              textTransform: 'none',
+              borderRadius: 'var(--radius-lg)',
+              padding: '10px 24px',
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+              color: 'white',
+              boxShadow: 'var(--shadow-md), 0 2px 8px rgba(37, 99, 235, 0.3)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
+                transform: 'translateY(-2px)',
+                boxShadow: 'var(--shadow-lg), 0 4px 12px rgba(37, 99, 235, 0.4)'
+              },
+              '&:disabled': {
+                background: 'grey.300'
+              }
+            }}
+          >
+            {loading ? 'Đang tạo...' : 'Xác nhận tạo'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

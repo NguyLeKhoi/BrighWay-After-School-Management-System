@@ -1,6 +1,6 @@
 .schedulePage {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 24px 0;
 }
 
@@ -35,10 +35,17 @@
 }
 
 .card {
-  background: white;
-  border-radius: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   padding: 28px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .cardHeader {
@@ -110,26 +117,32 @@
 .primaryButton {
   margin-top: 12px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  background: #2563eb;
-  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .primaryButton:hover {
-  background: #1d4ed8;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .primaryButton.activeButton {
-  background: #e11d48;
+  background: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-dark) 100%);
 }
 
 .primaryButton.activeButton:hover {
-  background: #be123c;
+  background: linear-gradient(135deg, var(--color-error-dark) 0%, var(--color-error) 100%);
+  box-shadow: var(--shadow-md), 0 10px 30px -5px rgba(239, 68, 68, 0.3);
 }
 
 .inlineLoading {
@@ -188,13 +201,21 @@
 }
 
 .scheduleCard {
-  border: 1px solid #edf2f7;
-  border-radius: 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
   padding: 20px;
-  background: #fcfdff;
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
   gap: 16px;
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.scheduleCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
 }
 
 .cardHeader {
@@ -294,13 +315,21 @@
 }
 
 .roomCard {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
   padding: 20px;
-  background: #ffffff;
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.roomCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
 }
 
 .roomHeader {
@@ -412,23 +441,315 @@
 
 .bookButton {
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 12px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  background: #16a34a;
-  color: white;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  background: var(--color-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .bookButton:hover {
-  background: #15803d;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .bookButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Step Container Styles */
+.stepContainer {
+  padding: 20px 0;
+}
+
+.stepHeader {
+  margin-bottom: 24px;
+}
+
+.stepTitle {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.stepSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.scheduleCardSelected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  background: #eff6ff;
+}
+
+.selectedIndicator {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.selectButton,
+.cancelButton {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  min-height: 40px; /* Ensure consistent height */
+}
+
+.selectButton {
+  background: var(--color-primary);
+  color: white;
+}
+
+.selectButton:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.selectButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.cancelButton {
+  background: var(--color-error);
+  color: white;
+}
+
+.cancelButton:hover {
+  background: var(--color-error-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.cancelButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.selectedSlotInfo {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.confirmCard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.confirmSection {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.confirmSection:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.confirmSectionTitle {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.confirmInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.confirmNote {
+  margin: 0;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.calendarContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.calendarContainer :global(.fc) {
+  font-family: var(--font-family);
+}
+
+.calendarContainer :global(.fc-header-toolbar) {
+  margin-bottom: 16px;
+}
+
+.calendarContainer :global(.fc-toolbar-title) {
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.calendarContainer :global(.fc-button) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.calendarContainer :global(.fc-button:hover) {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.calendarContainer :global(.fc-button:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.calendarContainer :global(.fc-daygrid-day) {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.calendarContainer :global(.fc-daygrid-day:hover:not(.fc-day-disabled)) {
+  background-color: var(--color-primary-50);
+}
+
+/* Highlight selected date cell background */
+.calendarContainer :global(.fc-daygrid-day.fc-day-selected) {
+  background-color: #dcfce7 !important; /* Light green background */
+}
+
+.calendarContainer :global(.fc-daygrid-day.fc-day-selected .fc-daygrid-day-frame) {
+  background-color: #dcfce7 !important;
+}
+
+.calendarContainer :global(.fc-day-disabled) {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.disabledDate {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.selectedDateCell {
+  background: #22c55e !important; /* Green color */
+  color: white !important;
+  border-radius: 8px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 8px !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3) !important;
+  transition: all 0.2s ease !important;
+  gap: 2px !important;
+}
+
+.selectedDateCell:hover {
+  background: #16a34a !important; /* Darker green on hover */
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
+  transform: scale(1.05) !important;
+}
+
+.dateNumber {
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+  color: white !important;
+  margin: 0 !important;
+}
+
+.checkIcon {
+  font-size: 16px !important;
+  color: white !important;
+  margin: 0 !important;
+  animation: checkIn 0.3s ease-out !important;
+  flex-shrink: 0 !important;
+}
+
+@keyframes checkIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.calendarContainer :global(.fc-daygrid-day-number) {
+  padding: 4px;
+}
+
+.calendarContainer :global(.fc-day-today) {
+  background-color: var(--bg-tertiary);
+}
+
+.summaryTitle {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.helperText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) {
@@ -454,6 +775,14 @@
 
   .roomsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .confirmInfoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .calendarContainer {
+    padding: 12px;
   }
 }
 

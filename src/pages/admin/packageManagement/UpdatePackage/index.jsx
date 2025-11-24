@@ -14,10 +14,10 @@ import { toast } from 'react-toastify';
 
 const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
   const {
-    benefitOptions: rawBenefitOptions,
     studentLevelOptions,
     branchOptions,
-    loading: dependenciesLoading
+    loading: dependenciesLoading,
+    error: dependenciesError
   } = usePackageDependencies();
   const { templateOptions, loadingTemplates } = useFacilityBranchData();
   const [loading, setLoading] = useState(false);
@@ -74,7 +74,6 @@ const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
         loading={loading || dependenciesLoading || loadingTemplates}
         disabled={loading || dependenciesLoading || loadingTemplates}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );
@@ -139,7 +138,6 @@ const Step2Associations = forwardRef(({ data, updateData }, ref) => {
         loading={loading || dependenciesLoading || loadingTemplates}
         disabled={loading || dependenciesLoading || loadingTemplates}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );
@@ -195,7 +193,6 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
         loading={loading}
         disabled={loading}
         fields={fields}
-        showReset={false}
       />
     </Box>
   );

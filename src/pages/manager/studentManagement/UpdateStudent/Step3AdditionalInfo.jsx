@@ -11,7 +11,7 @@ const Step3AdditionalInfo = React.forwardRef(
       () => [
         {
           section: 'Thông tin bổ sung',
-          sectionDescription: 'Thêm ảnh đại diện hoặc ghi chú cho học sinh (nếu có).',
+          sectionDescription: 'Thêm ảnh đại diện hoặc ghi chú cho trẻ em (nếu có).',
           name: 'image',
           label: 'Ảnh đại diện (URL)',
           type: 'text',
@@ -23,7 +23,7 @@ const Step3AdditionalInfo = React.forwardRef(
           name: 'note',
           label: 'Ghi chú',
           type: 'textarea',
-          placeholder: 'Nhập ghi chú cho học sinh (tối đa 500 ký tự)',
+          placeholder: 'Nhập ghi chú cho trẻ em (tối đa 500 ký tự)',
           rows: 4,
           gridSize: 12,
           disabled: dependenciesLoading
@@ -60,7 +60,7 @@ const Step3AdditionalInfo = React.forwardRef(
           Bước {stepIndex + 1}/{totalSteps}: Thông tin bổ sung
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.875rem' }}>
-          Thêm hoặc chỉnh sửa ghi chú, ảnh đại diện cho học sinh nếu cần.
+          Thêm hoặc chỉnh sửa ghi chú, ảnh đại diện cho trẻ em nếu cần.
         </Typography>
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -70,7 +70,6 @@ const Step3AdditionalInfo = React.forwardRef(
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
             fields={fields}
-            showReset={false}
             hideSubmitButton
             disabled={dependenciesLoading}
           />

@@ -1,7 +1,7 @@
 /* Notifications Styles */
 .notificationsPage {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background: var(--bg-secondary);
   padding: 20px 0;
 }
 
@@ -21,10 +21,12 @@
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #000;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.02em;
+  font-family: var(--font-family-heading);
 }
 
 .headerActions {
@@ -34,19 +36,23 @@
 }
 
 .markAllButton {
-  background-color: #6c757d;
+  background: linear-gradient(135deg, var(--color-gray-600) 0%, var(--color-gray-700) 100%);
   color: white;
   border: none;
   padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-family-primary);
 }
 
 .markAllButton:hover {
-  background-color: #5a6268;
+  background: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-800) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .unreadCount {
@@ -66,26 +72,29 @@
 }
 
 .filterButton {
-  background-color: white;
-  color: #666;
-  border: 1px solid #ddd;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
   padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
+  font-family: var(--font-family-primary);
 }
 
 .filterButton:hover {
-  background-color: #f8f9fa;
-  border-color: #007bff;
+  background: var(--bg-secondary);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .filterButton.active {
-  background-color: #007bff;
+  background: var(--color-primary);
   color: white;
-  border-color: #007bff;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .notificationsList {
@@ -95,12 +104,13 @@
 }
 
 .notificationItem {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   position: relative;
   display: flex;
   align-items: flex-start;
@@ -108,13 +118,14 @@
 }
 
 .notificationItem:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
 }
 
 .notificationItem.unread {
-  border-left: 4px solid #007bff;
-  background-color: #f8f9ff;
+  border-left: 4px solid var(--color-primary);
+  background: var(--color-primary-50);
 }
 
 .notificationIcon {
@@ -276,17 +287,22 @@
 }
 
 .retryButton {
-  background-color: #007bff;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-primary);
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .retryButton:hover {
-  background-color: #0056b3;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
