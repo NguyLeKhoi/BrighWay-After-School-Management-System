@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import HeroSection from '@components/Common/HeroSection';
 import ContentSection from '@components/Common/ContentSection';
 import styles from './Homepage.module.css';
@@ -42,18 +43,51 @@ const Homepage = () => {
     imageContent: section2Image
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut'
+      }
+    }
+  };
+
   return (
-    <div className={styles.homepage}>
-      <HeroSection
-        title="BRIGHWAY - After School Management"
-        subtitle="Nơi giữ trẻ an toàn với các hoạt động ngoài giờ phong phú và bổ ích"
-        hasImage={false}
-      />
+    <motion.div 
+      className={styles.homepage}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={itemVariants}>
+        <HeroSection
+          title="BRIGHWAY - After School Management"
+          subtitle="Nơi giữ trẻ an toàn với các hoạt động ngoài giờ phong phú và bổ ích"
+          hasImage={false}
+        />
+      </motion.div>
 
-      <ContentSection {...contentSection1} />
+      <motion.div variants={itemVariants}>
+        <ContentSection {...contentSection1} />
+      </motion.div>
 
-      <ContentSection {...contentSection2} />
-    </div>
+      <motion.div variants={itemVariants}>
+        <ContentSection {...contentSection2} />
+      </motion.div>
+    </motion.div>
   );
 };
 
