@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { Alert } from '@mui/material';
 import { School as SchoolIcon } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -17,6 +18,8 @@ import { createSchoolFormFields } from '../../../constants/school/formFields';
 import styles from './SchoolManagement.module.css';
 
 const SchoolManagement = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
   // Use shared CRUD hook
   const {
     data: schools,
@@ -100,6 +103,19 @@ const SchoolManagement = () => {
     () => createSchoolFormFields(actionLoading),
     [actionLoading]
   );
+
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/schools') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <div className={styles.container}>

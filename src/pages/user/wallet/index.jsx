@@ -1,9 +1,56 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Box,
+  Typography,
+  IconButton,
+  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+  Paper,
+  Chip,
+  CircularProgress,
+  Pagination
+} from '@mui/material';
+import {
+  AccountBalanceWallet,
+  Add,
+  ArrowUpward,
+  ShoppingCart,
+  Payment,
+  History,
+  Person,
+  CalendarToday,
+  School,
+  Business,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle,
+  Pending,
+  Cancel,
+  Refresh,
+  Send,
+  AttachMoney,
+  AccountBalance,
+  Wallet,
+  Close,
+  AttachMoney as MoneyIcon
+} from '@mui/icons-material';
 import Tabs from '@components/Common/Tabs';
 import Card from '@components/Common/Card';
-import Loading from '@components/Common/Loading';
+import ContentLoading from '@components/Common/ContentLoading';
 import { useApp } from '../../../contexts/AppContext';
-import { useLoading } from '../../../hooks/useLoading';
+import useContentLoading from '../../../hooks/useContentLoading';
 import depositService from '../../../services/deposit.service';
 import walletService from '../../../services/wallet.service';
 import studentService from '../../../services/student.service';
@@ -30,6 +77,9 @@ const DEFAULT_WALLET_DATA = {
 };
 
 const MyWallet = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isInitialMount = useRef(true);
   const [activeTab, setActiveTab] = useState('main');
   const [walletError, setWalletError] = useState(null);
   const [childWalletError, setChildWalletError] = useState(null);
@@ -57,9 +107,12 @@ const MyWallet = () => {
     totalPages: 1,
     totalCount: 0
   });
+  const [topUpAmount, setTopUpAmount] = useState('');
+  const [topUpError, setTopUpError] = useState('');
+  const [showTopUpForm, setShowTopUpForm] = useState(false);
 
   const { showGlobalError, addNotification } = useApp();
-  const { showLoading, hideLoading } = useLoading();
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading();
 
   const loadWalletData = async ({ showSpinner = false } = {}) => {
     setWalletError(null);
@@ -148,6 +201,21 @@ const MyWallet = () => {
     loadTransactions(1); // Load first page of transactions
   }, []);
 
+  // Reload data when navigate back to this page
+  useEffect(() => {
+    if (location.pathname === '/family/wallet') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadWalletData({ showSpinner: false });
+      loadChildWallets();
+      loadTransactions(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   const handleTransfer = async (event) => {
     event.preventDefault();
 
@@ -224,17 +292,30 @@ const MyWallet = () => {
       const deposits = response.items || [];
       
       // Map deposits từ API sang format của component
-      const mappedTransactions = deposits.map((deposit) => ({
-        id: deposit.id,
-        type: 'topup', // Tất cả deposits đều là topup
-        amount: deposit.amount || 0,
-        description: `Nạp tiền - Order #${deposit.payOSOrderCode || 'N/A'}`,
-        date: deposit.timestamp || new Date().toISOString(),
-        status: deposit.status?.toLowerCase() || 'pending',
-        wallet: 'main',
-        payOSOrderCode: deposit.payOSOrderCode,
-        payOSTransactionId: deposit.payOSTransactionId
-      }));
+      const mappedTransactions = deposits.map((deposit) => {
+        // Ensure timestamp is treated as UTC
+        let timestamp = deposit.timestamp || new Date().toISOString();
+        // If timestamp doesn't have timezone indicator (Z or +HH:MM), add Z to indicate UTC
+        if (timestamp && typeof timestamp === 'string') {
+          // Check if it's ISO format without timezone
+          if (timestamp.includes('T') && !timestamp.endsWith('Z') && !timestamp.match(/[+-]\d{2}:\d{2}$/)) {
+            // Remove fractional seconds if present and add Z
+            timestamp = timestamp.replace(/\.\d+$/, '') + 'Z';
+          }
+        }
+        
+        return {
+          id: deposit.id,
+          type: 'topup', // Tất cả deposits đều là topup
+          amount: deposit.amount || 0,
+          description: `Nạp tiền - Order #${deposit.payOSOrderCode || 'N/A'}`,
+          date: timestamp,
+          status: deposit.status?.toLowerCase() || 'pending',
+          wallet: 'main',
+          payOSOrderCode: deposit.payOSOrderCode,
+          payOSTransactionId: deposit.payOSTransactionId
+        };
+      });
 
       setTransactions(mappedTransactions);
       
@@ -266,16 +347,17 @@ const MyWallet = () => {
   };
 
   const getTransactionIcon = (type) => {
+    const iconStyle = { fontSize: 24 };
     switch (type) {
       case 'topup':
       case 'refill':
-        return '↗️';
+        return <TrendingUp sx={iconStyle} />;
       case 'payment':
-        return '💳';
+        return <Payment sx={iconStyle} />;
       case 'purchase':
-        return '🛒';
+        return <ShoppingCart sx={iconStyle} />;
       default:
-        return '💰';
+        return <AccountBalanceWallet sx={iconStyle} />;
     }
   };
 
@@ -283,29 +365,74 @@ const MyWallet = () => {
     switch (type) {
       case 'topup':
       case 'refill':
-        return '#28a745';
+        return 'var(--color-success)';
       case 'payment':
-      return '#dc3545';
+        return 'var(--color-error)';
       case 'purchase':
-        return '#ffc107';
+        return 'var(--color-warning)';
       default:
-        return '#6c757d';
+        return 'var(--text-secondary)';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    const iconStyle = { fontSize: 16, marginRight: 4 };
+    switch (status?.toLowerCase()) {
+      case 'completed':
+      case 'success':
+        return <CheckCircle sx={{ ...iconStyle, color: 'var(--color-success)' }} />;
+      case 'pending':
+        return <Pending sx={{ ...iconStyle, color: 'var(--color-warning)' }} />;
+      case 'failed':
+      case 'cancelled':
+        return <Cancel sx={{ ...iconStyle, color: 'var(--color-error)' }} />;
+      default:
+        return null;
+    }
+  };
+
+  const handleTopUpClick = () => {
+    setShowTopUpForm(!showTopUpForm);
+    if (showTopUpForm) {
+      setTopUpAmount('');
+      setTopUpError('');
+    }
+  };
+
+  const handleTopUpCancel = () => {
+    setShowTopUpForm(false);
+    setTopUpAmount('');
+    setTopUpError('');
+  };
+
+  const handleTopUpAmountChange = (e) => {
+    const value = e.target.value;
+    setTopUpAmount(value);
+    setTopUpError('');
+
+    // Validate input
+    if (value && (isNaN(value) || Number(value) <= 0)) {
+      setTopUpError('Vui lòng nhập số tiền hợp lệ lớn hơn 0');
+    } else if (value && Number(value) < 1000) {
+      setTopUpError('Số tiền tối thiểu là 1.000 VND');
     }
   };
 
   const handleTopUp = async () => {
-    const inputValue = window.prompt('Nhập số tiền cần nạp (VND):');
-    if (inputValue === null) {
+    if (!topUpAmount || topUpAmount.trim() === '') {
+      setTopUpError('Vui lòng nhập số tiền');
       return;
     }
 
-    const amount = Number(inputValue);
+    const amount = Number(topUpAmount);
 
     if (Number.isNaN(amount) || amount <= 0) {
-      addNotification({
-        message: 'Vui lòng nhập số tiền hợp lệ lớn hơn 0',
-        severity: 'warning'
-      });
+      setTopUpError('Vui lòng nhập số tiền hợp lệ lớn hơn 0');
+      return;
+    }
+
+    if (amount < 1000) {
+      setTopUpError('Số tiền tối thiểu là 1.000 VND');
       return;
     }
 
@@ -314,6 +441,9 @@ const MyWallet = () => {
     try {
       checkoutWindow = window.open('about:blank', '_blank');
       showLoading();
+      setShowTopUpForm(false);
+      setTopUpAmount('');
+      setTopUpError('');
 
       const depositResponse = await depositService.createDeposit(amount);
       const checkoutUrl = depositResponse?.checkoutUrl;
@@ -452,12 +582,19 @@ const MyWallet = () => {
   };
 
   const tabs = [
-    { id: 'main', label: 'Ví chính' },
-    { id: 'allowance', label: 'Ví tiêu vặt' }
+    { 
+      id: 'main', 
+      label: 'Ví chính',
+      icon: <AccountBalanceWallet sx={{ fontSize: 20 }} />
+    },
+    { 
+      id: 'allowance', 
+      label: 'Ví tiêu vặt',
+      icon: <Wallet sx={{ fontSize: 20 }} />
+    }
   ];
 
   const mainWalletInfo = [
-    { label: 'Số dư', value: formatCurrency(walletData.mainWallet.balance) },
     { label: 'Loại ví', value: walletData.mainWallet.type === 'Parent' ? 'Ví phụ huynh' : walletData.mainWallet.type || '—' },
     { label: 'Email liên kết', value: walletData.mainWallet.userEmail || '—' },
     walletData.mainWallet.createdTime && {
@@ -468,18 +605,24 @@ const MyWallet = () => {
   ].filter(Boolean);
 
   if (isWalletLoading) {
-    return <Loading />;
+    return <ContentLoading isLoading={isWalletLoading} text={loadingText || 'Đang tải thông tin ví...'} />;
   }
 
   return (
-    <div className={styles.walletPage}>
+    <motion.div 
+      className={styles.walletPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <h1 className={styles.title}>Ví của tôi</h1>
 
         {walletError && (
           <div className={styles.errorState}>
             <p className={styles.errorMessage}>{walletError}</p>
-            <button className={styles.retryButton} onClick={loadWalletData}>
+            <button className={styles.retryButton} onClick={() => loadWalletData({ showSpinner: true })}>
+              <Refresh sx={{ fontSize: 16, mr: 0.5 }} />
               Thử lại
             </button>
           </div>
@@ -493,232 +636,1173 @@ const MyWallet = () => {
 
         {/* Main Wallet */}
         {activeTab === 'main' && (
-          <Card
-            title="Ví chính"
-            infoRows={mainWalletInfo}
-            actions={[
-              { text: 'Nạp tiền', primary: true, onClick: handleTopUp },
-              { text: 'Lịch sử giao dịch', primary: false, onClick: () => {} }
-            ]}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Main Wallet Overview - 2 Column Layout */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' },
+                gap: 3,
+                marginBottom: 3
+              }}
+            >
+              {/* Left: Balance & Info */}
+              <Paper
+                elevation={0}
+                sx={{
+                  padding: 4,
+                  backgroundColor: 'var(--bg-primary)',
+                  border: '2px solid var(--color-primary-50)',
+                  borderRadius: 'var(--radius-xl)',
+                  boxShadow: 'var(--shadow-md)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    background: 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)'
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: 3 }}>
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 'var(--radius-xl)',
+                      background: 'linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: 'var(--shadow-sm)'
+                    }}
+                  >
+                    <AccountBalanceWallet sx={{ fontSize: 32, color: 'var(--color-primary)' }} />
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontFamily: 'var(--font-family-heading)',
+                        fontWeight: 'var(--font-weight-bold)',
+                        color: 'var(--text-primary)',
+                        marginBottom: 0.5
+                      }}
+                    >
+                      Ví chính
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'var(--text-secondary)',
+                        fontFamily: 'var(--font-family)'
+                      }}
+                    >
+                      {walletData.mainWallet.type === 'Parent' ? 'Ví phụ huynh' : walletData.mainWallet.type || '—'}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Balance Display */}
+                <Box
+                  sx={{
+                    background: 'linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 3,
+                    marginBottom: 3,
+                    textAlign: 'center',
+                    border: '1px solid var(--color-primary-100)'
+                  }}
+                >
+                  <Typography
+                    variant="overline"
+                    sx={{
+                      fontFamily: 'var(--font-family)',
+                      fontWeight: 'var(--font-weight-medium)',
+                      color: 'var(--text-secondary)',
+                      textTransform: 'uppercase',
+                      letterSpacing: 1,
+                      display: 'block',
+                      marginBottom: 1
+                    }}
+                  >
+                    Số dư
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontFamily: 'var(--font-family-heading)',
+                      fontWeight: 'var(--font-weight-extrabold)',
+                      color: 'var(--color-primary-dark)',
+                      lineHeight: 1.2,
+                      marginBottom: 0.5,
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    {formatCurrency(walletData.mainWallet.balance)}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: 'var(--font-family)',
+                      fontWeight: 'var(--font-weight-semibold)',
+                      color: 'var(--text-secondary)'
+                    }}
+                  >
+                    VND
+                  </Typography>
+                </Box>
+
+                {/* Wallet Info Grid */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                    gap: 2
+                  }}
+                >
+                  {mainWalletInfo.map((info, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        padding: 2,
+                        backgroundColor: 'var(--bg-secondary)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--border-light)'
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontFamily: 'var(--font-family)',
+                          fontWeight: 'var(--font-weight-medium)',
+                          color: 'var(--text-secondary)',
+                          display: 'block',
+                          marginBottom: 0.5
+                        }}
+                      >
+                        {info.label}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontFamily: 'var(--font-family)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          color: 'var(--text-primary)',
+                          wordBreak: 'break-word'
+                        }}
+                      >
+                        {info.value}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Paper>
+
+              {/* Right: Quick Actions */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    padding: 3,
+                    backgroundColor: 'var(--bg-primary)',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 'var(--radius-xl)',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontFamily: 'var(--font-family-heading)',
+                      fontWeight: 'var(--font-weight-bold)',
+                      color: 'var(--text-primary)',
+                      marginBottom: 2
+                    }}
+                  >
+                    Thao tác nhanh
+                  </Typography>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={handleTopUpClick}
+                    sx={{
+                      background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'var(--font-family)',
+                      fontWeight: 'var(--font-weight-semibold)',
+                      textTransform: 'none',
+                      borderRadius: 'var(--radius-lg)',
+                      padding: '14px 24px',
+                      boxShadow: 'var(--shadow-md)',
+                      marginBottom: 2,
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary) 100%)',
+                        boxShadow: 'var(--shadow-lg)',
+                        transform: 'translateY(-2px)'
+                      }
+                    }}
+                  >
+                    {showTopUpForm ? 'Hủy nạp tiền' : 'Nạp tiền'}
+                  </Button>
+                </Paper>
+
+                {/* Top Up Form - Inline */}
+                {showTopUpForm && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        padding: 3,
+                        backgroundColor: 'var(--bg-primary)',
+                        border: '2px solid var(--color-primary-50)',
+                        borderRadius: 'var(--radius-xl)',
+                        boxShadow: 'var(--shadow-md)'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, marginBottom: 2 }}>
+                        <MoneyIcon sx={{ color: 'var(--color-primary)', fontSize: 24 }} />
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontFamily: 'var(--font-family-heading)',
+                            fontWeight: 'var(--font-weight-bold)',
+                            color: 'var(--text-primary)'
+                          }}
+                        >
+                          Nạp tiền vào ví
+                        </Typography>
+                      </Box>
+                      <Box component="form" onSubmit={(e) => { e.preventDefault(); handleTopUp(); }}>
+                        <TextField
+                          fullWidth
+                          autoFocus
+                          type="number"
+                          label="Số tiền (VND)"
+                          value={topUpAmount}
+                          onChange={handleTopUpAmountChange}
+                          error={!!topUpError}
+                          helperText={topUpError || 'Số tiền tối thiểu: 1.000 VND'}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <MoneyIcon sx={{ color: 'var(--text-secondary)' }} />
+                              </InputAdornment>
+                            ),
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <Typography variant="body2" sx={{ color: 'var(--text-secondary)' }}>
+                                  VND
+                                </Typography>
+                              </InputAdornment>
+                            )
+                          }}
+                          sx={{
+                            marginBottom: 2,
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 'var(--radius-lg)',
+                              fontFamily: 'var(--font-family)',
+                              '&:hover fieldset': {
+                                borderColor: 'var(--color-primary)'
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: 'var(--color-primary)',
+                                borderWidth: '2px'
+                              }
+                            },
+                            '& .MuiInputLabel-root.Mui-focused': {
+                              color: 'var(--color-primary)'
+                            }
+                          }}
+                        />
+                        {topUpAmount && !topUpError && (
+                          <Box
+                            sx={{
+                              padding: 2,
+                              backgroundColor: 'var(--color-primary-50)',
+                              borderRadius: 'var(--radius-lg)',
+                              border: '1px solid var(--color-primary-100)',
+                              marginBottom: 2
+                            }}
+                          >
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: 'var(--text-secondary)',
+                                fontFamily: 'var(--font-family)',
+                                marginBottom: 0.5
+                              }}
+                            >
+                              Số tiền sẽ nạp:
+                            </Typography>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                color: 'var(--color-primary-dark)',
+                                fontFamily: 'var(--font-family)',
+                                fontWeight: 'var(--font-weight-bold)'
+                              }}
+                            >
+                              {formatCurrency(Number(topUpAmount))}
+                            </Typography>
+                          </Box>
+                        )}
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            onClick={handleTopUpCancel}
+                            sx={{
+                              borderColor: 'var(--border-light)',
+                              color: 'var(--text-secondary)',
+                              fontFamily: 'var(--font-family)',
+                              fontWeight: 'var(--font-weight-semibold)',
+                              textTransform: 'none',
+                              borderRadius: 'var(--radius-lg)',
+                              padding: '12px 24px',
+                              '&:hover': {
+                                borderColor: 'var(--color-primary)',
+                                backgroundColor: 'var(--color-primary-50)'
+                              }
+                            }}
+                          >
+                            Hủy
+                          </Button>
+                          <Button
+                            fullWidth
+                            type="submit"
+                            variant="contained"
+                            disabled={!topUpAmount || !!topUpError}
+                            sx={{
+                              background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
+                              color: 'var(--text-primary)',
+                              fontFamily: 'var(--font-family)',
+                              fontWeight: 'var(--font-weight-semibold)',
+                              textTransform: 'none',
+                              borderRadius: 'var(--radius-lg)',
+                              padding: '12px 24px',
+                              boxShadow: 'var(--shadow-md)',
+                              '&:hover': {
+                                background: 'linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary) 100%)',
+                                boxShadow: 'var(--shadow-lg)',
+                                transform: 'translateY(-2px)'
+                              },
+                              '&:disabled': {
+                                opacity: 0.6
+                              }
+                            }}
+                          >
+                            <Add sx={{ fontSize: 18, mr: 0.5 }} />
+                            Nạp tiền
+                          </Button>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  </motion.div>
+                )}
+              </Box>
+            </Box>
+          </motion.div>
         )}
 
         {/* Allowance Wallets */}
         {activeTab === 'allowance' && (
-          <div className={styles.allowanceSection}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             {isChildWalletLoading ? (
-              <div className={styles.inlineLoading}>
-                <Loading />
-              </div>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 4 }}>
+                <CircularProgress />
+              </Box>
             ) : childWalletError ? (
-              <div className={styles.errorState}>
-                <p className={styles.errorMessage}>{childWalletError}</p>
-                <button className={styles.retryButton} onClick={loadChildWallets}>
+              <Paper
+                elevation={0}
+                sx={{
+                  padding: 3,
+                  backgroundColor: 'var(--color-error-50)',
+                  border: '1px solid var(--color-error-100)',
+                  borderRadius: 'var(--radius-lg)',
+                  textAlign: 'center'
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: 'var(--color-error-dark)',
+                    marginBottom: 2,
+                    fontFamily: 'var(--font-family)'
+                  }}
+                >
+                  {childWalletError}
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={loadChildWallets}
+                  startIcon={<Refresh />}
+                  sx={{
+                    background: 'var(--color-error)',
+                    '&:hover': {
+                      background: 'var(--color-error-dark)'
+                    }
+                  }}
+                >
                   Thử lại
-                </button>
-              </div>
+                </Button>
+              </Paper>
             ) : childWallets.length > 0 ? (
-              <>
-                <div className={styles.transferCard}>
-                  <form onSubmit={handleTransfer}>
-                    <div className={styles.transferHeader}>
-                      <div>
-                        <h3 className={styles.transferTitle}>Chuyển tiền cho con</h3>
-                        <p className={styles.transferDesc}>
-                          Chuyển từ ví chính sang ví tiêu vặt của con để quản lý chi tiêu dễ dàng hơn.
-                        </p>
-                      </div>
-                    </div>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {/* Transfer Form - Sidebar Style */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', lg: '1fr 400px' },
+                    gap: 3
+                  }}
+                >
+                  {/* Left: Child Wallets Grid */}
+                  <Box>
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        fontFamily: 'var(--font-family-heading)',
+                        fontWeight: 'var(--font-weight-bold)',
+                        color: 'var(--text-primary)',
+                        marginBottom: 2
+                      }}
+                    >
+                      Ví tiêu vặt của con
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(2, 1fr)' },
+                        gap: 2.5
+                      }}
+                    >
 
-                    <div className={styles.transferRow}>
-                      <div className={styles.transferField}>
-                        <label className={styles.transferLabel}>Chọn con</label>
-                        <select
-                          className={styles.transferSelect}
+                      {childWallets.map((childWallet) => (
+                        <Paper
+                          key={childWallet.walletId || childWallet.studentId}
+                          elevation={0}
+                          sx={{
+                            padding: 2.5,
+                            backgroundColor: 'var(--bg-primary)',
+                            border: '2px solid var(--color-primary-50)',
+                            borderRadius: 'var(--radius-xl)',
+                            boxShadow: 'var(--shadow-sm)',
+                            transition: 'all var(--transition-base)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            '&::before': {
+                              content: '""',
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: '3px',
+                              background: 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)'
+                            },
+                            '&:hover': {
+                              boxShadow: 'var(--shadow-lg)',
+                              transform: 'translateY(-4px)',
+                              borderColor: 'var(--color-primary)'
+                            }
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, marginBottom: 2 }}>
+                            <Box
+                              sx={{
+                                width: 56,
+                                height: 56,
+                                borderRadius: 'var(--radius-lg)',
+                                background: 'linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: 'var(--shadow-sm)',
+                                flexShrink: 0
+                              }}
+                            >
+                              <Wallet sx={{ fontSize: 28, color: 'var(--color-primary)' }} />
+                            </Box>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography
+                                variant="h6"
+                                sx={{
+                                  fontFamily: 'var(--font-family-heading)',
+                                  fontWeight: 'var(--font-weight-bold)',
+                                  color: 'var(--text-primary)',
+                                  marginBottom: 0.5,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {childWallet.studentName}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  padding: '4px 10px',
+                                  borderRadius: 'var(--radius-full)',
+                                  backgroundColor: 'var(--color-primary-50)',
+                                  gap: 0.5
+                                }}
+                              >
+                                <AttachMoney sx={{ fontSize: 14, color: 'var(--color-primary-dark)' }} />
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: 'var(--color-primary-dark)',
+                                    fontFamily: 'var(--font-family)',
+                                    fontWeight: 'var(--font-weight-bold)'
+                                  }}
+                                >
+                                  {formatCurrency(childWallet.balance)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </Box>
+
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 1,
+                              padding: 1.5,
+                              backgroundColor: 'var(--bg-secondary)',
+                              borderRadius: 'var(--radius-lg)',
+                              border: '1px solid var(--border-light)'
+                            }}
+                          >
+                            {[
+                              childWallet.levelName ? { label: 'Cấp độ', value: childWallet.levelName, icon: <School sx={{ fontSize: 16 }} /> } : null,
+                              childWallet.schoolName ? { label: 'Trường', value: childWallet.schoolName, icon: <Business sx={{ fontSize: 16 }} /> } : null,
+                              childWallet.branchName ? { label: 'Chi nhánh', value: childWallet.branchName, icon: <Business sx={{ fontSize: 16 }} /> } : null
+                            ].filter(Boolean).map((info, index) => (
+                              <Box
+                                key={index}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  paddingBottom: index < 2 ? 1 : 0,
+                                  borderBottom: index < 2 ? '1px solid var(--border-light)' : 'none'
+                                }}
+                              >
+                                <Box sx={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', minWidth: 20 }}>
+                                  {info.icon}
+                                </Box>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: 'var(--text-secondary)',
+                                    fontFamily: 'var(--font-family)',
+                                    fontWeight: 'var(--font-weight-medium)',
+                                    marginRight: 1
+                                  }}
+                                >
+                                  {info.label}:
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: 'var(--text-primary)',
+                                    fontFamily: 'var(--font-family)',
+                                    fontWeight: 'var(--font-weight-semibold)',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    flex: 1
+                                  }}
+                                >
+                                  {info.value}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        </Paper>
+                      ))}
+                    </Box>
+                  </Box>
+
+                  {/* Right: Transfer Form Sidebar */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      padding: 3,
+                      backgroundColor: 'var(--bg-primary)',
+                      border: '2px solid var(--color-primary-50)',
+                      borderRadius: 'var(--radius-xl)',
+                      boxShadow: 'var(--shadow-md)',
+                      position: 'sticky',
+                      top: 24,
+                      height: 'fit-content',
+                      maxHeight: 'calc(100vh - 48px)',
+                      overflowY: 'auto'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, marginBottom: 2.5 }}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 'var(--radius-lg)',
+                          background: 'linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Send sx={{ color: 'var(--color-primary)', fontSize: 28 }} />
+                      </Box>
+                      <Box>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontFamily: 'var(--font-family-heading)',
+                            fontWeight: 'var(--font-weight-bold)',
+                            color: 'var(--text-primary)',
+                            marginBottom: 0.5
+                          }}
+                        >
+                          Chuyển tiền
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'var(--text-secondary)',
+                            fontFamily: 'var(--font-family)'
+                          }}
+                        >
+                          Từ ví chính sang ví con
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box component="form" onSubmit={handleTransfer} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <FormControl fullWidth required>
+                        <InputLabel id="student-select-label">Chọn con</InputLabel>
+                        <Select
+                          labelId="student-select-label"
+                          id="student-select"
                           value={transferForm.toStudentId}
+                          label="Chọn con"
                           onChange={(e) => setTransferForm((prev) => ({
                             ...prev,
                             toStudentId: e.target.value
                           }))}
-                          required
+                          disabled={isTransferring || childWallets.length === 0}
+                          sx={{
+                            borderRadius: 'var(--radius-lg)',
+                            fontFamily: 'var(--font-family)',
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'var(--border-light)'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'var(--color-primary)'
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'var(--color-primary)',
+                              borderWidth: '2px'
+                            }
+                          }}
                         >
-                          <option value="">-- Chọn con --</option>
+                          <MenuItem value="">
+                            <em>-- Chọn con --</em>
+                          </MenuItem>
                           {childWallets.map((child) => (
-                            <option key={child.studentId} value={child.studentId}>
-                              {child.studentName} ({formatCurrency(child.balance)})
-                            </option>
+                            <MenuItem key={child.studentId} value={child.studentId}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                <Typography variant="body2" sx={{ fontFamily: 'var(--font-family)' }}>
+                                  {child.studentName}
+                                </Typography>
+                                <Chip
+                                  label={formatCurrency(child.balance)}
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: 'var(--color-primary-50)',
+                                    color: 'var(--color-primary-dark)',
+                                    fontFamily: 'var(--font-family)',
+                                    fontWeight: 'var(--font-weight-semibold)',
+                                    fontSize: '0.7rem',
+                                    height: 20
+                                  }}
+                                />
+                              </Box>
+                            </MenuItem>
                           ))}
-                        </select>
-                      </div>
+                        </Select>
+                      </FormControl>
 
-                      <div className={styles.transferField}>
-                        <label className={styles.transferLabel}>Số tiền (VND)</label>
-                        <input
+                      <FormControl fullWidth required>
+                        <TextField
+                          label="Số tiền (VND)"
                           type="number"
-                          min="1000"
-                          step="1000"
-                          className={styles.transferInput}
-                          placeholder="Ví dụ: 500000"
                           value={transferForm.amount}
                           onChange={(e) => setTransferForm((prev) => ({
                             ...prev,
                             amount: e.target.value
                           }))}
-                          required
+                          disabled={isTransferring}
+                          placeholder="Ví dụ: 500000"
+                          inputProps={{
+                            min: 1000,
+                            step: 1000
+                          }}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <MoneyIcon sx={{ color: 'var(--text-secondary)', fontSize: 18 }} />
+                              </InputAdornment>
+                            ),
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>
+                                  VND
+                                </Typography>
+                              </InputAdornment>
+                            )
+                          }}
+                          helperText="Tối thiểu: 1.000 VND"
+                          sx={{
+                            fontFamily: 'var(--font-family)',
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 'var(--radius-lg)',
+                              '&:hover fieldset': {
+                                borderColor: 'var(--color-primary)'
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: 'var(--color-primary)',
+                                borderWidth: '2px'
+                              }
+                            },
+                            '& .MuiInputLabel-root.Mui-focused': {
+                              color: 'var(--color-primary)'
+                            }
+                          }}
                         />
-                        <span className={styles.transferNote}>
-                          Số tiền phải lớn hơn 0. Nên nhập bội số của 1.000 VND.
-                        </span>
-                      </div>
-                    </div>
+                      </FormControl>
 
-                    <div className={styles.transferField}>
-                      <label className={styles.transferLabel}>Ghi chú (không bắt buộc)</label>
-                      <textarea
-                        className={styles.transferTextarea}
-                        placeholder="Ví dụ: Tiền ăn vặt tuần này"
-                        value={transferForm.note}
-                        onChange={(e) => setTransferForm((prev) => ({
-                          ...prev,
-                          note: e.target.value
-                        }))}
-                      />
-                    </div>
+                      <FormControl fullWidth>
+                        <TextField
+                          label="Ghi chú (tùy chọn)"
+                          multiline
+                          rows={2}
+                          value={transferForm.note}
+                          onChange={(e) => setTransferForm((prev) => ({
+                            ...prev,
+                            note: e.target.value
+                          }))}
+                          disabled={isTransferring}
+                          placeholder="Ví dụ: Tiền ăn vặt tuần này"
+                          sx={{
+                            fontFamily: 'var(--font-family)',
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 'var(--radius-lg)',
+                              '&:hover fieldset': {
+                                borderColor: 'var(--color-primary)'
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: 'var(--color-primary)',
+                                borderWidth: '2px'
+                              }
+                            },
+                            '& .MuiInputLabel-root.Mui-focused': {
+                              color: 'var(--color-primary)'
+                            }
+                          }}
+                        />
+                      </FormControl>
 
-                    <div className={styles.transferActions}>
-                      <button
+                      <Button
                         type="submit"
-                        className={styles.transferButton}
-                        disabled={isTransferring || childWallets.length === 0}
+                        variant="contained"
+                        fullWidth
+                        disabled={isTransferring || childWallets.length === 0 || !transferForm.toStudentId || !transferForm.amount}
+                        startIcon={isTransferring ? <CircularProgress size={18} /> : <Send />}
+                        sx={{
+                          background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
+                          color: 'var(--text-primary)',
+                          fontFamily: 'var(--font-family)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          textTransform: 'none',
+                          borderRadius: 'var(--radius-lg)',
+                          padding: '14px 24px',
+                          boxShadow: 'var(--shadow-md)',
+                          marginTop: 1,
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary) 100%)',
+                            boxShadow: 'var(--shadow-lg)',
+                            transform: 'translateY(-2px)'
+                          },
+                          '&:disabled': {
+                            opacity: 0.6,
+                            cursor: 'not-allowed'
+                          }
+                        }}
                       >
                         {isTransferring ? 'Đang chuyển...' : 'Chuyển tiền'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-
-                {childWallets.map((childWallet) => (
-                  <Card
-                    key={childWallet.walletId || childWallet.studentId}
-                    title={`Ví tiêu vặt của ${childWallet.studentName}`}
-                    infoRows={[
-                      { label: 'Số dư', value: formatCurrency(childWallet.balance) },
-                      childWallet.levelName ? { label: 'Cấp độ', value: childWallet.levelName } : null,
-                      childWallet.schoolName ? { label: 'Trường', value: childWallet.schoolName } : null,
-                      childWallet.branchName ? { label: 'Chi nhánh', value: childWallet.branchName } : null,
-                      childWallet.createdTime
-                        ? { label: 'Ngày khởi tạo', value: new Date(childWallet.createdTime).toLocaleDateString('vi-VN') }
-                        : null,
-                      { label: 'Mục đích', value: 'Mua đồ ăn vặt, chơi game tại trung tâm' }
-                    ].filter(Boolean)}
-                    actions={[
-                      { text: 'Xem Profile', primary: false, onClick: () => window.location.href = `/parent/children/${childWallet.studentId}/profile` },
-                      { text: 'Lịch học', primary: true, onClick: () => window.location.href = `/parent/children/${childWallet.studentId}/schedule` }
-                    ]}
-                  />
-                ))}
-              </>
+                      </Button>
+                    </Box>
+                  </Paper>
+                </Box>
+              </Box>
             ) : (
-              <div className={styles.noAllowanceWallets}>
-                <p>Chưa có ví tiêu vặt nào. Thêm con và tạo ví để quản lý chi tiêu.</p>
-              </div>
-            )}
-          </div>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    padding: 4,
+                    textAlign: 'center',
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px dashed var(--border-light)',
+                    borderRadius: 'var(--radius-xl)'
+                  }}
+                >
+                  <Wallet sx={{ fontSize: 64, color: 'var(--text-tertiary)', marginBottom: 2, opacity: 0.5 }} />
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: 'var(--text-secondary)',
+                      fontFamily: 'var(--font-family)',
+                      fontWeight: 'var(--font-weight-medium)',
+                      marginBottom: 1
+                    }}
+                  >
+                    Chưa có ví tiêu vặt nào
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'var(--text-tertiary)',
+                      fontFamily: 'var(--font-family)'
+                    }}
+                  >
+                    Thêm con và tạo ví để quản lý chi tiêu.
+                  </Typography>
+                </Paper>
+              )}
+          </motion.div>
         )}
 
         {/* Transaction History */}
-        <div className={styles.transactionSection}>
-          <h3>Lịch sử giao dịch</h3>
-          {isLoadingTransactions ? (
-            <div className={styles.transactionLoading}>
-              <Loading />
-            </div>
-          ) : transactionError ? (
-            <div className={styles.transactionError}>
-              <p>{transactionError}</p>
-              <button className={styles.retryButton} onClick={() => loadTransactions(pagination.pageIndex)}>
-                Thử lại
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className={styles.transactionList}>
-                {filteredTransactions.length > 0 ? (
-                  filteredTransactions.map((transaction) => (
-                    <div key={transaction.id} className={styles.transactionItem}>
-                      <div className={styles.transactionIcon}>
-                        {getTransactionIcon(transaction.type)}
-                      </div>
-                      <div className={styles.transactionDetails}>
-                        <div className={styles.transactionDescription}>
-                          {transaction.description}
-                        </div>
-                        <div className={styles.transactionDate}>
-                          {new Date(transaction.date).toLocaleDateString('vi-VN', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
-                        {transaction.status && (
-                          <div className={styles.transactionStatus}>
-                            Trạng thái: <span className={styles[transaction.status]}>
-                              {transaction.status === 'pending' ? 'Đang chờ' : 
-                               transaction.status === 'completed' ? 'Hoàn thành' : 
-                               transaction.status}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div 
-                        className={styles.transactionAmount}
-                        style={{ color: getTransactionColor(transaction.type) }}
+        {activeTab === 'main' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                padding: 4,
+                backgroundColor: 'var(--bg-primary)',
+                border: '1px solid var(--border-light)',
+                borderRadius: 'var(--radius-xl)',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, marginBottom: 3 }}>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 'var(--radius-lg)',
+                    background: 'linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <History sx={{ color: 'var(--color-primary)', fontSize: 28 }} />
+                </Box>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontFamily: 'var(--font-family-heading)',
+                    fontWeight: 'var(--font-weight-bold)',
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  Lịch sử giao dịch
+                </Typography>
+              </Box>
+              {isLoadingTransactions ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : transactionError ? (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    padding: 3,
+                    backgroundColor: 'var(--color-error-50)',
+                    border: '1px solid var(--color-error-100)',
+                    borderRadius: 'var(--radius-lg)',
+                    textAlign: 'center'
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: 'var(--color-error-dark)',
+                      marginBottom: 2,
+                      fontFamily: 'var(--font-family)'
+                    }}
+                  >
+                    {transactionError}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    onClick={() => loadTransactions(pagination.pageIndex)}
+                    startIcon={<Refresh />}
+                    sx={{
+                      background: 'var(--color-error)',
+                      '&:hover': {
+                        background: 'var(--color-error-dark)'
+                      }
+                    }}
+                  >
+                    Thử lại
+                  </Button>
+                </Paper>
+              ) : (
+                <>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {filteredTransactions.length > 0 ? (
+                      filteredTransactions.map((transaction) => (
+                        <Paper
+                          key={transaction.id}
+                          elevation={0}
+                          component={motion.div}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2 }}
+                          sx={{
+                            padding: 2.5,
+                            backgroundColor: 'var(--bg-primary)',
+                            border: '1px solid var(--border-light)',
+                            borderRadius: 'var(--radius-lg)',
+                            boxShadow: 'var(--shadow-sm)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2.5,
+                            transition: 'all var(--transition-base)',
+                            '&:hover': {
+                              boxShadow: 'var(--shadow-md)',
+                              transform: 'translateY(-2px)',
+                              borderColor: 'var(--color-primary-50)'
+                            }
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 56,
+                              height: 56,
+                              borderRadius: 'var(--radius-lg)',
+                              backgroundColor: 'var(--bg-tertiary)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: getTransactionColor(transaction.type),
+                              flexShrink: 0
+                            }}
+                          >
+                            {getTransactionIcon(transaction.type)}
+                          </Box>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography
+                              variant="body1"
+                              sx={{
+                                fontFamily: 'var(--font-family)',
+                                fontWeight: 'var(--font-weight-semibold)',
+                                color: 'var(--text-primary)',
+                                marginBottom: 0.5
+                              }}
+                            >
+                              {transaction.description}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontFamily: 'var(--font-family)',
+                                color: 'var(--text-secondary)',
+                                marginBottom: 0.5
+                              }}
+                            >
+                              {(() => {
+                                // Parse timestamp from API (UTC) and convert to VN time
+                                const date = new Date(transaction.date);
+                                // Browser will automatically convert UTC to local time (VN timezone)
+                                return date.toLocaleString('vi-VN', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric'
+                                });
+                              })()}
+                            </Typography>
+                            {transaction.status && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, marginTop: 0.5 }}>
+                                {getStatusIcon(transaction.status)}
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontFamily: 'var(--font-family)',
+                                    color: transaction.status === 'completed' 
+                                      ? 'var(--color-success)' 
+                                      : transaction.status === 'pending'
+                                      ? 'var(--color-warning)'
+                                      : 'var(--color-error)',
+                                    fontWeight: 'var(--font-weight-medium)'
+                                  }}
+                                >
+                                  {transaction.status === 'pending' ? 'Đang chờ' : 
+                                   transaction.status === 'completed' ? 'Hoàn thành' : 
+                                   transaction.status}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              fontFamily: 'var(--font-family-heading)',
+                              fontWeight: 'var(--font-weight-bold)',
+                              color: getTransactionColor(transaction.type),
+                              textAlign: 'right',
+                              flexShrink: 0,
+                              minWidth: 120
+                            }}
+                          >
+                            {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                          </Typography>
+                        </Paper>
+                      ))
+                    ) : (
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          padding: 4,
+                          textAlign: 'center',
+                          backgroundColor: 'var(--bg-secondary)',
+                          border: '1px dashed var(--border-light)',
+                          borderRadius: 'var(--radius-lg)'
+                        }}
                       >
-                        {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount)}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className={styles.noTransactions}>
-                    <p>Chưa có giao dịch nào</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Pagination Controls */}
-              {pagination.totalPages > 1 && (
-                <div className={styles.pagination}>
-                  <button
-                    className={styles.paginationButton}
-                    onClick={() => handlePageChange(pagination.pageIndex - 1)}
-                    disabled={pagination.pageIndex === 1 || isLoadingTransactions}
-                  >
-                    Trước
-                  </button>
-                  <span className={styles.paginationInfo}>
-                    Trang {pagination.pageIndex} / {pagination.totalPages}
-                    {pagination.totalCount > 0 && (
-                      <span className={styles.paginationCount}>
-                        ({pagination.totalCount} giao dịch)
-                      </span>
+                        <History sx={{ fontSize: 64, color: 'var(--text-tertiary)', marginBottom: 2, opacity: 0.5 }} />
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            color: 'var(--text-secondary)',
+                            fontFamily: 'var(--font-family)',
+                            fontWeight: 'var(--font-weight-medium)',
+                            marginBottom: 1
+                          }}
+                        >
+                          Chưa có giao dịch nào
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: 'var(--text-tertiary)',
+                            fontFamily: 'var(--font-family)'
+                          }}
+                        >
+                          Các giao dịch nạp tiền sẽ hiển thị ở đây
+                        </Typography>
+                      </Paper>
                     )}
-                  </span>
-                  <button
-                    className={styles.paginationButton}
-                    onClick={() => handlePageChange(pagination.pageIndex + 1)}
-                    disabled={pagination.pageIndex >= pagination.totalPages || isLoadingTransactions}
-                  >
-                    Sau
-                  </button>
-                </div>
+                  </Box>
+                  
+                  {/* Pagination Controls */}
+                  {pagination.totalCount > 0 && (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 2,
+                        marginTop: 3,
+                        paddingTop: 3,
+                        borderTop: '1px solid var(--border-light)'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          flexWrap: 'wrap',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Pagination
+                          count={pagination.totalPages}
+                          page={pagination.pageIndex}
+                          onChange={(event, value) => handlePageChange(value)}
+                          disabled={isLoadingTransactions}
+                          color="primary"
+                          size="large"
+                          showFirstButton
+                          showLastButton
+                          sx={{
+                            '& .MuiPaginationItem-root': {
+                              fontFamily: 'var(--font-family)',
+                              fontWeight: 'var(--font-weight-medium)',
+                              '&.Mui-selected': {
+                                background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+                                color: 'white',
+                                fontWeight: 'var(--font-weight-bold)',
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)'
+                                }
+                              },
+                              '&:hover': {
+                                backgroundColor: 'var(--color-primary-50)'
+                              }
+                            }
+                          }}
+                        />
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontFamily: 'var(--font-family)',
+                          color: 'var(--text-secondary)',
+                          textAlign: 'center'
+                        }}
+                      >
+                        Hiển thị {((pagination.pageIndex - 1) * pagination.pageSize + 1)} - {Math.min(pagination.pageIndex * pagination.pageSize, pagination.totalCount)} trong tổng số {pagination.totalCount} giao dịch
+                      </Typography>
+                    </Box>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </div>
+            </Paper>
+          </motion.div>
+        )}
       </div>
-    </div>
+
+    </motion.div>
   );
 };
 

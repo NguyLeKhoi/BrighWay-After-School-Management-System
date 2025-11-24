@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import Loading from '@components/Common/Loading';
+import { motion } from 'framer-motion';
+import {
+  CheckCircle as AttendanceIcon,
+  CreditCard as PaymentIcon,
+  CalendarToday as ScheduleIcon,
+  AccountBalanceWallet as AllowanceIcon,
+  Campaign as AnnouncementIcon,
+  Assessment as EvaluationIcon,
+  Notifications as NotificationIcon
+} from '@mui/icons-material';
+import ContentLoading from '@components/Common/ContentLoading';
 import { useApp } from '../../../contexts/AppContext';
-import { useLoading } from '../../../hooks/useLoading';
+import useContentLoading from '../../../hooks/useContentLoading';
 import notificationService from '../../../services/notification.service';
+import AnimatedCard from '../../../components/Common/AnimatedCard';
 import styles from './Notifications.module.css';
 
 const Notifications = () => {
@@ -12,7 +23,7 @@ const Notifications = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   const { showGlobalError, addNotification } = useApp();
-  const { showLoading, hideLoading } = useLoading();
+  const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading();
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -74,21 +85,22 @@ const Notifications = () => {
   }, []);
 
   const getNotificationIcon = (type) => {
+    const iconProps = { sx: { fontSize: 24 } };
     switch (type) {
       case 'attendance':
-        return '✅';
+        return <AttendanceIcon {...iconProps} />;
       case 'payment':
-        return '💳';
+        return <PaymentIcon {...iconProps} />;
       case 'schedule':
-        return '📅';
+        return <ScheduleIcon {...iconProps} />;
       case 'allowance':
-        return '💰';
+        return <AllowanceIcon {...iconProps} />;
       case 'announcement':
-        return '📢';
+        return <AnnouncementIcon {...iconProps} />;
       case 'evaluation':
-        return '📊';
+        return <EvaluationIcon {...iconProps} />;
       default:
-        return '🔔';
+        return <NotificationIcon {...iconProps} />;
     }
   };
 
@@ -189,11 +201,16 @@ const Notifications = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <ContentLoading isLoading={isLoading} text={loadingText || 'Đang tải thông báo...'} />;
   }
 
   return (
-    <div className={styles.notificationsPage}>
+    <motion.div 
+      className={styles.notificationsPage}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Thông báo</h1>
@@ -314,14 +331,16 @@ const Notifications = () => {
             ))
           ) : (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🔔</div>
+              <div className={styles.emptyIcon}>
+                <NotificationIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
+              </div>
               <h3>Không có thông báo</h3>
               <p>Bạn sẽ nhận được thông báo khi có hoạt động mới</p>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

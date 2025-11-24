@@ -49,11 +49,12 @@ const ConfirmDialog = ({
           <Box
             component="span"
             sx={{
-              fontWeight: 700,
-              color: isDeleteAction ? '#dc2626' : '#2563eb',
-              backgroundColor: isDeleteAction ? '#fee2e2' : '#dbeafe',
+              fontWeight: 'var(--font-weight-bold)',
+              fontFamily: 'var(--font-family)',
+              color: isDeleteAction ? 'var(--color-error-dark)' : 'var(--color-primary-dark)',
+              backgroundColor: isDeleteAction ? 'var(--color-error-50)' : 'var(--color-primary-50)',
               padding: '2px 8px',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               display: 'inline-block',
               margin: '0 2px'
             }}
@@ -77,11 +78,12 @@ const ConfirmDialog = ({
           <Box
             component="span"
             sx={{
-              fontWeight: 700,
-              color: isDeleteAction ? '#dc2626' : '#2563eb',
-              backgroundColor: isDeleteAction ? '#fee2e2' : '#dbeafe',
+              fontWeight: 'var(--font-weight-bold)',
+              fontFamily: 'var(--font-family)',
+              color: isDeleteAction ? 'var(--color-error-dark)' : 'var(--color-primary-dark)',
+              backgroundColor: isDeleteAction ? 'var(--color-error-50)' : 'var(--color-primary-50)',
               padding: '2px 8px',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               display: 'inline-block',
               margin: '0 2px'
             }}
@@ -106,16 +108,17 @@ const ConfirmDialog = ({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
+          borderRadius: 'var(--radius-xl)',
           overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
+          boxShadow: 'var(--shadow-2xl)',
+          fontFamily: 'var(--font-family)'
         }
       }}
     >
       <Box
         sx={{
           position: 'relative',
-          backgroundColor: isDeleteAction ? '#fff5f5' : '#f5f9ff',
+          backgroundColor: isDeleteAction ? 'var(--color-error-50)' : 'var(--color-primary-50)',
           padding: '24px 24px 16px 24px'
         }}
       >
@@ -152,9 +155,12 @@ const ConfirmDialog = ({
                 width: 56,
                 height: 56,
                 borderRadius: '50%',
-                backgroundColor: isDeleteAction ? '#fee2e2' : '#dbeafe',
-                color: isDeleteAction ? '#dc2626' : '#2563eb',
-                flexShrink: 0
+                background: isDeleteAction 
+                  ? 'linear-gradient(135deg, var(--color-error-light) 0%, var(--color-error) 100%)'
+                  : 'linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%)',
+                color: 'var(--bg-primary)',
+                flexShrink: 0,
+                boxShadow: 'var(--shadow-md)'
               }}
             >
               <IconComponent sx={{ fontSize: 32 }} />
@@ -164,9 +170,10 @@ const ConfirmDialog = ({
             id="dialog-title"
             variant="h6"
             sx={{
-              fontWeight: 600,
-              color: 'text.primary',
-              fontSize: '1.5rem',
+              fontWeight: 'var(--font-weight-semibold)',
+              fontFamily: 'var(--font-family)',
+              color: 'var(--text-primary)',
+              fontSize: 'var(--font-size-2xl)',
               flex: 1
             }}
           >
@@ -175,15 +182,20 @@ const ConfirmDialog = ({
         </Box>
       </Box>
 
-      <DialogContent sx={{ padding: '24px', paddingTop: '16px' }}>
+      <DialogContent sx={{ 
+        padding: '24px', 
+        paddingTop: '16px',
+        backgroundColor: 'var(--bg-primary)'
+      }}>
         <Typography
           id="dialog-description"
           variant="body1"
           component="div"
           sx={{
-            color: 'text.secondary',
-            lineHeight: 1.6,
-            fontSize: '0.95rem'
+            color: 'var(--text-secondary)',
+            fontFamily: 'var(--font-family)',
+            lineHeight: 'var(--line-height-relaxed)',
+            fontSize: 'var(--font-size-base)'
           }}
         >
           {renderHighlightedDescription()}
@@ -193,10 +205,9 @@ const ConfirmDialog = ({
       <DialogActions
         sx={{
           padding: '16px 24px',
-          gap: 1,
-          backgroundColor: '#fafafa',
-          borderTop: '1px solid',
-          borderColor: 'divider'
+          gap: 2,
+          backgroundColor: 'var(--bg-tertiary)',
+          borderTop: '1px solid var(--border-light)'
         }}
       >
         <Button
@@ -205,14 +216,18 @@ const ConfirmDialog = ({
           sx={{
             minWidth: 100,
             textTransform: 'none',
-            borderRadius: '8px',
-            padding: '8px 20px',
-            fontWeight: 500,
-            borderColor: 'grey.300',
-            color: 'text.primary',
+            fontFamily: 'var(--font-family)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '10px 24px',
+            fontWeight: 'var(--font-weight-semibold)',
+            borderColor: 'var(--border-medium)',
+            color: 'var(--text-primary)',
+            transition: 'var(--transition-all)',
             '&:hover': {
-              borderColor: 'grey.400',
-              backgroundColor: 'grey.50'
+              borderColor: 'var(--color-primary)',
+              backgroundColor: 'var(--bg-tertiary)',
+              transform: 'translateY(-2px)',
+              boxShadow: 'var(--shadow-sm)'
             }
           }}
         >
@@ -226,16 +241,26 @@ const ConfirmDialog = ({
           sx={{
             minWidth: 100,
             textTransform: 'none',
-            borderRadius: '8px',
-            padding: '8px 20px',
-            fontWeight: 500,
+            fontFamily: 'var(--font-family)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '10px 24px',
+            fontWeight: 'var(--font-weight-semibold)',
+            background: isDeleteAction
+              ? 'linear-gradient(135deg, var(--color-error) 0%, var(--color-error-dark) 100%)'
+              : 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+            color: 'var(--bg-primary)',
             boxShadow: isDeleteAction 
-              ? '0 2px 8px rgba(220, 38, 38, 0.3)' 
-              : '0 2px 8px rgba(37, 99, 235, 0.3)',
+              ? 'var(--shadow-md), 0 2px 8px rgba(239, 68, 68, 0.3)' 
+              : 'var(--shadow-md), 0 2px 8px rgba(37, 99, 235, 0.3)',
+            transition: 'var(--transition-all)',
             '&:hover': {
+              background: isDeleteAction
+                ? 'linear-gradient(135deg, var(--color-error-dark) 0%, var(--color-error) 100%)'
+                : 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
+              transform: 'translateY(-2px)',
               boxShadow: isDeleteAction 
-                ? '0 4px 12px rgba(220, 38, 38, 0.4)' 
-                : '0 4px 12px rgba(37, 99, 235, 0.4)'
+                ? 'var(--shadow-lg), 0 4px 12px rgba(239, 68, 68, 0.4)' 
+                : 'var(--shadow-lg), 0 4px 12px rgba(37, 99, 235, 0.4)'
             }
           }}
         >

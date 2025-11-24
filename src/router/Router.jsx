@@ -9,7 +9,7 @@ import ProtectedRoute from './ProtectedRoute';
 
 // Main Pages
 import Homepage from '../pages/main/Homepage';
-import CourseCatalog from '../pages/main/CourseCatalog';
+import PackageCatalog from '../pages/main/PackageCatalog';
 import FacilitiesAbout from '../pages/main/FacilitiesAbout';
 import Contact from '../pages/main/Contact';
 
@@ -18,9 +18,11 @@ import Login from '../pages/auth/Login';
 
 // useruser Pages
 import FamilyProfile from '../pages/user/profile';
+import ChangePassword from '../pages/user/changePassword';
 import FamilyServices from '../pages/user/services';
 import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
+import CreateChild from '../pages/user/children/CreateChild';
 import ChildProfile from '../pages/user/children/ChildProfile';
 import ChildSchedule from '../pages/user/children/ChildSchedule';
 import MyWallet from '../pages/user/wallet';
@@ -48,6 +50,7 @@ import SchoolManagement from '../pages/admin/schoolManagement';
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
 import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
+import ParentManagement from '../pages/manager/parentManagement';
 import CreateParent from '../pages/manager/staffAndParentManagement/CreateParent';
 import ManagerPackageManagement from '../pages/manager/packageManagement';
 import CreatePackage from '../pages/manager/packageManagement/CreatePackage';
@@ -79,8 +82,8 @@ export const routes = createBrowserRouter([
         element: <Homepage />,
       },
       {
-        path: 'courses',
-        element: <CourseCatalog />,
+        path: 'packages',
+        element: <PackageCatalog />,
       },
       {
         path: 'facilities',
@@ -92,7 +95,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // Auth Routes (Authentication Pages)
   {
     path: '/login',
@@ -104,7 +107,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // Parent Layout Routes (Parent Portal)
   {
     path: '/family',
@@ -127,8 +130,16 @@ export const routes = createBrowserRouter([
         element: <FamilyProfile />,
       },
       {
+        path: 'change-password',
+        element: <ChangePassword />,
+      },
+      {
         path: 'children',
         element: <ChildrenList />,
+      },
+      {
+        path: 'children/create',
+        element: <CreateChild />,
       },
       {
         path: 'children/:childId/profile',
@@ -139,12 +150,12 @@ export const routes = createBrowserRouter([
         element: <ChildSchedule />,
       },
       {
-        path: 'wallet',
-        element: <MyWallet />,
+        path: 'children/:childId/schedule/register',
+        element: <MySchedule />,
       },
       {
-        path: 'schedule',
-        element: <MySchedule />,
+        path: 'wallet',
+        element: <MyWallet />,
       },
       {
         path: 'packages',
@@ -156,7 +167,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // Admin Layout Routes (Admin Portal)
   {
     path: '/admin',
@@ -210,7 +221,10 @@ export const routes = createBrowserRouter([
         path: 'packages',
         element: <PackageManagement />,
       },
-      { path: 'packages/templates/create', element: <AdminCreateTemplate /> },
+      {
+        path: 'packages/templates/create',
+        element: <AdminCreateTemplate />
+      },
       { path: 'packages/templates/update/:id', element: <AdminUpdateTemplate /> },
       { path: 'packages/create', element: <AdminCreatePackage /> },
       { path: 'packages/update/:id', element: <AdminUpdatePackage /> },
@@ -220,7 +234,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // Manager Layout Routes (Manager Portal)
   {
     path: '/manager',
@@ -239,11 +253,15 @@ export const routes = createBrowserRouter([
         element: <ManagerDashboard />,
       },
       {
-        path: 'staffAndParent',
+        path: 'staff',
         element: <StaffAndParentManagement />,
       },
       {
-        path: 'staffAndParent/create-parent',
+        path: 'parents',
+        element: <ParentManagement />,
+      },
+      {
+        path: 'parents/create',
         element: <CreateParent />,
       },
       {
@@ -288,8 +306,8 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
-  
+
+
   // Staff Layout Routes (Staff Portal)
   {
     path: '/staff',
@@ -317,7 +335,7 @@ export const routes = createBrowserRouter([
       },
     ],
   },
-  
+
   // 404 Page
   {
     path: '*',

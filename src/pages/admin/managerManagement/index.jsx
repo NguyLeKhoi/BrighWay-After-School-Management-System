@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Alert, Box, TextField } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import { Person as PersonIcon } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -19,6 +20,9 @@ import { toast } from 'react-toastify';
 import styles from './staffAndManagerManagement.module.css';
 
 const ManagerManagement = () => {
+  const location = useLocation();
+  const isInitialMount = useRef(true);
+  
   // Branch selection state
   const [userRoleType, setUserRoleType] = useState(null); // 'staff' or 'manager'
   
@@ -52,7 +56,8 @@ const ManagerManagement = () => {
     handlePageChange,
     handleRowsPerPageChange,
   filters,
-    updateFilter
+    updateFilter,
+    loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
       const response = await userService.getUsersPagedByRole({
@@ -120,7 +125,12 @@ const ManagerManagement = () => {
       };
       await baseHandleFormSubmit(submitData);
     } else {
-      await baseHandleFormSubmit(formData);
+      // Only allow updating name and branchId
+      const updateData = {
+        name: formData.name || selectedUser?.name || '',
+        branchId: formData.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null
+      };
+      await baseHandleFormSubmit(updateData);
     }
   };
 
@@ -147,6 +157,19 @@ const ManagerManagement = () => {
       }),
     [dialogMode, actionLoading, branchSelectOptions, branchLoading]
   );
+
+  // Reload data when navigate back to this page (e.g., from create/update pages)
+  useEffect(() => {
+    if (location.pathname === '/admin/managers') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      loadData(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <div className={styles.container}>
@@ -229,13 +252,20 @@ const ManagerManagement = () => {
       >
         <Form
           schema={dialogMode === 'create' ? createManagerSchema : updateUserSchema}
-          defaultValues={{
-            name: selectedUser?.name || '',
-            email: selectedUser?.email || '',
-            password: '',
-            branchId: selectedUser?.branchId || '',
-            isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
-          }}
+          defaultValues={
+            dialogMode === 'create'
+              ? {
+                  name: selectedUser?.name || '',
+                  email: selectedUser?.email || '',
+                  password: '',
+                  branchId: selectedUser?.branchId || '',
+                  isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
+                }
+              : {
+                  name: selectedUser?.name || '',
+                  branchId: selectedUser?.branchId || selectedUser?.branch?.id || ''
+                }
+          }
           onSubmit={handleFormSubmit}
           submitText={dialogMode === 'create' ? 'Tạo Manager' : 'Cập nhật Thông Tin'}
           loading={actionLoading}

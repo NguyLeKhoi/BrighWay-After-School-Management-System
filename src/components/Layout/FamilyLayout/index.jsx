@@ -1,7 +1,9 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
+import { motion } from 'framer-motion';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
+import PageTransition from '../../Common/PageTransition';
 import {
   MiscellaneousServices as ServiceIcon,
   Person as PersonIcon,
@@ -32,11 +34,6 @@ const FamilyLayout = () => {
       path: '/family/children',
       label: 'Con cái',
       icon: ChildIcon
-    },
-    {
-      path: '/family/schedule',
-      label: 'Lịch học',
-      icon: ScheduleIcon
     },
     {
       path: '/family/wallet',
@@ -76,11 +73,14 @@ const FamilyLayout = () => {
         sx={{
           flexGrow: 1,
           p: 3,
-          backgroundColor: '#f5f5f5',
-          minHeight: '100vh'
+          backgroundColor: 'var(--bg-secondary)',
+          minHeight: '100vh',
+          transition: 'background-color 0.3s ease'
         }}
       >
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </Box>
     </Box>
   );

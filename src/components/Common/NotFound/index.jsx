@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Search as SearchIcon } from '@mui/icons-material';
 import Threads from '../../Animation/Background/Threads';
 import styles from './NotFound.module.css';
 
@@ -13,43 +15,115 @@ const NotFound = () => {
           enableMouseInteraction={true}
         />
       </div>
-      <div className={styles.notfoundContainer}>
-        <div className={styles.notfoundContent}>
-          <div className={styles.errorCode}>404</div>
-          <h1 className={styles.errorTitle}>Page Not Found</h1>
-          <p className={styles.errorDescription}>
-            Sorry, the page you are looking for doesn't exist or has been moved.
-          </p>
+      <motion.div 
+        className={styles.notfoundContainer}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.div 
+          className={styles.notfoundContent}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <motion.div 
+            className={styles.errorCode}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            404
+          </motion.div>
+          <motion.h1 
+            className={styles.errorTitle}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            Trang không tìm thấy
+          </motion.h1>
+          <motion.p 
+            className={styles.errorDescription}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
+            Xin lỗi, trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
+          </motion.p>
 
-          <div className={styles.errorActions}>
-            <Link to="/" className={styles.homeButton}>
-              Go Home
-            </Link>
-            <button
+          <motion.div 
+            className={styles.errorActions}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link to="/" className={styles.homeButton}>
+                Về trang chủ
+              </Link>
+            </motion.div>
+            <motion.button
               onClick={() => window.history.back()}
               className={styles.backButton}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              Go Back
-            </button>
-          </div>
+              Quay lại
+            </motion.button>
+          </motion.div>
 
-          <div className={styles.helpLinks}>
-            <p className={styles.helpText}>Maybe you were looking for:</p>
+          <motion.div 
+            className={styles.helpLinks}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+          >
+            <p className={styles.helpText}>Có thể bạn đang tìm:</p>
             <ul className={styles.helpList}>
-              <li><Link to="/login" className={styles.helpLink}>Login</Link></li>
-              <li><Link to="/register" className={styles.helpLink}>Register</Link></li>
-              <li><Link to="/" className={styles.helpLink}>Home</Link></li>
-              <li><Link to="/contact" className={styles.helpLink}>Contact</Link></li>
+              {[
+                { path: '/', label: 'Trang chủ' },
+                { path: '/packages', label: 'Gói dịch vụ' },
+                { path: '/login', label: 'Đăng nhập' },
+                { path: '/contact', label: 'Liên hệ' }
+              ].map((item, index) => (
+                <motion.li
+                  key={item.path}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + index * 0.1, duration: 0.3 }}
+                >
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link 
+                      to={item.path} 
+                      className={styles.helpLink}
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
+                </motion.li>
+              ))}
             </ul>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className={styles.notfoundIllustration}>
-          <div className={styles.illustrationContainer}>
-            <div className={styles.illustrationIcon}>🔍</div>
-          </div>
-        </div>
-      </div>
+        <motion.div 
+          className={styles.notfoundIllustration}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <motion.div 
+            className={styles.illustrationContainer}
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, repeatDelay: 2 }}
+          >
+            <div className={styles.illustrationIcon}>
+              <SearchIcon sx={{ fontSize: 80, color: 'text.secondary' }} />
+            </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

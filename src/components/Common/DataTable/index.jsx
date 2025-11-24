@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import {
   Paper,
   Table,
@@ -41,24 +41,24 @@ const DataTable = ({
   const isRowExpandable = expandableConfig?.isRowExpandable;
   const renderExpandedContent = expandableConfig?.renderExpandedContent;
 
-  const toggleRow = (rowId) => {
+  const toggleRow = useCallback((rowId) => {
     setExpandedRows((prev) => ({
       ...prev,
       [rowId]: !prev[rowId]
     }));
-  };
+  }, []);
 
-  const handleEdit = (item) => {
+  const handleEdit = useCallback((item) => {
     if (onEdit) {
       onEdit(item);
     }
-  };
+  }, [onEdit]);
 
-  const handleDelete = (item) => {
+  const handleDelete = useCallback((item) => {
     if (onDelete) {
       onDelete(item);
     }
-  };
+  }, [onDelete]);
 
   if (loading) {
     return (
@@ -156,7 +156,7 @@ const DataTable = ({
                     <TableRow>
                       <TableCell
                         colSpan={columns.length + (showActions ? 1 : 0) + 1}
-                        sx={{ backgroundColor: '#f9f9f9', p: 2 }}
+                        sx={{ backgroundColor: 'var(--bg-secondary)', p: 2 }}
                       >
                         {renderExpandedContent(item)}
                       </TableCell>
@@ -186,4 +186,5 @@ const DataTable = ({
   );
 };
 
-export default DataTable;
+// Memoize DataTable to prevent unnecessary re-renders when parent re-renders
+export default memo(DataTable);

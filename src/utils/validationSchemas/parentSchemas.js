@@ -11,11 +11,27 @@ export const createParentBasicInfoSchema = yup.object({
     .string()
     .required('Email là bắt buộc')
     .email('Email không hợp lệ'),
+  phoneNumber: yup
+    .string()
+    .optional()
+    .matches(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
   password: yup
     .string()
     .required('Mật khẩu là bắt buộc')
     .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
-    .max(50, 'Mật khẩu không được quá 50 ký tự')
+    .max(50, 'Mật khẩu không được quá 50 ký tự'),
+  avatarFile: yup
+    .mixed()
+    .nullable()
+    .notRequired()
+    .test('is-file-or-null', 'Ảnh đại diện phải là file hợp lệ', (value) => {
+      if (!value || value === '') return true; // null/undefined/empty string is allowed
+      if (value instanceof File) {
+        // Validate file type
+        return value.type.startsWith('image/');
+      }
+      return false;
+    })
 });
 
 // Schema for Step 2: CCCD Info (all optional)

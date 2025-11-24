@@ -24,6 +24,7 @@ const ProtectedRoute = ({ allowedRoles = [], redirectTo, children }) => {
   }
 
   if (!isAuthenticated || !user) {
+    console.log('[ProtectedRoute] Not authenticated, redirecting to login', { isAuthenticated, user, path: location.pathname });
     return (
       <Navigate
         to="/login"
@@ -35,8 +36,13 @@ const ProtectedRoute = ({ allowedRoles = [], redirectTo, children }) => {
 
   if (allowedRoles.length > 0) {
     const userRole = user.role;
+    
+    // Normalize role comparison (case-insensitive)
+    const normalizedUserRole = userRole?.toLowerCase();
+    const normalizedAllowedRoles = allowedRoles.map(role => role?.toLowerCase());
 
-    if (!allowedRoles.includes(userRole)) {
+    if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
+      console.log('[ProtectedRoute] Role mismatch', { userRole, allowedRoles, path: location.pathname });
       const fallbackPath = redirectTo || ROLE_DEFAULT_PATHS[userRole] || '/';
       return <Navigate to={fallbackPath} replace />;
     }

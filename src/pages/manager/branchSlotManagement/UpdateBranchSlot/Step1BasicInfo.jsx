@@ -117,7 +117,6 @@ const Step1BasicInfo = forwardRef(({ data, updateData, stepIndex, totalSteps, ti
           defaultValues={defaultValues}
           onSubmit={handleSubmit}
           fields={formFields}
-          showReset={false}
           hideSubmitButton={true}
           disabled={dependenciesLoading}
         />

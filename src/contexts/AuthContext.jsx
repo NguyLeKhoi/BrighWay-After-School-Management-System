@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
           setUser(userData);
           setIsAuthenticated(true);
         }
-      } catch (error) {
+      } catch {
         // Clear invalid data
         localStorage.removeItem('user');
         localStorage.removeItem('accessToken');
@@ -56,8 +56,6 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       
       return response;
-    } catch (error) {
-      throw error;
     } finally {
       setLoading(false);
     }
@@ -76,7 +74,7 @@ export const AuthProvider = ({ children }) => {
       
       // Redirect to login
       window.location.href = '/login';
-    } catch (error) {
+    } catch {
       // Force logout even if error
       setUser(null);
       setIsAuthenticated(false);

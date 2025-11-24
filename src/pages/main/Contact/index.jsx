@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import Form from '@components/Common/Form';
 import InfoGrid from '@components/Common/InfoGrid';
+import PageTransition from '@components/Common/PageTransition';
 import styles from './Contact.module.css';
 
 const Contact = () => {
@@ -8,7 +10,7 @@ const Contact = () => {
     name: '',
     email: '',
     phone: '',
-    company: '',
+    childAge: '',
     message: ''
   });
 
@@ -26,52 +28,62 @@ const Contact = () => {
   };
 
   const formFields = [
-    { name: 'name', label: 'Name', type: 'text', value: formData.name, onChange: handleChange, required: true },
-    { name: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange, required: true },
-    { name: 'phone', label: 'Phone', type: 'tel', value: formData.phone, onChange: handleChange },
-    { name: 'company', label: 'Company', type: 'text', value: formData.company, onChange: handleChange },
-    { name: 'message', label: 'Message', type: 'textarea', value: formData.message, onChange: handleChange, required: true, rows: 6 }
-  ];
-
-  const contactInfo = [
-    { label: 'Address', value: '123 Education Street, Learning City' },
-    { label: 'Phone', value: '+1 (555) 123-4567' },
-    { label: 'Email', value: 'info@education.com' },
-    { label: 'Hours', value: 'Mon-Fri: 9AM-6PM' },
-    { label: 'Website', value: 'www.education.com' },
-    { label: 'Social', value: '@education_center' }
+    { name: 'name', label: 'Họ và Tên Phụ Huynh', type: 'text', value: formData.name, onChange: handleChange, required: true, placeholder: 'Nhập họ và tên của bạn' },
+    { name: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange, required: true, placeholder: 'example@email.com' },
+    { name: 'phone', label: 'Số Điện Thoại', type: 'tel', value: formData.phone, onChange: handleChange, required: true, placeholder: '0900 123 456' },
+    { name: 'childAge', label: 'Độ Tuổi Của Trẻ', type: 'text', value: formData.childAge, onChange: handleChange, placeholder: 'Ví dụ: 5-7 tuổi (nếu có nhiều trẻ, vui lòng ghi rõ)' },
+    { name: 'message', label: 'Nội Dung Yêu Cầu', type: 'textarea', value: formData.message, onChange: handleChange, required: true, rows: 6, placeholder: 'Vui lòng cho chúng tôi biết nhu cầu của bạn về dịch vụ giữ trẻ, gói dịch vụ quan tâm, hoặc bất kỳ câu hỏi nào bạn muốn được tư vấn...' }
   ];
 
   return (
-    <div className={styles.contact}>
-      <section className={styles.contactFormSection}>
-        <div className={styles.contactContainer}>
-          <div className={styles.formWrapper}>
-            <div className={styles.formContent}>
-              <h1 className={styles.contactTitle}>Get in touch</h1>
-              <p className={styles.contactSubtitle}>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+    <PageTransition>
+      <div className={styles.contact}>
+        <section className={styles.contactFormSection}>
+          <div className={styles.contactContainer}>
+            <motion.div 
+              className={styles.formWrapper}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.div 
+                className={styles.formContent}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <h1 className={styles.contactTitle}>Liên Hệ Với Chúng Tôi</h1>
+                <p className={styles.contactSubtitle}>
+                  Bạn đang tìm kiếm dịch vụ giữ trẻ chất lượng với các hoạt động ngoài giờ phong phú? 
+                  Hãy liên hệ với BRIGHWAY ngay hôm nay! Đội ngũ của chúng tôi luôn sẵn sàng tư vấn và hỗ trợ bạn 
+                  tìm được giải pháp phù hợp nhất cho con em của bạn.
+                </p>
+                
+                <Form
+                  fields={formFields}
+                  onSubmit={handleSubmit}
+                  submitText="Gửi Tin Nhắn"
+                  className={styles.contactForm}
+                />
+              </motion.div>
               
-              <Form
-                fields={formFields}
-                onSubmit={handleSubmit}
-                submitText="Send message"
-                className={styles.contactForm}
-              />
-            </div>
-            
-            <div className={styles.imageContent}>
-              <div className={styles.imagePlaceholder}>Image</div>
-            </div>
+              <motion.div 
+                className={styles.imageContent}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <img 
+                  src="/images/6.jpg" 
+                  alt="Liên hệ BRIGHWAY - Dịch vụ giữ trẻ an toàn và chất lượng"
+                  className={styles.contactImage}
+                />
+              </motion.div>
+            </motion.div>
           </div>
-        </div>
-      </section>
-
-      <section className={styles.informationSection}>
-        <div className={styles.informationContainer}>
-          <InfoGrid items={contactInfo} columns={3} />
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </PageTransition>
   );
 };
 

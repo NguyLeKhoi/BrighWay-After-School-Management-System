@@ -5,8 +5,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  padding: 20px;
+  background: var(--bg-primary);
+  padding: var(--spacing-5);
   margin: 0;
   box-sizing: border-box;
   position: relative;
@@ -23,12 +23,12 @@
 }
 
 .notfoundContainer {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  padding: 50px 40px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: 48px 40px;
   width: 100%;
-  max-width: 600px;
+  max-width: 700px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
@@ -42,78 +42,97 @@
 }
 
 .errorCode {
-  font-size: 72px;
+  font-size: 96px;
   font-weight: 900;
-  color: #1976d2;
-  margin-bottom: 10px;
+  font-family: var(--font-family-heading);
+  color: var(--color-primary);
+  margin-bottom: 16px;
   line-height: 1;
+  letter-spacing: -2px;
 }
 
 .errorTitle {
   font-size: 32px;
   font-weight: 700;
-  color: #333;
-  margin-bottom: 15px;
+  font-family: var(--font-family);
+  color: var(--color-gray-900);
+  margin-bottom: 16px;
+  line-height: 1.2;
 }
 
 .errorDescription {
   font-size: 16px;
-  color: #666;
+  font-family: var(--font-family);
+  color: var(--color-gray-600);
   line-height: 1.6;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .errorActions {
   display: flex;
-  gap: 15px;
-  margin-bottom: 30px;
+  gap: 12px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
 }
 
 .homeButton,
 .backButton {
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 14px 28px;
+  border-radius: 12px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 14px;
+  font-family: var(--font-family);
+  font-size: 15px;
   transition: all 0.3s ease;
   border: none;
   cursor: pointer;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  text-align: center;
 }
 
 .homeButton {
-  background-color: #1976d2;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .homeButton:hover {
-  background-color: #1565c0;
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
   transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+  color: white;
 }
 
 .backButton {
   background-color: transparent;
-  color: #1976d2;
-  border: 2px solid #1976d2;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  font-weight: 600;
 }
 
 .backButton:hover {
-  background-color: #1976d2;
+  background: var(--color-primary);
   color: white;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  border-color: var(--color-primary);
 }
 
 .helpLinks {
-  border-top: 1px solid #e1e5e9;
-  padding-top: 25px;
+  border-top: 1px solid var(--color-gray-200);
+  padding-top: 32px;
+  margin-top: 8px;
 }
 
 .helpText {
   font-size: 14px;
-  color: #666;
-  margin-bottom: 15px;
-  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-family: var(--font-family);
 }
 
 .helpList {
@@ -121,8 +140,8 @@
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .helpList li {
@@ -130,21 +149,29 @@
 }
 
 .helpLink {
-  color: #1976d2;
+  color: var(--color-primary);
   text-decoration: none;
   font-size: 14px;
+  font-family: var(--font-family);
   font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 12px 16px;
+  border-radius: 10px;
   transition: all 0.3s ease;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--color-gray-200);
+  min-height: 44px;
 }
 
 .helpLink:hover {
-  background-color: #e3f2fd;
-  color: #1565c0;
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-dark);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
 }
 
 .notfoundIllustration {
@@ -156,7 +183,7 @@
 .illustrationContainer {
   width: 200px;
   height: 200px;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -171,7 +198,7 @@
   left: -10px;
   right: -10px;
   bottom: -10px;
-  border: 2px dashed #1976d2;
+  border: 2px dashed var(--color-primary);
   border-radius: 50%;
   opacity: 0.3;
 }
@@ -185,9 +212,9 @@
 @media (max-width: 768px) {
   .notfoundContainer {
     grid-template-columns: 1fr;
-    gap: 30px;
+    gap: 32px;
     text-align: center;
-    padding: 40px 30px;
+    padding: 40px 32px;
   }
   
   .notfoundContent {
@@ -195,70 +222,119 @@
   }
   
   .errorCode {
-    font-size: 60px;
+    font-size: 72px;
+    margin-bottom: 12px;
   }
   
   .errorTitle {
     font-size: 28px;
+    margin-bottom: 12px;
+  }
+  
+  .errorDescription {
+    margin-bottom: 28px;
   }
   
   .errorActions {
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  
+  .homeButton,
+  .backButton {
+    min-width: 120px;
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+  
+  .helpLinks {
+    padding-top: 28px;
   }
   
   .helpList {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .helpLink {
+    padding: 10px 14px;
+    font-size: 13px;
+    min-height: 40px;
   }
   
   .illustrationContainer {
-    width: 150px;
-    height: 150px;
+    width: 160px;
+    height: 160px;
   }
   
   .illustrationIcon {
-    font-size: 60px;
+    font-size: 64px;
   }
 }
 
 @media (max-width: 480px) {
   .notfoundPage {
-    padding: 15px;
+    padding: 20px 16px;
   }
   
   .notfoundContainer {
-    padding: 30px 25px;
+    padding: 32px 24px;
+    gap: 28px;
   }
   
   .errorCode {
-    font-size: 48px;
+    font-size: 64px;
+    margin-bottom: 12px;
   }
   
   .errorTitle {
     font-size: 24px;
+    margin-bottom: 12px;
+  }
+  
+  .errorDescription {
+    font-size: 15px;
+    margin-bottom: 24px;
   }
   
   .errorActions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    gap: 10px;
   }
   
   .homeButton,
   .backButton {
     width: 100%;
-    max-width: 200px;
+    max-width: none;
+    padding: 14px 24px;
+  }
+  
+  .helpLinks {
+    padding-top: 24px;
+  }
+  
+  .helpText {
+    margin-bottom: 12px;
   }
   
   .helpList {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .helpLink {
+    padding: 12px 16px;
+    min-height: 44px;
   }
   
   .illustrationContainer {
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
   }
   
   .illustrationIcon {
-    font-size: 50px;
+    font-size: 56px;
   }
 }

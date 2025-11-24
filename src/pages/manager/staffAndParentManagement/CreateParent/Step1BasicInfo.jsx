@@ -1,6 +1,7 @@
 import React, { useImperativeHandle, useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Grid } from '@mui/material';
 import Form from '../../../../components/Common/Form';
+import ImageUpload from '../../../../components/Common/ImageUpload';
 import { createParentBasicInfoSchema } from '../../../../utils/validationSchemas/parentSchemas';
 
 const Step1BasicInfo = React.forwardRef(
@@ -28,6 +29,14 @@ const Step1BasicInfo = React.forwardRef(
           gridSize: 6
         },
         {
+          name: 'phoneNumber',
+          label: 'Số điện thoại',
+          type: 'tel',
+          required: false,
+          placeholder: 'Ví dụ: 0901234567',
+          gridSize: 6
+        },
+        {
           name: 'password',
           label: 'Mật khẩu',
           type: 'password',
@@ -43,19 +52,30 @@ const Step1BasicInfo = React.forwardRef(
       () => ({
         name: data.name || '',
         email: data.email || '',
-        password: data.password || ''
+        phoneNumber: data.phoneNumber || '',
+        password: data.password || '',
+        avatarFile: data.avatarFile || null
       }),
       [data]
     );
 
     const handleSubmit = async (formValues) => {
-      updateData(formValues);
+      // Merge avatarFile from data into formValues
+      const mergedData = {
+        ...formValues,
+        avatarFile: data.avatarFile || formValues.avatarFile || null
+      };
+      updateData(mergedData);
       return true;
     };
 
     useImperativeHandle(ref, () => ({
       submit: async () => {
         if (formRef.current?.submit) {
+          // Ensure avatarFile is set in form before submitting
+          if (data.avatarFile && formRef.current?.setValue) {
+            formRef.current.setValue('avatarFile', data.avatarFile, { shouldValidate: false });
+          }
           return await formRef.current.submit();
         }
         return false;
@@ -78,9 +98,37 @@ const Step1BasicInfo = React.forwardRef(
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
             fields={fields}
-            showReset={false}
             hideSubmitButton
           />
+          
+          {/* Image Upload Section */}
+          <Box sx={{ mt: 2 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <ImageUpload
+                  value={data.avatarFile || null}
+                  onChange={(file) => {
+                    // Get current form values to preserve them
+                    const currentFormValues = formRef.current?.getValues ? formRef.current.getValues() : {};
+                    // Merge current form values with new avatarFile
+                    updateData({ 
+                      ...data, 
+                      ...currentFormValues, // Preserve form values
+                      avatarFile: file 
+                    });
+                    // Also update form value
+                    if (formRef.current?.setValue) {
+                      formRef.current.setValue('avatarFile', file, { shouldValidate: false });
+                    }
+                  }}
+                  label="Ảnh đại diện (tùy chọn)"
+                  helperText="Chọn file ảnh để tải lên (JPG, PNG, etc.) - Tối đa 10MB"
+                  accept="image/*"
+                  maxSize={10 * 1024 * 1024}
+                />
+              </Grid>
+            </Grid>
+          </Box>
         </Box>
       </Box>
     );
@@ -90,4 +138,10 @@ const Step1BasicInfo = React.forwardRef(
 Step1BasicInfo.displayName = 'CreateParentStep1BasicInfo';
 
 export default Step1BasicInfo;
+export { Step1BasicInfo };
+
+
+
+
+
 

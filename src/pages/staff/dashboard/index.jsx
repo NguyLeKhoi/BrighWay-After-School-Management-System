@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Box, Typography, Paper, Grid, Card, CardContent } from '@mui/material';
 import {
   People as PeopleIcon,
@@ -9,6 +10,7 @@ import {
 import userService from '../../../services/user.service';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
+import AnimatedCard from '../../../components/Common/AnimatedCard';
 import styles from './dashboard.module.css';
 
 const StaffDashboard = () => {
@@ -104,20 +106,31 @@ const StaffDashboard = () => {
   return (
     <>
       {isLoading && <Loading />}
-      <div className={styles.container}>
-        <div className={styles.header}>
+      <motion.div 
+        className={styles.container}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div 
+          className={styles.header}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
           <Typography variant="h4" className={styles.title}>
             Dashboard Staff
           </Typography>
           <Typography variant="body1" className={styles.subtitle}>
             Chào mừng đến với trang quản lý của Staff
           </Typography>
-        </div>
+        </motion.div>
 
         <Grid container spacing={3} className={styles.statsGrid}>
           {statCards.map((stat, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
-              <Card className={styles.statCard}>
+              <AnimatedCard delay={index * 0.1}>
+                <Card className={styles.statCard}>
                 <CardContent>
                   <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
                     <Box>
@@ -148,20 +161,23 @@ const StaffDashboard = () => {
                   </Typography>
                 </CardContent>
               </Card>
+              </AnimatedCard>
             </Grid>
           ))}
         </Grid>
 
-        <Paper className={styles.infoCard} sx={{ mt: 3, p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Thông tin hệ thống
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Đây là trang dashboard dành cho Staff. Tại đây bạn có thể quản lý tài khoản người dùng (User),
-            tạo và cập nhật tài khoản gia đình, xem thống kê và thực hiện các tác vụ quản lý khác.
-          </Typography>
-        </Paper>
-      </div>
+        <AnimatedCard delay={0.4}>
+          <Paper className={styles.infoCard} sx={{ mt: 3, p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Thông tin hệ thống
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Đây là trang dashboard dành cho Staff. Tại đây bạn có thể quản lý tài khoản người dùng (User),
+              tạo và cập nhật tài khoản gia đình, xem thống kê và thực hiện các tác vụ quản lý khác.
+            </Typography>
+          </Paper>
+        </AnimatedCard>
+      </motion.div>
     </>
   );
 };

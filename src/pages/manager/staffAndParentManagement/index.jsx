@@ -1,26 +1,12 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
-  Alert,
-  Paper,
-  Tabs,
-  Tab,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  ToggleButton,
-  ToggleButtonGroup
+  Alert
 } from '@mui/material';
 import {
   Person as PersonIcon,
-  Groups as GroupsIcon,
-  FamilyRestroom as FamilyIcon,
-  PhotoCamera as PhotoCameraIcon,
-  Edit as EditIcon
+  Groups as GroupsIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
@@ -29,9 +15,12 @@ import StaffAccountForm from '../../../components/AccountForms/StaffAccountForm'
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import ManagementFormDialog from '../../../components/Management/FormDialog';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import { createUserSchema, updateManagerUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
+import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
 import { createManagerUserFormFields } from '../../../constants/manager/staff/formFields';
@@ -40,48 +29,43 @@ import styles from './staffAndParentManagement.module.css';
 
 const StaffAndParentManagement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInitialMount = React.useRef(true);
   
-  // Tab state
-  const [activeTab, setActiveTab] = useState(0); // 0 = Staff, 1 = User
-  
-  // Staff tab CRUD
-  const staffTab = useBaseCRUD({
-    loadFunction: async (params) => {
+  // Staff CRUD - memoize loadFunction to prevent unnecessary re-renders
+  const loadStaffFunction = useCallback(async (params) => {
       return await userService.getUsersPagedByRole({
         pageIndex: params.page || params.pageIndex || 1,
         pageSize: params.pageSize || params.rowsPerPage || 10,
         Role: 'Staff',
         Keyword: params.Keyword || params.searchTerm || ''
       });
-    },
-    loadOnMount: false // Don't auto-load, we'll load manually when tab is active
+  }, []);
+  
+  const staffCrud = useBaseCRUD({
+    loadFunction: loadStaffFunction,
+    loadOnMount: true
   });
-  
-  // User tab CRUD
-  const userTab = useBaseCRUD({
-    loadFunction: async (params) => {
-      return await userService.getUsersPagedByRole({
-        pageIndex: params.page || params.pageIndex || 1,
-        pageSize: params.pageSize || params.rowsPerPage || 10,
-        Role: 'User',
-        Keyword: params.Keyword || params.searchTerm || ''
-      });
-    },
-    loadOnMount: false // Don't auto-load, we'll load manually when tab is active
-  });
-  
-  // Get current tab data
-  const currentTab = activeTab === 0 ? staffTab : userTab;
-  
-  // Load data when tab changes
+
+  // Reload data when navigate back to this page (e.g., from create pages)
   useEffect(() => {
-    if (activeTab === 0) {
-      staffTab.loadData();
-    } else if (activeTab === 1) {
-      userTab.loadData();
+    if (location.pathname === '/manager/staff') {
+      // Skip first mount to avoid double loading
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      
+      // Only reload if we're actually navigating back (not just re-rendering)
+      // Use a ref to track if we've already reloaded for this pathname
+      const timeoutId = setTimeout(() => {
+        staffCrud.loadData(false);
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [location.pathname]);
   
   // Common state
   const [actionLoading, setActionLoading] = useState(false);
@@ -90,7 +74,6 @@ const StaffAndParentManagement = () => {
   // Dialog states
   const [openDialog, setOpenDialog] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
-  const [createMode, setCreateMode] = useState('staff');
   const [selectedUser, setSelectedUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -104,34 +87,44 @@ const StaffAndParentManagement = () => {
   
   // Global state
   const { showGlobalError } = useApp();
+  const { user } = useAuth();
   
-  // Tab change handler
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-  };
+  // Branch options state
+  const [branchOptions, setBranchOptions] = useState([]);
+  const [branchLoading, setBranchLoading] = useState(false);
+  
+  // Fetch branch options
+  useEffect(() => {
+    const fetchBranches = async () => {
+      setBranchLoading(true);
+      try {
+        const branches = await branchService.getAllBranches();
+        const options = branches.map(branch => ({
+          value: branch.id,
+          label: branch.branchName || branch.name || 'N/A'
+        }));
+        setBranchOptions(options);
+      } catch (err) {
+        console.error('Error fetching branches:', err);
+        setBranchOptions([]);
+      } finally {
+        setBranchLoading(false);
+      }
+    };
+    
+    fetchBranches();
+  }, []);
   
   const columns = useMemo(() => createStaffAndParentColumns(), []);
   const formFields = useMemo(
-    () => createManagerUserFormFields(actionLoading),
-    [actionLoading]
+    () => createManagerUserFormFields(actionLoading, branchOptions),
+    [actionLoading, branchOptions]
   );
   
   // Create handler
-  const handleCreateUser = () => {
-    const mode = activeTab === 0 ? 'staff' : 'parent';
-    setCreateMode(mode);
+  const handleCreateStaff = () => {
     setIsSubmitting(false);
-    
-    if (mode === 'parent') {
-      // Show mode selection dialog for parent
-      setShowParentModeDialog(true);
-    } else {
       setOpenCreateDialog(true);
-    }
-  };
-
-  const handleNavigateToCreateParent = (parentMode) => {
-    navigate(`/manager/staffAndParent/create-parent?mode=${parentMode}`);
   };
   
   // Edit handler
@@ -179,9 +172,9 @@ const StaffAndParentManagement = () => {
       
       toast.success('Xóa người dùng thành công!');
       
-      // Reload current tab
-      if (currentTab.loadData) {
-        currentTab.loadData(false);
+      // Reload data
+      if (staffCrud.loadData) {
+        staffCrud.loadData(false);
       }
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa người dùng';
@@ -198,29 +191,19 @@ const StaffAndParentManagement = () => {
     setActionLoading(true);
     
     try {
+      // Only allow updating name and branchId
       const updateData = {
-        fullName: data.name || data.fullName,
-        email: data.email,
-        isActive: data.isActive
+        name: data.name || data.fullName || selectedUser?.name || selectedUser?.fullName || '',
+        branchId: data.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null
       };
-      
-      // Add phoneNumber if provided
-      if (data.phoneNumber) {
-        updateData.phoneNumber = data.phoneNumber;
-      }
-      
-      // Add password if provided
-      if (data.password && data.password.trim()) {
-        updateData.password = data.password;
-      }
       
       await userService.updateUserByManager(selectedUser.id, updateData);
       
       toast.success(`Cập nhật người dùng "${data.name || data.fullName}" thành công!`);
       
-      // Reload current tab
-      if (currentTab.loadData) {
-        currentTab.loadData(false);
+      // Reload data
+      if (staffCrud.loadData) {
+        staffCrud.loadData(false);
       }
       setOpenDialog(false);
     } catch (err) {
@@ -238,8 +221,8 @@ const StaffAndParentManagement = () => {
     try {
       await userService.createStaff(data);
       toast.success('Tạo tài khoản Staff thành công!');
-      if (staffTab.loadData) {
-        staffTab.loadData(false);
+      if (staffCrud.loadData) {
+        staffCrud.loadData(false);
       }
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản';
@@ -250,71 +233,19 @@ const StaffAndParentManagement = () => {
     }
   };
   
-  // Parent creation mode state
-  const [parentCreationMode, setParentCreationMode] = useState('ocr'); // 'ocr' or 'manual'
-  const [showParentModeDialog, setShowParentModeDialog] = useState(false);
-
-  // Parent submit handler - with CCCD
-  const handleParentSubmitWithCCCD = async (data) => {
-    try {
-      await userService.createParentWithCCCD(data);
-      toast.success(`Tạo tài khoản User (Parent) "${data.name}" thành công!`);
-      if (userTab.loadData) {
-        userTab.loadData(false);
-      }
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage);
-      throw err;
-    }
-  };
-
-  // Parent submit handler - manual
-  const handleParentSubmitManual = async (data) => {
-    try {
-      // If has CCCD data, use with CCCD endpoint, otherwise use regular endpoint
-      if (data.identityCardNumber || data.identityCardPublicId) {
-        await handleParentSubmitWithCCCD(data);
-      } else {
-        const parentData = {
-          email: data.email,
-          password: data.password,
-          name: data.name || data.fullName
-        };
-        await userService.createParent(parentData);
-        toast.success(`Tạo tài khoản User (Parent) "${parentData.name}" thành công!`);
-        if (userTab.loadData) {
-          userTab.loadData(false);
-        }
-      }
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage);
-      throw err;
-    }
-  };
-
-  // Handle parent creation mode selection
-  const handleParentModeSelect = (mode) => {
-    setParentCreationMode(mode);
-    setShowParentModeDialog(false);
-  };
-  
   return (
     <div className={styles.container}>
+      {staffCrud.isPageLoading && <ContentLoading isLoading={staffCrud.isPageLoading} text={staffCrud.loadingText} />}
+      
       {/* Header */}
       <ManagementPageHeader
-        title="Quản lý Staff & User"
-        createButtonText={activeTab === 0 ? 'Tạo Nhân Viên' : 'Tạo User (Parent)'}
-        onCreateClick={handleCreateUser}
+        title="Quản lý Nhân Viên"
+        createButtonText="Tạo Nhân Viên"
+        onCreateClick={handleCreateStaff}
       />
 
       {/* Error Alert */}
-      {(error || currentTab.error) && (
+      {(error || staffCrud.error) && (
         <Alert 
           severity="error" 
           className={styles.errorAlert} 
@@ -322,174 +253,35 @@ const StaffAndParentManagement = () => {
             setError(null);
           }}
         >
-          {error || currentTab.error}
+          {error || staffCrud.error}
         </Alert>
       )}
 
-      {/* Tabs */}
-      <Paper 
-        sx={{ 
-          mb: 3,
-          borderRadius: 2,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          overflow: 'hidden'
-        }}
-      >
-        <Tabs 
-          value={activeTab} 
-          onChange={handleTabChange}
-          variant="fullWidth"
-          sx={{
-            '& .MuiTab-root': {
-              textTransform: 'none',
-              fontSize: '15px',
-              fontWeight: 500,
-              minHeight: 64,
-              padding: '12px 24px',
-              color: 'text.secondary',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                color: 'primary.main'
-              },
-              '&.Mui-selected': {
-                color: 'primary.main',
-                fontWeight: 600
-              }
-            },
-            '& .MuiTabs-indicator': {
-              height: 3,
-              borderRadius: '3px 3px 0 0',
-              backgroundColor: '#1976d2'
-            }
-          }}
-        >
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <GroupsIcon sx={{ fontSize: 22 }} />
-                <Box>
-                  <Box component="span" sx={{ display: 'block', fontWeight: 'inherit' }}>
-                    Nhân Viên
-                  </Box>
-                  <Box 
-                    component="span" 
-                    sx={{ 
-                      display: 'block', 
-                      fontSize: '11px', 
-                      fontWeight: 400,
-                      opacity: 0.7,
-                      mt: 0.25
-                    }}
-                  >
-                    Staff
-                  </Box>
-                </Box>
-              </Box>
-            }
-            iconPosition="start"
-            sx={{
-              '&.Mui-selected': {
-                '& .MuiSvgIcon-root': {
-                  color: 'primary.main'
-                }
-              }
-            }}
-          />
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <FamilyIcon sx={{ fontSize: 22 }} />
-                <Box>
-                  <Box component="span" sx={{ display: 'block', fontWeight: 'inherit' }}>
-                    Người Dùng
-                  </Box>
-                  <Box 
-                    component="span" 
-                    sx={{ 
-                      display: 'block', 
-                      fontSize: '11px', 
-                      fontWeight: 400,
-                      opacity: 0.7,
-                      mt: 0.25
-                    }}
-                  >
-                    User/Parent
-                  </Box>
-                </Box>
-              </Box>
-            }
-            iconPosition="start"
-            sx={{
-              '&.Mui-selected': {
-                '& .MuiSvgIcon-root': {
-                  color: 'primary.main'
-                }
-              }
-            }}
-          />
-        </Tabs>
-      </Paper>
-
-      {/* Tab Content */}
+      {/* Content */}
       <Box sx={{ mt: 2 }}>
-        {/* Staff Tab */}
-        {activeTab === 0 && (
-          <Box>
             <ManagementSearchSection
-              keyword={staffTab.keyword}
-              onKeywordChange={staffTab.handleKeywordChange}
-              onSearch={staffTab.handleKeywordSearch}
-              onClear={staffTab.handleClearSearch}
+          keyword={staffCrud.keyword}
+          onKeywordChange={staffCrud.handleKeywordChange}
+          onSearch={staffCrud.handleKeywordSearch}
+          onClear={staffCrud.handleClearSearch}
               placeholder="Tìm kiếm nhân viên theo tên, email..."
             />
 
             <div className={styles.tableContainer}>
               <DataTable
-                data={staffTab.data}
+            data={staffCrud.data}
                 columns={columns}
-                loading={staffTab.isPageLoading}
-                page={staffTab.page}
-                rowsPerPage={staffTab.rowsPerPage}
-                totalCount={staffTab.totalCount}
-                onPageChange={staffTab.handlePageChange}
-                onRowsPerPageChange={staffTab.handleRowsPerPageChange}
+            loading={staffCrud.isPageLoading}
+            page={staffCrud.page}
+            rowsPerPage={staffCrud.rowsPerPage}
+            totalCount={staffCrud.totalCount}
+            onPageChange={staffCrud.handlePageChange}
+            onRowsPerPageChange={staffCrud.handleRowsPerPageChange}
                 onEdit={handleEditUser}
                 onDelete={handleDeleteUser}
                 emptyMessage="Không có nhân viên nào. Hãy tạo tài khoản nhân viên đầu tiên để bắt đầu."
               />
             </div>
-          </Box>
-        )}
-
-        {/* User Tab */}
-        {activeTab === 1 && (
-          <Box>
-            <ManagementSearchSection
-              keyword={userTab.keyword}
-              onKeywordChange={userTab.handleKeywordChange}
-              onSearch={userTab.handleKeywordSearch}
-              onClear={userTab.handleClearSearch}
-              placeholder="Tìm kiếm người dùng theo tên, email..."
-            />
-
-            <div className={styles.tableContainer}>
-              <DataTable
-                data={userTab.data}
-                columns={columns}
-                loading={userTab.isPageLoading}
-                page={userTab.page}
-                rowsPerPage={userTab.rowsPerPage}
-                totalCount={userTab.totalCount}
-                onPageChange={userTab.handlePageChange}
-                onRowsPerPageChange={userTab.handleRowsPerPageChange}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
-                emptyMessage="Không có người dùng nào. Hãy tạo tài khoản người dùng đầu tiên để bắt đầu."
-              />
-            </div>
-          </Box>
-        )}
       </Box>
 
       {/* Edit Dialog */}
@@ -506,9 +298,7 @@ const StaffAndParentManagement = () => {
           schema={updateManagerUserSchema}
           defaultValues={{
             name: selectedUser?.name || selectedUser?.fullName || '',
-            email: selectedUser?.email || '',
-            password: '',
-            isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
+            branchId: selectedUser?.branchId || selectedUser?.branch?.id || ''
           }}
           onSubmit={handleFormSubmit}
           submitText="Cập nhật Thông Tin"
@@ -530,123 +320,29 @@ const StaffAndParentManagement = () => {
         confirmColor="error"
       />
 
-      {/* Parent Mode Selection Dialog */}
-      <Dialog
-        open={showParentModeDialog}
-        onClose={() => setShowParentModeDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          Chọn phương thức tạo tài khoản Phụ huynh
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Vui lòng chọn một trong hai phương thức sau:
-          </Typography>
-          <ToggleButtonGroup
-            value={parentCreationMode}
-            exclusive
-            onChange={(e, value) => value && setParentCreationMode(value)}
-            fullWidth
-            orientation="vertical"
-            sx={{ gap: 2 }}
-          >
-            <ToggleButton
-              value="ocr"
-              sx={{
-                p: 3,
-                textAlign: 'left',
-                justifyContent: 'flex-start',
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.50',
-                  borderColor: 'primary.main',
-                  borderWidth: 2
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                <PhotoCameraIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Sử dụng OCR (Chụp CCCD)
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tự động trích xuất thông tin từ ảnh CCCD
-                  </Typography>
-                </Box>
-              </Box>
-            </ToggleButton>
-            <ToggleButton
-              value="manual"
-              sx={{
-                p: 3,
-                textAlign: 'left',
-                justifyContent: 'flex-start',
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.50',
-                  borderColor: 'primary.main',
-                  borderWidth: 2
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                <EditIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Nhập thủ công
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Nhập thông tin từng bước bằng form
-                  </Typography>
-                </Box>
-              </Box>
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowParentModeDialog(false)}>
-            Hủy
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setShowParentModeDialog(false);
-              handleNavigateToCreateParent(parentCreationMode);
-            }}
-          >
-            Tiếp tục
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Create Account Dialog */}
       <ManagementFormDialog
         open={openCreateDialog}
         onClose={() => {
           if (!isSubmitting) {
             setOpenCreateDialog(false);
-            setCreateMode('staff');
             setIsSubmitting(false);
           }
         }}
         mode="create"
-        title={createMode === 'staff' ? 'Tài Khoản Nhân Viên' : 'Tài Khoản User (Parent)'}
-        icon={createMode === 'staff' ? GroupsIcon : FamilyIcon}
+        title="Tài Khoản Nhân Viên"
+        icon={GroupsIcon}
         loading={isSubmitting}
-        maxWidth={createMode === 'parent' && parentCreationMode === 'manual' ? 'lg' : 'md'}
+        maxWidth="md"
       >
-        {createMode === 'staff' ? (
           <StaffAccountForm
             isSubmitting={isSubmitting}
             setIsSubmitting={setIsSubmitting}
             onStaffSubmit={handleStaffSubmit}
             onSuccess={() => {
               setOpenCreateDialog(false);
-              setCreateMode('staff');
             }}
           />
-        ) : null}
       </ManagementFormDialog>
     </div>
   );

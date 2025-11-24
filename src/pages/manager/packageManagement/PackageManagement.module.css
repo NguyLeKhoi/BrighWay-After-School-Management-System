@@ -1,6 +1,6 @@
  .container {
   padding: 24px;
-  background-color: #f5f5f5;
+  background: var(--bg-secondary);
   min-height: calc(100vh - 64px);
 }
 
@@ -16,9 +16,10 @@
 }
 
 .tableWrapper {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
   overflow: hidden;
 }
 
@@ -45,8 +46,9 @@
 }
 
 .sectionTitle {
-  font-weight: 600;
-  color: #0d47a1;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  color: var(--color-primary-dark);
   margin-bottom: 12px;
 }
 
@@ -68,13 +70,15 @@
 }
 
 .infoText {
-  color: #1a237e;
-  font-weight: 500;
+  color: var(--color-primary-dark);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
 }
 
 .dependenciesHint {
-  font-size: 13px;
-  color: #757575;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  color: var(--text-secondary);
   margin-bottom: 12px;
 }
 
@@ -110,10 +114,11 @@
 }
 
 .templateTabContent {
-  background: #ffffff;
-  border-radius: 8px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
 }
 
 .templateLoading {
@@ -136,25 +141,27 @@
 }
 
 .templateCard {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
   padding: 16px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition: var(--transition-all);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: var(--bg-primary);
 }
 
 .templateCard:hover {
-  border-color: #1976d2;
-  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
 .templateCardActive {
-  border-color: #1976d2;
-  background: rgba(25, 118, 210, 0.08);
+  border-color: var(--color-primary);
+  background: var(--color-primary-50);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .templateMetrics {
@@ -174,8 +181,9 @@
 }
 
 .templateCardTitle {
-  font-weight: 600;
-  color: #0d47a1;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  color: var(--color-primary-dark);
 }
 
 .templateDescription {
@@ -189,15 +197,17 @@
 }
 
 .metricLabel {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .metricValue {
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  color: var(--text-primary);
 }
 
 .templateSelectButton {
@@ -210,9 +220,9 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 12px 16px;
-  border: 1px dashed #1976d2;
-  border-radius: 8px;
-  background: rgba(25, 118, 210, 0.04);
+  border: 1px dashed var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-50);
   margin-bottom: 16px;
   gap: 16px;
 }
@@ -230,8 +240,9 @@
 }
 
 .templateSummaryTitle {
-  font-weight: 600;
-  color: #0d47a1;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  color: var(--color-primary-dark);
 }
 
 .templateSummaryDesc {
@@ -249,8 +260,9 @@
 }
 
 .filterPlaceholder {
-  color: #90a4ae;
+  color: var(--text-tertiary);
   font-style: italic;
+  font-family: var(--font-family);
 }
 
 @media (max-width: 768px) {

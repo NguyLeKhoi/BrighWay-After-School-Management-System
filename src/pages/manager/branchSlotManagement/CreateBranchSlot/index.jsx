@@ -313,6 +313,7 @@ const CreateBranchSlot = () => {
         title="Tạo Ca Học Mới"
         icon={<BranchSlotIcon />}
         initialData={formData}
+        showStepConfirmation={true}
         stepProps={{
           timeframeOptions,
           slotTypeOptions,

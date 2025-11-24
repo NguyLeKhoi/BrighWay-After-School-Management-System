@@ -4,13 +4,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-
+  padding: var(--spacing-xl);
 }
 
 .loginContainer {
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,12 +20,15 @@
 .forgotLink {
   display: block;
   text-align: right;
-  color: #007bff;
+  color: var(--color-primary);
   text-decoration: none;
-  font-size: 14px;
-  margin-top: 10px;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  margin-top: var(--spacing-md);
+  transition: var(--transition-all);
 }
 
 .forgotLink:hover {
+  color: var(--color-primary-dark);
   text-decoration: underline;
 }

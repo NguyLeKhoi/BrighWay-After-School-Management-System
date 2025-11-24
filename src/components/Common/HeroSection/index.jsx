@@ -21,7 +21,13 @@ const HeroSection = ({
         )}
         {hasImage && (
           <div className={styles.heroImage}>
-            {imageContent || <div className={styles.imagePlaceholder}>Image</div>}
+            {imageContent || (
+              <img 
+                src={import.meta.env.VITE_IMAGE_HERO_SECTION_DEFAULT || ''} 
+                alt={title || "Hero image"}
+                className={styles.heroImageImg}
+              />
+            )}
           </div>
         )}
       </div>

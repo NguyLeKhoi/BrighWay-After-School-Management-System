@@ -1,6 +1,7 @@
 /* Branch Management Page Styles */
 .container {
   padding: 24px;
+  background: var(--bg-secondary);
 }
 
 .header {
@@ -11,32 +12,44 @@
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1976d2;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary-dark);
   margin: 0;
+  letter-spacing: -0.02em;
+  font-family: var(--font-family-heading);
 }
 
 .addButton {
-  background-color: #1976d2;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
+  background: var(--color-secondary);
+  color: var(--text-primary);
+  padding: 10px 20px;
+  border-radius: var(--radius-lg);
   text-transform: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .addButton:hover {
-  background-color: #1565c0;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Search Section */
 .searchSection {
-  padding: 16px;
+  padding: 20px;
   margin-bottom: 24px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
 }
 
 .searchContainer {
@@ -52,15 +65,22 @@
 }
 
 .searchButton {
-  background-color: #1976d2;
+  background: var(--color-secondary);
   color: white;
   text-transform: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
   padding: 8px 24px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
 }
 
 .searchButton:hover {
-  background-color: #1565c0;
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .searchButton:disabled {
@@ -88,9 +108,9 @@
   align-items: center;
   gap: 8px;
   padding: 16px 24px;
-  background-color: #1976d2;
+  background: var(--color-primary);
   color: white;
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .dialogTitleText {
@@ -170,11 +190,11 @@
 }
 
 .actionButton.edit {
-  color: #1976d2;
+  color: var(--color-primary);
 }
 
 .actionButton.edit:hover {
-  background-color: rgba(25, 118, 210, 0.08);
+  background-color: var(--color-primary-50);
 }
 
 .actionButton.delete {

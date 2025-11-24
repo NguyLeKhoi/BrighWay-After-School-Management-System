@@ -25,20 +25,22 @@
 }
 
 .addButton {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-  color: white;
-  font-weight: 600;
+  background: var(--color-secondary);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   text-transform: none;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
 }
 
 .addButton:hover {
-  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+  box-shadow: var(--shadow-md);
 }
 
 /* Search Section */
@@ -88,20 +90,22 @@
 }
 
 .searchButton {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-  color: white;
-  font-weight: 600;
+  background: var(--color-secondary);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   text-transform: none;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
 }
 
 .searchButton:hover {
-  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Error Alert */

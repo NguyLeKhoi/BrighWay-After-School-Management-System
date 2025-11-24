@@ -1,36 +1,40 @@
 .infoGrid {
   display: grid;
   grid-template-columns: repeat(var(--columns), 1fr);
-  gap: 24px;
+  gap: var(--spacing-6);
 }
 
 .infoItem {
-  padding: 24px;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  padding: var(--spacing-6);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-gray-200);
   text-align: center;
-  transition: all 0.3s ease;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
 }
 
 .infoItem:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-light);
 }
 
 .infoLabel {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  color: var(--color-gray-500);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-2);
 }
 
 .infoValue {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #2d3748;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family);
+  color: var(--color-gray-800);
   word-break: break-word;
 }
 

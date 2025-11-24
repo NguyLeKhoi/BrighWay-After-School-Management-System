@@ -107,7 +107,7 @@ export const addParentSchema = yup.object().shape({
     .string()
     .nullable()
     .max(20, 'Số điện thoại không được quá 20 ký tự')
-    .matches(/^[\d\s\-\+\(\)]*$/, 'Số điện thoại chỉ được chứa số và ký tự đặc biệt'),
+    .matches(/^[\d\s\-+()]*$/, 'Số điện thoại chỉ được chứa số và ký tự đặc biệt'),
   
   address: yup
     .string()
