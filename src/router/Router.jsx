@@ -29,6 +29,7 @@ import MyWallet from '../pages/user/wallet';
 import MyPackages from '../pages/user/packages';
 import Notifications from '../pages/user/notifications';
 import PaymentSuccess from '../pages/user/paymentSuccess';
+import PaymentCancel from '../pages/user/paymentCancel';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
@@ -68,6 +69,7 @@ import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 import StaffDashboard from '../pages/staff/dashboard';
 import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
+import StaffAssignments from '../pages/staff/assignments';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -121,6 +123,22 @@ export const routes = createBrowserRouter([
       {
         index: true,
         element: <PaymentSuccess />,
+      },
+    ],
+  },
+
+  // Payment Cancel Route (uses AuthLayout for background, but requires User role)
+  {
+    path: '/payment/cancel',
+    element: (
+      <ProtectedRoute allowedRoles={['User']}>
+        <AuthLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <PaymentCancel />,
       },
     ],
   },
@@ -349,6 +367,10 @@ export const routes = createBrowserRouter([
       {
         path: 'activities',
         element: <StaffActivities />,
+      },
+      {
+        path: 'assignments',
+        element: <StaffAssignments />,
       },
     ],
   },

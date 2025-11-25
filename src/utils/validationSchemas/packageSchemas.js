@@ -57,8 +57,7 @@ export const packageTemplateSchema = yup.object({
     .typeError('Slot mặc định phải là số')
     .required('Slot mặc định là bắt buộc')
     .min(yup.ref('minSlots'), 'Slot mặc định phải lớn hơn hoặc bằng slot thấp nhất')
-    .max(yup.ref('maxSlots'), 'Slot mặc định phải nhỏ hơn hoặc bằng slot cao nhất'),
-  isActive: yup.boolean().required()
+    .max(yup.ref('maxSlots'), 'Slot mặc định phải nhỏ hơn hoặc bằng slot cao nhất')
 });
 
 export const packageSchema = yup.object({

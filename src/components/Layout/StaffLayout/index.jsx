@@ -8,7 +8,7 @@ import {
   Dashboard as DashboardIcon,
   Category as ActivityTypeIcon,
   Event as ActivityIcon,
-  People as PeopleIcon
+  Assignment as AssignmentIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -36,6 +36,11 @@ const StaffLayout = () => {
       path: '/staff/activities',
       label: 'Hoạt Động',
       icon: ActivityIcon
+    },
+    {
+      path: '/staff/assignments',
+      label: 'Lịch Làm Việc',
+      icon: AssignmentIcon
     }
   ];
 

@@ -42,7 +42,7 @@ export const createStaffSchema = yup.object({
 });
 
 // Schema for updating user (Admin updates Manager, Manager updates Staff)
-// Only allows updating name and branchId
+// Allows updating name, branchId, and isActive
 export const updateUserSchema = yup.object({
   name: yup
     .string()
@@ -53,7 +53,10 @@ export const updateUserSchema = yup.object({
   branchId: yup
     .string()
     .optional()
-    .nullable()
+    .nullable(),
+  isActive: yup
+    .boolean()
+    .optional()
 });
 
 // Deprecated schemas for backward compatibility
