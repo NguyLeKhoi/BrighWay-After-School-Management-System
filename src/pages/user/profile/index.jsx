@@ -136,13 +136,26 @@ const UserProfile = () => {
       showLoading();
       
       const formDataToSend = new FormData();
+      
+      if (editingProfile) {
+        // For update: Id is required
+        formDataToSend.append('Id', editingProfile.id);
+      }
+      
+      // Name is required
       formDataToSend.append('Name', data.Name);
-      if (data.Phone) {
+      
+      // Phone is optional - append if provided (including empty string)
+      if (data.Phone !== undefined && data.Phone !== null) {
         formDataToSend.append('Phone', data.Phone);
       }
-      if (data.StudentRela) {
+      
+      // StudentRela is optional - append if provided (including empty string)
+      if (data.StudentRela !== undefined && data.StudentRela !== null) {
         formDataToSend.append('StudentRela', data.StudentRela);
       }
+      
+      // AvatarFile is optional - only append if provided as File
       if (familyAvatarFile instanceof File) {
         formDataToSend.append('AvatarFile', familyAvatarFile);
       }

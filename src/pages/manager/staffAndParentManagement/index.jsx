@@ -25,6 +25,7 @@ import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
 import { createManagerUserFormFields } from '../../../constants/manager/staff/formFields';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../../utils/errorHandler';
 import styles from './staffAndParentManagement.module.css';
 
 const StaffAndParentManagement = () => {
@@ -142,10 +143,13 @@ const StaffAndParentManagement = () => {
       }
       setOpenDialog(true);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi lấy thông tin người dùng';
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi lấy thông tin người dùng';
       setError(errorMessage);
       showGlobalError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
     } finally {
       setActionLoading(false);
     }
@@ -177,10 +181,13 @@ const StaffAndParentManagement = () => {
         staffCrud.loadData(false);
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi xóa người dùng';
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi xóa người dùng';
       setError(errorMessage);
       showGlobalError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
     } finally {
       setActionLoading(false);
     }
@@ -207,10 +214,13 @@ const StaffAndParentManagement = () => {
       }
       setOpenDialog(false);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi cập nhật người dùng';
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi cập nhật người dùng';
       setError(errorMessage);
       showGlobalError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
     } finally {
       setActionLoading(false);
     }
@@ -225,10 +235,13 @@ const StaffAndParentManagement = () => {
         staffCrud.loadData(false);
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản';
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi tạo tài khoản';
       setError(errorMessage);
       showGlobalError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
       throw err;
     }
   };

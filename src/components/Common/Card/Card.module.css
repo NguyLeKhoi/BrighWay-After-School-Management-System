@@ -217,6 +217,20 @@
   box-shadow: var(--shadow-md);
 }
 
+.dangerButton {
+  background: transparent;
+  color: var(--color-error, #d32f2f);
+  border: 2px solid var(--color-error, #d32f2f);
+  transition: all var(--transition-base);
+}
+
+.dangerButton:hover {
+  background: var(--color-error, #d32f2f);
+  color: var(--text-inverse, white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
 @media (max-width: 480px) {
   .card {
     padding: 20px;
