@@ -1,13 +1,13 @@
 import React, { useMemo, useState, useCallback, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { Box, Typography, Autocomplete, TextField, Checkbox, ListItemText, CircularProgress } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { DashboardCustomize as TemplateIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import StepperForm from '../../../../components/Common/StepperForm';
-import benefitService from '../../../../services/benefit.service';
 import packageTemplateService from '../../../../services/packageTemplate.service';
 import { createTemplateFormFields } from '../../../../constants/package/formFields';
 import Form from '../../../../components/Common/Form';
 import { packageTemplateSchema } from '../../../../utils/validationSchemas/packageSchemas';
+import { getErrorMessage } from '../../../../utils/errorHandler';
 import { toast } from 'react-toastify';
 
 const Step1TemplateBasic = forwardRef(({ data, updateData }, ref) => {
@@ -26,12 +26,22 @@ const Step1TemplateBasic = forwardRef(({ data, updateData }, ref) => {
     if (loading) return false;
     try {
       setLoading(true);
-      await packageTemplateService.updateTemplate(data.templateId, formValues);
-      updateData({ templateForm: formValues });
-      toast.success('Cập nhật thông tin mẫu gói thành công');
+      // Remove isActive from payload as backend DTO doesn't include it
+      const { isActive, ...payload } = formValues;
+      // Ensure name is not empty
+      if (!payload.name || payload.name.trim() === '') {
+        toast.error('Tên mẫu gói không được để trống');
+        return false;
+      }
+      // Only save to formData, don't call API yet
+      updateData({ templateForm: { ...(data.templateForm || {}), ...payload } });
       return true;
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Cập nhật mẫu gói thất bại');
+      const errorMessage = getErrorMessage(err) || 'Lưu thất bại';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
       return false;
     } finally {
       setLoading(false);
@@ -40,8 +50,8 @@ const Step1TemplateBasic = forwardRef(({ data, updateData }, ref) => {
 
   const fields = useMemo(() => {
     const all = createTemplateFormFields({ templateActionLoading: loading });
-    const keep = new Set(['name', 'isActive', 'desc']);
-    return all.filter(f => keep.has(f.name) || f.section === 'Thông tin cơ bản');
+    const keep = new Set(['name', 'desc']);
+    return all.filter(f => keep.has(f.name));
   }, [loading]);
 
   return (
@@ -78,11 +88,15 @@ const Step2PricingDuration = forwardRef(({ data, updateData }, ref) => {
       setLoading(true);
       const payload = (({ minPrice, defaultPrice, maxPrice, minDurationInMonths, defaultDurationInMonths, maxDurationInMonths }) =>
         ({ minPrice, defaultPrice, maxPrice, minDurationInMonths, defaultDurationInMonths, maxDurationInMonths }))(values);
-      await packageTemplateService.updateTemplate(data.templateId, payload);
+      // Only save to formData, don't call API yet
       updateData({ templateForm: { ...(data.templateForm || {}), ...payload } });
       return true;
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Lưu thất bại');
+      const errorMessage = getErrorMessage(err) || 'Lưu thất bại';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
       return false;
     } finally {
       setLoading(false);
@@ -128,11 +142,15 @@ const Step3Slots = forwardRef(({ data, updateData }, ref) => {
     try {
       setLoading(true);
       const payload = (({ minSlots, defaultTotalSlots, maxSlots }) => ({ minSlots, defaultTotalSlots, maxSlots }))(values);
-      await packageTemplateService.updateTemplate(data.templateId, payload);
+      // Only save to formData, don't call API yet
       updateData({ templateForm: { ...(data.templateForm || {}), ...payload } });
       return true;
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Lưu thất bại');
+      const errorMessage = getErrorMessage(err) || 'Lưu thất bại';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
       return false;
     } finally {
       setLoading(false);
@@ -162,63 +180,6 @@ const Step3Slots = forwardRef(({ data, updateData }, ref) => {
   );
 });
 
-const Step4AssignBenefits = forwardRef(({ data }, ref) => {
-  const [loading, setLoading] = useState(true);
-  const [options, setOptions] = useState([]);
-  const [selected, setSelected] = useState([]);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const benefits = await benefitService.getAllBenefits();
-        setOptions(benefits || []);
-        const existing = (data.templateForm?.benefitIds || data.benefitIds || []).filter(Boolean);
-        setSelected(existing);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [data.templateForm, data.benefitIds]);
-
-  useImperativeHandle(ref, () => ({
-    async submit() {
-      try {
-        await packageTemplateService.updateTemplate(data.templateId, { benefitIds: selected });
-        toast.success('Cập nhật lợi ích cho mẫu gói thành công');
-        return true;
-      } catch (err) {
-        toast.error(err.response?.data?.message || err.message || 'Cập nhật lợi ích thất bại');
-        return false;
-      }
-    }
-  }));
-
-  return (
-    <Box sx={{ display: 'grid', gap: 2 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Gán Lợi Ích cho Mẫu Gói</Typography>
-      {loading ? (
-        <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box>
-      ) : (
-        <Autocomplete
-          multiple
-          options={options}
-          getOptionLabel={(option) => option.name}
-          value={options.filter(b => selected.includes(b.id))}
-          onChange={(e, newVal) => setSelected(newVal.map(b => b.id))}
-          renderOption={(props, option) => (
-            <Box component="li" {...props}>
-              <Checkbox checked={selected.includes(option.id)} />
-              <ListItemText primary={option.name} secondary={option.description || 'Không có mô tả'} />
-            </Box>
-          )}
-          renderInput={(params) => <TextField {...params} placeholder="Tìm và chọn lợi ích..." />}
-        />
-      )}
-      <Typography variant="body2" color="text.secondary">Đã chọn: <b>{selected.length}</b> lợi ích</Typography>
-    </Box>
-  );
-});
 
 const UpdateTemplate = () => {
   const navigate = useNavigate();
@@ -232,8 +193,7 @@ const UpdateTemplate = () => {
         const template = await packageTemplateService.getTemplateById(id);
         setFormData({
           templateId: id,
-          templateForm: template,
-          benefitIds: (template?.benefits || []).map(b => b.id).filter(Boolean)
+          templateForm: template
         });
       } finally {
         setInitialLoading(false);
@@ -245,13 +205,38 @@ const UpdateTemplate = () => {
   const steps = useMemo(() => ([
     { label: 'Thông tin cơ bản', component: Step1TemplateBasic },
     { label: 'Giá & Thời hạn', component: Step2PricingDuration },
-    { label: 'Giới hạn slot', component: Step3Slots },
-    { label: 'Gán lợi ích', component: Step4AssignBenefits }
+    { label: 'Giới hạn slot', component: Step3Slots }
   ]), []);
 
-  const handleComplete = useCallback(() => {
-    navigate('/admin/packages');
-  }, [navigate]);
+  const handleComplete = useCallback(async (finalData) => {
+    try {
+      const templateForm = finalData?.templateForm || formData?.templateForm;
+      if (!templateForm) {
+        toast.error('Không tìm thấy dữ liệu để cập nhật');
+        return;
+      }
+
+      // Remove isActive from payload as backend DTO doesn't include it
+      const { isActive, ...payload } = templateForm;
+      
+      // Ensure name is not empty
+      if (!payload.name || payload.name.trim() === '') {
+        toast.error('Tên mẫu gói không được để trống');
+        return;
+      }
+
+      // Call API once with all collected data
+      await packageTemplateService.updateTemplate(id, payload);
+      toast.success('Cập nhật mẫu gói thành công!');
+      navigate('/admin/packages');
+    } catch (err) {
+      const errorMessage = getErrorMessage(err) || 'Cập nhật mẫu gói thất bại';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
+    }
+  }, [navigate, id, formData]);
 
   const handleCancel = useCallback(() => {
     navigate('/admin/packages');
