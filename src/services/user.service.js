@@ -228,23 +228,49 @@ const userService = {
   /**
    * Update user (Admin updates Manager/Staff users)
    * @param {string} userId - User ID
-   * @param {Object} userData - Updated user data { name, email, password?, isActive }
+   * @param {Object|FormData} userData - Updated user data { name, branchId } or FormData
    * @returns {Promise} Updated user
    */
   updateUser: async (userId, userData) => {
     try {
-      const updateData = {
-        name: userData.fullName || userData.name,
-        email: userData.email,
-        isActive: userData.isActive !== undefined ? userData.isActive : true
-      };
-      
-      // Add password if provided
-      if (userData.password && userData.password.trim()) {
-        updateData.password = userData.password;
+      // If FormData, send directly (for multipart/form-data)
+      if (userData instanceof FormData) {
+        const response = await axiosInstance.put(`/User/${userId}`, userData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        return response.data;
       }
       
-      const response = await axiosInstance.put(`/User/${userId}`, updateData);
+      // Otherwise, create FormData from object
+      const formData = new FormData();
+      
+      // Name is required
+      if (userData.name || userData.fullName) {
+        formData.append('Name', userData.name || userData.fullName);
+      }
+      
+      // BranchId is optional - append if provided (including empty string)
+      if (userData.branchId !== undefined && userData.branchId !== null) {
+        formData.append('BranchId', userData.branchId);
+      }
+      
+      // IsActive is optional - only append if explicitly provided
+      if (userData.isActive !== undefined) {
+        formData.append('IsActive', userData.isActive.toString());
+      }
+      
+      // AvatarFile is optional - only append if provided as File
+      if (userData.avatarFile instanceof File) {
+        formData.append('AvatarFile', userData.avatarFile);
+      }
+      
+      const response = await axiosInstance.put(`/User/${userId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -268,31 +294,49 @@ const userService = {
   /**
    * Update user (Manager updates Staff users)
    * @param {string} userId - User ID
-   * @param {Object} userData - Updated user data { fullName, email, phoneNumber, isActive }
+   * @param {Object|FormData} userData - Updated user data { name, branchId } or FormData
    * @returns {Promise} Updated user
    */
   updateUserByManager: async (userId, userData) => {
     try {
-      // Map fields according to API endpoint: PUT /api/User/{id}
-      // Required fields: name, isActive, branchId
-      // Optional: profilePictureUrl, password
-      const updateData = {
-        name: userData.name || userData.fullName || '',
-        isActive: userData.isActive !== undefined ? userData.isActive : true,
-        branchId: userData.branchId || null
-      };
-      
-      // Add profilePictureUrl if provided
-      if (userData.profilePictureUrl) {
-        updateData.profilePictureUrl = userData.profilePictureUrl;
+      // If FormData, send directly (for multipart/form-data)
+      if (userData instanceof FormData) {
+        const response = await axiosInstance.put(`/User/${userId}`, userData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        return response.data;
       }
       
-      // Add password if provided
-      if (userData.password && userData.password.trim()) {
-        updateData.password = userData.password;
+      // Otherwise, create FormData from object
+      const formData = new FormData();
+      
+      // Name is required
+      if (userData.name || userData.fullName) {
+        formData.append('Name', userData.name || userData.fullName);
       }
       
-      const response = await axiosInstance.put(`/User/${userId}`, updateData);
+      // BranchId is optional - append if provided (including empty string)
+      if (userData.branchId !== undefined && userData.branchId !== null) {
+        formData.append('BranchId', userData.branchId);
+      }
+      
+      // IsActive is optional - only append if explicitly provided
+      if (userData.isActive !== undefined) {
+        formData.append('IsActive', userData.isActive.toString());
+      }
+      
+      // AvatarFile is optional - only append if provided as File
+      if (userData.avatarFile instanceof File) {
+        formData.append('AvatarFile', userData.avatarFile);
+      }
+      
+      const response = await axiosInstance.put(`/User/${userId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
