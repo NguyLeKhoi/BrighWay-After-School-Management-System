@@ -1,26 +1,32 @@
 import React from 'react';
-import { Chip, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 
 export const createStaffActivityTypeColumns = () => [
-  { key: 'id', header: 'ID' },
-  { key: 'name', header: 'Tên loại hoạt động' },
   {
-    key: 'status',
-    header: 'Trạng thái',
+    key: 'stt',
+    header: 'STT',
+    align: 'center',
     render: (value) => (
-      <Chip
-        label={value ? 'Hoạt động' : 'Không hoạt động'}
-        color={value ? 'success' : 'default'}
-        size="small"
-      />
+      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+        {value || '-'}
+      </Typography>
     )
   },
   {
-    key: 'createdTime',
-    header: 'Ngày tạo',
+    key: 'name',
+    header: 'Tên loại hoạt động',
     render: (value) => (
-      <Typography variant="body2" color="text.secondary">
-        {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
+      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+        {value || 'N/A'}
+      </Typography>
+    )
+  },
+  {
+    key: 'description',
+    header: 'Mô tả',
+    render: (value) => (
+      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
+        {value || 'Không có mô tả'}
       </Typography>
     )
   }
