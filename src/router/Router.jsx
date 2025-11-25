@@ -68,6 +68,7 @@ import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 import StaffDashboard from '../pages/staff/dashboard';
 import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
+import StaffAssignments from '../pages/staff/assignments';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -349,6 +350,10 @@ export const routes = createBrowserRouter([
       {
         path: 'activities',
         element: <StaffActivities />,
+      },
+      {
+        path: 'assignments',
+        element: <StaffAssignments />,
       },
     ],
   },

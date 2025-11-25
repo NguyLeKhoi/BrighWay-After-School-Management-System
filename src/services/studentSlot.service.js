@@ -25,6 +25,28 @@ const studentSlotService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Get student slots that the current staff is assigned to work with
+   * @param {Object} params - Query parameters { pageIndex, pageSize, branchSlotId, date, upcomingOnly }
+   * @returns {Promise} Paginated list of student slots assigned to current staff
+   */
+  getStaffSlots: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, String(value));
+        }
+      });
+      const queryString = queryParams.toString();
+      const url = queryString ? `/StudentSlot/staff-slots?${queryString}` : '/StudentSlot/staff-slots';
+      const response = await axiosInstance.get(url);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

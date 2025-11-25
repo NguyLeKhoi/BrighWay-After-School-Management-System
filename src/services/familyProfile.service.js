@@ -81,7 +81,8 @@ const familyProfileService = {
    * Update family profile
    * @param {string} id - Family profile ID
    * @param {FormData|Object} data - Updated family profile data
-   * @param {string} data.Name - Name
+   * @param {string} data.Id - Family profile ID (required for update)
+   * @param {string} data.Name - Name (required)
    * @param {string} data.Phone - Phone number
    * @param {string} data.StudentRela - Relationship to student
    * @param {File} data.AvatarFile - Avatar image file (optional)
@@ -94,19 +95,33 @@ const familyProfileService = {
       // If FormData, send directly (for multipart/form-data)
       if (data instanceof FormData) {
         formData = data;
+        // Ensure Id is in FormData if not already present
+        if (!formData.has('Id')) {
+          formData.append('Id', id);
+        }
       } else {
         // Otherwise, create FormData from object
         formData = new FormData();
         
+        // Id is required for update
+        formData.append('Id', id);
+        
+        // Name is required
         if (data.Name) {
           formData.append('Name', data.Name);
         }
-        if (data.Phone) {
+        
+        // Phone is optional - append if provided (including empty string)
+        if (data.Phone !== undefined && data.Phone !== null) {
           formData.append('Phone', data.Phone);
         }
-        if (data.StudentRela) {
+        
+        // StudentRela is optional - append if provided (including empty string)
+        if (data.StudentRela !== undefined && data.StudentRela !== null) {
           formData.append('StudentRela', data.StudentRela);
         }
+        
+        // AvatarFile is optional - only append if provided as File
         if (data.AvatarFile instanceof File) {
           formData.append('AvatarFile', data.AvatarFile);
         }

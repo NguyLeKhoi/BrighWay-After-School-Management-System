@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 /**
  * Custom hook for loading with minimum duration
@@ -10,12 +10,12 @@ export const useLoading = (minimumDuration = 300) => {
   const startTimeRef = useRef(null);
   const timeoutRef = useRef(null);
 
-  const showLoading = () => {
+  const showLoading = useCallback(() => {
     startTimeRef.current = Date.now();
     setIsLoading(true);
-  };
+  }, []);
 
-  const hideLoading = () => {
+  const hideLoading = useCallback(() => {
     if (!startTimeRef.current) {
       setIsLoading(false);
       return;
@@ -41,7 +41,7 @@ export const useLoading = (minimumDuration = 300) => {
       setIsLoading(false);
       startTimeRef.current = null;
     }
-  };
+  }, [minimumDuration]);
 
   return {
     isLoading,

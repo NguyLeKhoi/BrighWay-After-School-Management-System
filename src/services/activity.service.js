@@ -125,6 +125,20 @@ const activityService = {
       throw error.response?.data || error.message;
     }
   },
+
+  /**
+   * Check in student (staff checkin)
+   * @param {string} studentId - Student ID
+   * @returns {Promise} Created activity for checkin
+   */
+  checkinStaff: async (studentId) => {
+    try {
+      const response = await axiosInstance.post(`/Activity/checkin/staff/${studentId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default activityService;
