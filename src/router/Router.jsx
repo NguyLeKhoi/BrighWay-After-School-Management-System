@@ -200,6 +200,10 @@ export const routes = createBrowserRouter([
         path: 'notifications',
         element: <Notifications />,
       },
+      {
+        path: 'payment/cancel',
+        element: <PaymentCancel />,
+      },
     ],
   },
 

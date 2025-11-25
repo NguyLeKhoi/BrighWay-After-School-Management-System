@@ -277,6 +277,20 @@ const packageService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Refund a package subscription
+   * @param {string} subscriptionId - Package subscription ID
+   * @returns {Promise} Refund result
+   */
+  refundPackageSubscription: async (subscriptionId) => {
+    try {
+      const response = await axiosInstance.post(`/PackageSubscription/${subscriptionId}/refund`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

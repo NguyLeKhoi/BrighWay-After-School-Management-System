@@ -13,6 +13,7 @@ import Tabs from '@components/Common/Tabs';
 import Card from '@components/Common/Card';
 import ManagementFormDialog from '@components/Management/FormDialog';
 import Form from '@components/Common/Form';
+import ConfirmDialog from '@components/Common/ConfirmDialog';
 import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import packageService from '../../../services/package.service';
@@ -61,6 +62,10 @@ const MyPackages = () => {
     studentId: ''
   });
   const [isBuying, setIsBuying] = useState(false);
+  const [refundDialog, setRefundDialog] = useState({
+    open: false,
+    package: null
+  });
 
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading();
@@ -318,7 +323,23 @@ const MyPackages = () => {
         });
       }
 
-      setPurchasedPackages(mappedPackages);
+      // Lọc bỏ các gói đã hết hạn hoặc đã refund
+      const filteredPackages = mappedPackages.filter(pkg => {
+        // Bỏ các gói đã hết hạn
+        if (pkg.status === 'expired') {
+          return false;
+        }
+        
+        // Bỏ các gói có status là 'refunded' hoặc 'Refunded'
+        const statusLower = (pkg.status || '').toLowerCase();
+        if (statusLower === 'refunded' || statusLower === 'refund') {
+          return false;
+        }
+        
+        return true;
+      });
+
+      setPurchasedPackages(filteredPackages);
     } catch (err) {
       const errorMessage = typeof err === 'string'
         ? err
@@ -459,6 +480,66 @@ const MyPackages = () => {
       });
     } finally {
       setIsBuying(false);
+      hideLoading();
+    }
+  };
+
+  const handleRefundClick = (pkg) => {
+    // Kiểm tra usedSlots === 0 trước khi cho phép refund
+    if (pkg.usedSlots !== undefined && pkg.usedSlots > 0) {
+      addNotification({
+        message: 'Không thể hoàn tiền gói đã sử dụng slot. Chỉ có thể hoàn tiền gói chưa sử dụng slot nào.',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    setRefundDialog({
+      open: true,
+      package: pkg
+    });
+  };
+
+  const handleConfirmRefund = async () => {
+    if (!refundDialog.package) return;
+
+    const pkg = refundDialog.package;
+
+    // Kiểm tra lại usedSlots === 0
+    if (pkg.usedSlots !== undefined && pkg.usedSlots > 0) {
+      addNotification({
+        message: 'Không thể hoàn tiền gói đã sử dụng slot.',
+        severity: 'error'
+      });
+      setRefundDialog({ open: false, package: null });
+      return;
+    }
+
+    showLoading();
+
+    try {
+      await packageService.refundPackageSubscription(pkg.id);
+
+      addNotification({
+        message: 'Hoàn tiền gói thành công!',
+        severity: 'success'
+      });
+
+      setRefundDialog({ open: false, package: null });
+      
+      // Reload purchased packages to update the list
+      await loadPurchasedPackages();
+    } catch (err) {
+      const errorMessage = typeof err === 'string'
+        ? err
+        : err?.message || err?.error || 'Không thể hoàn tiền gói';
+      
+      showGlobalError(errorMessage);
+      addNotification({
+        message: errorMessage,
+        severity: 'error'
+      });
+    } finally {
       hideLoading();
     }
   };
@@ -767,7 +848,6 @@ const MyPackages = () => {
                     <Card
                       key={pkg.id}
                       title={pkg.name}
-                      subtitle={pkg.desc || undefined}
                       status={{
                         text: pkg.status === 'active' ? 'Đang sử dụng' : 'Đã hết hạn',
                         type: pkg.status === 'active' ? 'active' : 'pending'
@@ -775,17 +855,13 @@ const MyPackages = () => {
                       infoRows={infoRows}
                       badges={badges}
                       actions={pkg.status === 'active' ? [
-                        {
-                          text: 'Gia hạn',
-                          primary: true,
-                          onClick: () => {
-                            // TODO: Implement extend functionality
-                            addNotification({
-                              message: 'Tính năng gia hạn đang được phát triển',
-                              severity: 'info'
-                            });
-                          }
-                        }
+                        // Chỉ hiển thị nút refund nếu chưa sử dụng slot nào
+                        ...(pkg.usedSlots === 0 ? [{
+                          text: 'Hoàn tiền',
+                          primary: false,
+                          onClick: () => handleRefundClick(pkg),
+                          danger: false
+                        }] : [])
                       ] : []}
                     />
                   );
@@ -920,6 +996,20 @@ const MyPackages = () => {
             ]}
           />
         </ManagementFormDialog>
+
+        {/* Refund Confirm Dialog */}
+        <ConfirmDialog
+          open={refundDialog.open}
+          onClose={() => setRefundDialog({ open: false, package: null })}
+          onConfirm={handleConfirmRefund}
+          title="Xác nhận hoàn tiền gói"
+          description={refundDialog.package 
+            ? `Bạn có chắc chắn muốn hoàn tiền gói "${refundDialog.package.name}"? Số tiền sẽ được hoàn lại vào ví của bạn.`
+            : ''}
+          confirmText="Hoàn tiền"
+          confirmColor="warning"
+          highlightText={refundDialog.package?.name}
+        />
       </div>
     </motion.div>
   );
