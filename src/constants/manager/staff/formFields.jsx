@@ -19,6 +19,13 @@ export const createManagerUserFormFields = (actionLoading, branchOptions = []) =
     disabled: actionLoading || branchOptions.length === 0,
     helperText: branchOptions.length === 0 ? 'Chưa có chi nhánh khả dụng' : undefined,
     gridSize: 6
+  },
+  {
+    name: 'isActive',
+    label: 'Trạng thái hoạt động',
+    type: 'switch',
+    disabled: actionLoading,
+    gridSize: 6
   }
 ];
 

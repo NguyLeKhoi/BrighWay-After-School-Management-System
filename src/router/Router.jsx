@@ -29,6 +29,7 @@ import MyWallet from '../pages/user/wallet';
 import MyPackages from '../pages/user/packages';
 import Notifications from '../pages/user/notifications';
 import PaymentSuccess from '../pages/user/paymentSuccess';
+import PaymentCancel from '../pages/user/paymentCancel';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
@@ -121,6 +122,22 @@ export const routes = createBrowserRouter([
       {
         index: true,
         element: <PaymentSuccess />,
+      },
+    ],
+  },
+
+  // Payment Cancel Route (uses AuthLayout for background, but requires User role)
+  {
+    path: '/payment/cancel',
+    element: (
+      <ProtectedRoute allowedRoles={['User']}>
+        <AuthLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <PaymentCancel />,
       },
     ],
   },

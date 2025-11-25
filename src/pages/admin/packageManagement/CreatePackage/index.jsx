@@ -44,19 +44,18 @@ const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
       branchSelectOptions,
       studentLevelSelectOptions,
       benefitSelectOptions: []
-    }).filter(f => ['name', 'isActive', 'desc'].includes(f.name));
+    }).filter(f => ['name', 'isActive', 'desc', 'packageTemplateId'].includes(f.name));
   }, [loading, dependenciesLoading, loadingTemplates, templateSelectOptions, branchSelectOptions, studentLevelSelectOptions]);
 
   const handleSubmit = async (formValues) => {
     if (loading) return false;
     try {
       setLoading(true);
-      const created = await packageService.createPackage(formValues);
-      updateData({ createdPackageId: created.id, packageForm: formValues });
-      toast.success('Tạo gói bán thành công, tiếp tục gán lợi ích');
+      // Only save to formData, don't call API yet
+      updateData({ packageForm: formValues });
       return true;
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Tạo gói thất bại');
+      toast.error(err.response?.data?.message || err.message || 'Lưu thất bại');
       return false;
     } finally {
       setLoading(false);
@@ -165,13 +164,11 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      const payload = { ...(data.packageForm || {}), ...values };
-      const created = await packageService.createPackage(payload);
-      updateData({ packageForm: payload, createdPackageId: created.id });
-      toast.success('Tạo gói bán thành công, tiếp tục gán lợi ích');
+      // Only save to formData, don't call API yet
+      updateData({ packageForm: { ...(data.packageForm || {}), ...values } });
       return true;
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Tạo gói thất bại');
+      toast.error(err.response?.data?.message || err.message || 'Lưu thất bại');
       return false;
     } finally {
       setLoading(false);
@@ -196,7 +193,7 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
 });
 
 // Step 4: Assign benefits
-const Step4AssignBenefits = forwardRef(({ data }, ref) => {
+const Step4AssignBenefits = forwardRef(({ data, updateData }, ref) => {
   const [loading, setLoading] = useState(true);
   const [options, setOptions] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -215,18 +212,11 @@ const Step4AssignBenefits = forwardRef(({ data }, ref) => {
 
   useImperativeHandle(ref, () => ({
     async submit() {
-      if (!data?.createdPackageId) {
-        toast.error('Không tìm thấy gói vừa tạo');
-        return false;
+      // Only save benefitIds to formData, will be assigned in handleComplete
+      if (updateData) {
+        updateData({ benefitIds: selected });
       }
-      try {
-        await packageService.assignBenefitsToPackage({ packageId: data.createdPackageId, benefitIds: selected });
-        toast.success('Gán lợi ích cho gói thành công');
-        return true;
-      } catch (err) {
-        toast.error(err.response?.data?.message || err.message || 'Gán lợi ích thất bại');
-        return false;
-      }
+      return true;
     }
   }));
 
@@ -267,9 +257,61 @@ const CreatePackage = () => {
     { label: 'Gán lợi ích', component: Step4AssignBenefits }
   ]), []);
 
-  const handleComplete = useCallback(() => {
-    navigate('/admin/packages');
-  }, [navigate]);
+  const handleComplete = useCallback(async (finalData) => {
+    try {
+      const packageForm = finalData?.packageForm || formData?.packageForm;
+      const benefitIds = finalData?.benefitIds || [];
+      
+      if (!packageForm) {
+        toast.error('Không tìm thấy dữ liệu để tạo gói');
+        return;
+      }
+
+      // Validate required fields
+      if (!packageForm.packageTemplateId) {
+        toast.error('Vui lòng chọn mẫu gói');
+        return;
+      }
+      if (!packageForm.branchId) {
+        toast.error('Vui lòng chọn chi nhánh');
+        return;
+      }
+      if (!packageForm.studentLevelId) {
+        toast.error('Vui lòng chọn cấp độ học sinh');
+        return;
+      }
+      if (!packageForm.name || packageForm.name.trim() === '') {
+        toast.error('Tên gói không được để trống');
+        return;
+      }
+
+      // Call API create once with all collected data
+      const created = await packageService.createPackage(packageForm);
+      
+      // Assign benefits if any were selected
+      if (benefitIds && benefitIds.length > 0) {
+        try {
+          await packageService.assignBenefitsToPackage({ 
+            packageId: created.id, 
+            benefitIds: benefitIds 
+          });
+        } catch (benefitErr) {
+          console.error('Error assigning benefits:', benefitErr);
+          // Don't fail the whole operation if benefits assignment fails
+          toast.warning('Gói đã được tạo nhưng có lỗi khi gán lợi ích');
+        }
+      }
+      
+      toast.success('Tạo gói bán thành công!');
+      navigate('/admin/packages');
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Tạo gói thất bại';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
+    }
+  }, [navigate, formData]);
 
   const handleCancel = useCallback(() => {
     navigate('/admin/packages');
