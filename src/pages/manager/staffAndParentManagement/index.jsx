@@ -198,10 +198,11 @@ const StaffAndParentManagement = () => {
     setActionLoading(true);
     
     try {
-      // Only allow updating name and branchId
+      // Allow updating name, branchId, and isActive
       const updateData = {
         name: data.name || data.fullName || selectedUser?.name || selectedUser?.fullName || '',
-        branchId: data.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null
+        branchId: data.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null,
+        isActive: data.isActive !== undefined ? data.isActive : (selectedUser?.isActive !== undefined ? selectedUser.isActive : true)
       };
       
       await userService.updateUserByManager(selectedUser.id, updateData);
@@ -311,7 +312,8 @@ const StaffAndParentManagement = () => {
           schema={updateManagerUserSchema}
           defaultValues={{
             name: selectedUser?.name || selectedUser?.fullName || '',
-            branchId: selectedUser?.branchId || selectedUser?.branch?.id || ''
+            branchId: selectedUser?.branchId || selectedUser?.branch?.id || '',
+            isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
           }}
           onSubmit={handleFormSubmit}
           submitText="Cập nhật Thông Tin"

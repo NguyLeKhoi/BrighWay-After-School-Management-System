@@ -69,6 +69,13 @@ export const createManagerFormFields = ({
       options: branchOptions,
       disabled: actionLoading || branchLoading,
       gridSize: 6
+    },
+    {
+      name: 'isActive',
+      label: 'Trạng thái hoạt động',
+      type: 'switch',
+      disabled: actionLoading,
+      gridSize: 6
     }
   ];
 };

@@ -129,10 +129,11 @@ const ManagerManagement = () => {
       };
       await baseHandleFormSubmit(submitData);
     } else {
-      // Only allow updating name and branchId
+      // Allow updating name, branchId, and isActive
       const updateData = {
         name: formData.name || selectedUser?.name || '',
-        branchId: formData.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null
+        branchId: formData.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null,
+        isActive: formData.isActive !== undefined ? formData.isActive : (selectedUser?.isActive !== undefined ? selectedUser.isActive : true)
       };
       await baseHandleFormSubmit(updateData);
     }
@@ -267,7 +268,8 @@ const ManagerManagement = () => {
                 }
               : {
                   name: selectedUser?.name || '',
-                  branchId: selectedUser?.branchId || selectedUser?.branch?.id || ''
+                  branchId: selectedUser?.branchId || selectedUser?.branch?.id || '',
+                  isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
                 }
           }
           onSubmit={handleFormSubmit}

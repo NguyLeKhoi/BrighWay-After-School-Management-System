@@ -1,0 +1,24 @@
+.paymentCancelPage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  /* Background is handled by AuthLayout */
+  position: relative;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .paymentCancelPage {
+    padding: 1rem;
+  }
+}
+
