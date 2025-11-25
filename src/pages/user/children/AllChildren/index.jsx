@@ -2,10 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChildCare as ChildIcon } from '@mui/icons-material';
+import { toast } from 'react-toastify';
 import Card from '@components/Common/Card';
 import ContentLoading from '@components/Common/ContentLoading';
+import ConfirmDialog from '@components/Common/ConfirmDialog';
 import { useApp } from '../../../../contexts/AppContext';
 import useContentLoading from '../../../../hooks/useContentLoading';
+import { getErrorMessage } from '../../../../utils/errorHandler';
 import studentService from '../../../../services/student.service';
 import styles from './Children.module.css';
 
@@ -67,6 +70,11 @@ const ChildrenList = () => {
   const [children, setChildren] = useState([]);
   const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
   const [error, setError] = useState(null);
+  const [deletingChildId, setDeletingChildId] = useState(null);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState({
+    open: false,
+    child: null
+  });
 
   const fetchChildren = async () => {
     setError(null);
@@ -126,6 +134,40 @@ const ChildrenList = () => {
     const ageText = child.age ? `${child.age} tuổi` : null;
     const level = child.studentLevelName;
     return [ageText, level].filter(Boolean).join(' • ');
+  };
+
+  const handleDeleteChild = async () => {
+    if (!deleteConfirmDialog.child) return;
+    
+    const childId = deleteConfirmDialog.child.id;
+    setDeletingChildId(childId);
+    showLoading();
+    
+    try {
+      await studentService.deleteStudent(childId);
+      toast.success(`Đã xóa con "${deleteConfirmDialog.child.name}" thành công!`);
+      
+      // Remove from list
+      setChildren(prev => prev.filter(child => child.id !== childId));
+      
+      // Update pagination
+      setPagination(prev => ({
+        ...prev,
+        totalItems: prev.totalItems - 1
+      }));
+      
+      setDeleteConfirmDialog({ open: false, child: null });
+    } catch (err) {
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi xóa con';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
+      showGlobalError(errorMessage);
+    } finally {
+      setDeletingChildId(null);
+      hideLoading();
+    }
   };
 
   return (
@@ -191,12 +233,30 @@ const ChildrenList = () => {
                 ].filter(Boolean)}
                 actions={[
                   { text: 'Xem Profile', primary: false, onClick: () => navigate(`/family/children/${child.id}/profile`) },
-                  { text: 'Lịch học', primary: true, onClick: () => navigate(`/family/children/${child.id}/schedule`) }
+                  { text: 'Lịch học', primary: true, onClick: () => navigate(`/family/children/${child.id}/schedule`) },
+                  { text: 'Xóa', primary: false, onClick: () => setDeleteConfirmDialog({ open: true, child }), danger: true }
                 ]}
               />
             ))}
           </div>
         )}
+
+        {/* Delete Confirm Dialog */}
+        <ConfirmDialog
+          open={deleteConfirmDialog.open}
+          onClose={() => setDeleteConfirmDialog({ open: false, child: null })}
+          onConfirm={handleDeleteChild}
+          title="Xác nhận xóa con"
+          description={
+            deleteConfirmDialog.child
+              ? `Bạn có chắc chắn muốn xóa con "${deleteConfirmDialog.child.name}"? Hành động này không thể hoàn tác.`
+              : ''
+          }
+          confirmText="Xóa"
+          cancelText="Hủy"
+          confirmColor="error"
+          loading={deletingChildId !== null}
+        />
       </div>
     </motion.div>
   );

@@ -17,6 +17,7 @@ import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createManagerColumns } from '../../../constants/manager/tableColumns';
 import { createManagerFormFields } from '../../../constants/manager/formFields';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../../utils/errorHandler';
 import styles from './staffAndManagerManagement.module.css';
 
 const ManagerManagement = () => {
@@ -104,8 +105,11 @@ const ManagerManagement = () => {
         const expandedUser = await userService.getUserById(user.id, true);
         baseHandleEdit(expandedUser);
       } catch (err) {
-        const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi lấy thông tin người dùng';
-        toast.error(errorMessage);
+        const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi lấy thông tin người dùng';
+        toast.error(errorMessage, {
+          autoClose: 5000,
+          style: { whiteSpace: 'pre-line' }
+        });
         // Still open dialog with basic user info
         baseHandleEdit(user);
       }

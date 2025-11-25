@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import { useApp } from '../contexts/AppContext';
 import useContentLoading from './useContentLoading';
+import { getErrorMessage } from '../utils/errorHandler';
 
 /**
  * Base CRUD hook for all roles (Admin, Manager, Staff)
@@ -213,13 +214,14 @@ const useBaseCRUD = ({
       setOpenDialog(false);
       await loadData(false);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 
+      const errorMessage = getErrorMessage(err) || 
         (dialogMode === 'create' ? 'Có lỗi xảy ra khi tạo' : 'Có lỗi xảy ra khi cập nhật');
       setError(errorMessage);
       showGlobalError(errorMessage);
       toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 4000,
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
       });
     } finally {
       setActionLoading(false);

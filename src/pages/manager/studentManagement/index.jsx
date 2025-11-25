@@ -34,10 +34,12 @@ import {
   Pending as PendingIcon,
   Description as DocumentIcon,
   OpenInNew as OpenInNewIcon,
-  Cancel as RejectIcon
+  Cancel as RejectIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../../utils/errorHandler';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import DataTable from '../../../components/Common/DataTable';
@@ -111,6 +113,13 @@ const StudentManagement = () => {
   const [rejectConfirmDialog, setRejectConfirmDialog] = useState({
     open: false,
     document: null,
+    student: null
+  });
+  
+  // Delete student state
+  const [deletingStudentId, setDeletingStudentId] = useState(null);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState({
+    open: false,
     student: null
   });
   
@@ -274,7 +283,7 @@ const StudentManagement = () => {
     ];
   }, [handleViewDetail]);
   
-  // Columns for approved students (with view detail button, without unverified documents column)
+  // Columns for approved students (with view detail and delete buttons, without unverified documents column)
   const approvedColumns = useMemo(() => {
     const baseColumns = createManagerStudentColumns();
     // Filter out unverifiedDocuments column for approved students tab
@@ -296,11 +305,21 @@ const StudentManagement = () => {
                 <ViewIcon fontSize="small" />
               </IconButton>
             </Tooltip>
+            <Tooltip title="Xóa học sinh">
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => setDeleteConfirmDialog({ open: true, student: item })}
+                disabled={deletingStudentId === item.id}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Box>
         )
       }
     ];
-  }, [handleViewDetail]);
+  }, [handleViewDetail, deletingStudentId]);
   
   // Columns for approved students with unverified documents (keep unverified documents column)
   const approvedWithDocsColumns = useMemo(() => {
@@ -633,6 +652,49 @@ const StudentManagement = () => {
       handleApproveDocument(rejectConfirmDialog.document.id, false);
     }
   }, [rejectConfirmDialog.document, handleApproveDocument]);
+  
+  // Handle delete student
+  const handleDeleteStudent = useCallback(async () => {
+    if (!deleteConfirmDialog.student) return;
+    
+    const studentId = deleteConfirmDialog.student.id;
+    setDeletingStudentId(studentId);
+    
+    try {
+      await studentService.deleteStudent(studentId);
+      toast.success(`Đã xóa học sinh "${deleteConfirmDialog.student.name}" thành công!`);
+      
+      // Close detail dialog if open
+      if (detailDialog.student?.id === studentId) {
+        setDetailDialog({ open: false, student: null, loading: false });
+      }
+      
+      // Đảm bảo branchId vẫn được giữ trong filters trước khi reload
+      const currentBranchId = branchIdRef.current || user?.branchId || branchInfo.id;
+      if (currentBranchId) {
+        studentCrud.setFilters((prev) => ({
+          ...prev,
+          branchId: currentBranchId
+        }));
+      }
+      
+      // Reload approved students
+      if (activeTab === 0) {
+        studentCrud.loadData(false);
+      }
+      
+      setDeleteConfirmDialog({ open: false, student: null });
+    } catch (error) {
+      const errorMessage = getErrorMessage(error) || 'Có lỗi xảy ra khi xóa học sinh';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
+      showGlobalError(errorMessage);
+    } finally {
+      setDeletingStudentId(null);
+    }
+  }, [deleteConfirmDialog, detailDialog.student, activeTab, studentCrud, showGlobalError, user?.branchId, branchInfo.id]);
   
   // Helper functions for detail dialog
   const formatDate = (dateString) => {
@@ -1583,6 +1645,23 @@ const StudentManagement = () => {
         confirmText="Từ chối"
         cancelText="Hủy"
         confirmColor="error"
+      />
+      
+      {/* Delete Student Confirm Dialog */}
+      <ConfirmDialog
+        open={deleteConfirmDialog.open}
+        onClose={() => setDeleteConfirmDialog({ open: false, student: null })}
+        onConfirm={handleDeleteStudent}
+        title="Xác nhận xóa học sinh"
+        description={
+          deleteConfirmDialog.student
+            ? `Bạn có chắc chắn muốn xóa học sinh "${deleteConfirmDialog.student.name}"? Hành động này không thể hoàn tác.`
+            : ''
+        }
+        confirmText="Xóa"
+        cancelText="Hủy"
+        confirmColor="error"
+        loading={deletingStudentId !== null}
       />
     </div>
   );

@@ -90,7 +90,13 @@ const Card = ({
           {actions.map((action, index) => (
             <button 
               key={index}
-              className={`${styles.actionButton} ${action.primary ? styles.primaryButton : styles.secondaryButton}`}
+              className={`${styles.actionButton} ${
+                action.danger 
+                  ? styles.dangerButton 
+                  : action.primary 
+                    ? styles.primaryButton 
+                    : styles.secondaryButton
+              }`}
               onClick={action.onClick}
             >
               {action.icon}

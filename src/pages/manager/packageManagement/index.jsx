@@ -22,6 +22,7 @@ import {
   Chip
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import DataTable from '../../../components/Common/DataTable';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
@@ -29,6 +30,8 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import useManagerPackageDependencies from '../../../hooks/useManagerPackageDependencies';
+import { getErrorMessage } from '../../../utils/errorHandler';
+import { useApp } from '../../../contexts/AppContext';
 import packageService from '../../../services/package.service';
 import { createPackageColumns } from '../../../constants/package/tableColumns';
 import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
@@ -38,6 +41,7 @@ const ManagerPackageManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isInitialMount = useRef(true);
+  const { showGlobalError } = useApp();
   const {
     templates,
     loading: dependenciesLoading,
@@ -75,10 +79,11 @@ const ManagerPackageManagement = () => {
 
   const [activeTab, setActiveTab] = useState('packages');
 
-  const [deactivateDialog, setDeactivateDialog] = useState({
+  const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     item: null
   });
+  const [deletingPackageId, setDeletingPackageId] = useState(null);
 
   const statusFilterControl = useMemo(() => (
     <FormControl size="small" className={styles.filterControl}>
@@ -221,23 +226,38 @@ const ManagerPackageManagement = () => {
     ...override
   });
 
-  const handleDeactivatePrompt = useCallback(
+  const handleDeletePrompt = useCallback(
     (item) => {
-      setDeactivateDialog({ open: true, item });
+      setDeleteDialog({ open: true, item });
     },
     []
   );
 
-  const handleDeactivateConfirm = useCallback(async () => {
-    if (!deactivateDialog.item) return;
-    const payload = buildUpdatePayload(deactivateDialog.item, { isActive: false });
-    await packageService.updateMyBranchPackage(deactivateDialog.item.id, payload);
-    setDeactivateDialog({ open: false, item: null });
-    await loadData(false);
-  }, [deactivateDialog, loadData]);
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deleteDialog.item) return;
+    
+    const packageId = deleteDialog.item.id;
+    setDeletingPackageId(packageId);
+    
+    try {
+      await packageService.deletePackage(packageId);
+      toast.success(`Đã xóa gói "${deleteDialog.item.name}" thành công!`);
+      setDeleteDialog({ open: false, item: null });
+      await loadData(false);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi xóa gói';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
+      showGlobalError(errorMessage);
+    } finally {
+      setDeletingPackageId(null);
+    }
+  }, [deleteDialog, loadData, showGlobalError]);
 
-  const handleDeactivateCancel = useCallback(() => {
-    setDeactivateDialog({ open: false, item: null });
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteDialog({ open: false, item: null });
   }, []);
 
   return (
@@ -341,7 +361,7 @@ const ManagerPackageManagement = () => {
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               onEdit={handlePackageEdit}
-              onDelete={handleDeactivatePrompt}
+              onDelete={handleDeletePrompt}
               expandableConfig={{
                 isRowExpandable: (item) => Array.isArray(item?.benefits) && item.benefits.length > 0,
                 renderExpandedContent: renderBenefits
@@ -417,14 +437,15 @@ const ManagerPackageManagement = () => {
       )}
 
       <ConfirmDialog
-        open={deactivateDialog.open}
-        onClose={handleDeactivateCancel}
-        onConfirm={handleDeactivateConfirm}
-        title="Xác nhận vô hiệu hóa"
-        description={`Bạn có chắc muốn vô hiệu hóa gói "${deactivateDialog.item?.name}"? Người dùng sẽ không còn thấy gói này.`}
-        confirmText="Vô hiệu hóa"
+        open={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Xác nhận xóa gói"
+        description={`Bạn có chắc chắn muốn xóa gói "${deleteDialog.item?.name}"? Hành động này không thể hoàn tác.`}
+        confirmText="Xóa"
         cancelText="Hủy"
         confirmColor="error"
+        loading={deletingPackageId !== null}
       />
     </div>
   );

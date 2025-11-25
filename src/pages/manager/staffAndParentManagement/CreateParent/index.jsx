@@ -24,6 +24,7 @@ import {
   LocationOn as LocationIcon
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../../../utils/errorHandler';
 import StepperForm from '../../../../components/Common/StepperForm';
 import Step1OCR from './Step1OCR';
 import Step1BasicInfo from './Step1BasicInfo';
@@ -205,8 +206,11 @@ const CreateParent = () => {
       toast.success(`Tạo tài khoản User (Parent) "${confirmData.name}" thành công!`);
       navigate('/manager/parents');
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
-      toast.error(errorMessage);
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        style: { whiteSpace: 'pre-line' }
+      });
     } finally {
       setLoading(false);
     }
