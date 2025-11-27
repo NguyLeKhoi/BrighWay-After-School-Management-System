@@ -106,12 +106,12 @@ const authService = {
         refreshToken: newRefreshToken
       };
     } catch (error) {
-      // If refresh fails, clear tokens and redirect to login
+      // Clear tokens (interceptor will handle redirect and notifications)
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
-      window.location.href = '/login';
-      throw error.response?.data || error.message;
+      // Throw error to let interceptor handle redirect and notifications
+      throw error;
     }
   },
 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Typography, Box, IconButton } from '@mui/material';
 import { Home as HomeIcon } from '@mui/icons-material';
 import AuthCard from '@components/Auth/AuthCard';
@@ -15,8 +15,26 @@ import styles from './Login.module.css';
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { addNotification, showGlobalError } = useApp();
+  const { addNotification, showGlobalError, showSessionEndedDialog } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading(300);
+  
+  // Check for session ended message when login page loads
+  useEffect(() => {
+    const sessionEndedMessage = sessionStorage.getItem('sessionEndedMessage');
+    if (sessionEndedMessage) {
+      // Clear the message from sessionStorage
+      sessionStorage.removeItem('sessionEndedMessage');
+      // Show dialog after a short delay to ensure component is fully mounted
+      setTimeout(() => {
+        if (window.__showSessionEndedDialog) {
+          window.__showSessionEndedDialog(sessionEndedMessage);
+        } else {
+          // Fallback: use context function if window function not available
+          showSessionEndedDialog(sessionEndedMessage);
+        }
+      }, 100);
+    }
+  }, [showSessionEndedDialog]);
 
   // Warm-up backend when login page loads to reduce first login delay
   useEffect(() => {
