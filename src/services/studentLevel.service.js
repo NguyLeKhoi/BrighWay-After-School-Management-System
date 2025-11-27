@@ -7,11 +7,13 @@ import axiosInstance from '../config/axios.config';
 const studentLevelService = {
   /**
    * Get all student levels
+   * @param {string} branchId - Optional branch ID to filter student levels by branch
    * @returns {Promise} List of all student levels
    */
-  getAllStudentLevels: async () => {
+  getAllStudentLevels: async (branchId = null) => {
     try {
-      const response = await axiosInstance.get('/StudentLevel/all');
+      const params = branchId ? `?branchId=${String(branchId)}` : '';
+      const response = await axiosInstance.get(`/StudentLevel/all${params}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

@@ -4,7 +4,7 @@ import { DashboardCustomize as TemplateIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import StepperForm from '../../../../components/Common/StepperForm';
 import packageTemplateService from '../../../../services/packageTemplate.service';
-import { createTemplateFormFields } from '../../../../constants/package/formFields';
+import { createTemplateFormFields } from '../../../../definitions/package/formFields';
 import Form from '../../../../components/Common/Form';
 import { packageTemplateSchema } from '../../../../utils/validationSchemas/packageSchemas';
 import { getErrorMessage } from '../../../../utils/errorHandler';

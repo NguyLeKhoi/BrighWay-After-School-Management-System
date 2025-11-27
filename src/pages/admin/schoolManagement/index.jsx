@@ -13,8 +13,8 @@ import { schoolSchema } from '../../../utils/validationSchemas/schoolSchemas';
 import schoolService from '../../../services/school.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { toast } from 'react-toastify';
-import { createSchoolColumns } from '../../../constants/school/tableColumns';
-import { createSchoolFormFields } from '../../../constants/school/formFields';
+import { createSchoolColumns } from '../../../definitions/school/tableColumns';
+import { createSchoolFormFields } from '../../../definitions/school/formFields';
 import styles from './SchoolManagement.module.css';
 
 const SchoolManagement = () => {

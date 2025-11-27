@@ -36,6 +36,11 @@ export const createParentBasicInfoSchema = yup.object({
 
 // Schema for Step 2: CCCD Info (all optional)
 export const createParentCCCDInfoSchema = yup.object({
+  name: yup
+    .string()
+    .optional()
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự'),
   email: yup
     .string()
     .optional()
@@ -45,6 +50,22 @@ export const createParentCCCDInfoSchema = yup.object({
     .optional()
     .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
     .max(50, 'Mật khẩu không được quá 50 ký tự'),
+  phoneNumber: yup
+    .string()
+    .optional()
+    .matches(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
+  avatarFile: yup
+    .mixed()
+    .nullable()
+    .notRequired()
+    .test('fileSize', 'Kích thước file không được vượt quá 5MB', (value) => {
+      if (!value) return true;
+      return value.size <= 5 * 1024 * 1024; // 5MB
+    })
+    .test('fileType', 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF)', (value) => {
+      if (!value) return true;
+      return ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'].includes(value.type);
+    }),
   identityCardNumber: yup
     .string()
     .optional(),

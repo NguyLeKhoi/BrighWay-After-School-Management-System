@@ -1,7 +1,7 @@
 import React, { useMemo, useImperativeHandle, forwardRef } from 'react';
 import { Box, Typography } from '@mui/material';
 import Form from '../../../../components/Common/Form';
-import { createBranchSlotFormFields } from '../../../../constants/branchSlot/formFields';
+import { createBranchSlotFormFields } from '../../../../definitions/branchSlot/formFields';
 import { branchSlotSchema } from '../../../../utils/validationSchemas/branchSlotSchemas';
 
 const WEEK_DAYS = [

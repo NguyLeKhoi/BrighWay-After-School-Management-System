@@ -123,11 +123,11 @@ const Form = forwardRef(({
       
       if (onlyFileFieldsChanged) {
         // Only update file fields without resetting the form
-        if (current.avatarFile !== undefined && formRef.current?.setValue) {
-          formRef.current.setValue('avatarFile', current.avatarFile, { shouldValidate: false });
+        if (current.avatarFile !== undefined) {
+          setValue('avatarFile', current.avatarFile, { shouldValidate: false });
         }
-        if (current.image !== undefined && formRef.current?.setValue) {
-          formRef.current.setValue('image', current.image, { shouldValidate: false });
+        if (current.image !== undefined) {
+          setValue('image', current.image, { shouldValidate: false });
         }
       } else {
         // Other fields changed, reset form
@@ -196,7 +196,8 @@ const Form = forwardRef(({
     getValues: () => getValues(),
     setValue: (name, value, options) => {
       setValue(name, value, options);
-    }
+    },
+    control: control // Expose control for useWatch
   }));
 
   const renderField = (field) => {
@@ -211,6 +212,7 @@ const Form = forwardRef(({
       section, // Remove from fieldProps
       sectionDescription, // Remove from fieldProps
       gridSize, // Remove from fieldProps
+      onChange: fieldOnChange, // Extract custom onChange handler
       ...fieldProps
     } = field;
     const error = errors[name];
@@ -235,8 +237,33 @@ const Form = forwardRef(({
           name={name}
           control={control}
           render={({ field: controllerField }) => {
-            const handleChange = (_, newValue) => {
-              controllerField.onChange(newValue?.value || '');
+            const handleChange = (event, newValue) => {
+              // Autocomplete onChange receives (event, newValue)
+              // Ignore event, only use newValue
+              // Handle both cases: newValue is an object with .value or newValue is the value itself
+              let value = '';
+              if (newValue) {
+                if (typeof newValue === 'object' && newValue !== null && 'value' in newValue) {
+                  // It's an option object { value, label }
+                  value = newValue.value;
+                } else if (typeof newValue === 'string' || typeof newValue === 'number') {
+                  // It's already a primitive value
+                  value = newValue;
+                } else {
+                  // Fallback: try to convert to string
+                  value = String(newValue);
+                }
+              }
+              // Ensure value is a string
+              value = String(value || '');
+              
+              // Update react-hook-form field
+              controllerField.onChange(value);
+              
+              // Call custom onChange handler if provided (pass only the value, not the event)
+              if (fieldOnChange) {
+                fieldOnChange(value);
+              }
             };
             const selectedOption = options.find(
               (option) => {

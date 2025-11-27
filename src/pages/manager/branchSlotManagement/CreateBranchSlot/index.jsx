@@ -89,7 +89,6 @@ const CreateBranchSlot = () => {
           });
         }
       } catch (err) {
-        console.warn('Không thể lấy branchId của manager:', err);
       }
     };
 

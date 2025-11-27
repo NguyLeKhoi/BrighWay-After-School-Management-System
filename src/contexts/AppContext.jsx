@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import axiosInstance from '../config/axios.config';
 
-const AppContext = createContext();
+const AppContext = createContext(undefined);
 
 export const useApp = () => {
   const context = useContext(AppContext);
@@ -26,6 +27,12 @@ export const AppProvider = ({ children }) => {
   
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  
+  // Session ended dialog state
+  const [sessionEndedDialog, setSessionEndedDialog] = useState({
+    open: false,
+    message: null
+  });
 
   // Show global loading
   const showGlobalLoading = () => setGlobalLoading(true);
@@ -79,6 +86,100 @@ export const AppProvider = ({ children }) => {
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
   };
+  
+  // Session ended dialog management
+  const showSessionEndedDialog = useCallback((message) => {
+    setSessionEndedDialog({
+      open: true,
+      message: message || 'Phiên đăng nhập của bạn đã bị kết thúc do tài khoản được đăng nhập trên thiết bị khác.'
+    });
+  }, []);
+  
+  const closeSessionEndedDialog = useCallback(() => {
+    setSessionEndedDialog({
+      open: false,
+      message: null
+    });
+  }, []);
+  
+  // Expose function globally for axios interceptor
+  useEffect(() => {
+    // Expose on window for easier access from interceptor
+    window.__showSessionEndedDialog = showSessionEndedDialog;
+    
+    return () => {
+      delete window.__showSessionEndedDialog;
+    };
+  }, [showSessionEndedDialog]);
+
+  // Listen for storage changes from other tabs (e.g., when another user logs in)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      // Only handle changes to accessToken or refreshToken
+      if (e.key === 'accessToken' || e.key === 'refreshToken' || e.key === 'user') {
+        // Check if the change was made by another tab (not this one)
+        if (e.newValue !== e.oldValue) {
+          // If tokens were changed by another tab, it means another user logged in
+          // Get current user from localStorage before clearing
+          const currentUserStr = localStorage.getItem('user');
+          const newUserStr = e.newValue && e.key === 'user' ? e.newValue : localStorage.getItem('user');
+          
+          // If user changed, it means another user logged in
+          if (currentUserStr && newUserStr && currentUserStr !== newUserStr) {
+            // Another user logged in - store message and redirect to login
+            const message = 'Tài khoản khác đã được đăng nhập trong tab khác. Vui lòng đăng nhập lại.';
+            sessionStorage.setItem('sessionEndedMessage', message);
+            
+            // Clear tokens for this tab
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            
+            // Redirect to login
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/login' && !currentPath.includes('/login')) {
+              window.location.href = '/login';
+            } else {
+              // Already on login page, show dialog
+              if (window.__showSessionEndedDialog) {
+                window.__showSessionEndedDialog(message);
+              }
+            }
+          } else if (e.key === 'accessToken' || e.key === 'refreshToken') {
+            // Tokens were changed - could be refresh or another user login
+            // Check if we still have valid user data
+            const currentUser = localStorage.getItem('user');
+            if (!currentUser) {
+              // User data was cleared - likely another user logged in
+              const message = 'Tài khoản khác đã được đăng nhập trong tab khác. Vui lòng đăng nhập lại.';
+              sessionStorage.setItem('sessionEndedMessage', message);
+              
+              // Redirect to login
+              const currentPath = window.location.pathname;
+              if (currentPath !== '/login' && !currentPath.includes('/login')) {
+                window.location.href = '/login';
+              } else {
+                // Already on login page, show dialog
+                if (window.__showSessionEndedDialog) {
+                  window.__showSessionEndedDialog(message);
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [showSessionEndedDialog]);
+
+  // Warm-up backend removed - OPTIONS method not supported by backend
+  // This was causing 405 (Method Not Allowed) errors in console
+  // If warm-up is needed in the future, use a different endpoint that supports OPTIONS
 
   const value = {
     // Loading
@@ -103,7 +204,12 @@ export const AppProvider = ({ children }) => {
     
     // Sidebar
     sidebarOpen,
-    toggleSidebar
+    toggleSidebar,
+    
+    // Session ended dialog
+    sessionEndedDialog,
+    showSessionEndedDialog,
+    closeSessionEndedDialog
   };
 
   return (

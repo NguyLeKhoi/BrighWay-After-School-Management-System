@@ -221,16 +221,51 @@ const approveDocument = async (documentId, approve = true) => {
 };
 
 /**
- * Update student basic information by parent (name, dateOfBirth, note)
+ * Update student basic information by parent (name, dateOfBirth, note, imageFile)
  * @param {string} studentId - Student ID
- * @param {Object} studentData - Student data { name, dateOfBirth, note }
+ * @param {FormData|Object} studentData - Student data { name, dateOfBirth, note, imageFile }
  * @returns {Promise} Updated student
  */
 const parentUpdateStudent = async (studentId, studentData) => {
   try {
+    let formData;
+    
+    // If FormData, send directly (for multipart/form-data)
+    if (studentData instanceof FormData) {
+      formData = studentData;
+    } else {
+      // Otherwise, create FormData from object
+      formData = new FormData();
+      
+      // Name is required
+      if (studentData.name) {
+        formData.append('Name', studentData.name);
+      }
+      
+      // DateOfBirth is required
+      if (studentData.dateOfBirth) {
+        formData.append('DateOfBirth', studentData.dateOfBirth);
+      }
+      
+      // Note is optional - append if provided (including empty string)
+      if (studentData.note !== undefined && studentData.note !== null) {
+        formData.append('Note', studentData.note || '');
+      }
+      
+      // ImageFile is optional - only append if provided as File
+      if (studentData.imageFile instanceof File) {
+        formData.append('ImageFile', studentData.imageFile);
+      }
+    }
+
     const response = await axiosInstance.put(
       `${STUDENT_BASE_PATH}/${studentId}/parent-update`,
-      studentData
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
     );
     return response.data;
   } catch (error) {

@@ -64,7 +64,6 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
             };
           }
         } catch (err) {
-          console.warn('Could not load room for slot', err);
           // Continue without room - will be assigned by backend
         }
       }
@@ -92,7 +91,6 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
 
   const loadAvailableSlots = async (studentId) => {
     if (!studentId) {
-      console.warn('loadAvailableSlots: studentId is missing');
       return;
     }
     
@@ -100,13 +98,10 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
     setError(null);
 
     try {
-      console.log('Loading available slots for studentId:', studentId);
       const response = await branchSlotService.getAvailableSlotsForStudent(studentId, {
         pageIndex: 1,
         pageSize: 20
       });
-      
-      console.log('API Response:', response);
       
       const items = Array.isArray(response)
         ? response
@@ -114,11 +109,7 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
           ? response.items
           : [];
 
-      console.log('Extracted items:', items);
-      console.log('Items count:', items.length);
-
       if (items.length === 0) {
-        console.warn('No slots found in response');
         setSlots([]);
         return;
       }
@@ -146,7 +137,6 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
         };
       });
 
-      console.log('Mapped slots:', mapped);
       setSlots(mapped);
     } catch (err) {
       console.error('Error loading available slots:', err);
@@ -240,7 +230,6 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
           };
         }
       } catch (err) {
-        console.warn('Could not load room for slot', err);
         // Continue without room - will be assigned by backend
       }
     }

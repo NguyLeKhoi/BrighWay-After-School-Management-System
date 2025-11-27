@@ -30,7 +30,8 @@ const BranchExpandedRowContent = ({
   rowStudentLevels,
   actionLoading,
   onRemoveBenefit,
-  onRemoveSchool
+  onRemoveSchool,
+  onRemoveStudentLevel
 }) => {
   return (
     <Box sx={{ p: 2 }}>
@@ -259,16 +260,18 @@ const BranchExpandedRowContent = ({
                   <TableCell sx={{ width: 56, fontWeight: 600 }}>#</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Tên cấp độ</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Mô tả</TableCell>
+                  <TableCell sx={{ width: 100 }} align="right">Thao tác</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {rowStudentLevels[branch.id].map((studentLevel, idx) => {
                   const levelName = studentLevel.name || studentLevel.levelName || 'Không rõ tên';
                   const levelDescription = studentLevel.description || studentLevel.desc || 'Không có mô tả';
+                  const studentLevelId = studentLevel.id || studentLevel.studentLevelId;
 
                   return (
                     <TableRow
-                      key={studentLevel.id || idx}
+                      key={studentLevelId || idx}
                       hover
                       sx={{
                         backgroundColor: 'warning.50',
@@ -290,6 +293,20 @@ const BranchExpandedRowContent = ({
                         <Typography variant="body2" color="text.secondary">
                           {levelDescription}
                         </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Gỡ cấp độ học sinh khỏi chi nhánh">
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => onRemoveStudentLevel(branch.id, studentLevelId, levelName)}
+                              disabled={actionLoading}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   );

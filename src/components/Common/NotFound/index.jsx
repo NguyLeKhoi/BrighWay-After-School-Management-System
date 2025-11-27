@@ -12,7 +12,7 @@ const NotFound = () => {
         <Threads
           amplitude={2.5}
           distance={0}
-          enableMouseInteraction={true}
+          enableMouseInteraction={false}
         />
       </div>
       <motion.div 

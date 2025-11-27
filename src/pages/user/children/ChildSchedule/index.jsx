@@ -37,26 +37,32 @@ const ChildSchedule = () => {
     // Lấy date từ branchSlot.date hoặc slot.date
     const dateValue = slot.branchSlot?.date || slot.date;
     if (!dateValue) {
-      console.warn('Slot missing date:', slot);
       return null;
     }
 
     // Lấy timeframe từ slot.timeframe hoặc slot.timeFrame
     const timeframe = slot.timeframe || slot.timeFrame;
     if (!timeframe) {
-      console.warn('Slot missing timeframe:', slot);
       return null;
     }
 
-    // Parse date từ ISO string
-    const slotDate = new Date(dateValue);
-    if (isNaN(slotDate.getTime())) {
-      console.warn('Invalid date format:', dateValue);
-      return null;
+    // Parse date string trực tiếp để tránh timezone issues
+    let dateStr;
+    if (typeof dateValue === 'string') {
+      // Nếu là string, lấy phần date trước 'T' hoặc space
+      dateStr = dateValue.split('T')[0].split(' ')[0];
+    } else {
+      // Nếu là Date object, format trực tiếp theo local timezone
+      const slotDate = new Date(dateValue);
+      if (isNaN(slotDate.getTime())) {
+        return null;
+      }
+      // Format date theo local timezone để tránh lệch ngày
+      const year = slotDate.getFullYear();
+      const month = String(slotDate.getMonth() + 1).padStart(2, '0');
+      const day = String(slotDate.getDate()).padStart(2, '0');
+      dateStr = `${year}-${month}-${day}`;
     }
-
-    // Lấy date string (YYYY-MM-DD)
-    const dateStr = slotDate.toISOString().split('T')[0];
     
     // Lấy startTime và endTime từ timeframe
     const startTime = timeframe.startTime || '00:00:00';

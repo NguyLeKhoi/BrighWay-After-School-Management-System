@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
-import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
+import ManagerStaffHeader from '../../Headers/ManagementHeader';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import PageTransition from '../../Common/PageTransition';
 import {

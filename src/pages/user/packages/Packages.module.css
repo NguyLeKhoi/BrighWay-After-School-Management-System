@@ -579,3 +579,81 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Service Order Dialog Styles */
+.dialogServiceInfo {
+  padding: 20px 24px;
+  background-color: rgba(0, 123, 255, 0.05);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.dialogServiceName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.dialogServicePrice {
+  font-size: 16px;
+  color: #007bff;
+  font-weight: 500;
+  margin: 0;
+}
+
+.orderForm {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formHint {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.inlineLoading {
+  padding: 16px;
+  text-align: center;
+}
+
+.walletButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.walletButton {
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 12px 20px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  background: var(--color-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
+}
+
+.walletButton:hover {
+  background: var(--color-secondary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.paymentResult {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #166534;
+  margin-bottom: 16px;
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Box, Avatar, Chip, CircularProgress, Alert, Typography, Button, Paper, IconButton } from '@mui/material';
+import { Box, Avatar, Chip, CircularProgress, Alert, Typography, Button, Paper, IconButton, Grid } from '@mui/material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import { motion } from 'framer-motion';
 import AnimatedCard from '../../../../components/Common/AnimatedCard';
@@ -26,6 +26,7 @@ import studentService from '../../../../services/student.service';
 import { useApp } from '../../../../contexts/AppContext';
 import ManagementFormDialog from '../../../../components/Management/FormDialog';
 import Form from '../../../../components/Common/Form';
+import ImageUpload from '../../../../components/Common/ImageUpload';
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import { addDocumentSchema } from '../../../../utils/validationSchemas/documentSchemas';
 import * as yup from 'yup';
@@ -166,6 +167,13 @@ const ChildProfile = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const updateFormRef = useRef(null);
+  const [updateFormData, setUpdateFormData] = useState({
+    name: '',
+    dateOfBirth: '',
+    note: '',
+    imageFile: null
+  });
 
   // Validation schema for parent update
   const parentUpdateSchema = yup.object({
@@ -186,7 +194,19 @@ const ChildProfile = () => {
       .max(500, 'Ghi chú không được vượt quá 500 ký tự')
       .nullable()
       .notRequired()
-      .transform((value, originalValue) => (originalValue === '' ? null : value))
+      .transform((value, originalValue) => (originalValue === '' ? null : value)),
+    imageFile: yup
+      .mixed()
+      .nullable()
+      .notRequired()
+      .test('fileSize', 'Kích thước file không được vượt quá 5MB', (value) => {
+        if (!value) return true;
+        return value.size <= 5 * 1024 * 1024; // 5MB
+      })
+      .test('fileType', 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF)', (value) => {
+        if (!value) return true;
+        return ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'].includes(value.type);
+      })
   });
 
   // Form fields for update
@@ -204,7 +224,7 @@ const ChildProfile = () => {
       label: 'Ngày sinh *',
       type: 'date',
       required: true,
-      gridSize: 6
+      gridSize: 12
     },
     {
       name: 'note',
@@ -321,7 +341,8 @@ const ChildProfile = () => {
       const updateData = {
         name: formValues.name.trim(),
         dateOfBirth: dateOfBirthISO,
-        note: formValues.note?.trim() || null
+        note: formValues.note?.trim() || null,
+        imageFile: updateFormData.imageFile || null
       };
 
       await studentService.parentUpdateStudent(childId, updateData);
@@ -333,8 +354,15 @@ const ChildProfile = () => {
       // Reload child data
       await fetchChild();
       setOpenUpdateDialog(false);
+      // Reset update form data
+      setUpdateFormData({
+        name: '',
+        dateOfBirth: '',
+        note: '',
+        imageFile: null
+      });
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message || 'Không thể cập nhật thông tin';
+      const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể cập nhật thông tin';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
     } finally {
       setUpdateLoading(false);
@@ -358,7 +386,7 @@ const ChildProfile = () => {
       // Navigate back to children list
       navigate('/family/children');
     } catch (err) {
-        const message = err?.response?.data?.message || err?.message || 'Không thể xóa trẻ em';
+        const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể xóa trẻ em';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
       setDeleteLoading(false);
     }
@@ -504,7 +532,16 @@ const ChildProfile = () => {
                 variant="outlined"
                 color="primary"
                 startIcon={<EditIcon />}
-                onClick={() => setOpenUpdateDialog(true)}
+                onClick={() => {
+                  // Initialize updateFormData with current child data when opening dialog
+                  setUpdateFormData({
+                    name: child?.name || '',
+                    dateOfBirth: child?.dateOfBirth || '',
+                    note: child?.note && child.note !== 'string' ? child.note : '',
+                    imageFile: null
+                  });
+                  setOpenUpdateDialog(true);
+                }}
                 sx={{ 
                   textTransform: 'none',
                   borderRadius: 2,
@@ -594,7 +631,7 @@ const ChildProfile = () => {
                   <div className={styles.fieldValue}>
                     {child.dateOfBirth ? formatDate(child.dateOfBirth) : 'Chưa có'}
                     {age && <span style={{ color: '#666', marginLeft: '8px' }}>({age} tuổi)</span>}
-                    </div>
+                  </div>
                 </div>
                 
                 <div className={styles.formGroup}>
@@ -604,7 +641,7 @@ const ChildProfile = () => {
                   </label>
                   <div className={styles.fieldValue}>
                     {userName}
-                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -825,7 +862,18 @@ const ChildProfile = () => {
           {/* Update Student Dialog */}
           <ManagementFormDialog
             open={openUpdateDialog}
-            onClose={() => !updateLoading && setOpenUpdateDialog(false)}
+            onClose={() => {
+              if (!updateLoading) {
+                setOpenUpdateDialog(false);
+                // Reset update form data when closing
+                setUpdateFormData({
+                  name: '',
+                  dateOfBirth: '',
+                  note: '',
+                  imageFile: null
+                });
+              }
+            }}
             mode="update"
             title="Chỉnh sửa thông tin trẻ em"
             icon={EditIcon}
@@ -833,6 +881,7 @@ const ChildProfile = () => {
             maxWidth="md"
           >
             <Form
+              ref={updateFormRef}
               schema={parentUpdateSchema}
               defaultValues={{
                 name: child?.name || '',
@@ -846,7 +895,111 @@ const ChildProfile = () => {
               loading={updateLoading}
               disabled={updateLoading}
               fields={updateFields}
+              hideSubmitButton
             />
+            
+            {/* Image Upload Section */}
+            <Box sx={{ mt: 2 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <ImageUpload
+                    value={updateFormData.imageFile || null}
+                    onChange={(file) => {
+                      // Get current form values to preserve them
+                      let currentFormValues = {};
+                      if (updateFormRef.current && typeof updateFormRef.current.getValues === 'function') {
+                        try {
+                          currentFormValues = updateFormRef.current.getValues();
+                        } catch (err) {
+                          currentFormValues = {};
+                        }
+                      }
+                      // Update updateFormData with new imageFile
+                      setUpdateFormData({ 
+                        ...updateFormData,
+                        ...currentFormValues, // Preserve form values
+                        imageFile: file 
+                      });
+                      // Also update form value if formRef is available
+                      if (updateFormRef.current && typeof updateFormRef.current.setValue === 'function') {
+                        try {
+                          updateFormRef.current.setValue('imageFile', file, { shouldValidate: false });
+                        } catch (err) {
+                          // If setValue fails, just continue without updating form
+                        }
+                      }
+                    }}
+                    label="Ảnh đại diện (tùy chọn)"
+                    helperText="Chọn file ảnh để tải lên (JPG, PNG, etc.) - Tối đa 5MB"
+                    accept="image/*"
+                    maxSize={5 * 1024 * 1024}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+            
+            {/* Submit Button at the bottom */}
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button
+                onClick={() => {
+                  if (!updateLoading) {
+                    setOpenUpdateDialog(false);
+                    setUpdateFormData({
+                      name: '',
+                      dateOfBirth: '',
+                      note: '',
+                      imageFile: null
+                    });
+                  }
+                }}
+                disabled={updateLoading}
+                variant="outlined"
+                sx={{
+                  minWidth: 120,
+                  textTransform: 'none',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '10px 24px',
+                  fontWeight: 600,
+                  borderColor: 'var(--border-medium)',
+                  color: 'var(--text-primary)',
+                  '&:hover': {
+                    borderColor: 'var(--color-primary)',
+                    backgroundColor: 'var(--bg-tertiary)'
+                  }
+                }}
+              >
+                Hủy
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (updateFormRef.current?.submit) {
+                    await updateFormRef.current.submit();
+                  }
+                }}
+                disabled={updateLoading}
+                variant="contained"
+                sx={{
+                  minWidth: 120,
+                  textTransform: 'none',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '10px 24px',
+                  fontWeight: 600,
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+                  color: 'white',
+                  boxShadow: 'var(--shadow-md), 0 2px 8px rgba(37, 99, 235, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: 'var(--shadow-lg), 0 4px 12px rgba(37, 99, 235, 0.4)'
+                  },
+                  '&:disabled': {
+                    background: 'grey.300'
+                  }
+                }}
+              >
+                {updateLoading ? 'Đang cập nhật...' : 'Cập nhật'}
+              </Button>
+            </Box>
           </ManagementFormDialog>
 
           {/* Delete Confirmation Dialog */}

@@ -28,7 +28,12 @@ export const formatErrorMessage = (errorResponse) => {
 
   const data = errorResponse.data || errorResponse;
   
-  // If there's a direct message, return it
+  // Priority 1: Check for detail field (usually contains specific error messages like image validation)
+  if (data.detail) {
+    return data.detail;
+  }
+  
+  // Priority 2: Check for direct message
   if (data.message) {
     return data.message;
   }

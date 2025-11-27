@@ -101,7 +101,6 @@ const ChangePassword = () => {
         });
       } catch (validateError) {
         // If validation fails, still try to reset password (as validation is optional)
-        console.warn('Code validation failed, but continuing with reset:', validateError);
       }
 
       // Reset password with code
