@@ -58,7 +58,26 @@ const FamilyServices = () => {
     setServicesError(null);
 
     try {
-      const response = await serviceService.getMyAddOns();
+      // First, get children to get studentId
+      const childrenResponse = await studentService.getMyChildren();
+      const childrenList = Array.isArray(childrenResponse) ? childrenResponse : [];
+      
+      if (childrenList.length === 0) {
+        setServices([]);
+        setServicesError('Bạn chưa có trẻ em nào. Vui lòng thêm trẻ em trước.');
+        return;
+      }
+
+      // Use the first child to get add-ons (all children should be in the same branch)
+      const firstChild = childrenList[0];
+      if (!firstChild?.id) {
+        setServices([]);
+        setServicesError('Không tìm thấy thông tin trẻ em.');
+        return;
+      }
+
+      // Get add-ons for the first child
+      const response = await serviceService.getAddOnsForStudent(firstChild.id);
       const items = Array.isArray(response) ? response : [];
 
       const mappedServices = items.map((service) => ({

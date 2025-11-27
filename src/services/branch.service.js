@@ -163,6 +163,25 @@ const branchService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Remove a student level from a branch
+   * @param {Object} data - Removal data { branchId, studentLevelId }
+   * @returns {Promise} Removal result
+   */
+  removeStudentLevel: async (data) => {
+    try {
+      const { branchId, studentLevelId } = data;
+      const queryParams = new URLSearchParams({
+        branchId: branchId.toString(),
+        studentLevelId: studentLevelId.toString()
+      });
+      const response = await axiosInstance.delete(`/Branch/remove-student-level?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

@@ -52,7 +52,7 @@ import studentService from '../../../services/student.service';
 import schoolService from '../../../services/school.service';
 import studentLevelService from '../../../services/studentLevel.service';
 import userService from '../../../services/user.service';
-import { createManagerStudentColumns } from '../../../constants/manager/student/tableColumns';
+import { createManagerStudentColumns } from '../../../definitions/manager/student/tableColumns';
 import styles from './StudentManagement.module.css';
 
 // Pure function - no memoization needed (doesn't depend on component state)
@@ -221,7 +221,6 @@ const StudentManagement = () => {
           showGlobalError('Manager không có chi nhánh được gán. Vui lòng liên hệ quản trị viên.');
         }
       } catch (error) {
-        console.warn('Unable to resolve manager branch info', error);
         showGlobalError('Không thể xác định chi nhánh. Vui lòng đăng nhập lại.');
       }
     };
@@ -444,7 +443,6 @@ const StudentManagement = () => {
   const loadUnverifiedStudents = useCallback(async () => {
     // Đảm bảo có branchId trước khi load
     if (!branchIdRef.current && !user?.branchId && !branchInfo.id) {
-      console.warn('Không thể load trẻ em chưa duyệt: chưa có branchId');
       setUnverifiedStudents([]);
       return;
     }
@@ -478,7 +476,6 @@ const StudentManagement = () => {
   const loadApprovedWithUnverifiedDocs = useCallback(async () => {
     // Đảm bảo có branchId trước khi load
     if (!branchIdRef.current && !user?.branchId && !branchInfo.id) {
-      console.warn('Không thể load trẻ em đã duyệt có tài liệu chưa duyệt: chưa có branchId');
       setApprovedWithUnverifiedDocs([]);
       return;
     }

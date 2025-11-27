@@ -67,7 +67,6 @@ const CreateStudent = () => {
           setFormData((prev) => ({ ...prev, branchId: managerBranchId }));
         }
       } catch (err) {
-        console.warn('Không thể xác định chi nhánh quản lý', err);
       }
     };
 
@@ -128,7 +127,7 @@ const CreateStudent = () => {
       toast.success('Tạo học sinh thành công!', { position: 'top-right', autoClose: 2000 });
       navigate('/manager/students');
     } catch (err) {
-      const message = err?.response?.data?.message || err.message || 'Không thể tạo học sinh';
+      const message = err?.response?.data?.detail || err?.response?.data?.message || err.message || 'Không thể tạo học sinh';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
     } finally {
       setLoading(false);

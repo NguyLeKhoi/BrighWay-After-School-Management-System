@@ -19,7 +19,6 @@ import Login from '../pages/auth/Login';
 // useruser Pages
 import FamilyProfile from '../pages/user/profile';
 import ChangePassword from '../pages/user/changePassword';
-import FamilyServices from '../pages/user/services';
 import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
 import CreateChild from '../pages/user/children/CreateChild';
@@ -39,6 +38,7 @@ import UpdateBranch from '../pages/admin/branchManagement/UpdateBranch';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
 import ManagerManagement from '../pages/admin/managerManagement';
+import UserManagement from '../pages/admin/userManagement';
 import BenefitManagement from '../pages/admin/benefitManagement';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 import PackageManagement from '../pages/admin/packageManagement';
@@ -154,11 +154,7 @@ export const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <FamilyServices />,
-      },
-      {
-        path: 'services',
-        element: <FamilyServices />,
+        element: <ChildrenList />,
       },
       {
         path: 'profile',
@@ -243,6 +239,10 @@ export const routes = createBrowserRouter([
       {
         path: 'staffAndManager',
         element: <ManagerManagement />,
+      },
+      {
+        path: 'users',
+        element: <UserManagement />,
       },
       {
         path: 'benefits',

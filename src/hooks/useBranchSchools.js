@@ -12,8 +12,36 @@ const useBranchSchools = (branchId) => {
   const [error, setError] = useState(null);
 
   const fetchSchools = useCallback(async () => {
-    if (!branchId || branchId === '' || branchId === null || branchId === undefined) {
+    // Ensure branchId is a valid string (not an object)
+    let validBranchId = null;
+    if (branchId) {
+      if (typeof branchId === 'string' && branchId.trim() !== '') {
+        validBranchId = branchId.trim();
+      } else if (typeof branchId === 'object' && branchId !== null) {
+        // If it's an object, try to extract value or id
+        const extracted = branchId.value || branchId.id;
+        if (extracted) {
+          validBranchId = String(extracted);
+        } else {
+          // If can't extract, reject it
+          validBranchId = null;
+        }
+      } else if (typeof branchId === 'number') {
+        validBranchId = String(branchId);
+      } else {
+        const str = String(branchId);
+        // Reject [object Object] and other invalid strings
+        if (str !== '[object Object]' && str !== 'null' && str !== 'undefined' && str.trim() !== '') {
+          validBranchId = str;
+        }
+      }
+    }
+
+    // Final validation - reject if invalid
+    if (!validBranchId || validBranchId === '' || validBranchId === 'null' || validBranchId === 'undefined' || validBranchId === '[object Object]') {
       setSchools([]);
+      setLoading(false);
+      setError(null);
       return;
     }
 
@@ -21,12 +49,19 @@ const useBranchSchools = (branchId) => {
     setError(null);
 
     try {
-      const branch = await branchService.getBranchById(branchId);
-      console.log('Branch data for schools:', branch);
-      // Branch response should contain schools array directly
-      const branchSchools = branch?.schools || branch?.branchSchools?.map(bs => bs.school || bs) || [];
-      console.log('Extracted schools:', branchSchools);
-      setSchools(Array.isArray(branchSchools) ? branchSchools : []);
+      // Call branch service to get branch details, which includes schools
+      const branch = await branchService.getBranchById(validBranchId);
+      
+      // Extract schools from branch response
+      // Branch response may have schools directly or in branchSchools array
+      let extractedSchools = [];
+      if (branch?.schools && Array.isArray(branch.schools)) {
+        extractedSchools = branch.schools;
+      } else if (branch?.branchSchools && Array.isArray(branch.branchSchools)) {
+        extractedSchools = branch.branchSchools.map(bs => bs.school || bs).filter(Boolean);
+      }
+      
+      setSchools(extractedSchools);
     } catch (err) {
       console.error('Error fetching branch schools:', err);
       const message = err?.response?.data?.message || err?.message || 'Không thể tải danh sách trường học';

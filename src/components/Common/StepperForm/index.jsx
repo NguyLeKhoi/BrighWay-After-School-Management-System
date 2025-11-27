@@ -49,13 +49,14 @@ const StepperForm = ({
     return `stepperForm_${location.pathname.replace(/\//g, '_')}`;
   }, [storageKey, location.pathname]);
 
-  // Load saved data from localStorage on mount
+  // Load saved data from sessionStorage on mount (more secure than localStorage)
+  // sessionStorage automatically clears when tab is closed
   const loadSavedData = useCallback(() => {
     if (!enableLocalStorage) return null;
     
     try {
       const key = getStorageKey();
-      const saved = localStorage.getItem(key);
+      const saved = sessionStorage.getItem(key);
       if (saved) {
         const parsed = JSON.parse(saved);
         // Filter out File objects (can't be serialized)
@@ -79,19 +80,46 @@ const StepperForm = ({
     return null;
   }, [enableLocalStorage, getStorageKey]);
 
-  // Save data to localStorage
+  // Save data to sessionStorage (more secure than localStorage)
+  // sessionStorage automatically clears when tab is closed, providing better security
   const saveData = useCallback((data, step, completed) => {
     if (!enableLocalStorage) return;
     
     try {
       const key = getStorageKey();
-      // Filter out File objects before saving
+      // Filter out File objects and circular references before saving
       const sanitized = Object.entries(data).reduce((acc, [key, value]) => {
+        // Skip File objects
         if (value instanceof File) {
-          // Don't save File objects - they can't be serialized
           return acc;
         }
-        acc[key] = value;
+        // Skip functions
+        if (typeof value === 'function') {
+          return acc;
+        }
+        // Skip objects that might have circular references (like window, document, etc.)
+        if (value && typeof value === 'object') {
+          // Check if it's a plain object (not Date, RegExp, etc.)
+          if (value.constructor === Object) {
+            try {
+              // Try to stringify to check for circular references
+              JSON.stringify(value);
+              acc[key] = value;
+            } catch (e) {
+              // Skip if circular reference detected
+            }
+          } else {
+            // For non-plain objects (Date, etc.), convert to string or skip
+            if (value instanceof Date) {
+              acc[key] = value.toISOString();
+            } else {
+              // Skip other complex objects
+            }
+          }
+        } else {
+          // Primitive values are safe
+          acc[key] = value;
+        }
         return acc;
       }, {});
       
@@ -100,39 +128,63 @@ const StepperForm = ({
         activeStep: step,
         completedSteps: Array.from(completed)
       };
-      localStorage.setItem(key, JSON.stringify(toSave));
+      sessionStorage.setItem(key, JSON.stringify(toSave));
     } catch (error) {
       console.error('Error saving form data:', error);
     }
   }, [enableLocalStorage, getStorageKey]);
 
-  // Clear saved data
+  // Clear saved data from sessionStorage
   const clearSavedData = useCallback(() => {
     if (!enableLocalStorage) return;
     
     try {
       const key = getStorageKey();
-      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
     } catch (error) {
       console.error('Error clearing saved form data:', error);
     }
   }, [enableLocalStorage, getStorageKey]);
 
   // Load saved data on mount - use lazy initialization to only run once
+  // But check if initialData is empty (create mode) - if so, clear saved data
   const savedDataOnMountRef = React.useRef(null);
   if (savedDataOnMountRef.current === null) {
-    savedDataOnMountRef.current = loadSavedData();
+    const saved = loadSavedData();
+    // If initialData is empty or only has empty values, this is a create mode
+    // In create mode, we should start fresh (step 0, no saved data)
+    // Check if initialData has any meaningful values (not just empty strings)
+    const hasMeaningfulData = initialData && Object.keys(initialData).length > 0 && 
+      Object.values(initialData).some(val => val !== '' && val !== null && val !== undefined);
+    const isCreateMode = !hasMeaningfulData;
+    
+    if (isCreateMode && saved) {
+      // Clear saved data for create mode
+      clearSavedData();
+      savedDataOnMountRef.current = null;
+    } else {
+      savedDataOnMountRef.current = saved;
+    }
   }
   const savedDataOnMount = savedDataOnMountRef.current;
   
-  const [activeStep, setActiveStep] = useState(savedDataOnMount?.activeStep || 0);
+  // Check if this is create mode - has meaningful data means edit mode
+  const hasMeaningfulData = initialData && Object.keys(initialData).length > 0 && 
+    Object.values(initialData).some(val => val !== '' && val !== null && val !== undefined);
+  const isCreateMode = !hasMeaningfulData;
+  
+  const [activeStep, setActiveStep] = useState(isCreateMode ? 0 : (savedDataOnMount?.activeStep || 0));
   // Merge initialData with saved data, prioritizing initialData for critical fields like studentId
   const [formData, setFormData] = useState(() => {
+    if (isCreateMode) {
+      // In create mode, use initialData only (or empty object)
+      return { ...initialData };
+    }
     const saved = savedDataOnMount?.formData || {};
     return { ...saved, ...initialData };
   });
   const [stepErrors, setStepErrors] = useState({});
-  const [completedSteps, setCompletedSteps] = useState(savedDataOnMount?.completedSteps || new Set());
+  const [completedSteps, setCompletedSteps] = useState(isCreateMode ? new Set() : (savedDataOnMount?.completedSteps || new Set()));
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     title: '',
@@ -143,6 +195,9 @@ const StepperForm = ({
   const stepRefs = React.useRef({});
   // Initialize formDataRef with merged saved data and initialData
   const getInitialFormDataForRef = () => {
+    if (isCreateMode) {
+      return { ...initialData };
+    }
     const saved = savedDataOnMount?.formData || {};
     return { ...saved, ...initialData };
   };
@@ -152,15 +207,34 @@ const StepperForm = ({
   // Load saved data on mount (only once)
   React.useEffect(() => {
     if (!hasLoadedSavedData.current && enableLocalStorage) {
-      const saved = loadSavedData();
-      if (saved) {
-        // Merge saved data with initialData, prioritizing initialData for critical fields
-        const merged = { ...saved.formData, ...initialData };
-        setFormData(merged);
-        setActiveStep(saved.activeStep);
-        setCompletedSteps(saved.completedSteps);
-        formDataRef.current = merged;
+      // Check if this is create mode - has meaningful data means edit mode
+      const hasMeaningfulDataCheck = initialData && Object.keys(initialData).length > 0 && 
+        Object.values(initialData).some(val => val !== '' && val !== null && val !== undefined);
+      const isCreateModeCheck = !hasMeaningfulDataCheck;
+      
+      if (isCreateModeCheck) {
+        // In create mode, start fresh - don't load saved data
+        setFormData({ ...initialData });
+        setActiveStep(0);
+        setCompletedSteps(new Set());
+        formDataRef.current = { ...initialData };
         hasLoadedSavedData.current = true;
+        // Clear any existing saved data
+        clearSavedData();
+      } else {
+        // In edit mode, load saved data
+        const saved = loadSavedData();
+        if (saved) {
+          // Merge saved data with initialData, prioritizing initialData for critical fields
+          const merged = { ...saved.formData, ...initialData };
+          setFormData(merged);
+          setActiveStep(saved.activeStep);
+          setCompletedSteps(saved.completedSteps);
+          formDataRef.current = merged;
+          hasLoadedSavedData.current = true;
+        } else {
+          hasLoadedSavedData.current = true;
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -371,7 +445,40 @@ const StepperForm = ({
 
   const updateFormData = useCallback((data) => {
     setFormData(prev => {
-      const newData = { ...prev, ...data };
+      // Normalize branchId, schoolId, studentLevelId to ensure they are strings, not objects
+      const normalizedData = { ...data };
+      if (normalizedData.branchId !== undefined) {
+        if (typeof normalizedData.branchId === 'object' && normalizedData.branchId !== null) {
+          normalizedData.branchId = normalizedData.branchId.value || normalizedData.branchId.id || '';
+        } else if (normalizedData.branchId) {
+          const str = String(normalizedData.branchId);
+          normalizedData.branchId = (str === '[object Object]' || str === 'null' || str === 'undefined') ? '' : str;
+        } else {
+          normalizedData.branchId = '';
+        }
+      }
+      if (normalizedData.schoolId !== undefined) {
+        if (typeof normalizedData.schoolId === 'object' && normalizedData.schoolId !== null) {
+          normalizedData.schoolId = normalizedData.schoolId.value || normalizedData.schoolId.id || '';
+        } else if (normalizedData.schoolId) {
+          const str = String(normalizedData.schoolId);
+          normalizedData.schoolId = (str === '[object Object]' || str === 'null' || str === 'undefined') ? '' : str;
+        } else {
+          normalizedData.schoolId = '';
+        }
+      }
+      if (normalizedData.studentLevelId !== undefined) {
+        if (typeof normalizedData.studentLevelId === 'object' && normalizedData.studentLevelId !== null) {
+          normalizedData.studentLevelId = normalizedData.studentLevelId.value || normalizedData.studentLevelId.id || '';
+        } else if (normalizedData.studentLevelId) {
+          const str = String(normalizedData.studentLevelId);
+          normalizedData.studentLevelId = (str === '[object Object]' || str === 'null' || str === 'undefined') ? '' : str;
+        } else {
+          normalizedData.studentLevelId = '';
+        }
+      }
+      
+      const newData = { ...prev, ...normalizedData };
       formDataRef.current = newData; // Update ref immediately
       return newData;
     });

@@ -56,7 +56,51 @@ axiosInstance.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
+          // Check if this is a session_ended or invalid_token error
+          const errorData = error.response?.data;
+          const errorCode = errorData?.code || errorData?.errorCode;
+          
+          // Handle session_ended (another device logged in) or invalid_token (token mismatch, possibly due to another user login in different tab)
+          if (errorCode === 'session_ended' || errorCode === 'invalid_token') {
+            // Determine appropriate message based on error code
+            let errorMessage;
+            if (errorCode === 'session_ended') {
+              errorMessage = errorData?.message || 'Phiên đăng nhập của bạn đã bị kết thúc do tài khoản được đăng nhập trên thiết bị khác.';
+            } else {
+              // invalid_token - could be due to token mismatch from another user login in different tab
+              errorMessage = errorData?.message || 'Token không hợp lệ. Có thể do bạn đã đăng nhập tài khoản khác trong tab khác. Vui lòng đăng nhập lại.';
+            }
+            
+            // Clear tokens and user data
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            
+            // Store message in sessionStorage to show dialog on login page
+            sessionStorage.setItem('sessionEndedMessage', errorMessage);
+            
+            // Redirect to login immediately
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/login' && !currentPath.includes('/login')) {
+              window.location.href = '/login';
+            } else {
+              // Already on login page, show dialog immediately
+              if (window.__showSessionEndedDialog) {
+                window.__showSessionEndedDialog(errorMessage);
+              }
+            }
+            
+            return Promise.reject(error);
+          }
+          
           // Unauthorized - try to refresh token
+          // Skip refresh for certain endpoints that might return 401 for other reasons
+          // Also skip for public endpoints that don't require authentication
+          const skipRefreshPaths = ['/Auth/login', '/Auth/refresh', '/ContactRequest/submit'];
+          if (skipRefreshPaths.some(path => originalRequest.url?.includes(path))) {
+            return Promise.reject(error);
+          }
+          
           if (!originalRequest._retry) {
             originalRequest._retry = true;
             
@@ -88,15 +132,62 @@ axiosInstance.interceptors.response.use(
               // Retry the original request
               return axiosInstance(originalRequest);
             } catch (refreshError) {
-              // Refresh failed, clear tokens and redirect to login
+              // Check if refresh error is session_ended or invalid_token
+              const refreshErrorData = refreshError.response?.data;
+              const refreshErrorCode = refreshErrorData?.code || refreshErrorData?.errorCode;
+              
+              if (refreshErrorCode === 'session_ended' || refreshErrorCode === 'invalid_token') {
+                // Session ended or invalid token during refresh attempt
+                let refreshErrorMessage;
+                if (refreshErrorCode === 'session_ended') {
+                  refreshErrorMessage = refreshErrorData?.message || 'Phiên đăng nhập của bạn đã bị kết thúc do tài khoản được đăng nhập trên thiết bị khác.';
+                } else {
+                  refreshErrorMessage = refreshErrorData?.message || 'Token không hợp lệ. Có thể do bạn đã đăng nhập tài khoản khác trong tab khác. Vui lòng đăng nhập lại.';
+                }
+                
+                // Clear tokens and user data
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+                
+                // Process queued requests with error
+                processQueue(refreshError, null);
+                
+                // Store message in sessionStorage to show dialog on login page
+                sessionStorage.setItem('sessionEndedMessage', refreshErrorMessage);
+                
+                // Redirect to login immediately
+                const currentPath = window.location.pathname;
+                if (currentPath !== '/login' && !currentPath.includes('/login')) {
+                  window.location.href = '/login';
+                } else {
+                  // Already on login page, show dialog immediately
+                  if (window.__showSessionEndedDialog) {
+                    window.__showSessionEndedDialog(refreshErrorMessage);
+                  }
+                }
+                
+                return Promise.reject(refreshError);
+              }
+              
+              // Refresh failed for other reasons, clear tokens and redirect to login
               processQueue(refreshError, null);
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
               
               // Only redirect if not already on login page
-              if (window.location.pathname !== '/login') {
+              // Use setTimeout to prevent redirect during successful operations
+              // Check if we're in the middle of a successful operation
+              const currentPath = window.location.pathname;
+              if (currentPath !== '/login' && !currentPath.includes('/login')) {
+                // Delay redirect to allow any success toasts/messages to show
+                setTimeout(() => {
+                  const stillNotOnLogin = window.location.pathname !== '/login' && !window.location.pathname.includes('/login');
+                  if (stillNotOnLogin) {
               window.location.href = '/login';
+                  }
+                }, 500);
               }
               return Promise.reject(refreshError);
             } finally {
@@ -109,8 +200,15 @@ axiosInstance.interceptors.response.use(
             localStorage.removeItem('user');
             
             // Only redirect if not already on login page
-            if (window.location.pathname !== '/login') {
+            // Use setTimeout to prevent redirect during successful operations
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/login' && !currentPath.includes('/login')) {
+              setTimeout(() => {
+                const stillNotOnLogin = window.location.pathname !== '/login' && !window.location.pathname.includes('/login');
+                if (stillNotOnLogin) {
             window.location.href = '/login';
+                }
+              }, 500);
             }
           }
           break;

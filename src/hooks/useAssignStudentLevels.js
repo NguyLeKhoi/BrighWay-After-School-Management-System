@@ -52,10 +52,19 @@ export const useAssignStudentLevels = (expandedRows, updateRowStudentLevels, loa
         .filter(id => id != null && id !== '');
       
       const toAdd = selectedStudentLevels.filter(id => id && !currentAssigned.includes(id));
+      const toRemove = currentAssigned.filter(id => id && !selectedStudentLevels.includes(id));
       
       for (const studentLevelId of toAdd) {
         if (!studentLevelId) continue;
         await branchService.addStudentLevel({
+          branchId: selectedBranch.id,
+          studentLevelId: studentLevelId
+        });
+      }
+      
+      for (const studentLevelId of toRemove) {
+        if (!studentLevelId) continue;
+        await branchService.removeStudentLevel({
           branchId: selectedBranch.id,
           studentLevelId: studentLevelId
         });
@@ -86,6 +95,43 @@ export const useAssignStudentLevels = (expandedRows, updateRowStudentLevels, loa
     }
   };
 
+  const handleRemove = async (branchId, studentLevelId, studentLevelName, setConfirmDialog) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Xác nhận gỡ cấp độ học sinh',
+      description: `Bạn có chắc chắn muốn gỡ cấp độ học sinh "${studentLevelName}" khỏi chi nhánh này không?`,
+      onConfirm: async () => {
+        try {
+          await branchService.removeStudentLevel({
+            branchId: branchId,
+            studentLevelId: studentLevelId
+          });
+          toast.success(`Đã gỡ cấp độ học sinh "${studentLevelName}" khỏi chi nhánh thành công!`);
+          
+          const updatedBranch = await branchService.getBranchById(branchId);
+          const updated = updatedBranch?.studentLevels && Array.isArray(updatedBranch.studentLevels)
+            ? updatedBranch.studentLevels
+            : [];
+          
+          updateRowStudentLevels(branchId, updated);
+          
+          if (selectedBranch?.id === branchId) {
+            setAssignedStudentLevels(updated);
+          }
+          
+          if (loadData) {
+            await loadData(false);
+          }
+          
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        } catch (err) {
+          toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gỡ cấp độ học sinh');
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }
+      }
+    });
+  };
+
   return {
     openDialog,
     setOpenDialog,
@@ -96,7 +142,8 @@ export const useAssignStudentLevels = (expandedRows, updateRowStudentLevels, loa
     setSelectedStudentLevels,
     loading,
     handleOpen,
-    handleSubmit
+    handleSubmit,
+    handleRemove
   };
 };
 

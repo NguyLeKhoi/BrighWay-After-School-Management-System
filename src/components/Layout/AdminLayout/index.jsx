@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
-import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
+import ManagerStaffHeader from '../../Headers/ManagementHeader';
 import PageTransition from '../../Common/PageTransition';
 import {
   Business as BranchIcon,
@@ -16,7 +16,8 @@ import {
   CardGiftcard as BenefitIcon,
   School as StudentLevelIcon,
   ShoppingCart as PackageIcon,
-  AccountBalance as SchoolIcon
+  AccountBalance as SchoolIcon,
+  People as PeopleIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -38,6 +39,11 @@ const AdminLayout = () => {
       path: '/admin/staffAndManager',
       label: 'Nhân Viên',
       icon: UserIcon
+    },
+    {
+      path: '/admin/users',
+      label: 'Người Dùng',
+      icon: PeopleIcon
     },
     {
       path: '/admin/schools',

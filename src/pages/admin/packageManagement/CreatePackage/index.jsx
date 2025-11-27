@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import StepperForm from '../../../../components/Common/StepperForm';
 import benefitService from '../../../../services/benefit.service';
 import packageService from '../../../../services/package.service';
+import packageTemplateService from '../../../../services/packageTemplate.service';
 import usePackageDependencies from '../../../../hooks/usePackageDependencies';
-import useFacilityBranchData from '../../../../hooks/useFacilityBranchData';
 import Form from '../../../../components/Common/Form';
-import { createPackageFormFields } from '../../../../constants/package/formFields';
+import { createPackageFormFields } from '../../../../definitions/package/formFields';
 import { packageSchema } from '../../../../utils/validationSchemas/packageSchemas';
 import { toast } from 'react-toastify';
 
@@ -20,9 +20,29 @@ const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
     loading: dependenciesLoading,
     error: dependenciesError
   } = usePackageDependencies();
-  const { templateOptions, loadingTemplates } = useFacilityBranchData();
+  const [templateOptions, setTemplateOptions] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loading, setLoading] = useState(false);
   const formRef = React.useRef(null);
+
+  // Fetch templates on mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      setLoadingTemplates(true);
+      try {
+        const templates = await packageTemplateService.getAllTemplates();
+        setTemplateOptions(templates || []);
+      } catch (err) {
+        console.error('Error fetching templates:', err);
+        setTemplateOptions([]);
+        toast.error('Không thể tải danh sách mẫu gói');
+      } finally {
+        setLoadingTemplates(false);
+      }
+    };
+    fetchTemplates();
+  }, []);
+
   useImperativeHandle(ref, () => ({
     async submit() {
       if (formRef.current?.submit) {
@@ -86,9 +106,29 @@ const Step2Associations = forwardRef(({ data, updateData }, ref) => {
     branchOptions,
     loading: dependenciesLoading
   } = usePackageDependencies();
-  const { templateOptions, loadingTemplates } = useFacilityBranchData();
+  const [templateOptions, setTemplateOptions] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loading, setLoading] = useState(false);
   const formRef = React.useRef(null);
+
+  // Fetch templates on mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      setLoadingTemplates(true);
+      try {
+        const templates = await packageTemplateService.getAllTemplates();
+        setTemplateOptions(templates || []);
+      } catch (err) {
+        console.error('Error fetching templates:', err);
+        setTemplateOptions([]);
+        toast.error('Không thể tải danh sách mẫu gói');
+      } finally {
+        setLoadingTemplates(false);
+      }
+    };
+    fetchTemplates();
+  }, []);
+
   useImperativeHandle(ref, () => ({
     async submit() {
       if (formRef.current?.submit) {

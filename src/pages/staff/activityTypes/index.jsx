@@ -9,8 +9,8 @@ import ManagementPageHeader from '../../../components/Management/PageHeader';
 import activityTypeService from '../../../services/activityType.service';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
-import { createStaffActivityTypeColumns } from '../../../constants/staff/activityTypes/tableColumns';
-import { createActivityTypeFormFields } from '../../../constants/staff/activityTypes/formFields';
+import { createStaffActivityTypeColumns } from '../../../definitions/staff/activityTypes/tableColumns';
+import { createActivityTypeFormFields } from '../../../definitions/staff/activityTypes/formFields';
 import { activityTypeSchema } from '../../../utils/validationSchemas/activityTypeSchemas';
 import { toast } from 'react-toastify';
 

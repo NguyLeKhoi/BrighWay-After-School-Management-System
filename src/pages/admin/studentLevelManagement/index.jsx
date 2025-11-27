@@ -12,8 +12,8 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import { studentLevelSchema } from '../../../utils/validationSchemas/studentLevelSchemas';
 import studentLevelService from '../../../services/studentLevel.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createStudentLevelColumns } from '../../../constants/studentLevel/tableColumns';
-import { createStudentLevelFormFields } from '../../../constants/studentLevel/formFields';
+import { createStudentLevelColumns } from '../../../definitions/studentLevel/tableColumns';
+import { createStudentLevelFormFields } from '../../../definitions/studentLevel/formFields';
 import styles from './StudentLevelManagement.module.css';
 
 const StudentLevelManagement = () => {

@@ -34,8 +34,8 @@ import packageTemplateService from '../../../services/packageTemplate.service';
 import usePackageDependencies from '../../../hooks/usePackageDependencies';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
-import { createTemplateColumns, createPackageColumns } from '../../../constants/package/tableColumns';
-import { createTemplateFormFields, createPackageFormFields } from '../../../constants/package/formFields';
+import { createTemplateColumns, createPackageColumns } from '../../../definitions/package/tableColumns';
+import { createTemplateFormFields, createPackageFormFields } from '../../../definitions/package/formFields';
 import styles from './PackageManagement.module.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 

@@ -33,7 +33,7 @@ import useManagerPackageDependencies from '../../../hooks/useManagerPackageDepen
 import { getErrorMessage } from '../../../utils/errorHandler';
 import { useApp } from '../../../contexts/AppContext';
 import packageService from '../../../services/package.service';
-import { createPackageColumns } from '../../../constants/package/tableColumns';
+import { createPackageColumns } from '../../../definitions/package/tableColumns';
 import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
 import styles from './PackageManagement.module.css';
 
