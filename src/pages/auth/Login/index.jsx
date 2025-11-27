@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Typography, Box, IconButton } from '@mui/material';
 import { Home as HomeIcon } from '@mui/icons-material';
@@ -9,6 +9,7 @@ import { loginSchema } from '../../../utils/validationSchemas/authSchemas';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useLoading } from '../../../hooks/useLoading';
+import axiosInstance from '../../../config/axios.config';
 import styles from './Login.module.css';
 
 const Login = () => {
@@ -16,6 +17,29 @@ const Login = () => {
   const { login } = useAuth();
   const { addNotification, showGlobalError } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading(300);
+
+  // Warm-up backend when login page loads to reduce first login delay
+  useEffect(() => {
+    const warmUpBackend = async () => {
+      try {
+        // Pre-warm the connection by making a lightweight request
+        // This helps reduce Azure cold start delay
+        await axiosInstance.options('/Auth/login', {
+          timeout: 3000
+        }).catch(() => {
+          // Silently fail - this is just a warm-up
+        });
+      } catch (error) {
+        // Silently fail - warm-up should not affect user experience
+        console.debug('Login page warm-up failed (this is normal):', error);
+      }
+    };
+    
+    // Warm-up after component mounts
+    const timeoutId = setTimeout(warmUpBackend, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const handleSubmit = async (data) => {
     showLoading();

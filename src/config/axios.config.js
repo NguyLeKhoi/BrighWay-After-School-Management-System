@@ -57,6 +57,12 @@ axiosInstance.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Unauthorized - try to refresh token
+          // Skip refresh for certain endpoints that might return 401 for other reasons
+          const skipRefreshPaths = ['/Auth/login', '/Auth/refresh'];
+          if (skipRefreshPaths.some(path => originalRequest.url?.includes(path))) {
+            return Promise.reject(error);
+          }
+          
           if (!originalRequest._retry) {
             originalRequest._retry = true;
             
@@ -95,8 +101,17 @@ axiosInstance.interceptors.response.use(
               localStorage.removeItem('user');
               
               // Only redirect if not already on login page
-              if (window.location.pathname !== '/login') {
-              window.location.href = '/login';
+              // Use setTimeout to prevent redirect during successful operations
+              // Check if we're in the middle of a successful operation
+              const currentPath = window.location.pathname;
+              if (currentPath !== '/login' && !currentPath.includes('/login')) {
+                // Delay redirect to allow any success toasts/messages to show
+                setTimeout(() => {
+                  const stillNotOnLogin = window.location.pathname !== '/login' && !window.location.pathname.includes('/login');
+                  if (stillNotOnLogin) {
+                    window.location.href = '/login';
+                  }
+                }, 500);
               }
               return Promise.reject(refreshError);
             } finally {
@@ -109,8 +124,15 @@ axiosInstance.interceptors.response.use(
             localStorage.removeItem('user');
             
             // Only redirect if not already on login page
-            if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
+            // Use setTimeout to prevent redirect during successful operations
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/login' && !currentPath.includes('/login')) {
+              setTimeout(() => {
+                const stillNotOnLogin = window.location.pathname !== '/login' && !window.location.pathname.includes('/login');
+                if (stillNotOnLogin) {
+                  window.location.href = '/login';
+                }
+              }, 500);
             }
           }
           break;

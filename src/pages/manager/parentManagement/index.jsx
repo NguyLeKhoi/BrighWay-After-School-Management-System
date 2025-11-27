@@ -218,11 +218,18 @@ const ParentManagement = () => {
       
       toast.success(`Cập nhật người dùng "${data.name || data.fullName}" thành công!`);
       
-      // Reload data
-      if (parentCrud.loadData) {
-        parentCrud.loadData(false);
-      }
+      // Close dialog first before reloading to prevent any race conditions
       setOpenDialog(false);
+      
+      // Reload data after a short delay to ensure dialog is closed
+      setTimeout(() => {
+        if (parentCrud.loadData) {
+          parentCrud.loadData(false).catch(err => {
+            // Silently handle loadData errors to prevent redirect
+            console.error('Error reloading data after update:', err);
+          });
+        }
+      }, 100);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi cập nhật người dùng';
       setError(errorMessage);
