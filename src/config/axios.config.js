@@ -95,7 +95,8 @@ axiosInstance.interceptors.response.use(
           
           // Unauthorized - try to refresh token
           // Skip refresh for certain endpoints that might return 401 for other reasons
-          const skipRefreshPaths = ['/Auth/login', '/Auth/refresh'];
+          // Also skip for public endpoints that don't require authentication
+          const skipRefreshPaths = ['/Auth/login', '/Auth/refresh', '/ContactRequest/submit'];
           if (skipRefreshPaths.some(path => originalRequest.url?.includes(path))) {
             return Promise.reject(error);
           }
