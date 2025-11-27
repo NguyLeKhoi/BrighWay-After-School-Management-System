@@ -180,7 +180,7 @@ const UserProfile = () => {
       setFamilyFormData({ Name: '', Phone: '', StudentRela: '' });
       setFamilyAvatarFile(null);
     } catch (err) {
-      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể lưu thành viên';
+      const errorMessage = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể lưu thành viên';
       showGlobalError(errorMessage);
       addNotification({
         message: errorMessage,
@@ -330,7 +330,7 @@ const UserProfile = () => {
       });
     } catch (err) {
       console.error('Update error:', err);
-      const errorMessage = err?.response?.data?.message || err?.message || 'Có lỗi xảy ra khi cập nhật thông tin';
+      const errorMessage = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Có lỗi xảy ra khi cập nhật thông tin';
       showGlobalError(errorMessage);
       addNotification({
         message: errorMessage,

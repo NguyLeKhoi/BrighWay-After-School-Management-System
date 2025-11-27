@@ -127,7 +127,7 @@ const CreateChild = () => {
       });
       navigate('/family/children');
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message || 'Không thể đăng ký con';
+      const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể đăng ký con';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
     } finally {
       setLoading(false);

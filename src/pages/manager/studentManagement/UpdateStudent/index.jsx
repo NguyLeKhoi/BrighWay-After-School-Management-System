@@ -153,7 +153,7 @@ const UpdateStudent = () => {
       toast.success('Cập nhật học sinh thành công!', { position: 'top-right', autoClose: 2000 });
       navigate('/manager/students');
     } catch (err) {
-      const message = err?.response?.data?.message || err.message || 'Không thể cập nhật học sinh';
+      const message = err?.response?.data?.detail || err?.response?.data?.message || err.message || 'Không thể cập nhật học sinh';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
     } finally {
       setLoading(false);

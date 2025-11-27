@@ -334,7 +334,7 @@ const ChildProfile = () => {
       await fetchChild();
       setOpenUpdateDialog(false);
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message || 'Không thể cập nhật thông tin';
+      const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể cập nhật thông tin';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
     } finally {
       setUpdateLoading(false);
@@ -358,7 +358,7 @@ const ChildProfile = () => {
       // Navigate back to children list
       navigate('/family/children');
     } catch (err) {
-        const message = err?.response?.data?.message || err?.message || 'Không thể xóa trẻ em';
+        const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể xóa trẻ em';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
       setDeleteLoading(false);
     }
