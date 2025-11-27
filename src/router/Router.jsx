@@ -19,7 +19,6 @@ import Login from '../pages/auth/Login';
 // useruser Pages
 import FamilyProfile from '../pages/user/profile';
 import ChangePassword from '../pages/user/changePassword';
-import FamilyServices from '../pages/user/services';
 import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
 import CreateChild from '../pages/user/children/CreateChild';
@@ -155,11 +154,7 @@ export const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <FamilyServices />,
-      },
-      {
-        path: 'services',
-        element: <FamilyServices />,
+        element: <ChildrenList />,
       },
       {
         path: 'profile',

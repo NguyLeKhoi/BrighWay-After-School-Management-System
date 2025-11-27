@@ -84,16 +84,6 @@ const ManagerStaffHeader = () => {
           {/* User Name */}
           {userInfo?.name && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'rgba(255, 255, 255, 0.2)', 
-                  width: 36, 
-                  height: 36,
-                  border: '2px solid rgba(255, 255, 255, 0.3)'
-                }}
-              >
-                <PersonIcon />
-              </Avatar>
               <Typography 
                 variant="body1" 
                 sx={{ 

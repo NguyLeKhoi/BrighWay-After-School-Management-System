@@ -54,6 +54,18 @@ export const createParentCCCDInfoSchema = yup.object({
     .string()
     .optional()
     .matches(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
+  avatarFile: yup
+    .mixed()
+    .nullable()
+    .notRequired()
+    .test('fileSize', 'Kích thước file không được vượt quá 5MB', (value) => {
+      if (!value) return true;
+      return value.size <= 5 * 1024 * 1024; // 5MB
+    })
+    .test('fileType', 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF)', (value) => {
+      if (!value) return true;
+      return ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'].includes(value.type);
+    }),
   identityCardNumber: yup
     .string()
     .optional(),

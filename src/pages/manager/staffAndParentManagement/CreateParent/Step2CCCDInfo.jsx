@@ -1,6 +1,7 @@
 import React, { useImperativeHandle, useMemo } from 'react';
-import { Box, Typography, Alert } from '@mui/material';
+import { Box, Typography, Alert, Grid } from '@mui/material';
 import Form from '../../../../components/Common/Form';
+import ImageUpload from '../../../../components/Common/ImageUpload';
 import { createParentCCCDInfoSchema } from '../../../../utils/validationSchemas/parentSchemas';
 
 const Step2CCCDInfo = React.forwardRef(
@@ -150,7 +151,8 @@ const Step2CCCDInfo = React.forwardRef(
             name: data.name || '',
             email: data.email || '',
             password: data.password || '',
-            phoneNumber: data.phoneNumber || ''
+            phoneNumber: data.phoneNumber || '',
+            avatarFile: data.avatarFile || null
           } : {}),
           identityCardNumber: data.identityCardNumber || '',
           dateOfBirth: formatDateToDDMMYYYY(data.dateOfBirth) || '',
@@ -220,7 +222,7 @@ const Step2CCCDInfo = React.forwardRef(
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <Form
-            key={`step2-ocr-${data.name || ''}-${data.phoneNumber || ''}-${data.identityCardNumber || ''}-${data.dateOfBirth || ''}-${data.gender || ''}-${data.address || ''}-${data.issuedDate || ''}-${data.issuedPlace || ''}`}
+            key={`step2-ocr-${data.name || ''}-${data.phoneNumber || ''}-${data.avatarFile?.name || ''}-${data.identityCardNumber || ''}-${data.dateOfBirth || ''}-${data.gender || ''}-${data.address || ''}-${data.issuedDate || ''}-${data.issuedPlace || ''}`}
             ref={formRef}
             schema={createParentCCCDInfoSchema}
             defaultValues={defaultValues}
@@ -228,6 +230,37 @@ const Step2CCCDInfo = React.forwardRef(
             fields={fields}
             hideSubmitButton
           />
+          
+          {/* Image Upload Section - Only for OCR mode */}
+          {mode === 'ocr' && (
+            <Box sx={{ mt: 2 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <ImageUpload
+                    value={data.avatarFile || null}
+                    onChange={(file) => {
+                      // Get current form values to preserve them
+                      const currentFormValues = formRef.current?.getValues ? formRef.current.getValues() : {};
+                      // Merge current form values with new avatarFile
+                      updateData({ 
+                        ...data, 
+                        ...currentFormValues, // Preserve form values
+                        avatarFile: file 
+                      });
+                      // Also update form value
+                      if (formRef.current?.setValue) {
+                        formRef.current.setValue('avatarFile', file, { shouldValidate: false });
+                      }
+                    }}
+                    label="Ảnh đại diện (tùy chọn)"
+                    helperText="Chọn file ảnh để tải lên (JPG, PNG, etc.) - Tối đa 5MB"
+                    accept="image/*"
+                    maxSize={5 * 1024 * 1024}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          )}
         </Box>
       </Box>
     );

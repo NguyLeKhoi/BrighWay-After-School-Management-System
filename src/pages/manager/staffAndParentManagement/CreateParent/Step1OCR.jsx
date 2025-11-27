@@ -21,6 +21,7 @@ const Step1OCR = React.forwardRef(
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [hasSensitiveImageError, setHasSensitiveImageError] = useState(false);
     const fileInputRef = useRef(null);
 
     const handleFileSelect = async (event) => {
@@ -39,6 +40,7 @@ const Step1OCR = React.forwardRef(
 
       setSelectedFile(file);
       setError(null);
+      setHasSensitiveImageError(false);
 
       // Show preview
       const reader = new FileReader();
@@ -51,6 +53,9 @@ const Step1OCR = React.forwardRef(
       setLoading(true);
       try {
         const ocrData = await ocrService.extractAndStoreCCCD(file);
+        
+        // Reset sensitive image error if successful
+        setHasSensitiveImageError(false);
         
         // Helper function to convert date to dd/mm/yyyy format
         const formatDateToDDMMYYYY = (dateString) => {
@@ -81,8 +86,32 @@ const Step1OCR = React.forwardRef(
           issuedPlace: ocrData.issuedPlace || data.issuedPlace || ''
         });
       } catch (err) {
-        const errorMessage = err.message || err.response?.data?.message || 'Có lỗi xảy ra khi trích xuất thông tin từ CCCD';
-        setError(errorMessage);
+        // Check if it's a 500 error about sensitive image
+        const errorDetail = err.response?.data?.detail || '';
+        const errorMessage = err.response?.data?.message || err.message || '';
+        const isSensitiveImageError = 
+          err.response?.status === 500 && 
+          (errorDetail.toLowerCase().includes('nhạy cảm') ||
+           errorDetail.toLowerCase().includes('inappropriate') ||
+           errorDetail.toLowerCase().includes('sensitive') ||
+           errorMessage.toLowerCase().includes('nhạy cảm') ||
+           errorMessage.toLowerCase().includes('inappropriate') ||
+           errorMessage.toLowerCase().includes('sensitive'));
+        
+        if (isSensitiveImageError) {
+          setHasSensitiveImageError(true);
+          const sensitiveErrorMessage = errorDetail || errorMessage || 'Ảnh không phù hợp. Vui lòng chọn ảnh CCCD hợp lệ.';
+          setError(sensitiveErrorMessage);
+          // Clear identityCardPublicId to prevent proceeding
+          updateData({
+            ...data,
+            identityCardPublicId: ''
+          });
+        } else {
+          setHasSensitiveImageError(false);
+          const genericErrorMessage = errorMessage || errorDetail || 'Có lỗi xảy ra khi trích xuất thông tin từ CCCD';
+          setError(genericErrorMessage);
+        }
       } finally {
         setLoading(false);
       }
@@ -97,13 +126,24 @@ const Step1OCR = React.forwardRef(
       setSelectedFile(null);
       setPreview(null);
       setError(null);
+      setHasSensitiveImageError(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      // Clear identityCardPublicId when resetting
+      updateData({
+        ...data,
+        identityCardPublicId: ''
+      });
     };
 
     useImperativeHandle(ref, () => ({
       submit: async () => {
+        // Block if there's a sensitive image error
+        if (hasSensitiveImageError) {
+          setError('Vui lòng chọn ảnh CCCD hợp lệ. Ảnh hiện tại không phù hợp.');
+          return false;
+        }
         if (!data.identityCardPublicId && !data.name) {
           setError('Vui lòng trích xuất thông tin từ ảnh CCCD trước khi tiếp tục');
           return false;
@@ -239,12 +279,28 @@ const Step1OCR = React.forwardRef(
           </Paper>
 
           {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mt: 2,
+                ...(hasSensitiveImageError && {
+                  backgroundColor: 'error.50',
+                  border: '2px solid',
+                  borderColor: 'error.main',
+                  fontWeight: 600
+                })
+              }}
+            >
               {error}
+              {hasSensitiveImageError && (
+                <Box sx={{ mt: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                  Vui lòng chọn lại ảnh CCCD hợp lệ để tiếp tục.
+                </Box>
+              )}
             </Alert>
           )}
 
-          {data.identityCardPublicId && (
+          {data.identityCardPublicId && !hasSensitiveImageError && (
             <Alert severity="success" sx={{ mt: 2 }}>
               Đã trích xuất thông tin thành công! Vui lòng kiểm tra và chỉnh sửa ở các bước tiếp theo nếu cần.
             </Alert>

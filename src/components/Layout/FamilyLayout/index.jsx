@@ -6,7 +6,6 @@ import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import UserHeader from '../../Headers/UserHeader';
 import PageTransition from '../../Common/PageTransition';
 import {
-  MiscellaneousServices as ServiceIcon,
   Person as PersonIcon,
   ChildCare as ChildIcon,
   EventAvailable as ScheduleIcon,
@@ -40,11 +39,6 @@ const FamilyLayout = () => {
       path: '/family/packages',
       label: 'Các gói',
       icon: BookIcon
-    },
-    {
-      path: '/family/services',
-      label: 'Dịch vụ',
-      icon: ServiceIcon
     },
     {
       path: '/family/notifications',

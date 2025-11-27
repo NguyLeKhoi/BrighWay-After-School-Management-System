@@ -109,16 +109,28 @@ const Step1BasicInfo = React.forwardRef(
                   value={data.avatarFile || null}
                   onChange={(file) => {
                     // Get current form values to preserve them
-                    const currentFormValues = formRef.current?.getValues ? formRef.current.getValues() : {};
+                    let currentFormValues = {};
+                    if (formRef.current && typeof formRef.current.getValues === 'function') {
+                      try {
+                        currentFormValues = formRef.current.getValues();
+                      } catch (err) {
+                        // If getValues fails, use empty object
+                        currentFormValues = {};
+                      }
+                    }
                     // Merge current form values with new avatarFile
                     updateData({ 
                       ...data, 
                       ...currentFormValues, // Preserve form values
                       avatarFile: file 
                     });
-                    // Also update form value
-                    if (formRef.current?.setValue) {
-                      formRef.current.setValue('avatarFile', file, { shouldValidate: false });
+                    // Also update form value if formRef is available
+                    if (formRef.current && typeof formRef.current.setValue === 'function') {
+                      try {
+                        formRef.current.setValue('avatarFile', file, { shouldValidate: false });
+                      } catch (err) {
+                        // If setValue fails, just continue without updating form
+                      }
                     }
                   }}
                   label="Ảnh đại diện (tùy chọn)"

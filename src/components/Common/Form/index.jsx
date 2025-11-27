@@ -123,11 +123,11 @@ const Form = forwardRef(({
       
       if (onlyFileFieldsChanged) {
         // Only update file fields without resetting the form
-        if (current.avatarFile !== undefined && formRef.current?.setValue) {
-          formRef.current.setValue('avatarFile', current.avatarFile, { shouldValidate: false });
+        if (current.avatarFile !== undefined) {
+          setValue('avatarFile', current.avatarFile, { shouldValidate: false });
         }
-        if (current.image !== undefined && formRef.current?.setValue) {
-          formRef.current.setValue('image', current.image, { shouldValidate: false });
+        if (current.image !== undefined) {
+          setValue('image', current.image, { shouldValidate: false });
         }
       } else {
         // Other fields changed, reset form

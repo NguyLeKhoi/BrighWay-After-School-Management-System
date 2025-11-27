@@ -4,13 +4,11 @@ import {
   Typography,
   Button,
   Paper,
-  Stack,
-  IconButton
+  Stack
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
   PhotoCamera as PhotoCameraIcon,
-  Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 
@@ -234,23 +232,6 @@ const ImageUpload = ({
                 >
                   <CheckCircleIcon sx={{ fontSize: 20 }} />
                 </Box>
-                <IconButton
-                  onClick={handleRemove}
-                  disabled={disabled}
-                  sx={{
-                    position: 'absolute',
-                    bottom: 8,
-                    right: 8,
-                    backgroundColor: 'error.main',
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: 'error.dark'
-                    }
-                  }}
-                  size="small"
-                >
-                  <DeleteIcon />
-                </IconButton>
               </Box>
               <Stack direction="row" spacing={2} justifyContent="center">
                 <Button
@@ -262,15 +243,6 @@ const ImageUpload = ({
                   disabled={disabled}
                 >
                   Chọn ảnh khác
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={handleRemove}
-                  disabled={disabled}
-                  startIcon={<DeleteIcon />}
-                >
-                  Xóa ảnh
                 </Button>
               </Stack>
             </>
