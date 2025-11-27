@@ -21,8 +21,8 @@ import { roomSchema } from '../../../utils/validationSchemas/facilitySchemas';
 import roomService from '../../../services/room.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createRoomColumns } from '../../../constants/room/tableColumns';
-import { createRoomFormFields } from '../../../constants/room/formFields';
+import { createRoomColumns } from '../../../definitions/room/tableColumns';
+import { createRoomFormFields } from '../../../definitions/room/formFields';
 import styles from './RoomManagement.module.css';
 
 const RoomManagement = () => {

@@ -21,7 +21,7 @@ import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
+import { createStaffAndParentColumns } from '../../../definitions/manager/staff/tableColumns';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '../../../utils/errorHandler';
 import styles from './staffAndParentManagement.module.css';

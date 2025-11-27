@@ -25,7 +25,7 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
+import { createStaffAndParentColumns } from '../../../definitions/manager/staff/tableColumns';
 import userService from '../../../services/user.service';
 import { toast } from 'react-toastify';
 import styles from '../staffAndParentManagement/staffAndParentManagement.module.css';

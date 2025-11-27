@@ -16,7 +16,7 @@ import { useBranchExpandedRows } from '../../../hooks/useBranchExpandedRows';
 import { useAssignBenefits } from '../../../hooks/useAssignBenefits';
 import { useAssignSchools } from '../../../hooks/useAssignSchools';
 import { useAssignStudentLevels } from '../../../hooks/useAssignStudentLevels';
-import { createBranchColumns } from '../../../constants/branch/tableColumns';
+import { createBranchColumns } from '../../../definitions/branch/tableColumns';
 import styles from './BranchManagement.module.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 

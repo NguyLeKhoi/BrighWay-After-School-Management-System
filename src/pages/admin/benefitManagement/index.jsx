@@ -12,8 +12,8 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import { benefitSchema } from '../../../utils/validationSchemas/benefitSchemas';
 import benefitService from '../../../services/benefit.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createBenefitColumns } from '../../../constants/benefit/tableColumns';
-import { createBenefitFormFields } from '../../../constants/benefit/formFields';
+import { createBenefitColumns } from '../../../definitions/benefit/tableColumns';
+import { createBenefitFormFields } from '../../../definitions/benefit/formFields';
 import styles from './BenefitManagement.module.css';
 
 const BenefitManagement = () => {

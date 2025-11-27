@@ -21,8 +21,8 @@ import roomService from '../../../services/room.service';
 import userService from '../../../services/user.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createManagerRoomColumns } from '../../../constants/manager/room/tableColumns';
-import { createManagerRoomFormFields } from '../../../constants/manager/room/formFields';
+import { createManagerRoomColumns } from '../../../definitions/manager/room/tableColumns';
+import { createManagerRoomFormFields } from '../../../definitions/manager/room/formFields';
 import { toast } from 'react-toastify';
 import styles from './RoomManagement.module.css';
 

@@ -52,7 +52,7 @@ import studentService from '../../../services/student.service';
 import schoolService from '../../../services/school.service';
 import studentLevelService from '../../../services/studentLevel.service';
 import userService from '../../../services/user.service';
-import { createManagerStudentColumns } from '../../../constants/manager/student/tableColumns';
+import { createManagerStudentColumns } from '../../../definitions/manager/student/tableColumns';
 import styles from './StudentManagement.module.css';
 
 // Pure function - no memoization needed (doesn't depend on component state)

@@ -14,8 +14,8 @@ import { createManagerSchema, updateUserSchema } from '../../../utils/validation
 import userService from '../../../services/user.service';
 import useFacilityBranchData from '../../../hooks/useFacilityBranchData';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createManagerColumns } from '../../../constants/manager/tableColumns';
-import { createManagerFormFields } from '../../../constants/manager/formFields';
+import { createManagerColumns } from '../../../definitions/manager/tableColumns';
+import { createManagerFormFields } from '../../../definitions/manager/formFields';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '../../../utils/errorHandler';
 import styles from './staffAndManagerManagement.module.css';

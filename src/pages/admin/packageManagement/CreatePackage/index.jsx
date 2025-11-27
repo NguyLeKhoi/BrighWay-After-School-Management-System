@@ -8,7 +8,7 @@ import packageService from '../../../../services/package.service';
 import packageTemplateService from '../../../../services/packageTemplate.service';
 import usePackageDependencies from '../../../../hooks/usePackageDependencies';
 import Form from '../../../../components/Common/Form';
-import { createPackageFormFields } from '../../../../constants/package/formFields';
+import { createPackageFormFields } from '../../../../definitions/package/formFields';
 import { packageSchema } from '../../../../utils/validationSchemas/packageSchemas';
 import { toast } from 'react-toastify';
 
