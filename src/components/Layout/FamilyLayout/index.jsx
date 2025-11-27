@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { motion } from 'framer-motion';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
+import UserHeader from '../../Headers/UserHeader';
 import PageTransition from '../../Common/PageTransition';
 import {
   MiscellaneousServices as ServiceIcon,
@@ -25,11 +26,6 @@ const FamilyLayout = () => {
   };
 
   const menuItems = [
-    {
-      path: '/family/profile',
-      label: 'Hồ sơ gia đình',
-      icon: PersonIcon
-    },
     {
       path: '/family/children',
       label: 'Con cái',
@@ -58,29 +54,34 @@ const FamilyLayout = () => {
   ];
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* Generic Drawer */}
-      <GenericDrawer
-        title="BRIGHWAY"
-        subtitle="Family Portal"
-        menuItems={menuItems}
-        onLogout={handleLogout}
-      />
+    <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: '64px' }}>
+      {/* Header */}
+      <UserHeader />
 
-      {/* Main Content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          backgroundColor: 'var(--bg-secondary)',
-          minHeight: '100vh',
-          transition: 'background-color 0.3s ease'
-        }}
-      >
-        <PageTransition>
-          <Outlet />
-        </PageTransition>
+      <Box sx={{ display: 'flex' }}>
+        {/* Generic Drawer */}
+        <GenericDrawer
+          title="BRIGHWAY"
+          subtitle="Family Portal"
+          menuItems={menuItems}
+          onLogout={handleLogout}
+        />
+
+        {/* Main Content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            backgroundColor: 'var(--bg-secondary)',
+            minHeight: 'calc(100vh - 64px)',
+            transition: 'background-color 0.3s ease'
+          }}
+        >
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
+        </Box>
       </Box>
     </Box>
   );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
-import ManagerStaffHeader from '../../Headers/ManagerStaffHeader';
+import ManagerStaffHeader from '../../Headers/ManagementHeader';
 import PageTransition from '../../Common/PageTransition';
 import {
   Person as UserIcon,

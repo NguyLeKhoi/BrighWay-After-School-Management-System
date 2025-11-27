@@ -55,22 +55,9 @@ const ManagerStaffHeader = () => {
         boxShadow: 'var(--shadow-md)'
       }}
     >
-      <Toolbar>
-        {/* Logo/Title */}
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            flexGrow: 1,
-            fontWeight: 700,
-            fontSize: '1.25rem',
-            letterSpacing: '0.02em'
-          }}
-        >
-          Quản Lý Hệ Thống
-        </Typography>
-
+      <Toolbar sx={{ justifyContent: 'flex-end', pr: 2 }}>
         {/* User Info */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
           {/* Branch Info */}
           {userInfo?.branchName && (
             <Chip
