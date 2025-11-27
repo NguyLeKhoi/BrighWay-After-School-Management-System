@@ -11,8 +11,14 @@ const Step2CCCDInfo = React.forwardRef(
       () => {
         const accountFields = mode === 'ocr' ? [
           {
-            section: 'Thông tin tài khoản & CCCD',
-            sectionDescription: 'Nhập thông tin tài khoản và kiểm tra thông tin CCCD đã được trích xuất.',
+            name: 'name',
+            label: 'Họ và Tên',
+            type: 'text',
+            required: true,
+            placeholder: 'Ví dụ: Nguyễn Văn A',
+            gridSize: 12
+          },
+          {
             name: 'email',
             label: 'Email',
             type: 'email',
@@ -26,6 +32,14 @@ const Step2CCCDInfo = React.forwardRef(
             type: 'password',
             required: true,
             placeholder: 'Nhập mật khẩu (tối thiểu 6 ký tự)',
+            gridSize: 6
+          },
+          {
+            name: 'phoneNumber',
+            label: 'Số điện thoại',
+            type: 'tel',
+            required: false,
+            placeholder: 'Ví dụ: 0901234567',
             gridSize: 6
           }
         ] : [];
@@ -133,8 +147,10 @@ const Step2CCCDInfo = React.forwardRef(
 
         return {
           ...(mode === 'ocr' ? {
+            name: data.name || '',
             email: data.email || '',
-            password: data.password || ''
+            password: data.password || '',
+            phoneNumber: data.phoneNumber || ''
           } : {}),
           identityCardNumber: data.identityCardNumber || '',
           dateOfBirth: formatDateToDDMMYYYY(data.dateOfBirth) || '',
@@ -175,7 +191,7 @@ const Step2CCCDInfo = React.forwardRef(
           // Additional validation for OCR mode
           if (mode === 'ocr') {
             const currentData = formRef.current?.getValues?.() || {};
-            if (!currentData.email || !currentData.password) {
+            if (!currentData.name || !currentData.email || !currentData.password) {
               return false;
             }
           }
@@ -204,6 +220,7 @@ const Step2CCCDInfo = React.forwardRef(
 
         <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <Form
+            key={`step2-ocr-${data.name || ''}-${data.phoneNumber || ''}-${data.identityCardNumber || ''}-${data.dateOfBirth || ''}-${data.gender || ''}-${data.address || ''}-${data.issuedDate || ''}-${data.issuedPlace || ''}`}
             ref={formRef}
             schema={createParentCCCDInfoSchema}
             defaultValues={defaultValues}

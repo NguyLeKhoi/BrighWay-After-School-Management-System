@@ -68,9 +68,10 @@ const Step1OCR = React.forwardRef(
         };
         
         // Auto-fill data from OCR
+        // Map fullName to name (API returns fullName but we use name in form)
         updateData({
           ...data,
-          name: ocrData.name || data.name || '',
+          name: ocrData.fullName || ocrData.name || data.name || '',
           identityCardNumber: ocrData.identityCardNumber || data.identityCardNumber || '',
           dateOfBirth: formatDateToDDMMYYYY(ocrData.dateOfBirth) || data.dateOfBirth || '',
           gender: ocrData.gender || data.gender || '',
