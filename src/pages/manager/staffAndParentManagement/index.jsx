@@ -10,20 +10,18 @@ import {
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
-import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import StaffAccountForm from '../../../components/AccountForms/StaffAccountForm';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
-import { createUserSchema, updateManagerUserSchema } from '../../../utils/validationSchemas/userSchemas';
+import { createUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createStaffAndParentColumns } from '../../../constants/manager/staff/tableColumns';
-import { createManagerUserFormFields } from '../../../constants/manager/staff/formFields';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '../../../utils/errorHandler';
 import styles from './staffAndParentManagement.module.css';
@@ -73,18 +71,8 @@ const StaffAndParentManagement = () => {
   const [error, setError] = useState(null);
   
   // Dialog states
-  const [openDialog, setOpenDialog] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Confirm dialog states
-  const [confirmDialog, setConfirmDialog] = useState({
-    open: false,
-    title: '',
-    description: '',
-    onConfirm: null
-  });
   
   // Global state
   const { showGlobalError } = useApp();
@@ -117,10 +105,6 @@ const StaffAndParentManagement = () => {
   }, []);
   
   const columns = useMemo(() => createStaffAndParentColumns(), []);
-  const formFields = useMemo(
-    () => createManagerUserFormFields(actionLoading, branchOptions),
-    [actionLoading, branchOptions]
-  );
   
   // Create handler
   const handleCreateStaff = () => {
@@ -128,111 +112,7 @@ const StaffAndParentManagement = () => {
       setOpenCreateDialog(true);
   };
   
-  // Edit handler
-  const handleEditUser = async (user) => {
-    setActionLoading(true);
-    
-    try {
-      const isUser = user.roles && user.roles.includes('User');
-      
-      if (isUser) {
-        const expandedUser = await userService.getUserById(user.id, true);
-        setSelectedUser(expandedUser);
-      } else {
-        setSelectedUser(user);
-      }
-      setOpenDialog(true);
-    } catch (err) {
-      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi lấy thông tin người dùng';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        autoClose: 5000,
-        style: { whiteSpace: 'pre-line' }
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-  
-  // Delete handler
-  const handleDeleteUser = (user) => {
-    const userName = user.name || user.fullName || user.email || 'người dùng này';
-    setConfirmDialog({
-      open: true,
-      title: 'Xác nhận xóa người dùng',
-      description: `Bạn có chắc chắn muốn xóa người dùng "${userName}"? Hành động này không thể hoàn tác.`,
-      onConfirm: () => performDeleteUser(user.id)
-    });
-  };
-  
-  // Perform delete
-  const performDeleteUser = async (userId) => {
-    setConfirmDialog(prev => ({ ...prev, open: false }));
-    setActionLoading(true);
-    
-    try {
-      await userService.deleteUserByManager(userId);
-      
-      toast.success('Xóa người dùng thành công!');
-      
-      // Reload data
-      if (staffCrud.loadData) {
-        staffCrud.loadData(false);
-      }
-    } catch (err) {
-      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi xóa người dùng';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        autoClose: 5000,
-        style: { whiteSpace: 'pre-line' }
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-  
-  // Form submit handler
-  const handleFormSubmit = async (data) => {
-    setActionLoading(true);
-    
-    try {
-      // Allow updating name, branchId, and isActive
-      const updateData = {
-        name: data.name || data.fullName || selectedUser?.name || selectedUser?.fullName || '',
-        branchId: data.branchId || selectedUser?.branchId || selectedUser?.branch?.id || null,
-        isActive: data.isActive !== undefined ? data.isActive : (selectedUser?.isActive !== undefined ? selectedUser.isActive : true)
-      };
-      
-      await userService.updateUserByManager(selectedUser.id, updateData);
-      
-      toast.success(`Cập nhật người dùng "${data.name || data.fullName}" thành công!`);
-      
-      // Close dialog first before reloading to prevent any race conditions
-      setOpenDialog(false);
-      
-      // Reload data after a short delay to ensure dialog is closed
-      setTimeout(() => {
-        if (staffCrud.loadData) {
-          staffCrud.loadData(false).catch(err => {
-            // Silently handle loadData errors to prevent redirect
-            console.error('Error reloading data after update:', err);
-          });
-        }
-      }, 100);
-    } catch (err) {
-      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi cập nhật người dùng';
-      setError(errorMessage);
-      showGlobalError(errorMessage);
-      toast.error(errorMessage, {
-        autoClose: 5000,
-        style: { whiteSpace: 'pre-line' }
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  // Manager chỉ có quyền get và create, không có update và delete
   
   // Staff submit handler
   const handleStaffSubmit = async (data) => {
@@ -298,49 +178,11 @@ const StaffAndParentManagement = () => {
             totalCount={staffCrud.totalCount}
             onPageChange={staffCrud.handlePageChange}
             onRowsPerPageChange={staffCrud.handleRowsPerPageChange}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
+                showActions={false}
                 emptyMessage="Không có nhân viên nào. Hãy tạo tài khoản nhân viên đầu tiên để bắt đầu."
               />
             </div>
       </Box>
-
-      {/* Edit Dialog */}
-      <ManagementFormDialog
-        open={openDialog}
-        onClose={() => !actionLoading && setOpenDialog(false)}
-        mode="edit"
-        title="Người Dùng"
-        icon={PersonIcon}
-        loading={actionLoading}
-        maxWidth="sm"
-      >
-        <Form
-          schema={updateManagerUserSchema}
-          defaultValues={{
-            name: selectedUser?.name || selectedUser?.fullName || '',
-            branchId: selectedUser?.branchId || selectedUser?.branch?.id || '',
-            isActive: selectedUser?.isActive !== undefined ? selectedUser.isActive : true
-          }}
-          onSubmit={handleFormSubmit}
-          submitText="Cập nhật Thông Tin"
-          loading={actionLoading}
-          disabled={actionLoading}
-          fields={formFields}
-        />
-      </ManagementFormDialog>
-
-      {/* Confirm Dialog */}
-      <ConfirmDialog
-        open={confirmDialog.open}
-        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
-        onConfirm={confirmDialog.onConfirm}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        confirmText="Xóa"
-        cancelText="Hủy"
-        confirmColor="error"
-      />
 
       {/* Create Account Dialog */}
       <ManagementFormDialog

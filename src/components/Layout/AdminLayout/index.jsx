@@ -16,7 +16,8 @@ import {
   CardGiftcard as BenefitIcon,
   School as StudentLevelIcon,
   ShoppingCart as PackageIcon,
-  AccountBalance as SchoolIcon
+  AccountBalance as SchoolIcon,
+  People as PeopleIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -38,6 +39,11 @@ const AdminLayout = () => {
       path: '/admin/staffAndManager',
       label: 'Nhân Viên',
       icon: UserIcon
+    },
+    {
+      path: '/admin/users',
+      label: 'Người Dùng',
+      icon: PeopleIcon
     },
     {
       path: '/admin/schools',

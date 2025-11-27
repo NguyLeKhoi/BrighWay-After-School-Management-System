@@ -39,6 +39,7 @@ import UpdateBranch from '../pages/admin/branchManagement/UpdateBranch';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import RoomManagement from '../pages/admin/roomManagement';
 import ManagerManagement from '../pages/admin/managerManagement';
+import UserManagement from '../pages/admin/userManagement';
 import BenefitManagement from '../pages/admin/benefitManagement';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
 import PackageManagement from '../pages/admin/packageManagement';
@@ -243,6 +244,10 @@ export const routes = createBrowserRouter([
       {
         path: 'staffAndManager',
         element: <ManagerManagement />,
+      },
+      {
+        path: 'users',
+        element: <UserManagement />,
       },
       {
         path: 'benefits',

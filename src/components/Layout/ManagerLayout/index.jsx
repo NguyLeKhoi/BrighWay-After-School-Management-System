@@ -36,7 +36,7 @@ const ManagerLayout = () => {
     },
     {
       path: '/manager/parents',
-      label: 'Phụ Huynh',
+      label: 'Người dùng',
       icon: ParentIcon
     },
     {
