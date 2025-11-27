@@ -9,7 +9,7 @@ import SessionEndedDialog from './components/Common/SessionEndedDialog';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Inner component to access AppContext - must be defined inside AppProvider
+// Inner component to access AppContext - must be used within AppProvider
 const AppContent = () => {
   const { sessionEndedDialog, closeSessionEndedDialog } = useApp();
   

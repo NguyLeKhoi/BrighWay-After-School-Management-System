@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { toast } from 'react-toastify';
 import axiosInstance from '../config/axios.config';
 
-const AppContext = createContext();
+const AppContext = createContext(undefined);
 
 export const useApp = () => {
   const context = useContext(AppContext);
