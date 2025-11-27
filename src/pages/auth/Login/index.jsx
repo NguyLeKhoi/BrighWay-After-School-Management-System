@@ -36,28 +36,8 @@ const Login = () => {
     }
   }, [showSessionEndedDialog]);
 
-  // Warm-up backend when login page loads to reduce first login delay
-  useEffect(() => {
-    const warmUpBackend = async () => {
-      try {
-        // Pre-warm the connection by making a lightweight request
-        // This helps reduce Azure cold start delay
-        await axiosInstance.options('/Auth/login', {
-          timeout: 3000,
-          validateStatus: () => true // Accept all status codes to prevent console errors
-        }).catch(() => {
-          // Silently fail - this is just a warm-up
-        });
-      } catch (error) {
-        // Silently fail - warm-up should not affect user experience
-      }
-    };
-    
-    // Warm-up after component mounts
-    const timeoutId = setTimeout(warmUpBackend, 500);
-    
-    return () => clearTimeout(timeoutId);
-  }, []);
+  // Warm-up backend removed - backend doesn't support OPTIONS method for /Auth/login
+  // This was causing 405 (Method Not Allowed) errors in console
 
   const handleSubmit = async (data) => {
     showLoading();

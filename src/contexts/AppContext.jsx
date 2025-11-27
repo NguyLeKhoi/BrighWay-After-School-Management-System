@@ -177,41 +177,9 @@ export const AppProvider = ({ children }) => {
     };
   }, [showSessionEndedDialog]);
 
-  // Warm-up backend on app load to reduce cold start delay
-  useEffect(() => {
-    const warmUpBackend = async () => {
-      try {
-        // Try to warm up backend by calling a simple endpoint
-        // This helps reduce Azure cold start delay on first login
-        // Options: Swagger endpoint (public) or health check if available
-        const warmUpPromises = [
-          // Try swagger endpoint (usually public and lightweight)
-          axiosInstance.get('/swagger/v1/swagger.json', {
-            timeout: 5000,
-            validateStatus: () => true // Accept all status codes to prevent console errors
-          }).catch(() => null),
-          // Try OPTIONS request to /Auth/login to warm up connection
-          axiosInstance.options('/Auth/login', {
-            timeout: 3000,
-            validateStatus: () => true // Accept all status codes to prevent console errors
-          }).catch(() => null)
-        ];
-        
-        // Fire and forget - don't wait for all to complete
-        Promise.allSettled(warmUpPromises).catch(() => {
-          // Silently fail - warm-up should not affect user experience
-        });
-      } catch (error) {
-        // Silently fail - warm-up is best effort only
-      }
-    };
-    
-    // Delay warm-up slightly to not block initial render
-    // Warm up after 1 second to let app initialize first
-    const timeoutId = setTimeout(warmUpBackend, 1000);
-    
-    return () => clearTimeout(timeoutId);
-  }, []);
+  // Warm-up backend removed - OPTIONS method not supported by backend
+  // This was causing 405 (Method Not Allowed) errors in console
+  // If warm-up is needed in the future, use a different endpoint that supports OPTIONS
 
   const value = {
     // Loading
