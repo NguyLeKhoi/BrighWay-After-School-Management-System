@@ -37,21 +37,18 @@ const ChildSchedule = () => {
     // Lấy date từ branchSlot.date hoặc slot.date
     const dateValue = slot.branchSlot?.date || slot.date;
     if (!dateValue) {
-      console.warn('Slot missing date:', slot);
       return null;
     }
 
     // Lấy timeframe từ slot.timeframe hoặc slot.timeFrame
     const timeframe = slot.timeframe || slot.timeFrame;
     if (!timeframe) {
-      console.warn('Slot missing timeframe:', slot);
       return null;
     }
 
     // Parse date từ ISO string
     const slotDate = new Date(dateValue);
     if (isNaN(slotDate.getTime())) {
-      console.warn('Invalid date format:', dateValue);
       return null;
     }
 

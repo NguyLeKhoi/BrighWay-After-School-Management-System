@@ -60,8 +60,8 @@ const Footer = () => {
                   color: 'var(--color-gray-300)'
                 }}
               >
-                Dịch vụ giữ trẻ sau giờ học với các hoạt động ngoài giờ đa dạng, phong phú. 
-                Chúng tôi cam kết mang đến môi trường an toàn, vui vẻ và bổ ích cho trẻ em.
+              Dịch vụ giữ trẻ sau giờ học với các hoạt động ngoài giờ đa dạng, phong phú. 
+              Chúng tôi cam kết mang đến môi trường an toàn, vui vẻ và bổ ích cho trẻ em.
               </Typography>
             </Box>
           </Grid>

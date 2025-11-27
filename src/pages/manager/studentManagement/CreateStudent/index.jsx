@@ -67,7 +67,6 @@ const CreateStudent = () => {
           setFormData((prev) => ({ ...prev, branchId: managerBranchId }));
         }
       } catch (err) {
-        console.warn('Không thể xác định chi nhánh quản lý', err);
       }
     };
 

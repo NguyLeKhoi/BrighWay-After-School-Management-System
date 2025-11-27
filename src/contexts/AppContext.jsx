@@ -188,11 +188,12 @@ export const AppProvider = ({ children }) => {
           // Try swagger endpoint (usually public and lightweight)
           axiosInstance.get('/swagger/v1/swagger.json', {
             timeout: 5000,
-            validateStatus: (status) => status < 500 // Accept 200-499
+            validateStatus: () => true // Accept all status codes to prevent console errors
           }).catch(() => null),
           // Try OPTIONS request to /Auth/login to warm up connection
           axiosInstance.options('/Auth/login', {
-            timeout: 3000
+            timeout: 3000,
+            validateStatus: () => true // Accept all status codes to prevent console errors
           }).catch(() => null)
         ];
         
@@ -202,7 +203,6 @@ export const AppProvider = ({ children }) => {
         });
       } catch (error) {
         // Silently fail - warm-up is best effort only
-        console.debug('Warm-up call failed (this is normal):', error);
       }
     };
     

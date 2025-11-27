@@ -98,7 +98,6 @@ const authService = {
         localStorage.setItem('user', JSON.stringify(updatedUserInfo));
       } catch (decodeError) {
         // Decoding is best-effort only
-        console.warn('Unable to decode refreshed access token', decodeError);
       }
 
       return {

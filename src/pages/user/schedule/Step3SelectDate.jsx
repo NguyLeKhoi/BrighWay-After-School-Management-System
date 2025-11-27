@@ -128,7 +128,6 @@ const Step3SelectDate = forwardRef(({ data, updateData }, ref) => {
                 calendarApi.gotoDate(date);
               }
             } catch (error) {
-              console.warn('Error navigating calendar:', error);
             }
           }
         }
@@ -148,7 +147,6 @@ const Step3SelectDate = forwardRef(({ data, updateData }, ref) => {
             calendarApi.gotoDate(nextDate);
           }
         } catch (error) {
-          console.warn('Error navigating calendar:', error);
         }
       }
     }
@@ -179,7 +177,6 @@ const Step3SelectDate = forwardRef(({ data, updateData }, ref) => {
           }
         }
       } catch (error) {
-        console.warn('Error navigating calendar:', error);
       }
     }
   }, [selectedDate]);

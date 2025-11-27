@@ -101,7 +101,6 @@ const UpdateStudent = () => {
           name: managerBranchName
         }));
       } catch (err) {
-        console.warn('Không thể xác định chi nhánh quản lý', err);
       }
     };
 

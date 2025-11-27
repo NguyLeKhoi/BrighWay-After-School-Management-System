@@ -9,20 +9,8 @@ import SessionEndedDialog from './components/Common/SessionEndedDialog';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-function App() {
-  return (
-    <ErrorBoundary>
-      <AppProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </AppProvider>
-    </ErrorBoundary>
-  );
-}
-
-// Inner component to access AppContext - must be defined after AppProvider is available
-function AppContent() {
+// Inner component to access AppContext - must be defined inside AppProvider
+const AppContent = () => {
   const { sessionEndedDialog, closeSessionEndedDialog } = useApp();
   
   return (
@@ -47,6 +35,18 @@ function AppContent() {
         theme="light"
       />
     </>
+  );
+};
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <AppProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
 

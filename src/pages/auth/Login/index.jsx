@@ -43,13 +43,13 @@ const Login = () => {
         // Pre-warm the connection by making a lightweight request
         // This helps reduce Azure cold start delay
         await axiosInstance.options('/Auth/login', {
-          timeout: 3000
+          timeout: 3000,
+          validateStatus: () => true // Accept all status codes to prevent console errors
         }).catch(() => {
           // Silently fail - this is just a warm-up
         });
       } catch (error) {
         // Silently fail - warm-up should not affect user experience
-        console.debug('Login page warm-up failed (this is normal):', error);
       }
     };
     

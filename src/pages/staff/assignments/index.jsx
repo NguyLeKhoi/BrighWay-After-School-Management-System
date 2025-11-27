@@ -78,20 +78,17 @@ const StaffAssignments = () => {
     slots.forEach((slot) => {
       const dateValue = slot.date;
       if (!dateValue) {
-        console.warn('Slot missing date:', slot);
         return;
       }
 
       const branchSlotId = slot.branchSlotId;
       if (!branchSlotId) {
-        console.warn('Slot missing branchSlotId:', slot);
         return;
       }
 
       // Tạo key để group: branchSlotId + date (chỉ lấy phần date, không có time)
       const slotDate = new Date(dateValue);
       if (isNaN(slotDate.getTime())) {
-        console.warn('Invalid date format:', dateValue);
         return;
       }
 
@@ -112,7 +109,6 @@ const StaffAssignments = () => {
         const firstSlot = groupSlots[0];
         const timeframe = firstSlot.timeframe;
         if (!timeframe) {
-          console.warn('Slot missing timeframe:', firstSlot);
           return null;
         }
 

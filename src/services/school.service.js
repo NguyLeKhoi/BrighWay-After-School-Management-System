@@ -9,12 +9,20 @@ const schoolService = {
   /**
    * Get all schools
    * @param {boolean} includeDeleted - Whether to include soft-deleted records
+   * @param {string} branchId - Optional branch ID to filter schools by branch
    * @returns {Promise} List of all schools
    */
-  getAllSchools: async (includeDeleted = false) => {
+  getAllSchools: async (includeDeleted = false, branchId = null) => {
     try {
-      const params = includeDeleted ? '?includeDeleted=true' : '';
-      const response = await axiosInstance.get(`/School${params}`);
+      const params = new URLSearchParams();
+      if (includeDeleted) {
+        params.append('includeDeleted', 'true');
+      }
+      if (branchId) {
+        params.append('branchId', String(branchId));
+      }
+      const queryString = params.toString();
+      const response = await axiosInstance.get(`/School${queryString ? `?${queryString}` : ''}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
