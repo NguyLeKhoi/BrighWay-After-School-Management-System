@@ -11,7 +11,7 @@ const AuthLayout = () => {
         <Threads
           amplitude={2.5}
           distance={0}
-          enableMouseInteraction={true}
+          enableMouseInteraction={false}
         />
       </div>
       <div className={styles.authContainer}>
