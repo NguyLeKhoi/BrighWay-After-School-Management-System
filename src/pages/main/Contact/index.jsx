@@ -1,38 +1,92 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
 import Form from '@components/Common/Form';
-import InfoGrid from '@components/Common/InfoGrid';
 import PageTransition from '@components/Common/PageTransition';
+import contactService from '../../../services/contact.service';
+import { contactRequestSchema } from '../../../utils/validationSchemas/contactSchemas';
 import styles from './Contact.module.css';
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    childAge: '',
-    message: ''
-  });
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: Handle form submission
+  const handleSubmit = async (formValues) => {
+    if (loading) return false;
+    
+    try {
+      setLoading(true);
+      
+      // Map form values to API payload
+      const payload = {
+        parentName: formValues.parentName,
+        email: formValues.email,
+        phoneNumber: formValues.phoneNumber,
+        childrenAgeRange: formValues.childrenAgeRange || '',
+        message: formValues.message
+      };
+      
+      await contactService.submitContactRequest(payload);
+      
+      toast.success('Gửi tin nhắn thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.', {
+        position: 'top-right',
+        autoClose: 5000
+      });
+      
+      // Reset form by returning true (Form component will handle reset)
+      return true;
+    } catch (error) {
+      const errorMessage = error?.message || error?.response?.data?.message || 'Không thể gửi tin nhắn. Vui lòng thử lại sau.';
+      toast.error(errorMessage, {
+        position: 'top-right',
+        autoClose: 5000
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formFields = [
-    { name: 'name', label: 'Họ và Tên Phụ Huynh', type: 'text', value: formData.name, onChange: handleChange, required: true, placeholder: 'Nhập họ và tên của bạn' },
-    { name: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange, required: true, placeholder: 'example@email.com' },
-    { name: 'phone', label: 'Số Điện Thoại', type: 'tel', value: formData.phone, onChange: handleChange, required: true, placeholder: '0900 123 456' },
-    { name: 'childAge', label: 'Độ Tuổi Của Trẻ', type: 'text', value: formData.childAge, onChange: handleChange, placeholder: 'Ví dụ: 5-7 tuổi (nếu có nhiều trẻ, vui lòng ghi rõ)' },
-    { name: 'message', label: 'Nội Dung Yêu Cầu', type: 'textarea', value: formData.message, onChange: handleChange, required: true, rows: 6, placeholder: 'Vui lòng cho chúng tôi biết nhu cầu của bạn về dịch vụ giữ trẻ, gói dịch vụ quan tâm, hoặc bất kỳ câu hỏi nào bạn muốn được tư vấn...' }
+    { 
+      name: 'parentName', 
+      label: 'Họ và Tên Phụ Huynh', 
+      type: 'text', 
+      required: true, 
+      placeholder: 'Nhập họ và tên của bạn',
+      gridSize: 12
+    },
+    { 
+      name: 'email', 
+      label: 'Email', 
+      type: 'email', 
+      required: true, 
+      placeholder: 'example@email.com',
+      gridSize: 6
+    },
+    { 
+      name: 'phoneNumber', 
+      label: 'Số Điện Thoại', 
+      type: 'tel', 
+      required: true, 
+      placeholder: '0900 123 456',
+      gridSize: 6
+    },
+    { 
+      name: 'childrenAgeRange', 
+      label: 'Độ Tuổi Của Trẻ', 
+      type: 'text', 
+      placeholder: 'Ví dụ: 5-7 tuổi (nếu có nhiều trẻ, vui lòng ghi rõ)',
+      gridSize: 12
+    },
+    { 
+      name: 'message', 
+      label: 'Nội Dung Yêu Cầu', 
+      type: 'textarea', 
+      required: true, 
+      rows: 6, 
+      placeholder: 'Vui lòng cho chúng tôi biết nhu cầu của bạn về dịch vụ giữ trẻ, gói dịch vụ quan tâm, hoặc bất kỳ câu hỏi nào bạn muốn được tư vấn...',
+      gridSize: 12
+    }
   ];
 
   return (
@@ -60,9 +114,19 @@ const Contact = () => {
                 </p>
                 
                 <Form
+                  schema={contactRequestSchema}
+                  defaultValues={{
+                    parentName: '',
+                    email: '',
+                    phoneNumber: '',
+                    childrenAgeRange: '',
+                    message: ''
+                  }}
                   fields={formFields}
                   onSubmit={handleSubmit}
                   submitText="Gửi Tin Nhắn"
+                  loading={loading}
+                  disabled={loading}
                   className={styles.contactForm}
                 />
               </motion.div>

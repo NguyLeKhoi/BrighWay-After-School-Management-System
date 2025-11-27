@@ -28,7 +28,8 @@ const BranchTable = ({
   onRowsPerPageChange,
   actionLoading,
   onRemoveBenefit,
-  onRemoveSchool
+  onRemoveSchool,
+  onRemoveStudentLevel
 }) => {
   return (
     <TableContainer>
@@ -85,6 +86,7 @@ const BranchTable = ({
                         actionLoading={actionLoading}
                         onRemoveBenefit={onRemoveBenefit}
                         onRemoveSchool={onRemoveSchool}
+                        onRemoveStudentLevel={onRemoveStudentLevel}
                       />
                     </TableCell>
                   </TableRow>

@@ -75,7 +75,6 @@ const UpdateBranchSlot = () => {
             const rooms = roomsResponse?.items || roomsResponse || [];
             roomIds = rooms.map(room => room?.id || room?.roomId).filter(Boolean);
           } catch (roomError) {
-            console.warn('Không thể lấy danh sách phòng, fallback từ slotData:', roomError);
             const deriveRoomIdsFromSlotData = () => {
               if (Array.isArray(slotData.roomIds)) {
                 return slotData.roomIds.filter(Boolean);

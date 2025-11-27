@@ -44,7 +44,6 @@ const MySchedule = () => {
             studentName: child?.name || child?.userName || ''
           });
         } catch (err) {
-          console.warn('Could not load child data', err);
           // If child not found or no permission, navigate back
           navigate(`/family/children/${childId}/schedule`);
         } finally {
@@ -102,7 +101,6 @@ const MySchedule = () => {
         const student = await studentService.getMyChildById(formData.studentId);
         studentName = student?.name || '';
       } catch (err) {
-        console.warn('Could not fetch student name', err);
       }
 
       // Get subscription name for display
@@ -117,7 +115,6 @@ const MySchedule = () => {
         const selectedSub = items.find(s => s.id === formData.subscriptionId);
         subscriptionName = selectedSub?.packageName || '';
       } catch (err) {
-        console.warn('Could not fetch subscription name', err);
       }
 
       // Use selected date from formData, or fallback to calculated date

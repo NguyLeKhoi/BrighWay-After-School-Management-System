@@ -12,8 +12,8 @@ import ContentLoading from '../../../components/Common/ContentLoading';
 import { facilitySchema } from '../../../utils/validationSchemas/facilitySchemas';
 import facilityService from '../../../services/facility.service';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createFacilityColumns } from '../../../constants/facility/tableColumns';
-import { createFacilityFormFields } from '../../../constants/facility/formFields';
+import { createFacilityColumns } from '../../../definitions/facility/tableColumns';
+import { createFacilityFormFields } from '../../../definitions/facility/formFields';
 import styles from './FacilityManagement.module.css';
 
 const FacilityManagement = () => {

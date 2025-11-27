@@ -7,7 +7,7 @@ import {
   Receipt as ServiceIcon,
   ShoppingCart as ShoppingCartIcon
 } from '@mui/icons-material';
-import { Box, Typography, Chip } from '@mui/material';
+import { Box, Typography, Chip, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import ContentLoading from '@components/Common/ContentLoading';
 import Tabs from '@components/Common/Tabs';
 import Card from '@components/Common/Card';
@@ -19,6 +19,8 @@ import useContentLoading from '../../../hooks/useContentLoading';
 import packageService from '../../../services/package.service';
 import studentService from '../../../services/student.service';
 import serviceService from '../../../services/service.service';
+import orderService from '../../../services/order.service';
+import studentSlotService from '../../../services/studentSlot.service';
 import * as yup from 'yup';
 import styles from './Packages.module.css';
 
@@ -66,6 +68,23 @@ const MyPackages = () => {
     open: false,
     package: null
   });
+
+  // Buy service dialog state
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [orderForm, setOrderForm] = useState({
+    childId: '',
+    studentSlotId: '',
+    quantity: 1
+  });
+  const [isOrdering, setIsOrdering] = useState(false);
+  const [orderSuccessInfo, setOrderSuccessInfo] = useState(null);
+  const [paymentResult, setPaymentResult] = useState(null);
+  const [studentSlots, setStudentSlots] = useState([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [slotsError, setSlotsError] = useState(null);
+  const [isLoadingChildren, setIsLoadingChildren] = useState(false);
+  const [childrenError, setChildrenError] = useState(null);
 
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading();
@@ -357,7 +376,26 @@ const MyPackages = () => {
     setServicesError(null);
 
     try {
-      const response = await serviceService.getMyAddOns();
+      // First, get children to get studentId
+      const childrenList = await studentService.getMyChildren();
+      const childrenArray = Array.isArray(childrenList) ? childrenList : [];
+      
+      if (childrenArray.length === 0) {
+        setServices([]);
+        setServicesError('Bạn chưa có trẻ em nào. Vui lòng thêm trẻ em trước.');
+        return;
+      }
+
+      // Use the first child to get add-ons (all children should be in the same branch)
+      const firstChild = childrenArray[0];
+      if (!firstChild?.id) {
+        setServices([]);
+        setServicesError('Không tìm thấy thông tin trẻ em.');
+        return;
+      }
+
+      // Get add-ons for the first child
+      const response = await serviceService.getAddOnsForStudent(firstChild.id);
       const items = Array.isArray(response) ? response : [];
 
       const mappedServices = items.map((service) => ({
@@ -551,6 +589,162 @@ const MyPackages = () => {
     }).format(amount);
   };
 
+  // Service order handlers
+  const handleOrderClick = (service) => {
+    setSelectedService(service);
+    setOrderForm({
+      childId: '',
+      studentSlotId: '',
+      quantity: 1
+    });
+    setShowOrderDialog(true);
+    setStudentSlots([]);
+    setSlotsError(null);
+    if (children.length === 0) {
+      loadServiceChildren();
+    }
+  };
+
+  const loadServiceChildren = async () => {
+    setIsLoadingChildren(true);
+    setChildrenError(null);
+    try {
+      const response = await studentService.getMyChildren();
+      const items = Array.isArray(response) ? response : [];
+      setChildren(items);
+    } catch (err) {
+      const errorMessage =
+        typeof err === 'string'
+          ? err
+          : err?.message || err?.error || 'Không thể tải danh sách con';
+      setChildrenError(errorMessage);
+      showGlobalError(errorMessage);
+    } finally {
+      setIsLoadingChildren(false);
+    }
+  };
+
+  const loadStudentSlots = async (childId) => {
+    if (!childId) {
+      setStudentSlots([]);
+      return;
+    }
+
+    setIsLoadingSlots(true);
+    setSlotsError(null);
+    try {
+      const response = await studentSlotService.getStudentSlots({
+        pageIndex: 1,
+        pageSize: 50,
+        studentId: childId,
+        status: 'booked',
+        upcomingOnly: true
+      });
+
+      const items = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.items)
+          ? response.items
+          : [];
+
+      const mapped = items.map((slot) => ({
+        id: slot.id,
+        date: slot.date,
+        status: slot.status,
+        parentNote: slot.parentNote,
+        branchSlotId: slot.branchSlotId,
+        roomId: slot.roomId
+      }));
+
+      setStudentSlots(mapped);
+    } catch (err) {
+      const errorMessage =
+        typeof err === 'string'
+          ? err
+          : err?.message || err?.error || 'Không thể tải lịch học đã đặt';
+      setSlotsError(errorMessage);
+      showGlobalError(errorMessage);
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  };
+
+  const handleChildChange = (childId) => {
+    setOrderForm((prev) => ({
+      ...prev,
+      childId,
+      studentSlotId: ''
+    }));
+    loadStudentSlots(childId);
+  };
+
+  const handleOrderSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedService) return;
+
+    if (!orderForm.childId) {
+      addNotification({
+        message: 'Vui lòng chọn trẻ em.',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    if (!orderForm.studentSlotId) {
+      addNotification({
+        message: 'Vui lòng chọn lịch học đã đặt.',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    if (orderForm.quantity <= 0) {
+      addNotification({
+        message: 'Số lượng phải lớn hơn 0.',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    setIsOrdering(true);
+    try {
+      const response = await orderService.createOrder({
+        studentSlotId: orderForm.studentSlotId,
+        items: [
+          {
+            serviceId: selectedService.id,
+            quantity: orderForm.quantity
+          }
+        ]
+      });
+
+      setOrderSuccessInfo({
+        orderId: response?.orderId || response?.id,
+        orderTotal:
+          response?.totalAmount ||
+          selectedService.effectivePrice * orderForm.quantity,
+        childName:
+          children.find((child) => child.id === orderForm.childId)?.name ||
+          children.find((child) => child.id === orderForm.childId)?.userName ||
+          'Không tên'
+      });
+      setPaymentResult(null);
+      setShowOrderDialog(false);
+    } catch (err) {
+      const errorMessage =
+        typeof err === 'string'
+          ? err
+          : err?.message || err?.error || 'Không thể tạo đơn dịch vụ';
+      showGlobalError(errorMessage);
+      addNotification({
+        message: errorMessage,
+        severity: 'error'
+      });
+    } finally {
+      setIsOrdering(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN', {
@@ -728,6 +922,17 @@ const MyPackages = () => {
       {service.note && (
         <div className={styles.packageNote}>
           <strong>Lưu ý:</strong> {service.note}
+        </div>
+      )}
+
+      {service.isActive && (
+        <div className={styles.packageActions}>
+          <button 
+            className={styles.registerButton}
+            onClick={() => handleOrderClick(service)}
+          >
+            Mua dịch vụ
+          </button>
         </div>
       )}
     </div>
@@ -1010,6 +1215,306 @@ const MyPackages = () => {
           confirmColor="warning"
           highlightText={refundDialog.package?.name}
         />
+
+        {/* Buy Service Dialog */}
+        <ManagementFormDialog
+          open={showOrderDialog}
+          onClose={() => {
+            if (!isOrdering) {
+              setShowOrderDialog(false);
+              setSelectedService(null);
+              setOrderForm({
+                childId: '',
+                studentSlotId: '',
+                quantity: 1
+              });
+            }
+          }}
+          mode="create"
+          title="Mua dịch vụ"
+          icon={ShoppingCartIcon}
+          loading={isOrdering}
+          maxWidth="md"
+        >
+          {selectedService && (
+            <Box sx={{ 
+              mb: 3,
+              p: 3,
+              backgroundColor: 'rgba(0, 123, 255, 0.05)',
+              borderRadius: 2,
+              border: '1px solid rgba(0, 123, 255, 0.1)'
+            }}>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 600, 
+                mb: 1,
+                color: 'text.primary'
+              }}>
+                {selectedService.name}
+              </Typography>
+              <Chip 
+                label={`Giá: ${formatCurrency(selectedService.effectivePrice)}`}
+                sx={{
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: '0.9rem'
+                }}
+              />
+            </Box>
+          )}
+
+          <Form
+            key={`order-form-${orderForm.childId}-${studentSlots.length}`}
+            schema={yup.object().shape({
+              childId: yup.string().required('Vui lòng chọn trẻ em'),
+              studentSlotId: yup.string().when('childId', {
+                is: (val) => val && val !== '',
+                then: (schema) => schema.required('Vui lòng chọn lịch học đã đặt'),
+                otherwise: (schema) => schema.nullable()
+              }),
+              quantity: yup.number().min(1, 'Số lượng phải lớn hơn 0').required('Vui lòng nhập số lượng')
+            })}
+            defaultValues={{
+              childId: orderForm.childId || '',
+              studentSlotId: orderForm.studentSlotId || '',
+              quantity: orderForm.quantity || 1
+            }}
+            onSubmit={async (data) => {
+              if (!selectedService) return;
+
+              if (!data.childId) {
+                addNotification({
+                  message: 'Vui lòng chọn trẻ em.',
+                  severity: 'warning'
+                });
+                return;
+              }
+
+              if (!data.studentSlotId) {
+                addNotification({
+                  message: 'Vui lòng chọn lịch học đã đặt.',
+                  severity: 'warning'
+                });
+                return;
+              }
+
+              setIsOrdering(true);
+              try {
+                const response = await orderService.createOrder({
+                  studentSlotId: data.studentSlotId,
+                  items: [
+                    {
+                      serviceId: selectedService.id,
+                      quantity: data.quantity
+                    }
+                  ]
+                });
+
+                setOrderSuccessInfo({
+                  orderId: response?.orderId || response?.id,
+                  orderTotal:
+                    response?.totalAmount ||
+                    selectedService.effectivePrice * data.quantity,
+                  childName:
+                    children.find((child) => child.id === data.childId)?.name ||
+                    children.find((child) => child.id === data.childId)?.userName ||
+                    'Không tên'
+                });
+                setPaymentResult(null);
+                setShowOrderDialog(false);
+              } catch (err) {
+                const errorMessage =
+                  typeof err === 'string'
+                    ? err
+                    : err?.message || err?.error || 'Không thể tạo đơn dịch vụ';
+                showGlobalError(errorMessage);
+                addNotification({
+                  message: errorMessage,
+                  severity: 'error'
+                });
+              } finally {
+                setIsOrdering(false);
+              }
+            }}
+            submitText="Xác nhận mua"
+            loading={isOrdering}
+            disabled={isOrdering}
+            fields={[
+              {
+                name: 'childId',
+                label: 'Chọn trẻ em',
+                type: 'select',
+                required: true,
+                placeholder: '-- Chọn trẻ em --',
+                options: children.length > 0 ? children.map(child => ({
+                  value: child.id,
+                  label: child.name || child.userName || 'Không tên'
+                })) : [],
+                onChange: (value) => {
+                  handleChildChange(value);
+                }
+              },
+              ...(orderForm.childId && studentSlots.length > 0 ? [{
+                name: 'studentSlotId',
+                label: 'Lịch học (Student Slot)',
+                type: 'select',
+                required: true,
+                placeholder: '-- Chọn lịch học --',
+                options: studentSlots.map(slot => ({
+                  value: slot.id,
+                  label: `${new Date(slot.date).toLocaleString('vi-VN')} · ${slot.status}`
+                }))
+              }] : orderForm.childId && isLoadingSlots ? [{
+                name: 'studentSlotId',
+                label: 'Lịch học (Student Slot)',
+                type: 'text',
+                disabled: true,
+                placeholder: 'Đang tải lịch học...'
+              }] : orderForm.childId && slotsError ? [{
+                name: 'studentSlotId',
+                label: 'Lịch học (Student Slot)',
+                type: 'text',
+                disabled: true,
+                placeholder: slotsError
+              }] : orderForm.childId ? [{
+                name: 'studentSlotId',
+                label: 'Lịch học (Student Slot)',
+                type: 'text',
+                disabled: true,
+                placeholder: 'Chưa có lịch học nào. Vui lòng đặt lịch trước.'
+              }] : []),
+              {
+                name: 'quantity',
+                label: 'Số lượng',
+                type: 'number',
+                required: true,
+                min: 1
+              }
+            ]}
+          >
+            {isLoadingChildren && (
+              <Box sx={{ p: 2, textAlign: 'center' }}>
+                <ContentLoading isLoading={true} text="Đang tải danh sách con..." />
+              </Box>
+            )}
+            {childrenError && (
+              <Box sx={{ p: 2 }}>
+                <Typography color="error" variant="body2">{childrenError}</Typography>
+                <button
+                  type="button"
+                  className={styles.retryButton}
+                  onClick={loadServiceChildren}
+                  style={{ marginTop: '12px' }}
+                >
+                  Thử lại
+                </button>
+              </Box>
+            )}
+          </Form>
+        </ManagementFormDialog>
+
+        {/* Payment Dialog */}
+        {orderSuccessInfo && (
+          <div className={styles.dialogOverlay} onClick={() => setOrderSuccessInfo(null)}>
+            <div className={styles.dialogContent} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.dialogHeader}>
+                <h2 className={styles.dialogTitle}>Thanh toán đơn hàng</h2>
+                <button
+                  className={styles.dialogClose}
+                  onClick={() => setOrderSuccessInfo(null)}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className={styles.dialogServiceInfo}>
+                <h3 className={styles.dialogServiceName}>Đơn #{orderSuccessInfo.orderId}</h3>
+                <p className={styles.dialogServicePrice}>
+                  Tổng tiền: {formatCurrency(orderSuccessInfo.orderTotal)}
+                </p>
+                <p className={styles.formHint}>Học sinh: {orderSuccessInfo.childName}</p>
+              </div>
+
+              <div className={styles.orderForm}>
+                <p className={styles.formLabel}>Chọn ví để thanh toán:</p>
+                {paymentResult && (
+                  <div className={styles.paymentResult}>
+                    <p>
+                      Trạng thái: <strong>{paymentResult.status}</strong>
+                    </p>
+                    <p>Số tiền đã trả: {formatCurrency(paymentResult.paidAmount)}</p>
+                    <p>Số dư còn lại: {formatCurrency(paymentResult.remainingBalance)}</p>
+                    <p>Tin nhắn: {paymentResult.message}</p>
+                  </div>
+                )}
+                <div className={styles.walletButtons}>
+                  <button
+                    className={styles.walletButton}
+                    onClick={async () => {
+                      try {
+                        const res = await orderService.payOrderWithWallet({
+                          orderId: orderSuccessInfo.orderId,
+                          walletType: 'Parent'
+                        });
+                        setPaymentResult(res);
+                        addNotification({
+                          message: 'Thanh toán từ ví phụ huynh thành công!',
+                          severity: 'success'
+                        });
+                      } catch (err) {
+                        const errorMessage =
+                          typeof err === 'string'
+                            ? err
+                            : err?.message || err?.error || 'Thanh toán thất bại';
+                        showGlobalError(errorMessage);
+                        addNotification({
+                          message: errorMessage,
+                          severity: 'error'
+                        });
+                      }
+                    }}
+                  >
+                    Ví phụ huynh
+                  </button>
+                  <button
+                    className={styles.walletButton}
+                    onClick={async () => {
+                      try {
+                        const res = await orderService.payOrderWithWallet({
+                          orderId: orderSuccessInfo.orderId,
+                          walletType: 'Student'
+                        });
+                        setPaymentResult(res);
+                        addNotification({
+                          message: 'Thanh toán từ ví học sinh thành công!',
+                          severity: 'success'
+                        });
+                      } catch (err) {
+                        const errorMessage =
+                          typeof err === 'string'
+                            ? err
+                            : err?.message || err?.error || 'Thanh toán thất bại';
+                        showGlobalError(errorMessage);
+                        addNotification({
+                          message: errorMessage,
+                          severity: 'error'
+                        });
+                      }
+                    }}
+                  >
+                    Ví trẻ em
+                  </button>
+                  <button
+                    className={styles.cancelButton}
+                    onClick={() => setOrderSuccessInfo(null)}
+                  >
+                    Đóng
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

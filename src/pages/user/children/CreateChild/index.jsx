@@ -8,7 +8,6 @@ import Step1BasicInfo from './Step1BasicInfo';
 import Step2Associations from './Step2Associations';
 import useUserChildDependencies from '../../../../hooks/useUserChildDependencies';
 import studentService from '../../../../services/student.service';
-import userService from '../../../../services/user.service';
 
 const CHILD_DEFAULT_VALUES = {
   name: '',
@@ -34,8 +33,6 @@ const CreateChild = () => {
 
   const [formData, setFormData] = useState(CHILD_DEFAULT_VALUES);
   const [loading, setLoading] = useState(false);
-  const [userBranchId, setUserBranchId] = useState(null);
-  const [userBranchName, setUserBranchName] = useState('');
 
   const formDataRef = useRef(formData);
 
@@ -46,28 +43,6 @@ const CreateChild = () => {
   useEffect(() => {
     fetchDependencies();
   }, [fetchDependencies]);
-
-  // Lấy branchId từ user hiện tại - chạy ngay khi component mount
-  useEffect(() => {
-    const loadUserBranch = async () => {
-      try {
-        const currentUser = await userService.getCurrentUser();
-        const branchId = currentUser?.branchId || currentUser?.branch?.id || null;
-        const branchName = currentUser?.branchName || currentUser?.branch?.branchName || '';
-        
-        if (branchId) {
-          setUserBranchId(branchId);
-          setUserBranchName(branchName);
-          // Đảm bảo branchId được set vào formData ngay lập tức
-          setFormData((prev) => ({ ...prev, branchId }));
-        }
-      } catch (err) {
-        console.error('Không thể lấy thông tin chi nhánh của user:', err);
-      }
-    };
-
-    loadUserBranch();
-  }, []);
 
   const handleStep1Complete = useCallback(
     async (data) => {
@@ -83,22 +58,34 @@ const CreateChild = () => {
 
   const handleStep2Complete = useCallback(
     async (data) => {
-      // branchId đã được set tự động từ user, chỉ cần kiểm tra schoolId và studentLevelId
-      const finalBranchId = data.branchId || userBranchId || formData.branchId;
-      if (!finalBranchId || !data.schoolId || !data.studentLevelId) {
-        toast.error('Vui lòng chọn đầy đủ trường học và cấp độ');
+      // Ensure branchId, schoolId, and studentLevelId are strings
+      const normalizedData = {
+        ...data,
+        branchId: data.branchId ? String(data.branchId) : '',
+        schoolId: data.schoolId ? String(data.schoolId) : '',
+        studentLevelId: data.studentLevelId ? String(data.studentLevelId) : ''
+      };
+      
+      // User must manually select branch, school, and student level
+      if (!normalizedData.branchId || !normalizedData.schoolId || !normalizedData.studentLevelId) {
+        toast.error('Vui lòng chọn đầy đủ chi nhánh, trường học và cấp độ');
         return false;
       }
-      setFormData((prev) => ({ ...prev, ...data, branchId: finalBranchId }));
+      setFormData((prev) => ({ ...prev, ...normalizedData }));
       return true;
     },
-    [userBranchId, formData.branchId]
+    []
   );
 
   const handleComplete = useCallback(async (latestData) => {
     const finalData = latestData || formDataRef.current;
     
-    if (!finalData.name || !finalData.dateOfBirth || !finalData.branchId || !finalData.schoolId || !finalData.studentLevelId) {
+    // Ensure all IDs are strings
+    const normalizedBranchId = finalData.branchId ? String(finalData.branchId) : '';
+    const normalizedSchoolId = finalData.schoolId ? String(finalData.schoolId) : '';
+    const normalizedStudentLevelId = finalData.studentLevelId ? String(finalData.studentLevelId) : '';
+    
+    if (!finalData.name || !finalData.dateOfBirth || !normalizedBranchId || !normalizedSchoolId || !normalizedStudentLevelId) {
       toast.error('Vui lòng hoàn thành đầy đủ thông tin bắt buộc');
       return;
     }
@@ -126,10 +113,10 @@ const CreateChild = () => {
         // Backend expects ImageFile to be a file, not a URL
       }
       
-      // Associations (required)
-      formDataToSend.append('BranchId', finalData.branchId);
-      formDataToSend.append('SchoolId', finalData.schoolId);
-      formDataToSend.append('StudentLevelId', finalData.studentLevelId);
+      // Associations (required) - ensure all are strings
+      formDataToSend.append('BranchId', normalizedBranchId);
+      formDataToSend.append('SchoolId', normalizedSchoolId);
+      formDataToSend.append('StudentLevelId', normalizedStudentLevelId);
       
       // Document fields are NOT included - user requested to remove document section
 
@@ -140,7 +127,7 @@ const CreateChild = () => {
       });
       navigate('/family/children');
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message || 'Không thể đăng ký con';
+      const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể đăng ký con';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
     } finally {
       setLoading(false);
@@ -185,9 +172,7 @@ const CreateChild = () => {
           branchOptions,
           schoolOptions,
           studentLevelOptions,
-          dependenciesLoading: dependenciesLoading || loading,
-          userBranchId,
-          userBranchName
+          dependenciesLoading: dependenciesLoading || loading
         }}
       />
     </Box>

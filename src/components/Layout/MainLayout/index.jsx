@@ -1,12 +1,21 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import MainHeader from '../../Headers/MainHeader';
 import Footer from '../../Common/Footer';
 import ScrollToTop from '../../Common/ScrollToTop';
 import PageTransition from '../../Common/PageTransition';
+import ScrollTriggerWrapper from '../../Common/ScrollTriggerWrapper';
 import styles from './MainLayout.module.css';
 
 const MainLayout = ({ showHeader = true, showFooter = true }) => {
+  const location = useLocation();
+  
+  // Enable ScrollTrigger only for homepage, disable for contact, packages, and facilities
+  const isContactPage = location.pathname === '/contact';
+  const isPackagesPage = location.pathname === '/packages';
+  const isFacilitiesPage = location.pathname === '/facilities';
+  const enableScrollTrigger = !isContactPage && !isPackagesPage && !isFacilitiesPage;
+
   return (
     <div className={styles.mainLayout}>
       <ScrollToTop />
@@ -14,7 +23,9 @@ const MainLayout = ({ showHeader = true, showFooter = true }) => {
       
       <main className={styles.mainContent}>
         <PageTransition>
-          <Outlet />
+          <ScrollTriggerWrapper enabled={enableScrollTrigger}>
+            <Outlet />
+          </ScrollTriggerWrapper>
         </PageTransition>
       </main>
       

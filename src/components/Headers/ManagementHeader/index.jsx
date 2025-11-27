@@ -55,22 +55,9 @@ const ManagerStaffHeader = () => {
         boxShadow: 'var(--shadow-md)'
       }}
     >
-      <Toolbar>
-        {/* Logo/Title */}
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            flexGrow: 1,
-            fontWeight: 700,
-            fontSize: '1.25rem',
-            letterSpacing: '0.02em'
-          }}
-        >
-          Quản Lý Hệ Thống
-        </Typography>
-
+      <Toolbar sx={{ justifyContent: 'flex-end', pr: 2 }}>
         {/* User Info */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
           {/* Branch Info */}
           {userInfo?.branchName && (
             <Chip
@@ -97,16 +84,6 @@ const ManagerStaffHeader = () => {
           {/* User Name */}
           {userInfo?.name && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'rgba(255, 255, 255, 0.2)', 
-                  width: 36, 
-                  height: 36,
-                  border: '2px solid rgba(255, 255, 255, 0.3)'
-                }}
-              >
-                <PersonIcon />
-              </Avatar>
               <Typography 
                 variant="body1" 
                 sx={{ 

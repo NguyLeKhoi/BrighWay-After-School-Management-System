@@ -1,4 +1,8 @@
 .contentSection {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 60px 0;
   background-color: white;
 }
@@ -7,6 +11,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 40px;
+  width: 100%;
 }
 
 .contentWrapper {
@@ -149,6 +154,10 @@
 }
 
 @media (max-width: 768px) {
+  .contentSection {
+    min-height: 100vh;
+  }
+  
   .contentContainer {
     padding: 0 20px;
   }

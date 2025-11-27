@@ -1,4 +1,6 @@
 import React from 'react';
+import { IconButton } from '@mui/material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
 import styles from './Card.module.css';
 
 const Card = ({ 
@@ -13,6 +15,7 @@ const Card = ({
   actions,
   className = '',
   onClick,
+  onDelete,
   children 
 }) => {
   const CardComponent = onClick ? 'button' : 'div';
@@ -21,7 +24,33 @@ const Card = ({
     <CardComponent 
       className={`${styles.card} ${className}`}
       onClick={onClick}
+      style={{ position: 'relative' }}
     >
+      {onDelete && (
+        <IconButton
+          className={styles.deleteIcon}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 10,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            '&:hover': {
+              backgroundColor: 'var(--color-error-light, #ffebee)',
+              color: 'var(--color-error, #d32f2f)',
+              transform: 'scale(1.1)',
+            },
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      )}
       {image && (
         <div className={styles.cardImage}>
           {image}

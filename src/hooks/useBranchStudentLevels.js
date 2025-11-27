@@ -12,8 +12,36 @@ const useBranchStudentLevels = (branchId) => {
   const [error, setError] = useState(null);
 
   const fetchStudentLevels = useCallback(async () => {
-    if (!branchId || branchId === '' || branchId === null || branchId === undefined) {
+    // Ensure branchId is a valid string (not an object)
+    let validBranchId = null;
+    if (branchId) {
+      if (typeof branchId === 'string' && branchId.trim() !== '') {
+        validBranchId = branchId.trim();
+      } else if (typeof branchId === 'object' && branchId !== null) {
+        // If it's an object, try to extract value or id
+        const extracted = branchId.value || branchId.id;
+        if (extracted) {
+          validBranchId = String(extracted);
+        } else {
+          // If can't extract, reject it
+          validBranchId = null;
+        }
+      } else if (typeof branchId === 'number') {
+        validBranchId = String(branchId);
+      } else {
+        const str = String(branchId);
+        // Reject [object Object] and other invalid strings
+        if (str !== '[object Object]' && str !== 'null' && str !== 'undefined' && str.trim() !== '') {
+          validBranchId = str;
+        }
+      }
+    }
+
+    // Final validation - reject if invalid
+    if (!validBranchId || validBranchId === '' || validBranchId === 'null' || validBranchId === 'undefined' || validBranchId === '[object Object]') {
       setStudentLevels([]);
+      setLoading(false);
+      setError(null);
       return;
     }
 
@@ -21,12 +49,19 @@ const useBranchStudentLevels = (branchId) => {
     setError(null);
 
     try {
-      const branch = await branchService.getBranchById(branchId);
-      console.log('Branch data for studentLevels:', branch);
-      // Branch response should contain studentLevels array directly
-      const levels = branch?.studentLevels || branch?.branchLevels?.map(bl => bl.studentLevel || bl) || [];
-      console.log('Extracted studentLevels:', levels);
-      setStudentLevels(Array.isArray(levels) ? levels : []);
+      // Call branch service to get branch details, which includes studentLevels
+      const branch = await branchService.getBranchById(validBranchId);
+      
+      // Extract studentLevels from branch response
+      // Branch response may have studentLevels directly or in branchLevels array
+      let extractedLevels = [];
+      if (branch?.studentLevels && Array.isArray(branch.studentLevels)) {
+        extractedLevels = branch.studentLevels;
+      } else if (branch?.branchLevels && Array.isArray(branch.branchLevels)) {
+        extractedLevels = branch.branchLevels.map(bl => bl.studentLevel || bl).filter(Boolean);
+      }
+      
+      setStudentLevels(extractedLevels);
     } catch (err) {
       console.error('Error fetching branch studentLevels:', err);
       const message = err?.response?.data?.message || err?.message || 'Không thể tải cấp độ học sinh';

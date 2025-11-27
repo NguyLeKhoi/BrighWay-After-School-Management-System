@@ -22,7 +22,7 @@ const Step1BasicInfo = forwardRef(({ data, updateData }, ref) => {
   }));
   return (
     <Box sx={{ display: 'grid', gap: 2 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Thông tin chi nhánh</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Thông tin chi nhánh</Typography>
       <input
         style={{ padding: 12, fontSize: 16, borderRadius: 8, border: '1px solid #ccc' }}
         placeholder="Tên Chi Nhánh"
@@ -34,14 +34,102 @@ const Step1BasicInfo = forwardRef(({ data, updateData }, ref) => {
 });
 
 const Step2AddressContact = forwardRef(({ data, updateData }, ref) => {
-  const { fetchProvinces, handleProvinceChange, getProvinceOptions, getDistrictOptions, selectedProvinceId } = useLocationData();
+  const { 
+    fetchProvinces, 
+    fetchDistricts,
+    handleProvinceChange, 
+    getProvinceOptions, 
+    getDistrictOptions, 
+    getProvinceById,
+    provinces,
+    selectedProvinceId 
+  } = useLocationData();
   const [address, setAddress] = useState(data.address || '');
   const [phone, setPhone] = useState(data.phone || '');
   const [provinceId, setProvinceId] = useState('');
   const [districtId, setDistrictId] = useState(data.districtId || '');
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
-  useEffect(() => { fetchProvinces(); }, [fetchProvinces]);
-  useEffect(() => { setAddress(data.address || ''); setPhone(data.phone || ''); setDistrictId(data.districtId || ''); }, [data.address, data.phone, data.districtId]);
+  // Fetch provinces on mount
+  useEffect(() => { 
+    const loadProvinces = async () => {
+      await fetchProvinces();
+    };
+    loadProvinces();
+  }, [fetchProvinces]);
+
+  // When data changes, update form fields
+  useEffect(() => { 
+    setAddress(data.address || ''); 
+    setPhone(data.phone || ''); 
+    setDistrictId(data.districtId || ''); 
+  }, [data.address, data.phone, data.districtId]);
+
+  // Find and set provinceId when data is available
+  useEffect(() => {
+    const findProvinceId = async () => {
+      if (!provinces.length) return;
+      if (!data.provinceName && !data.districtId) return;
+      
+      setIsLoadingLocation(true);
+      try {
+        // First, try to find by provinceName if available
+        if (data.provinceName) {
+          const foundProvince = provinces.find(p => 
+            p.name === data.provinceName || 
+            p.name?.toLowerCase() === data.provinceName?.toLowerCase()
+          );
+          if (foundProvince) {
+            setProvinceId(foundProvince.id);
+            handleProvinceChange(foundProvince.id);
+            setIsLoadingLocation(false);
+            return;
+          }
+        }
+        
+        // If not found by name, try to find by districtId
+        if (data.districtId) {
+          // Try to find province that contains this district in cached data
+          for (const province of provinces) {
+            if (province.districts && Array.isArray(province.districts)) {
+              const foundDistrict = province.districts.find(d => d.id === data.districtId);
+              if (foundDistrict) {
+                setProvinceId(province.id);
+                handleProvinceChange(province.id);
+                setIsLoadingLocation(false);
+                return;
+              }
+            }
+          }
+          
+          // If not found in cached districts, fetch districts for each province
+          // This is a fallback if districts aren't included in province data
+          for (const province of provinces) {
+            try {
+              const districts = await fetchDistricts(province.id);
+              const foundDistrict = districts.find(d => d.id === data.districtId);
+              if (foundDistrict) {
+                setProvinceId(province.id);
+                handleProvinceChange(province.id);
+                setIsLoadingLocation(false);
+                return;
+              }
+            } catch (err) {
+              console.error(`Error fetching districts for province ${province.id}:`, err);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error finding province:', err);
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    };
+
+    if (provinces.length > 0 && (data.provinceName || data.districtId)) {
+      findProvinceId();
+    }
+  }, [data.provinceName, data.districtId, provinces, fetchDistricts, handleProvinceChange]);
 
   useImperativeHandle(ref, () => ({
     async submit() {
@@ -59,15 +147,22 @@ const Step2AddressContact = forwardRef(({ data, updateData }, ref) => {
 
   return (
     <Box sx={{ display: 'grid', gap: 2 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Địa chỉ & Liên hệ</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Địa chỉ & Liên hệ</Typography>
+      {isLoadingLocation && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Đang tải thông tin địa điểm...
+        </Typography>
+      )}
       <select
         style={{ padding: 12, fontSize: 16, borderRadius: 8, border: '1px solid #ccc' }}
-        value={provinceId}
+        value={provinceId || selectedProvinceId || ''}
         onChange={(e) => {
-          setProvinceId(e.target.value);
-          handleProvinceChange(e.target.value);
+          const newProvinceId = e.target.value;
+          setProvinceId(newProvinceId);
+          handleProvinceChange(newProvinceId);
           setDistrictId('');
         }}
+        disabled={isLoadingLocation}
       >
         <option value="">Chọn Tỉnh/Thành</option>
         {provinceOptions.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
@@ -76,6 +171,7 @@ const Step2AddressContact = forwardRef(({ data, updateData }, ref) => {
         style={{ padding: 12, fontSize: 16, borderRadius: 8, border: '1px solid #ccc' }}
         value={districtId}
         onChange={(e) => setDistrictId(e.target.value)}
+        disabled={!provinceId && !selectedProvinceId || isLoadingLocation}
       >
         <option value="">Chọn Quận/Huyện</option>
         {districtOptions.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
@@ -110,7 +206,9 @@ const UpdateBranch = () => {
           branchName: branch.branchName || '',
           address: branch.address || '',
           phone: branch.phone || '',
-          districtId: branch.districtId || ''
+          districtId: branch.districtId || '',
+          provinceName: branch.provinceName || '',
+          districtName: branch.districtName || ''
         });
       } finally {
         setInitialLoading(false);
