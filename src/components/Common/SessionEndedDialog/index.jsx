@@ -41,21 +41,6 @@ const SessionEndedDialog = ({ open, onClose, message }) => {
           {message || 'Tài khoản của bạn đã được đăng nhập từ một thiết bị khác. Phiên đăng nhập hiện tại đã bị kết thúc.'}
         </Typography>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button
-          onClick={handleGoToLogin}
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{
-            py: 1.5,
-            fontWeight: 600,
-            borderRadius: 1.5
-          }}
-        >
-          Quay về trang đăng nhập
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
