@@ -98,6 +98,10 @@ const BranchManagement = () => {
     assignSchools.handleRemove(branchId, schoolId, schoolName, setConfirmDialog);
   };
 
+  const handleRemoveStudentLevel = (branchId, studentLevelId, studentLevelName) => {
+    assignStudentLevels.handleRemove(branchId, studentLevelId, studentLevelName, setConfirmDialog);
+  };
+
   // Reload data when navigate back to this page (e.g., from create/update pages)
   useEffect(() => {
     if (location.pathname === '/admin/branches') {
@@ -173,6 +177,7 @@ const BranchManagement = () => {
           actionLoading={actionLoading}
           onRemoveBenefit={handleRemoveBenefit}
           onRemoveSchool={handleRemoveSchool}
+          onRemoveStudentLevel={handleRemoveStudentLevel}
           />
         </div>
 

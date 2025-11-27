@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, IconButton, Tooltip, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, IconButton, Tooltip, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import {
   Business as BusinessIcon,
   Assignment as AssignIcon,
@@ -8,7 +8,8 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  MoreVert as MoreVertIcon
 } from '@mui/icons-material';
 
 export const createBranchColumns = ({
@@ -67,55 +68,99 @@ export const createBranchColumns = ({
     key: 'actions',
     header: 'Thao tác',
     align: 'center',
-    render: (_, item) => (
-      <Box display="flex" gap={0.5} justifyContent="center">
-        <Tooltip title="Gán lợi ích">
-          <IconButton
-            size="small"
-            color="info"
-            onClick={() => onAssignBenefits(item)}
-          >
-            <AssignIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Gán trường">
-          <IconButton
-            size="small"
-            color="success"
-            onClick={() => onAssignSchools(item)}
-          >
-            <SchoolIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Gán cấp độ học sinh">
-          <IconButton
-            size="small"
-            color="warning"
-            onClick={() => onAssignStudentLevels(item)}
-          >
-            <ClassIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Sửa">
-          <IconButton
-            size="small"
-            color="primary"
-            onClick={() => onEditBranch(item)}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Xóa">
-          <IconButton
-            size="small"
-            color="error"
-            onClick={() => onDeleteBranch(item)}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    )
+    render: (_, item) => {
+      // Create a component for action menu
+      const ActionMenu = ({ item }) => {
+        const [anchorEl, setAnchorEl] = useState(null);
+        const open = Boolean(anchorEl);
+
+        const handleClick = (event) => {
+          event.stopPropagation();
+          setAnchorEl(event.currentTarget);
+        };
+
+        const handleClose = () => {
+          setAnchorEl(null);
+        };
+
+        const handleMenuAction = (action) => {
+          handleClose();
+          action();
+        };
+
+        return (
+          <>
+            <Tooltip title="Thao tác">
+              <IconButton
+                size="small"
+                onClick={handleClick}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'action.hover'
+                  }
+                }}
+              >
+                <MoreVertIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              onClick={(e) => e.stopPropagation()}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              <MenuItem onClick={() => handleMenuAction(() => onAssignBenefits(item))}>
+                <ListItemIcon>
+                  <AssignIcon fontSize="small" color="info" />
+                </ListItemIcon>
+                <ListItemText>Gán lợi ích</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={() => handleMenuAction(() => onAssignSchools(item))}>
+                <ListItemIcon>
+                  <SchoolIcon fontSize="small" color="success" />
+                </ListItemIcon>
+                <ListItemText>Gán trường</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={() => handleMenuAction(() => onAssignStudentLevels(item))}>
+                <ListItemIcon>
+                  <ClassIcon fontSize="small" color="warning" />
+                </ListItemIcon>
+                <ListItemText>Gán cấp độ học sinh</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={() => handleMenuAction(() => onEditBranch(item))}>
+                <ListItemIcon>
+                  <EditIcon fontSize="small" color="primary" />
+                </ListItemIcon>
+                <ListItemText>Sửa</ListItemText>
+              </MenuItem>
+              <MenuItem 
+                onClick={() => handleMenuAction(() => onDeleteBranch(item))}
+                sx={{
+                  color: 'error.main',
+                  '&:hover': {
+                    backgroundColor: 'error.light',
+                    color: 'error.dark'
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <DeleteIcon fontSize="small" color="error" />
+                </ListItemIcon>
+                <ListItemText>Xóa</ListItemText>
+              </MenuItem>
+            </Menu>
+          </>
+        );
+      };
+
+      return (
+        <Box display="flex" justifyContent="center">
+          <ActionMenu item={item} />
+        </Box>
+      );
+    }
   }
 ];
 
