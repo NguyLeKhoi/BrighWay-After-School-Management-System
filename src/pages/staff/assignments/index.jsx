@@ -87,12 +87,23 @@ const StaffAssignments = () => {
       }
 
       // Tạo key để group: branchSlotId + date (chỉ lấy phần date, không có time)
-      const slotDate = new Date(dateValue);
-      if (isNaN(slotDate.getTime())) {
-        return;
+      // Parse date string trực tiếp để tránh timezone issues
+      let dateStr;
+      if (typeof dateValue === 'string') {
+        // Nếu là string, lấy phần date trước 'T' hoặc space
+        dateStr = dateValue.split('T')[0].split(' ')[0];
+      } else {
+        // Nếu là Date object, format trực tiếp theo local timezone
+        const slotDate = new Date(dateValue);
+        if (isNaN(slotDate.getTime())) {
+          return;
+        }
+        // Format date theo local timezone để tránh lệch ngày
+        const year = slotDate.getFullYear();
+        const month = String(slotDate.getMonth() + 1).padStart(2, '0');
+        const day = String(slotDate.getDate()).padStart(2, '0');
+        dateStr = `${year}-${month}-${day}`;
       }
-
-      const dateStr = slotDate.toISOString().split('T')[0];
       const groupKey = `${branchSlotId}_${dateStr}`;
 
       if (!groupedSlots[groupKey]) {
@@ -113,8 +124,23 @@ const StaffAssignments = () => {
         }
 
         const dateValue = firstSlot.date;
-        const slotDate = new Date(dateValue);
-        const dateStr = slotDate.toISOString().split('T')[0];
+        // Parse date string trực tiếp để tránh timezone issues
+        let dateStr;
+        if (typeof dateValue === 'string') {
+          // Nếu là string, lấy phần date trước 'T' hoặc space
+          dateStr = dateValue.split('T')[0].split(' ')[0];
+        } else {
+          // Nếu là Date object, format trực tiếp theo local timezone
+          const slotDate = new Date(dateValue);
+          if (isNaN(slotDate.getTime())) {
+            return null;
+          }
+          // Format date theo local timezone để tránh lệch ngày
+          const year = slotDate.getFullYear();
+          const month = String(slotDate.getMonth() + 1).padStart(2, '0');
+          const day = String(slotDate.getDate()).padStart(2, '0');
+          dateStr = `${year}-${month}-${day}`;
+        }
 
         const startTime = timeframe.startTime || '00:00:00';
         const endTime = timeframe.endTime || '00:00:00';
