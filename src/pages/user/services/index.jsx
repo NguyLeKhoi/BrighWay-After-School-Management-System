@@ -1,14 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import { Receipt as ServiceIcon } from '@mui/icons-material';
+import { Receipt as ServiceIcon, ShoppingCart as ShoppingCartIcon, Payment as PaymentIcon } from '@mui/icons-material';
+import { Box, Typography, Chip, Button } from '@mui/material';
 import ContentLoading from '@components/Common/ContentLoading';
 import AnimatedCard from '../../../components/Common/AnimatedCard';
+import ManagementFormDialog from '@components/Management/FormDialog';
+import ConfirmDialog from '@components/Common/ConfirmDialog';
+import Form from '@components/Common/Form';
 import { useApp } from '../../../contexts/AppContext';
 import serviceService from '../../../services/service.service';
 import orderService from '../../../services/order.service';
 import studentService from '../../../services/student.service';
 import studentSlotService from '../../../services/studentSlot.service';
+import * as yup from 'yup';
 import styles from './Services.module.css';
 
 const FamilyServices = () => {
@@ -27,6 +32,9 @@ const FamilyServices = () => {
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderSuccessInfo, setOrderSuccessInfo] = useState(null);
   const [paymentResult, setPaymentResult] = useState(null);
+  const [selectedWalletType, setSelectedWalletType] = useState(null);
+  const [showConfirmPaymentDialog, setShowConfirmPaymentDialog] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
   const [children, setChildren] = useState([]);
   const [childrenError, setChildrenError] = useState(null);
   const [isLoadingChildren, setIsLoadingChildren] = useState(false);
@@ -202,42 +210,17 @@ const FamilyServices = () => {
     loadStudentSlots(childId);
   };
 
-  const handleOrderSubmit = async (e) => {
-    e.preventDefault();
+  const handleOrderSubmit = async (data) => {
     if (!selectedService) return;
-
-    if (!orderForm.childId) {
-      addNotification({
-        message: 'Vui lòng chọn trẻ em.',
-        severity: 'warning'
-      });
-      return;
-    }
-
-    if (!orderForm.studentSlotId) {
-      addNotification({
-        message: 'Vui lòng chọn lịch học đã đặt.',
-        severity: 'warning'
-      });
-      return;
-    }
-
-    if (orderForm.quantity <= 0) {
-      addNotification({
-        message: 'Số lượng phải lớn hơn 0.',
-        severity: 'warning'
-      });
-      return;
-    }
 
     setIsOrdering(true);
     try {
       const response = await orderService.createOrder({
-        studentSlotId: orderForm.studentSlotId,
+        studentSlotId: data.studentSlotId,
         items: [
           {
             serviceId: selectedService.id,
-            quantity: orderForm.quantity
+            quantity: data.quantity
           }
         ]
       });
@@ -246,14 +229,19 @@ const FamilyServices = () => {
         orderId: response?.orderId || response?.id,
         orderTotal:
           response?.totalAmount ||
-          selectedService.effectivePrice * orderForm.quantity,
+          selectedService.effectivePrice * data.quantity,
         childName:
-          children.find((child) => child.id === orderForm.childId)?.name ||
-          children.find((child) => child.id === orderForm.childId)?.userName ||
+          children.find((child) => child.id === data.childId)?.name ||
+          children.find((child) => child.id === data.childId)?.userName ||
           'Không tên'
       });
       setPaymentResult(null);
       setShowOrderDialog(false);
+      setOrderForm({
+        childId: '',
+        studentSlotId: '',
+        quantity: 1
+      });
     } catch (err) {
       const errorMessage =
         typeof err === 'string'
@@ -268,6 +256,16 @@ const FamilyServices = () => {
       setIsOrdering(false);
     }
   };
+
+  const orderSchema = yup.object().shape({
+    childId: yup.string().required('Vui lòng chọn trẻ em'),
+    studentSlotId: yup.string().when('childId', {
+      is: (val) => val && val !== '',
+      then: (schema) => schema.required('Vui lòng chọn lịch học đã đặt'),
+      otherwise: (schema) => schema.nullable()
+    }),
+    quantity: yup.number().min(1, 'Số lượng phải lớn hơn 0').required('Vui lòng nhập số lượng')
+  });
 
   return (
     <motion.div 
@@ -370,251 +368,264 @@ const FamilyServices = () => {
         )}
       </div>
 
-      {showOrderDialog && (
-        <div className={styles.dialogOverlay} onClick={() => !isOrdering && setShowOrderDialog(false)}>
-          <div className={styles.dialogContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.dialogHeader}>
-              <h2 className={styles.dialogTitle}>Mua dịch vụ</h2>
-              <button
-                className={styles.dialogClose}
-                onClick={() => !isOrdering && setShowOrderDialog(false)}
-              >
-                ×
-              </button>
-            </div>
+      {/* Buy Service Dialog */}
+      <ManagementFormDialog
+        open={showOrderDialog}
+        onClose={() => {
+          if (!isOrdering) {
+            setShowOrderDialog(false);
+            setSelectedService(null);
+            setOrderForm({
+              childId: '',
+              studentSlotId: '',
+              quantity: 1
+            });
+          }
+        }}
+        mode="create"
+        title="Mua dịch vụ"
+        icon={ShoppingCartIcon}
+        loading={isOrdering}
+        maxWidth="md"
+      >
+        {selectedService && (
+          <Box sx={{ 
+            mb: 3,
+            p: 3,
+            backgroundColor: 'rgba(0, 123, 255, 0.05)',
+            borderRadius: 2,
+            border: '1px solid rgba(0, 123, 255, 0.1)'
+          }}>
+            <Typography variant="h6" sx={{ 
+              fontWeight: 600, 
+              mb: 1,
+              color: 'text.primary'
+            }}>
+              {selectedService.name}
+            </Typography>
+            <Chip 
+              label={`Giá: ${formatCurrency(selectedService.effectivePrice)}`}
+              sx={{
+                backgroundColor: 'var(--color-primary)',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.9rem'
+              }}
+            />
+          </Box>
+        )}
 
-            {selectedService && (
-              <div className={styles.dialogServiceInfo}>
-                <h3 className={styles.dialogServiceName}>{selectedService.name}</h3>
-                <p className={styles.dialogServicePrice}>
-                  Giá: {formatCurrency(selectedService.effectivePrice)}
-                </p>
-              </div>
+        <Form
+          key={`order-form-${orderForm.childId}-${studentSlots.length}`}
+          schema={orderSchema}
+          defaultValues={{
+            childId: orderForm.childId || '',
+            studentSlotId: orderForm.studentSlotId || '',
+            quantity: orderForm.quantity || 1
+          }}
+          onSubmit={handleOrderSubmit}
+          submitText="Xác nhận mua"
+          loading={isOrdering}
+          disabled={isOrdering}
+          fields={[
+            {
+              name: 'childId',
+              label: 'Chọn trẻ em',
+              type: 'select',
+              required: true,
+              placeholder: '-- Chọn trẻ em --',
+              options: children.length > 0 ? children.map(child => ({
+                value: child.id,
+                label: child.name || child.userName || 'Không tên'
+              })) : [],
+              onChange: (value) => {
+                handleChildChange(value);
+              }
+            },
+            ...(orderForm.childId && studentSlots.length > 0 ? [{
+              name: 'studentSlotId',
+              label: 'Lịch học (Student Slot)',
+              type: 'select',
+              required: true,
+              placeholder: '-- Chọn lịch học --',
+              options: studentSlots.map(slot => ({
+                value: slot.id,
+                label: `${new Date(slot.date).toLocaleString('vi-VN')} · ${slot.status}`
+              }))
+            }] : orderForm.childId && isLoadingSlots ? [{
+              name: 'studentSlotId',
+              label: 'Lịch học (Student Slot)',
+              type: 'text',
+              disabled: true,
+              placeholder: 'Đang tải lịch học...'
+            }] : orderForm.childId && slotsError ? [{
+              name: 'studentSlotId',
+              label: 'Lịch học (Student Slot)',
+              type: 'text',
+              disabled: true,
+              placeholder: slotsError
+            }] : orderForm.childId ? [{
+              name: 'studentSlotId',
+              label: 'Lịch học (Student Slot)',
+              type: 'text',
+              disabled: true,
+              placeholder: 'Chưa có lịch học nào. Vui lòng đặt lịch trước.'
+            }] : []),
+            {
+              name: 'quantity',
+              label: 'Số lượng',
+              type: 'number',
+              required: true,
+              min: 1
+            }
+          ]}
+        />
+      </ManagementFormDialog>
+
+      {/* Payment Dialog */}
+      <ManagementFormDialog
+        open={!!orderSuccessInfo}
+        onClose={() => {
+          setOrderSuccessInfo(null);
+          setPaymentResult(null);
+        }}
+        mode="create"
+        title="Thanh toán đơn hàng"
+        icon={PaymentIcon}
+        loading={false}
+        maxWidth="sm"
+      >
+        {orderSuccessInfo && (
+          <>
+            <Box sx={{ 
+              mb: 3,
+              p: 3,
+              backgroundColor: 'rgba(0, 123, 255, 0.05)',
+              borderRadius: 2,
+              border: '1px solid rgba(0, 123, 255, 0.1)'
+            }}>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 600, 
+                mb: 1,
+                color: 'text.primary'
+              }}>
+                Đơn #{orderSuccessInfo.orderId}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="body1">
+                  <strong>Tổng tiền:</strong> {formatCurrency(orderSuccessInfo.orderTotal)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Học sinh: {orderSuccessInfo.childName}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>
+              Chọn ví để thanh toán:
+            </Typography>
+
+            {paymentResult && (
+              <Box sx={{ 
+                mb: 3,
+                p: 2,
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                borderRadius: 2,
+                border: '1px solid rgba(76, 175, 80, 0.3)'
+              }}>
+                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                  <strong>Trạng thái:</strong> {paymentResult.status}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                  <strong>Số tiền đã trả:</strong> {formatCurrency(paymentResult.paidAmount)}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                  <strong>Số dư còn lại:</strong> {formatCurrency(paymentResult.remainingBalance)}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Tin nhắn:</strong> {paymentResult.message}
+                </Typography>
+              </Box>
             )}
 
-            <form className={styles.orderForm} onSubmit={handleOrderSubmit}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Chọn trẻ em <span className={styles.required}>*</span>
-                </label>
-                {isLoadingChildren ? (
-                  <div className={styles.inlineLoading}>
-                    <ContentLoading isLoading={true} text="Đang tải danh sách con..." />
-                  </div>
-                ) : childrenError ? (
-                  <div className={styles.errorState}>
-                    <p>{childrenError}</p>
-                    <button
-                      type="button"
-                      className={styles.retryButton}
-                      onClick={loadChildren}
-                    >
-                      Thử lại
-                    </button>
-                  </div>
-                ) : (
-                  <select
-                    className={styles.formInput}
-                    value={orderForm.childId}
-                    onChange={(e) => handleChildChange(e.target.value)}
-                    disabled={isOrdering || children.length === 0}
-                  >
-                    <option value="">-- Chọn trẻ em --</option>
-                    {children.map((child) => (
-                      <option key={child.id} value={child.id}>
-                        {child.name || child.userName || 'Không tên'}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
-              {orderForm.childId && (
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Lịch học (Student Slot) <span className={styles.required}>*</span>
-                  </label>
-                  {isLoadingSlots ? (
-                    <div className={styles.inlineLoading}>
-                      <ContentLoading isLoading={true} text="Đang tải ca học..." />
-                    </div>
-                  ) : slotsError ? (
-                    <div className={styles.errorState}>
-                      <p>{slotsError}</p>
-                      <button
-                        type="button"
-                        className={styles.retryButton}
-                        onClick={() => loadStudentSlots(orderForm.childId)}
-                      >
-                        Thử lại
-                      </button>
-                    </div>
-                  ) : studentSlots.length > 0 ? (
-                    <select
-                      className={styles.formInput}
-                      value={orderForm.studentSlotId}
-                      onChange={(e) =>
-                        setOrderForm((prev) => ({ ...prev, studentSlotId: e.target.value }))
-                      }
-                      disabled={isOrdering}
-                    >
-                      <option value="">-- Chọn lịch học --</option>
-                      {studentSlots.map((slot) => (
-                        <option key={slot.id} value={slot.id}>
-                          {new Date(slot.date).toLocaleString('vi-VN')} · {slot.status}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <p className={styles.formHint}>
-                      Chưa có lịch học nào. Vui lòng đặt lịch trước.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Số lượng <span className={styles.required}>*</span>
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  className={styles.formInput}
-                  value={orderForm.quantity}
-                  onChange={(e) =>
-                    setOrderForm((prev) => ({
-                      ...prev,
-                      quantity: Number(e.target.value)
-                    }))
-                  }
-                  disabled={isOrdering}
-                />
-              </div>
-
-              <div className={styles.dialogActions}>
-                <button
-                  type="button"
-                  className={styles.cancelButton}
-                  onClick={() => setShowOrderDialog(false)}
-                  disabled={isOrdering}
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className={styles.confirmButton}
-                  disabled={isOrdering}
-                >
-                  {isOrdering ? 'Đang xử lý...' : 'Xác nhận mua'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {orderSuccessInfo && (
-        <div className={styles.dialogOverlay} onClick={() => setOrderSuccessInfo(null)}>
-          <div className={styles.dialogContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.dialogHeader}>
-              <h2 className={styles.dialogTitle}>Thanh toán đơn hàng</h2>
-              <button
-                className={styles.dialogClose}
-                onClick={() => setOrderSuccessInfo(null)}
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={() => {
+                  setSelectedWalletType('Parent');
+                  setShowConfirmPaymentDialog(true);
+                }}
+                disabled={isPaying || !!paymentResult}
+                sx={{ flex: 1, minWidth: '120px' }}
               >
-                ×
-              </button>
-            </div>
+                Ví phụ huynh
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={() => {
+                  setSelectedWalletType('Student');
+                  setShowConfirmPaymentDialog(true);
+                }}
+                disabled={isPaying || !!paymentResult}
+                sx={{ flex: 1, minWidth: '120px' }}
+              >
+                Ví trẻ em
+              </Button>
+            </Box>
+          </>
+        )}
+      </ManagementFormDialog>
 
-            <div className={styles.dialogServiceInfo}>
-              <h3 className={styles.dialogServiceName}>Đơn #{orderSuccessInfo.orderId}</h3>
-              <p className={styles.dialogServicePrice}>
-                Tổng tiền: {formatCurrency(orderSuccessInfo.orderTotal)}
-              </p>
-              <p className={styles.formHint}>Học sinh: {orderSuccessInfo.childName}</p>
-            </div>
-
-            <div className={styles.orderForm}>
-              <p className={styles.formLabel}>Chọn ví để thanh toán:</p>
-              {paymentResult && (
-                <div className={styles.paymentResult}>
-                  <p>
-                    Trạng thái: <strong>{paymentResult.status}</strong>
-                  </p>
-                  <p>Số tiền đã trả: {formatCurrency(paymentResult.paidAmount)}</p>
-                  <p>Số dư còn lại: {formatCurrency(paymentResult.remainingBalance)}</p>
-                  <p>Tin nhắn: {paymentResult.message}</p>
-                </div>
-              )}
-              <div className={styles.walletButtons}>
-                <button
-                  className={styles.walletButton}
-                  onClick={async () => {
-                    try {
-                      const res = await orderService.payOrderWithWallet({
-                        orderId: orderSuccessInfo.orderId,
-                        walletType: 'Parent'
-                      });
-                      setPaymentResult(res);
-                      addNotification({
-                        message: 'Thanh toán từ ví phụ huynh thành công!',
-                        severity: 'success'
-                      });
-                    } catch (err) {
-                      const errorMessage =
-                        typeof err === 'string'
-                          ? err
-                          : err?.message || err?.error || 'Thanh toán thất bại';
-                      showGlobalError(errorMessage);
-                      addNotification({
-                        message: errorMessage,
-                        severity: 'error'
-                      });
-                    }
-                  }}
-                >
-                  Ví phụ huynh
-                </button>
-                <button
-                  className={styles.walletButton}
-                  onClick={async () => {
-                    try {
-                      const res = await orderService.payOrderWithWallet({
-                        orderId: orderSuccessInfo.orderId,
-                        walletType: 'Student'
-                      });
-                      setPaymentResult(res);
-                      addNotification({
-                        message: 'Thanh toán từ ví học sinh thành công!',
-                        severity: 'success'
-                      });
-                    } catch (err) {
-                      const errorMessage =
-                        typeof err === 'string'
-                          ? err
-                          : err?.message || err?.error || 'Thanh toán thất bại';
-                      showGlobalError(errorMessage);
-                      addNotification({
-                        message: errorMessage,
-                        severity: 'error'
-                      });
-                    }
-                  }}
-                >
-                  Ví trẻ em
-                </button>
-                <button
-                  className={styles.cancelButton}
-                  onClick={() => setOrderSuccessInfo(null)}
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Confirm Payment Dialog */}
+      <ConfirmDialog
+        open={showConfirmPaymentDialog}
+        onClose={() => {
+          setShowConfirmPaymentDialog(false);
+          setSelectedWalletType(null);
+        }}
+        onConfirm={async () => {
+          if (!orderSuccessInfo || !selectedWalletType) return;
+          
+          setIsPaying(true);
+          setShowConfirmPaymentDialog(false);
+          
+          try {
+            const res = await orderService.payOrderWithWallet({
+              orderId: orderSuccessInfo.orderId,
+              walletType: selectedWalletType
+            });
+            setPaymentResult(res);
+            addNotification({
+              message: `Thanh toán từ ${selectedWalletType === 'Parent' ? 'ví phụ huynh' : 'ví học sinh'} thành công!`,
+              severity: 'success'
+            });
+            setSelectedWalletType(null);
+          } catch (err) {
+            const errorMessage =
+              typeof err === 'string'
+                ? err
+                : err?.message || err?.error || 'Thanh toán thất bại';
+            showGlobalError(errorMessage);
+            addNotification({
+              message: errorMessage,
+              severity: 'error'
+            });
+            setSelectedWalletType(null);
+          } finally {
+            setIsPaying(false);
+          }
+        }}
+        title="Xác nhận thanh toán"
+        description={`Bạn có chắc chắn muốn thanh toán đơn hàng #${orderSuccessInfo?.orderId} với số tiền ${orderSuccessInfo ? formatCurrency(orderSuccessInfo.orderTotal) : ''} từ ${selectedWalletType === 'Parent' ? 'ví phụ huynh' : 'ví học sinh'}?`}
+        confirmText="Xác nhận thanh toán"
+        cancelText="Hủy"
+        confirmColor="primary"
+        showWarningIcon={true}
+      />
     </motion.div>
   );
 };

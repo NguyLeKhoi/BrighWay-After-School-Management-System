@@ -233,7 +233,8 @@ const ChildrenList = () => {
                 ].filter(Boolean)}
                 actions={[
                   { text: 'Xem Profile', primary: false, onClick: () => navigate(`/family/children/${child.id}/profile`) },
-                  { text: 'Lịch học', primary: true, onClick: () => navigate(`/family/children/${child.id}/schedule`) }
+                  { text: 'Lịch học', primary: false, onClick: () => navigate(`/family/children/${child.id}/schedule`) },
+                  { text: 'Mua gói', primary: true, onClick: () => navigate(`/family/packages?studentId=${child.id}`) }
                 ]}
                 onDelete={() => setDeleteConfirmDialog({ open: true, child })}
               />
