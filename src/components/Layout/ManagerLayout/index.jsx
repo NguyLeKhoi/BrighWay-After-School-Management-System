@@ -13,7 +13,9 @@ import {
   AccessTime as BranchSlotIcon,
   FamilyRestroom as ParentIcon,
   People as PeopleGroupIcon,
-  BusinessCenter as FacilityServiceIcon
+  BusinessCenter as FacilityServiceIcon,
+  Person as ProfileIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -89,6 +91,8 @@ const ManagerLayout = () => {
           subtitle="Manager Portal"
           menuItems={menuItems}
           onLogout={handleLogout}
+          profilePath="/manager/profile"
+          changePasswordPath="/manager/change-password"
         />
 
         {/* Main Content */}

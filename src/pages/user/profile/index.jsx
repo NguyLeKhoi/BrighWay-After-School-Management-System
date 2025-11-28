@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Box, Button, Grid, IconButton, Typography, Avatar, Paper } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Phone as PhoneIcon, Person as PersonIcon, Lock as LockIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Phone as PhoneIcon, Person as PersonIcon } from '@mui/icons-material';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -413,24 +413,6 @@ const UserProfile = () => {
                   </svg>
                   Chỉnh sửa
                 </button>
-                <Button
-                  variant="outlined"
-                  startIcon={<LockIcon />}
-                  onClick={() => navigate('/family/change-password')}
-                  sx={{
-                    borderColor: 'var(--color-primary)',
-                    color: 'var(--color-primary)',
-                    py: 1,
-                    px: 2,
-                    fontSize: '14px',
-                    '&:hover': {
-                      borderColor: 'var(--color-primary-dark)',
-                      backgroundColor: 'var(--color-primary-50)'
-                    }
-                  }}
-                >
-                  Đổi mật khẩu
-                </Button>
               </Box>
             )}
           </div>

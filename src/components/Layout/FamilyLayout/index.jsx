@@ -12,7 +12,9 @@ import {
   EventAvailable as ScheduleIcon,
   AccountBalanceWallet as WalletIcon,
   School as BookIcon,
-  Notifications as BellIcon
+  Notifications as BellIcon,
+  Person as ProfileIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 
 const FamilyLayout = () => {
@@ -28,7 +30,7 @@ const FamilyLayout = () => {
   const menuItems = [
     {
       path: '/family/dashboard',
-      label: 'Dashboard',
+      label: 'Bảng điều kiển',
       icon: DashboardIcon
     },
     {
@@ -60,6 +62,8 @@ const FamilyLayout = () => {
           subtitle="Family Portal"
           menuItems={menuItems}
           onLogout={handleLogout}
+          profilePath="/family/profile"
+          changePasswordPath="/family/change-password"
         />
 
         {/* Main Content */}

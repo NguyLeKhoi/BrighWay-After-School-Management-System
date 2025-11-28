@@ -38,9 +38,6 @@ const UserHeader = () => {
     fetchCurrentUser();
   }, [showGlobalError]);
 
-  const handleProfileClick = () => {
-    navigate('/family/profile');
-  };
 
   if (loading) {
     return (
@@ -80,26 +77,18 @@ const UserHeader = () => {
               </Typography>
             </Box>
           )}
-          <Tooltip title="Xem hồ sơ">
-            <IconButton onClick={handleProfileClick} sx={{ p: 0 }}>
-              <Avatar
-                src={userInfo?.profilePictureUrl || ''}
-                alt={userInfo?.fullName || 'User'}
-                sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  width: 36,
-                  height: 36,
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    boxShadow: '0 0 0 3px rgba(255, 255, 255, 0.5)'
-                  }
-                }}
-              >
-                {!userInfo?.profilePictureUrl && <PersonIcon />}
-              </Avatar>
-            </IconButton>
-          </Tooltip>
+          <Avatar
+            src={userInfo?.profilePictureUrl || ''}
+            alt={userInfo?.fullName || 'User'}
+            sx={{
+              bgcolor: 'rgba(255, 255, 255, 0.2)',
+              width: 36,
+              height: 36,
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+            }}
+          >
+            {!userInfo?.profilePictureUrl && <PersonIcon />}
+          </Avatar>
         </Box>
       </Toolbar>
     </AppBar>

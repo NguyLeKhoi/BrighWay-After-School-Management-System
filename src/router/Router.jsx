@@ -16,10 +16,10 @@ import Contact from '../pages/main/Contact';
 // Auth Pages
 import Login from '../pages/auth/Login';
 
-// useruser Pages
+// user Pages
 import UserDashboard from '../pages/user/dashboard';
 import FamilyProfile from '../pages/user/profile';
-import ChangePassword from '../pages/user/changePassword';
+import ChangePassword from '../pages/common/ChangePassword';
 import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
 import CreateChild from '../pages/user/children/CreateChild';
@@ -73,7 +73,6 @@ import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
 import StaffAssignments from '../pages/staff/assignments';
 import StaffProfile from '../pages/staff/profile';
-import StaffChangePassword from '../pages/staff/changePassword';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -355,6 +354,14 @@ export const routes = createBrowserRouter([
         path: 'branch-slots/update/:id',
         element: <UpdateBranchSlot />,
       },
+      {
+        path: 'profile',
+        element: <StaffProfile />,
+      },
+      {
+        path: 'change-password',
+        element: <ChangePassword />,
+      },
     ],
   },
 
@@ -394,7 +401,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'change-password',
-        element: <StaffChangePassword />,
+        element: <ChangePassword />,
       },
     ],
   },
