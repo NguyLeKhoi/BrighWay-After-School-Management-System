@@ -28,6 +28,7 @@ import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
+import Card from '../../../components/Common/Card';
 import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import useManagerPackageDependencies from '../../../hooks/useManagerPackageDependencies';
 import { getErrorMessage } from '../../../utils/errorHandler';
@@ -387,47 +388,41 @@ const ManagerPackageManagement = () => {
                   Hiện chưa có mẫu gói nào khả dụng. Liên hệ quản trị viên để được cấp mẫu.
                 </Alert>
               ) : (
-                <Box className={styles.templateList}>
+                <Box 
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                    gap: 3,
+                    mt: 2
+                  }}
+                >
                   {templates.map((template) => (
-                    <Paper key={template.id} className={styles.templateCard} elevation={2}>
-                      <div className={styles.templateCardHeader}>
-                        <Typography variant="subtitle1" className={styles.templateCardTitle}>
-                          {template.name}
-                        </Typography>
-                      </div>
-                      <Typography variant="body2" color="text.secondary" className={styles.templateDescription}>
-                        {template.desc || 'Không có mô tả'}
-                      </Typography>
-                      <Box className={styles.templateMetrics}>
-                        <div className={styles.templateMetric}>
-                          <span className={styles.metricLabel}>Giá (VNĐ)</span>
-                          <span className={styles.metricValue}>
-                            {template.minPrice?.toLocaleString('vi-VN') ?? '-'} -{' '}
-                            {template.maxPrice?.toLocaleString('vi-VN') ?? '-'}
-                          </span>
-                        </div>
-                        <div className={styles.templateMetric}>
-                          <span className={styles.metricLabel}>Thời hạn (tháng)</span>
-                          <span className={styles.metricValue}>
-                            {template.minDurationInMonths ?? '-'} - {template.maxDurationInMonths ?? '-'}
-                          </span>
-                        </div>
-                        <div className={styles.templateMetric}>
-                          <span className={styles.metricLabel}>Slots</span>
-                          <span className={styles.metricValue}>
-                            {template.minSlots ?? '-'} - {template.maxSlots ?? '-'}
-                          </span>
-                        </div>
-                      </Box>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        className={styles.templateSelectButton}
-                        onClick={() => handleTemplateCreate(template)}
-                      >
-                        Tạo gói từ mẫu
-                      </Button>
-                    </Paper>
+                    <Card
+                      key={template.id}
+                      title={template.name}
+                      description={template.desc || 'Không có mô tả'}
+                      infoRows={[
+                        {
+                          label: 'GIÁ (VNĐ)',
+                          value: `${template.minPrice?.toLocaleString('vi-VN') ?? '-'} - ${template.maxPrice?.toLocaleString('vi-VN') ?? '-'}`
+                        },
+                        {
+                          label: 'THỜI HẠN (THÁNG)',
+                          value: `${template.minDurationInMonths ?? '-'} - ${template.maxDurationInMonths ?? '-'}`
+                        },
+                        {
+                          label: 'SLOTS',
+                          value: `${template.minSlots ?? '-'} - ${template.maxSlots ?? '-'}`
+                        }
+                      ]}
+                      actions={[
+                        {
+                          text: 'Tạo gói từ mẫu',
+                          primary: true,
+                          onClick: () => handleTemplateCreate(template)
+                        }
+                      ]}
+                    />
                   ))}
                 </Box>
               )}

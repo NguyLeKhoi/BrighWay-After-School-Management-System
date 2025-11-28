@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,12 +13,15 @@ import {
   Divider,
   Button,
   IconButton,
-  Tooltip
+  Tooltip,
+  Collapse
 } from '@mui/material';
 import {
   ExitToApp as LogoutIcon,
   Menu as MenuIcon,
-  ChevronLeft as ChevronLeftIcon
+  ChevronLeft as ChevronLeftIcon,
+  ExpandMore as ExpandMoreIcon,
+  ChevronRight as ChevronRightIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 250;
@@ -35,6 +38,7 @@ const GenericDrawer = ({
   const navigate = useNavigate();
   const location = useLocation();
   const [internalOpen, setInternalOpen] = useState(true);
+  const [expandedGroups, setExpandedGroups] = useState({});
   
   // Use controlled state if provided, otherwise use internal state
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -45,6 +49,37 @@ const GenericDrawer = ({
       setInternalOpen(value);
     }
   };
+
+  // Toggle expanded state for menu groups
+  const handleGroupToggle = (groupKey) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupKey]: !prev[groupKey]
+    }));
+  };
+
+  // Check if any child is active
+  const isGroupActive = (children) => {
+    if (!children) return false;
+    return children.some(child => 
+      location.pathname === child.path || 
+      location.pathname.startsWith(child.path + '/')
+    );
+  };
+
+  // Auto-expand groups with active children
+  useEffect(() => {
+    menuItems.forEach(item => {
+      if (item.children && isGroupActive(item.children)) {
+        const groupKey = item.groupKey || item.label;
+        setExpandedGroups(prev => ({
+          ...prev,
+          [groupKey]: true
+        }));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -169,11 +204,157 @@ const GenericDrawer = ({
         <AnimatePresence>
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+            const hasChildren = item.children && item.children.length > 0;
+            const groupKey = item.groupKey || item.label;
+            const isExpanded = expandedGroups[groupKey] || false;
+            const isGroupActiveState = hasChildren ? isGroupActive(item.children) : false;
+            const isActive = !hasChildren && (location.pathname === item.path || location.pathname.startsWith(item.path + '/'));
             
+            // If item has children, render as accordion group
+            if (hasChildren) {
+              return (
+                <motion.div
+                  key={groupKey}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                >
+                  <ListItem disablePadding>
+                    <Tooltip title={!isOpen ? item.label : ''} placement="right">
+                      <ListItemButton
+                        onClick={() => {
+                          if (!isOpen) {
+                            setIsOpen(true);
+                          } else {
+                            handleGroupToggle(groupKey);
+                          }
+                        }}
+                        component={motion.div}
+                        whileHover={isOpen ? { x: 4 } : { scale: 1.05 }}
+                        whileTap={{ scale: 0.98 }}
+                        sx={{
+                          mx: 1,
+                          my: 0.5,
+                          borderRadius: 2,
+                          backgroundColor: isGroupActiveState 
+                            ? 'var(--color-primary-100)' 
+                            : 'transparent',
+                          color: isGroupActiveState 
+                            ? 'var(--color-primary-dark)' 
+                            : 'var(--text-primary)',
+                          fontWeight: isGroupActiveState ? 600 : 500,
+                          transition: 'all 0.2s ease',
+                          justifyContent: isOpen ? 'flex-start' : 'center',
+                          px: isOpen ? 2 : 1,
+                          '&:hover': {
+                            backgroundColor: isGroupActiveState 
+                              ? 'var(--color-primary-100)' 
+                              : 'var(--bg-secondary)',
+                            transform: isOpen ? 'translateX(4px)' : 'scale(1.05)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ 
+                          color: isGroupActiveState 
+                            ? 'var(--color-primary-dark)' 
+                            : 'var(--text-secondary)',
+                          minWidth: isOpen ? 40 : 'auto',
+                          justifyContent: isOpen ? 'flex-start' : 'center',
+                          mr: isOpen ? 0 : 0
+                        }}>
+                          <Icon />
+                        </ListItemIcon>
+                        {isOpen && (
+                          <>
+                            <ListItemText 
+                              primary={item.label}
+                              primaryTypographyProps={{
+                                fontSize: '0.95rem',
+                                fontWeight: isGroupActiveState ? 600 : 500
+                              }}
+                            />
+                            <motion.div
+                              animate={{ rotate: isExpanded ? 90 : 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <ChevronRightIcon sx={{ fontSize: '1.2rem' }} />
+                            </motion.div>
+                          </>
+                        )}
+                      </ListItemButton>
+                    </Tooltip>
+                  </ListItem>
+                  {isOpen && (
+                    <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                      <List component="div" disablePadding>
+                        {item.children.map((child, childIndex) => {
+                          const ChildIcon = child.icon;
+                          const isChildActive = location.pathname === child.path || location.pathname.startsWith(child.path + '/');
+                          
+                          return (
+                            <ListItem key={child.path} disablePadding>
+                              <Tooltip title={child.label} placement="right">
+                                <ListItemButton
+                                  onClick={() => handleNavigation(child.path)}
+                                  component={motion.div}
+                                  whileHover={{ x: 4 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  sx={{
+                                    mx: 1,
+                                    my: 0.25,
+                                    ml: isOpen ? 4 : 1,
+                                    borderRadius: 2,
+                                    backgroundColor: isChildActive 
+                                      ? 'var(--color-primary-100)' 
+                                      : 'transparent',
+                                    color: isChildActive 
+                                      ? 'var(--color-primary-dark)' 
+                                      : 'var(--text-primary)',
+                                    fontWeight: isChildActive ? 600 : 400,
+                                    transition: 'all 0.2s ease',
+                                    justifyContent: 'flex-start',
+                                    px: 2,
+                                    py: 0.75,
+                                    '&:hover': {
+                                      backgroundColor: isChildActive 
+                                        ? 'var(--color-primary-100)' 
+                                        : 'var(--bg-secondary)',
+                                      transform: 'translateX(4px)',
+                                    },
+                                  }}
+                                >
+                                  <ListItemIcon sx={{ 
+                                    color: isChildActive 
+                                      ? 'var(--color-primary-dark)' 
+                                      : 'var(--text-secondary)',
+                                    minWidth: 32,
+                                    mr: 1
+                                  }}>
+                                    <ChildIcon sx={{ fontSize: '1.1rem' }} />
+                                  </ListItemIcon>
+                                  <ListItemText 
+                                    primary={child.label}
+                                    primaryTypographyProps={{
+                                      fontSize: '0.875rem',
+                                      fontWeight: isChildActive ? 600 : 400
+                                    }}
+                                  />
+                                </ListItemButton>
+                              </Tooltip>
+                            </ListItem>
+                          );
+                        })}
+                      </List>
+                    </Collapse>
+                  )}
+                </motion.div>
+              );
+            }
+            
+            // Regular menu item without children
             return (
               <motion.div
-                key={item.path}
+                key={item.path || groupKey}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.3 }}

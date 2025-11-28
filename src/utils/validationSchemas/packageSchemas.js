@@ -13,6 +13,62 @@ export const packageTemplateBasicSchema = yup.object({
     .max(500, 'Mô tả không được vượt quá 500 ký tự')
 });
 
+// Schema for Step 2: Pricing & Duration only
+export const packageTemplatePricingSchema = yup.object({
+  minPrice: yup
+    .number()
+    .typeError('Giá thấp nhất phải là số')
+    .required('Giá thấp nhất là bắt buộc')
+    .min(0, 'Giá thấp nhất không được nhỏ hơn 0'),
+  maxPrice: yup
+    .number()
+    .typeError('Giá cao nhất phải là số')
+    .required('Giá cao nhất là bắt buộc')
+    .min(yup.ref('minPrice'), 'Giá cao nhất phải lớn hơn hoặc bằng giá thấp nhất'),
+  defaultPrice: yup
+    .number()
+    .typeError('Giá mặc định phải là số')
+    .required('Giá mặc định là bắt buộc')
+    .min(yup.ref('minPrice'), 'Giá mặc định phải lớn hơn hoặc bằng giá thấp nhất')
+    .max(yup.ref('maxPrice'), 'Giá mặc định phải nhỏ hơn hoặc bằng giá cao nhất'),
+  minDurationInMonths: yup
+    .number()
+    .typeError('Thời hạn thấp nhất phải là số')
+    .required('Thời hạn thấp nhất là bắt buộc')
+    .min(1, 'Thời hạn thấp nhất phải ít nhất 1 tháng'),
+  maxDurationInMonths: yup
+    .number()
+    .typeError('Thời hạn cao nhất phải là số')
+    .required('Thời hạn cao nhất là bắt buộc')
+    .min(yup.ref('minDurationInMonths'), 'Thời hạn cao nhất phải lớn hơn hoặc bằng thời hạn thấp nhất'),
+  defaultDurationInMonths: yup
+    .number()
+    .typeError('Thời hạn mặc định phải là số')
+    .required('Thời hạn mặc định là bắt buộc')
+    .min(yup.ref('minDurationInMonths'), 'Thời hạn mặc định phải lớn hơn hoặc bằng thời hạn thấp nhất')
+    .max(yup.ref('maxDurationInMonths'), 'Thời hạn mặc định phải nhỏ hơn hoặc bằng thời hạn cao nhất')
+});
+
+// Schema for Step 3: Slot limits only
+export const packageTemplateSlotsSchema = yup.object({
+  minSlots: yup
+    .number()
+    .typeError('Slot thấp nhất phải là số')
+    .required('Slot thấp nhất là bắt buộc')
+    .min(1, 'Slot thấp nhất phải ít nhất 1'),
+  maxSlots: yup
+    .number()
+    .typeError('Slot cao nhất phải là số')
+    .required('Slot cao nhất là bắt buộc')
+    .min(yup.ref('minSlots'), 'Slot cao nhất phải lớn hơn hoặc bằng slot thấp nhất'),
+  defaultTotalSlots: yup
+    .number()
+    .typeError('Slot mặc định phải là số')
+    .required('Slot mặc định là bắt buộc')
+    .min(yup.ref('minSlots'), 'Slot mặc định phải lớn hơn hoặc bằng slot thấp nhất')
+    .max(yup.ref('maxSlots'), 'Slot mặc định phải nhỏ hơn hoặc bằng slot cao nhất')
+});
+
 export const packageTemplateSchema = yup.object({
   name: yup
     .string()

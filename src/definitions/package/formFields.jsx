@@ -34,15 +34,6 @@ export const createTemplateFormFields = ({ templateActionLoading }) => [
     type: 'number',
     required: true,
     placeholder: 'Ví dụ: 500000',
-    gridSize: 6,
-    disabled: templateActionLoading
-  },
-  {
-    name: 'defaultPrice',
-    label: 'Giá mặc định (VNĐ)',
-    type: 'number',
-    required: true,
-    placeholder: 'Ví dụ: 1000000',
     gridSize: 4,
     disabled: templateActionLoading
   },
@@ -52,6 +43,15 @@ export const createTemplateFormFields = ({ templateActionLoading }) => [
     type: 'number',
     required: true,
     placeholder: 'Ví dụ: 2000000',
+    gridSize: 4,
+    disabled: templateActionLoading
+  },
+  {
+    name: 'defaultPrice',
+    label: 'Giá mặc định (VNĐ)',
+    type: 'number',
+    required: true,
+    placeholder: 'Ví dụ: 1000000',
     gridSize: 4,
     disabled: templateActionLoading
   },
@@ -67,20 +67,20 @@ export const createTemplateFormFields = ({ templateActionLoading }) => [
     disabled: templateActionLoading
   },
   {
-    name: 'defaultDurationInMonths',
-    label: 'Thời hạn mặc định (tháng)',
-    type: 'number',
-    required: true,
-    placeholder: 'Ví dụ: 6',
-    gridSize: 4,
-    disabled: templateActionLoading
-  },
-  {
     name: 'maxDurationInMonths',
     label: 'Thời hạn cao nhất (tháng)',
     type: 'number',
     required: true,
     placeholder: 'Ví dụ: 12',
+    gridSize: 4,
+    disabled: templateActionLoading
+  },
+  {
+    name: 'defaultDurationInMonths',
+    label: 'Thời hạn mặc định (tháng)',
+    type: 'number',
+    required: true,
+    placeholder: 'Ví dụ: 6',
     gridSize: 4,
     disabled: templateActionLoading
   },
@@ -94,20 +94,20 @@ export const createTemplateFormFields = ({ templateActionLoading }) => [
     disabled: templateActionLoading
   },
   {
-    name: 'defaultTotalSlots',
-    label: 'Slot mặc định',
-    type: 'number',
-    required: true,
-    placeholder: 'Ví dụ: 20',
-    gridSize: 4,
-    disabled: templateActionLoading
-  },
-  {
     name: 'maxSlots',
     label: 'Slot cao nhất',
     type: 'number',
     required: true,
     placeholder: 'Ví dụ: 30',
+    gridSize: 4,
+    disabled: templateActionLoading
+  },
+  {
+    name: 'defaultTotalSlots',
+    label: 'Slot mặc định',
+    type: 'number',
+    required: true,
+    placeholder: 'Ví dụ: 20',
     gridSize: 4,
     disabled: templateActionLoading
   }
