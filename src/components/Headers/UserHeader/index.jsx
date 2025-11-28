@@ -77,18 +77,18 @@ const UserHeader = () => {
               </Typography>
             </Box>
           )}
-          <Avatar
-            src={userInfo?.profilePictureUrl || ''}
-            alt={userInfo?.fullName || 'User'}
-            sx={{
-              bgcolor: 'rgba(255, 255, 255, 0.2)',
-              width: 36,
-              height: 36,
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-            }}
-          >
-            {!userInfo?.profilePictureUrl && <PersonIcon />}
-          </Avatar>
+              <Avatar
+                src={userInfo?.profilePictureUrl || ''}
+                alt={userInfo?.fullName || 'User'}
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  width: 36,
+                  height: 36,
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}
+              >
+                {!userInfo?.profilePictureUrl && <PersonIcon />}
+              </Avatar>
         </Box>
       </Toolbar>
     </AppBar>

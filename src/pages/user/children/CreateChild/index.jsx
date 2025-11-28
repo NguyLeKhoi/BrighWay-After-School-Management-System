@@ -125,7 +125,7 @@ const CreateChild = () => {
         position: 'top-right',
         autoClose: 3000
       });
-      navigate('/family/children');
+      navigate('/family/management/children');
     } catch (err) {
       const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể đăng ký con';
       toast.error(message, { position: 'top-right', autoClose: 4000 });

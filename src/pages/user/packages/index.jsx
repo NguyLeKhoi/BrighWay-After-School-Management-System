@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { 
   ChildCare as ChildIcon,
   Inventory as PackageIcon,
@@ -43,9 +43,10 @@ const getFieldWithFallback = (source, candidates, defaultValue = 0) => {
 const MyPackages = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { childId } = useParams();
   const [searchParams] = useSearchParams();
   const isInitialMount = useRef(true);
-  const selectedStudentId = searchParams.get('studentId');
+  const selectedStudentId = childId || searchParams.get('studentId');
   const tabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabFromUrl && ['available', 'purchased'].includes(tabFromUrl) ? tabFromUrl : 'available');
   const [availablePackages, setAvailablePackages] = useState([]);
@@ -482,9 +483,16 @@ const MyPackages = () => {
     }
   }, [tabFromUrl]);
 
+  // Redirect if no childId
+  useEffect(() => {
+    if (!childId && !selectedStudentId) {
+      navigate('/family/management/packages');
+    }
+  }, [childId, selectedStudentId, navigate]);
+
   // Reload data when navigate back to this page or when studentId changes
   useEffect(() => {
-    if (location.pathname === '/family/packages') {
+    if (location.pathname.includes('/management/packages')) {
       // Skip first mount to avoid double loading
       if (isInitialMount.current) {
         isInitialMount.current = false;
@@ -1026,7 +1034,7 @@ const MyPackages = () => {
                 <p>Bạn cần thêm thông tin trẻ em trước khi xem các gói dịch vụ. Các gói sẽ được hiển thị dựa trên thông tin trẻ em của bạn.</p>
                 <button 
                   className={styles.browseButton}
-                  onClick={() => navigate('/family/children/create')}
+                  onClick={() => navigate('/family/management/children/create')}
                 >
                   Thêm trẻ em ngay
                 </button>

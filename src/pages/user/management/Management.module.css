@@ -1,0 +1,13 @@
+/* Management Pages Styles */
+.managementPage {
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  padding: 20px 0;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+

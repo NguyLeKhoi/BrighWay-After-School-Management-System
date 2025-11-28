@@ -255,7 +255,7 @@ const UserDashboard = () => {
       value: stats.childrenCount,
       icon: ChildIcon,
       color: 'primary',
-      onClick: () => navigate('/family/children')
+      onClick: () => navigate('/family/management/children')
     },
     {
       title: 'Gói dịch vụ',
@@ -285,7 +285,7 @@ const UserDashboard = () => {
       text: 'Thêm con mới',
       icon: <AddIcon />,
       primary: true,
-      onClick: () => navigate('/family/children/create')
+      onClick: () => navigate('/family/management/children/create')
     },
     {
       text: 'Mua gói dịch vụ',
@@ -303,7 +303,7 @@ const UserDashboard = () => {
       text: 'Xem lịch học',
       icon: <ScheduleIcon />,
       primary: false,
-      onClick: () => navigate('/family/children')
+      onClick: () => navigate('/family/management/children')
     }
   ];
 
@@ -420,7 +420,7 @@ const UserDashboard = () => {
                         transform: 'translateY(-2px)'
                       }
                     }}
-                    onClick={() => navigate(`/family/children/${slot.childId}/schedule/${slot.id}`)}
+                    onClick={() => navigate(`/family/management/schedule/${slot.childId}/${slot.id}`)}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
                       <Box sx={{ flex: 1 }}>
@@ -490,7 +490,7 @@ const UserDashboard = () => {
               </p>
               <button
                 className={styles.emptyButton}
-                onClick={() => navigate('/family/children/create')}
+                onClick={() => navigate('/family/management/children/create')}
               >
                 <AddIcon sx={{ fontSize: 20 }} />
                 Thêm con mới

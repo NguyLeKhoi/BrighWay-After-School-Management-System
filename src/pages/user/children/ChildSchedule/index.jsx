@@ -20,6 +20,13 @@ const ChildSchedule = () => {
   const location = useLocation();
   const isInitialMount = useRef(true);
   const { showGlobalError, addNotification } = useApp();
+
+  // Redirect if no childId
+  useEffect(() => {
+    if (!childId) {
+      navigate('/family/management/schedule');
+    }
+  }, [childId, navigate]);
   const [child, setChild] = useState(null);
   const [scheduleData, setScheduleData] = useState([]);
   const [rawSlots, setRawSlots] = useState({
@@ -187,7 +194,7 @@ const ChildSchedule = () => {
 
   const fetchChild = async () => {
     if (!childId) {
-      navigate('/family/children');
+      navigate('/family/management/children');
       return;
     }
 
@@ -205,7 +212,7 @@ const ChildSchedule = () => {
           position: 'top-right',
           autoClose: 3000
         });
-        navigate('/family/children');
+        navigate('/family/management/children');
         return;
       }
 
@@ -218,7 +225,7 @@ const ChildSchedule = () => {
       
       // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
       if (err?.response?.status === 403 || err?.response?.status === 404) {
-        navigate('/family/children');
+        navigate('/family/management/children');
       }
     }
   };
@@ -293,7 +300,7 @@ const ChildSchedule = () => {
       if (!childIds.includes(childId)) {
         // Nếu childId không thuộc về user, không lấy lịch học
         setError('Bạn không có quyền xem lịch chăm sóc của trẻ em này');
-        navigate('/family/children');
+        navigate('/family/management/children');
         return;
       }
 
@@ -347,7 +354,7 @@ const ChildSchedule = () => {
       
       // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
       if (err?.response?.status === 403 || err?.response?.status === 404) {
-        navigate('/family/children');
+        navigate('/family/management/children');
       }
     } finally {
       setLoading(false);
@@ -365,7 +372,7 @@ const ChildSchedule = () => {
 
   // Reload data when navigate back to this page
   useEffect(() => {
-    if (location.pathname === `/family/children/${childId}/schedule`) {
+    if (location.pathname === `/family/management/schedule/${childId}`) {
       if (isInitialMount.current) {
         isInitialMount.current = false;
         return;
@@ -383,13 +390,13 @@ const ChildSchedule = () => {
   const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
     const slotId = event.id;
-    navigate(`/family/children/${childId}/schedule/${slotId}`);
+    navigate(`/family/management/schedule/${childId}/${slotId}`);
   };
 
   // Handler cho card click
   const handleCardClick = (slot) => {
     const slotId = slot.id;
-    navigate(`/family/children/${childId}/schedule/${slotId}`);
+    navigate(`/family/management/schedule/${childId}/${slotId}`);
   };
 
   // Handler cho view mode change
@@ -659,7 +666,7 @@ const ChildSchedule = () => {
             <Button
               startIcon={<Add />}
               variant="contained"
-              onClick={() => navigate(`/family/children/${childId}/schedule/register`)}
+              onClick={() => navigate(`/family/management/schedule/${childId}/register`)}
               sx={{
                 borderRadius: 'var(--radius-lg)',
                 textTransform: 'none',
@@ -698,7 +705,7 @@ const ChildSchedule = () => {
         {viewMode === 'card' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Lịch đang diễn ra */}
-            <Box>
+          <Box>
               <Typography 
                 variant="h5" 
                 sx={{ 
@@ -722,15 +729,15 @@ const ChildSchedule = () => {
                 />
                 Đang diễn ra
               </Typography>
-              <DataTable
+            <DataTable
                 data={rawSlots.current}
-                columns={tableColumns}
+              columns={tableColumns}
                 loading={false}
                 emptyMessage="Chưa có lịch đang diễn ra"
                 showActions={rawSlots.current.length > 0}
-                onEdit={handleCardClick}
-                onDelete={null}
-                page={0}
+              onEdit={handleCardClick}
+              onDelete={null}
+              page={0}
                 rowsPerPage={rawSlots.current.length || 10}
                 totalCount={rawSlots.current.length}
                 getRowSx={(item) => {

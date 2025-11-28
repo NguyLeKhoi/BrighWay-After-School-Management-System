@@ -45,7 +45,7 @@ const MySchedule = () => {
           });
         } catch (err) {
           // If child not found or no permission, navigate back
-          navigate(`/family/children/${childId}/schedule`);
+          navigate(`/family/management/schedule/${childId}`);
         } finally {
           setIsLoadingInitialData(false);
         }
@@ -170,7 +170,7 @@ const MySchedule = () => {
       if (childId) {
         navigate(`/family/children/${childId}/schedule`);
       } else {
-        navigate('/family/children');
+        navigate('/family/management/children');
       }
     } catch (err) {
       const errorMessage = err?.message || err?.error || 'Không thể đặt lịch học';

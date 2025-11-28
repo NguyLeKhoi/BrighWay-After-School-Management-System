@@ -81,7 +81,7 @@ const ChildProfile = () => {
 
   const fetchChild = async () => {
       if (!childId) {
-        navigate('/family/children');
+        navigate('/family/management/children');
         return;
       }
 
@@ -101,7 +101,7 @@ const ChildProfile = () => {
             position: 'top-right',
             autoClose: 3000
           });
-          navigate('/family/children');
+          navigate('/family/management/children');
           return;
         }
 
@@ -114,7 +114,7 @@ const ChildProfile = () => {
         
         // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
         if (err?.response?.status === 403 || err?.response?.status === 404) {
-          navigate('/family/children');
+          navigate('/family/management/children');
         }
       } finally {
         setLoading(false);
@@ -128,7 +128,7 @@ const ChildProfile = () => {
 
   // Reload data when navigate back to this page (e.g., from other pages)
   useEffect(() => {
-    if (location.pathname === `/family/children/${childId}/profile`) {
+    if (location.pathname === `/family/management/children/${childId}/profile`) {
       // Skip first mount to avoid double loading
       if (isInitialMount.current) {
         isInitialMount.current = false;

@@ -33,6 +33,8 @@ import MyPackages from '../pages/user/packages';
 import Notifications from '../pages/user/notifications';
 import PaymentSuccess from '../pages/user/paymentSuccess';
 import PaymentCancel from '../pages/user/paymentCancel';
+import ScheduleSelect from '../pages/user/management/ScheduleSelect';
+import PackageSelect from '../pages/user/management/PackageSelect';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
@@ -174,28 +176,40 @@ export const routes = createBrowserRouter([
         element: <ChangePassword />,
       },
       {
-        path: 'children',
+        path: 'management/children',
         element: <ChildrenList />,
       },
       {
-        path: 'children/create',
+        path: 'management/children/create',
         element: <CreateChild />,
       },
       {
-        path: 'children/:childId/profile',
+        path: 'management/children/:childId/profile',
         element: <ChildProfile />,
       },
       {
-        path: 'children/:childId/schedule',
+        path: 'management/schedule',
+        element: <ScheduleSelect />,
+      },
+      {
+        path: 'management/schedule/:childId',
         element: <ChildSchedule />,
       },
       {
-        path: 'children/:childId/schedule/:slotId',
+        path: 'management/schedule/:childId/:slotId',
         element: <ChildScheduleDetail />,
       },
       {
-        path: 'children/:childId/schedule/register',
+        path: 'management/schedule/:childId/register',
         element: <MySchedule />,
+      },
+      {
+        path: 'management/packages',
+        element: <PackageSelect />,
+      },
+      {
+        path: 'management/packages/:childId',
+        element: <MyPackages />,
       },
       {
         path: 'finance/main-wallet',
@@ -208,10 +222,6 @@ export const routes = createBrowserRouter([
       {
         path: 'finance/transaction-history',
         element: <TransactionHistory />,
-      },
-      {
-        path: 'packages',
-        element: <MyPackages />,
       },
       {
         path: 'notifications',

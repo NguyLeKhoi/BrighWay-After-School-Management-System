@@ -18,7 +18,9 @@ import {
   AccountBalance as FinanceIcon,
   Wallet as MainWalletIcon,
   ChildCare as ChildrenWalletIcon,
-  History as TransactionHistoryIcon
+  History as TransactionHistoryIcon,
+  Settings as ManagementIcon,
+  Inventory as PackageIcon
 } from '@mui/icons-material';
 
 const FamilyLayout = () => {
@@ -38,9 +40,26 @@ const FamilyLayout = () => {
       icon: DashboardIcon
     },
     {
-      path: '/family/children',
-      label: 'Con cái',
-      icon: ChildIcon
+      groupKey: 'management',
+      label: 'Con',
+      icon: ChildIcon,
+      children: [
+        {
+          path: '/family/management/children',
+          label: 'Hồ sơ của các con',
+          icon: ChildIcon
+        },
+        {
+          path: '/family/management/packages',
+          label: 'Mua gói',
+          icon: PackageIcon
+        },
+        {
+          path: '/family/management/schedule',
+          label: 'Lịch học',
+          icon: ScheduleIcon
+        }
+      ]
     },
     {
       groupKey: 'finance',
