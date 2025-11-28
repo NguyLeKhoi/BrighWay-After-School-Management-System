@@ -42,7 +42,7 @@ const Step2AssignRooms = forwardRef(({ data, updateData, stepIndex, totalSteps, 
         Bước {stepIndex + 1}/{totalSteps}: Gán phòng
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Chọn một hoặc nhiều phòng để gán vào ca học này. Bạn có thể bỏ qua bước này và gán sau.
+        Chọn một hoặc nhiều phòng để gán vào ca giữ trẻ này. Bạn có thể bỏ qua bước này và gán sau.
       </Typography>
 
       <FormControl fullWidth sx={{ mb: 2 }} disabled={dependenciesLoading}>

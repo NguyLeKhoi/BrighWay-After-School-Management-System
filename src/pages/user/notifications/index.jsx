@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   CheckCircle as AttendanceIcon,
@@ -17,6 +18,7 @@ import AnimatedCard from '../../../components/Common/AnimatedCard';
 import styles from './Notifications.module.css';
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all');
   const [error, setError] = useState(null);
@@ -196,6 +198,18 @@ const Notifications = () => {
     }
   };
 
+  const handleNotificationClick = async (notification) => {
+    // Mark as read
+    if (!notification.isRead) {
+      await markAsRead(notification.id);
+    }
+    
+    // Navigate to actionUrl if available
+    if (notification.actionUrl) {
+      navigate(notification.actionUrl);
+    }
+  };
+
   const markAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead();
@@ -290,7 +304,7 @@ const Notifications = () => {
             className={`${styles.filterButton} ${filter === 'schedule' ? styles.active : ''}`}
             onClick={() => setFilter('schedule')}
           >
-            Lịch học
+            Lịch giữ trẻ
           </button>
           <button 
             className={`${styles.filterButton} ${filter === 'allowance' ? styles.active : ''}`}
@@ -307,7 +321,7 @@ const Notifications = () => {
               <div 
                 key={notification.id} 
                 className={`${styles.notificationItem} ${!notification.isRead ? styles.unread : ''}`}
-                onClick={() => markAsRead(notification.id)}
+                onClick={() => handleNotificationClick(notification)}
               >
                 <div 
                   className={styles.notificationIcon}

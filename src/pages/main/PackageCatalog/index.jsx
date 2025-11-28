@@ -87,7 +87,7 @@ const PackageCatalog = () => {
             // Redirect to login if not authenticated, or to family/services
             const user = localStorage.getItem('user');
             if (user) {
-              window.location.href = '/family/services';
+              window.location.href = '/user/services';
             } else {
               window.location.href = '/login';
             }
@@ -155,12 +155,12 @@ const PackageCatalog = () => {
       animate="visible"
     >
       <motion.div variants={itemVariants}>
-        <HeroSection
-          title="Danh Mục Gói Dịch Vụ"
-          subtitle="Khám phá các gói dịch vụ giữ trẻ với hoạt động ngoài giờ đa dạng"
-          hasImage={true}
-          imageContent={heroImage}
-        />
+      <HeroSection
+        title="Danh Mục Gói Dịch Vụ"
+        subtitle="Khám phá các gói dịch vụ giữ trẻ với hoạt động ngoài giờ đa dạng"
+        hasImage={true}
+        imageContent={heroImage}
+      />
       </motion.div>
 
       {/* Article Section */}
@@ -198,11 +198,11 @@ const PackageCatalog = () => {
                     transition={{ duration: 0.2 }}
                   >
                     <Card
-                      title={pkg.title}
-                      description={pkg.description}
-                      infoRows={pkg.infoRows}
-                      actions={pkg.actions}
-                    />
+                    title={pkg.title}
+                    description={pkg.description}
+                    infoRows={pkg.infoRows}
+                    actions={pkg.actions}
+                  />
                   </motion.div>
                 ))}
               </motion.div>
@@ -244,7 +244,7 @@ const PackageCatalog = () => {
           </motion.h2>
           {loading ? (
               <ContentLoading text="Đang tải danh sách gói dịch vụ..." />
-            ) : bestPackages.length > 0 ? (
+          ) : bestPackages.length > 0 ? (
             <motion.div 
               className={styles.bestPackagesGrid}
               variants={containerVariants}
@@ -259,11 +259,11 @@ const PackageCatalog = () => {
                   transition={{ duration: 0.2 }}
                 >
                   <Card
-                    title={pkg.title}
-                    description={pkg.description}
-                    infoRows={pkg.infoRows}
-                    actions={pkg.actions}
-                  />
+                  title={pkg.title}
+                  description={pkg.description}
+                  infoRows={pkg.infoRows}
+                  actions={pkg.actions}
+                />
                 </motion.div>
               ))}
             </motion.div>

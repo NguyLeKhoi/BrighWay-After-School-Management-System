@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { 
   ChildCare as ChildIcon,
   Inventory as PackageIcon,
@@ -43,10 +43,12 @@ const getFieldWithFallback = (source, candidates, defaultValue = 0) => {
 const MyPackages = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { childId } = useParams();
   const [searchParams] = useSearchParams();
   const isInitialMount = useRef(true);
-  const selectedStudentId = searchParams.get('studentId');
-  const [activeTab, setActiveTab] = useState('available');
+  const selectedStudentId = childId || searchParams.get('studentId');
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabFromUrl && ['available', 'purchased'].includes(tabFromUrl) ? tabFromUrl : 'purchased');
   const [availablePackages, setAvailablePackages] = useState([]);
   const [purchasedPackages, setPurchasedPackages] = useState([]);
   const [services, setServices] = useState([]);
@@ -431,7 +433,7 @@ const MyPackages = () => {
       const mappedServices = items.map((service) => ({
         id: service.serviceId || service.id,
         name: service.name || 'Dịch vụ không tên',
-        type: service.serviceType || 'Add-on',
+        type: service.serviceType || 'Dịch vụ bổ sung',
         isActive: service.isActive !== false,
         description: service.description || service.desc || '',
         price: service.priceOverride ?? service.price ?? service.effectivePrice ?? 0,
@@ -474,9 +476,23 @@ const MyPackages = () => {
     loadChildren();
   }, []);
 
+  // Update activeTab when tab query param changes
+  useEffect(() => {
+    if (tabFromUrl && ['available', 'purchased'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
+
+  // Redirect if no childId
+  useEffect(() => {
+    if (!childId && !selectedStudentId) {
+      navigate('/user/management/packages');
+    }
+  }, [childId, selectedStudentId, navigate]);
+
   // Reload data when navigate back to this page or when studentId changes
   useEffect(() => {
-    if (location.pathname === '/family/packages') {
+    if (location.pathname.includes('/management/packages')) {
       // Skip first mount to avoid double loading
       if (isInitialMount.current) {
         isInitialMount.current = false;
@@ -691,7 +707,7 @@ const MyPackages = () => {
       const errorMessage =
         typeof err === 'string'
           ? err
-          : err?.message || err?.error || 'Không thể tải lịch học đã đặt';
+          : err?.message || err?.error || 'Không thể tải lịch giữ trẻ đã đặt';
       setSlotsError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
@@ -722,7 +738,7 @@ const MyPackages = () => {
 
     if (!orderForm.studentSlotId) {
       addNotification({
-        message: 'Vui lòng chọn lịch học đã đặt.',
+        message: 'Vui lòng chọn lịch giữ trẻ đã đặt.',
         severity: 'warning'
       });
       return;
@@ -785,9 +801,8 @@ const MyPackages = () => {
   };
 
   const tabs = [
-    { id: 'available', label: `Các gói (${availablePackages.length})` },
     { id: 'purchased', label: `Gói đã mua (${purchasedPackages.length})` },
-    { id: 'services', label: `Dịch vụ (${services.length})` }
+    { id: 'available', label: `Gói dịch vụ (${availablePackages.length})` }
   ];
 
   const renderPackageCard = (pkg, isPurchased = false) => (
@@ -917,7 +932,7 @@ const MyPackages = () => {
       <div className={styles.packageInfo}>
         <div className={styles.infoRow}>
           <span className={styles.infoLabel}>Loại dịch vụ:</span>
-          <span className={styles.infoValue}>{service.type || 'Add-on'}</span>
+          <span className={styles.infoValue}>{service.type || 'Dịch vụ bổ sung'}</span>
         </div>
         <div className={styles.infoRow}>
           <span className={styles.infoLabel}>Giá:</span>
@@ -978,11 +993,11 @@ const MyPackages = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Các gói dịch vụ</h1>
+          <h1 className={styles.title}>Các gói</h1>
           <p className={styles.subtitle}>
             {selectedStudentId && children.length > 0
-              ? `Gói dịch vụ cho ${children.find(c => c.id === selectedStudentId)?.name || 'học sinh'} - Chi nhánh ${children.find(c => c.id === selectedStudentId)?.branchName || ''}`
-              : 'Xem và quản lý các gói dịch vụ của bạn'}
+              ? `Gói slot cho ${children.find(c => c.id === selectedStudentId)?.name || 'học sinh'} - Chi nhánh ${children.find(c => c.id === selectedStudentId)?.branchName || ''}`
+              : 'Xem và quản lý các gói của bạn'}
           </p>
         </div>
 
@@ -1019,7 +1034,7 @@ const MyPackages = () => {
                 <p>Bạn cần thêm thông tin trẻ em trước khi xem các gói dịch vụ. Các gói sẽ được hiển thị dựa trên thông tin trẻ em của bạn.</p>
                 <button 
                   className={styles.browseButton}
-                  onClick={() => navigate('/family/children/create')}
+                  onClick={() => navigate('/user/management/children/create')}
                 >
                   Thêm trẻ em ngay
                 </button>
@@ -1124,35 +1139,6 @@ const MyPackages = () => {
           </div>
         )}
 
-        {/* Services Add-ons */}
-        {activeTab === 'services' && (
-          <div className={styles.packagesSection}>
-            {isLoadingServices ? (
-              <div className={styles.inlineLoading}>
-                <ContentLoading isLoading={true} text="Đang tải dịch vụ..." />
-              </div>
-            ) : servicesError ? (
-              <div className={styles.errorState}>
-                <p className={styles.errorMessage}>{servicesError}</p>
-                <button className={styles.retryButton} onClick={loadServices}>
-                  Thử lại
-                </button>
-              </div>
-            ) : services.length > 0 ? (
-              <div className={styles.packagesGrid}>
-                {services.map((service) => renderServiceCard(service))}
-              </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>
-                  <ServiceIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
-                </div>
-                <h3>Chưa có dịch vụ nào</h3>
-                <p>Hiện tại chi nhánh chưa cung cấp dịch vụ add-on nào cho phụ huynh.</p>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Buy Package Dialog */}
         <ManagementFormDialog
@@ -1303,7 +1289,7 @@ const MyPackages = () => {
               childId: yup.string().required('Vui lòng chọn trẻ em'),
               studentSlotId: yup.string().when('childId', {
                 is: (val) => val && val !== '',
-                then: (schema) => schema.required('Vui lòng chọn lịch học đã đặt'),
+                then: (schema) => schema.required('Vui lòng chọn lịch giữ trẻ đã đặt'),
                 otherwise: (schema) => schema.nullable()
               }),
               quantity: yup.number().min(1, 'Số lượng phải lớn hơn 0').required('Vui lòng nhập số lượng')
@@ -1326,7 +1312,7 @@ const MyPackages = () => {
 
               if (!data.studentSlotId) {
                 addNotification({
-                  message: 'Vui lòng chọn lịch học đã đặt.',
+                  message: 'Vui lòng chọn lịch giữ trẻ đã đặt.',
                   severity: 'warning'
                 });
                 return;
@@ -1390,32 +1376,32 @@ const MyPackages = () => {
               },
               ...(orderForm.childId && studentSlots.length > 0 ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học (Student Slot)',
+                label: 'Lịch giữ trẻ',
                 type: 'select',
                 required: true,
-                placeholder: '-- Chọn lịch học --',
+                placeholder: '-- Chọn lịch giữ trẻ --',
                 options: studentSlots.map(slot => ({
                   value: slot.id,
                   label: `${new Date(slot.date).toLocaleString('vi-VN')} · ${slot.status}`
                 }))
               }] : orderForm.childId && isLoadingSlots ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học (Student Slot)',
+                label: 'Lịch giữ trẻ',
                 type: 'text',
                 disabled: true,
-                placeholder: 'Đang tải lịch học...'
+                placeholder: 'Đang tải lịch giữ trẻ...'
               }] : orderForm.childId && slotsError ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học (Student Slot)',
+                label: 'Lịch giữ trẻ',
                 type: 'text',
                 disabled: true,
                 placeholder: slotsError
               }] : orderForm.childId ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học (Student Slot)',
+                label: 'Lịch giữ trẻ',
                 type: 'text',
                 disabled: true,
-                placeholder: 'Chưa có lịch học nào. Vui lòng đặt lịch trước.'
+                placeholder: 'Chưa có lịch giữ trẻ nào. Vui lòng đặt lịch trước.'
               }] : []),
               {
                 name: 'quantity',

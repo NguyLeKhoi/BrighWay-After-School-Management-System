@@ -90,7 +90,7 @@ const Step3AssignStaff = forwardRef(({ data, updateData, stepIndex, totalSteps, 
         Bước {stepIndex + 1}/{totalSteps}: Gán nhân viên
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Chọn nhân viên để gán vào ca học này. Bạn có thể bỏ qua bước này và gán sau.
+        Chọn nhân viên để gán vào ca giữ trẻ này. Bạn có thể bỏ qua bước này và gán sau.
       </Typography>
 
       <FormControl fullWidth sx={{ mb: 2 }} disabled={dependenciesLoading || staffSelectOptions.length === 0}>
@@ -110,7 +110,7 @@ const Step3AssignStaff = forwardRef(({ data, updateData, stepIndex, totalSteps, 
           ))}
         </Select>
         <FormHelperText>
-          {selectedUserId ? `Đã chọn: ${staffSelectOptions.find(opt => opt.value === selectedUserId)?.label || 'N/A'}` : 'Chọn nhân viên để gán vào ca học (tùy chọn)'}
+          {selectedUserId ? `Đã chọn: ${staffSelectOptions.find(opt => opt.value === selectedUserId)?.label || 'N/A'}` : 'Chọn nhân viên để gán vào ca giữ trẻ (tùy chọn)'}
         </FormHelperText>
       </FormControl>
 

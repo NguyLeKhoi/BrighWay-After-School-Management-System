@@ -7,7 +7,7 @@ export const createBranchSlotFormFields = ({
 }) => [
   {
     section: 'Thông tin cơ bản',
-    sectionDescription: 'Thông tin về ca học trong chi nhánh. Sau khi tạo, bạn có thể gán phòng và nhân viên.',
+    sectionDescription: 'Thông tin về ca giữ trẻ trong chi nhánh. Sau khi tạo, bạn có thể gán phòng và nhân viên.',
     name: 'timeframeId',
     label: 'Khung giờ',
     type: 'select',
@@ -15,17 +15,17 @@ export const createBranchSlotFormFields = ({
     options: timeframeSelectOptions,
     gridSize: 6,
     disabled: actionLoading || dependenciesLoading || timeframeSelectOptions.length === 0,
-    helperText: 'Chọn khung giờ cho ca học'
+    helperText: 'Chọn khung giờ cho ca giữ trẻ'
   },
   {
     name: 'slotTypeId',
-    label: 'Loại ca học',
+    label: 'Loại ca giữ trẻ',
     type: 'select',
     required: true,
     options: slotTypeSelectOptions,
     gridSize: 6,
     disabled: actionLoading || dependenciesLoading || slotTypeSelectOptions.length === 0,
-    helperText: 'Chọn loại ca học'
+    helperText: 'Chọn loại ca giữ trẻ'
   },
   {
     name: 'weekDate',

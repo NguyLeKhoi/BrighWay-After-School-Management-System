@@ -265,6 +265,27 @@
   overflow: visible !important;
 }
 
+/* Highlight events based on time type */
+:global(.fc-event.event-past) {
+  opacity: 0.6 !important;
+  filter: grayscale(30%) !important;
+}
+
+:global(.fc-event.event-current) {
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.6) !important;
+  animation: pulse 2s infinite !important;
+}
+
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(255, 152, 0, 0.8);
+  }
+}
+
 :global(.fc-event.custom-event .fc-event-main) {
   padding: 0 !important;
   overflow: visible !important;

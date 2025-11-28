@@ -7,7 +7,7 @@ const ROLE_DEFAULT_PATHS = {
   Admin: '/admin/dashboard',
   Manager: '/manager/dashboard',
   Staff: '/staff/dashboard',
-  User: '/family/profile'
+  User: '/user/dashboard'
 };
 
 /**

@@ -145,7 +145,7 @@ const ManagerBranchSlotManagement = () => {
 
   const slotTypeSelectOptions = useMemo(
     () => [
-      { value: '', label: 'Chọn loại ca học' },
+      { value: '', label: 'Chọn loại ca giữ trẻ' },
       ...slotTypeOptions.map((st) => ({
         value: st.id,
         label: st.name
@@ -337,7 +337,7 @@ const ManagerBranchSlotManagement = () => {
     () => [
       {
         section: 'Thông tin gán nhân viên',
-        sectionDescription: 'Chọn nhân viên và phòng (nếu có) để gán vào ca học này.',
+        sectionDescription: 'Chọn nhân viên và phòng (nếu có) để gán vào ca giữ trẻ này.',
         name: 'userId',
         label: 'Nhân viên',
         type: 'select',
@@ -434,7 +434,7 @@ const ManagerBranchSlotManagement = () => {
           </TableContainer>
         ) : (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Chưa có nhân viên được gán cho ca học này.
+            Chưa có nhân viên được gán cho ca giữ trẻ này.
           </Typography>
         )}
       </Box>
@@ -468,13 +468,13 @@ const ManagerBranchSlotManagement = () => {
   const renderSlotTypeFilter = (value, onChange) => (
     <FormControl className={styles.statusFilter} size="small" variant="outlined">
       <InputLabel id="slottype-filter-label" shrink>
-        Loại ca học
+        Loại ca giữ trẻ
       </InputLabel>
       <Select 
         labelId="slottype-filter-label"
         value={value} 
         onChange={onChange} 
-        label="Loại ca học"
+        label="Loại ca giữ trẻ"
         disabled={dependenciesLoading || slotTypeSelectOptions.length === 0}
         displayEmpty
         notched
@@ -494,8 +494,8 @@ const ManagerBranchSlotManagement = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
 
       <ManagementPageHeader
-        title="Quản lý Ca Học"
-        createButtonText="Thêm Ca Học Mới"
+        title="Quản lý Ca Giữ Trẻ"
+        createButtonText="Thêm Ca Giữ Trẻ Mới"
         onCreateClick={handleCreate}
       />
 
@@ -514,7 +514,7 @@ const ManagerBranchSlotManagement = () => {
           updateFilter('timeframeId', '');
           updateFilter('slotTypeId', '');
         }}
-        placeholder="Tìm kiếm theo khung giờ hoặc loại ca học..."
+        placeholder="Tìm kiếm theo khung giờ hoặc loại ca giữ trẻ..."
       >
         {renderTimeframeFilter(filters.timeframeId || '', (e) => updateFilter('timeframeId', e.target.value))}
         {renderSlotTypeFilter(filters.slotTypeId || '', (e) => updateFilter('slotTypeId', e.target.value))}
@@ -542,7 +542,7 @@ const ManagerBranchSlotManagement = () => {
             isRowExpandable: (item) => true, // Always expandable to show assign button
             renderExpandedContent: (item) => renderStaffDetails(item?.staff || [], item)
           }}
-          emptyMessage="Không có ca học nào. Hãy thêm ca học đầu tiên để bắt đầu."
+          emptyMessage="Không có ca giữ trẻ nào. Hãy thêm ca giữ trẻ đầu tiên để bắt đầu."
         />
       </div>
 
@@ -550,7 +550,7 @@ const ManagerBranchSlotManagement = () => {
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         mode={dialogMode}
-        title="Ca Học"
+        title="Ca Giữ Trẻ"
         icon={BranchSlotIcon}
         loading={actionLoading || dependenciesLoading}
         maxWidth="md"
@@ -560,7 +560,7 @@ const ManagerBranchSlotManagement = () => {
           schema={branchSlotSchema}
           defaultValues={branchSlotDefaultValues}
           onSubmit={handleFormSubmit}
-          submitText={dialogMode === 'create' ? 'Tạo Ca Học' : 'Cập nhật Ca Học'}
+          submitText={dialogMode === 'create' ? 'Tạo Ca Giữ Trẻ' : 'Cập nhật Ca Giữ Trẻ'}
           loading={actionLoading || dependenciesLoading}
           disabled={actionLoading || dependenciesLoading}
           fields={branchSlotFormFields}

@@ -21,7 +21,9 @@ import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ExpandMore as ExpandMoreIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  Person as ProfileIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 250;
@@ -33,7 +35,9 @@ const GenericDrawer = ({
   menuItems = [],
   onLogout = () => {},
   open: controlledOpen,
-  onToggle
+  onToggle,
+  profilePath = null,
+  changePasswordPath = null
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -418,13 +422,126 @@ const GenericDrawer = ({
 
       <Divider />
 
-      {/* Footer */}
+      {/* Footer - Profile, Change Password & Logout */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.3 }}
       >
         <Box sx={{ p: isOpen ? 2 : 1 }}>
+          {/* Profile & Change Password */}
+          {(profilePath || changePasswordPath) && (
+            <Box sx={{ mb: 1 }}>
+              {profilePath && (
+                <ListItem disablePadding>
+                  <Tooltip title={!isOpen ? 'Hồ sơ' : ''} placement="right">
+                    <ListItemButton
+                      onClick={() => handleNavigation(profilePath)}
+                      component={motion.div}
+                      whileHover={isOpen ? { x: 4 } : { scale: 1.05 }}
+                      whileTap={{ scale: 0.98 }}
+                      sx={{
+                        mx: 1,
+                        my: 0.5,
+                        borderRadius: 2,
+                        backgroundColor: location.pathname === profilePath || location.pathname.startsWith(profilePath + '/')
+                          ? 'var(--color-primary-100)' 
+                          : 'transparent',
+                        color: location.pathname === profilePath || location.pathname.startsWith(profilePath + '/')
+                          ? 'var(--color-primary-dark)' 
+                          : 'var(--text-primary)',
+                        fontWeight: (location.pathname === profilePath || location.pathname.startsWith(profilePath + '/')) ? 600 : 500,
+                        transition: 'all 0.2s ease',
+                        justifyContent: isOpen ? 'flex-start' : 'center',
+                        px: isOpen ? 2 : 1,
+                        '&:hover': {
+                          backgroundColor: (location.pathname === profilePath || location.pathname.startsWith(profilePath + '/'))
+                            ? 'var(--color-primary-100)' 
+                            : 'var(--bg-secondary)',
+                          transform: isOpen ? 'translateX(4px)' : 'scale(1.05)',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ 
+                        color: (location.pathname === profilePath || location.pathname.startsWith(profilePath + '/'))
+                          ? 'var(--color-primary-dark)' 
+                          : 'var(--text-secondary)',
+                        minWidth: isOpen ? 40 : 'auto',
+                        justifyContent: isOpen ? 'flex-start' : 'center',
+                        mr: isOpen ? 0 : 0
+                      }}>
+                        <ProfileIcon />
+                      </ListItemIcon>
+                      {isOpen && (
+                        <ListItemText 
+                          primary="Hồ sơ"
+                          primaryTypographyProps={{
+                            fontSize: '0.95rem',
+                            fontWeight: (location.pathname === profilePath || location.pathname.startsWith(profilePath + '/')) ? 600 : 500
+                          }}
+                        />
+                      )}
+                    </ListItemButton>
+                  </Tooltip>
+                </ListItem>
+              )}
+              {changePasswordPath && (
+                <ListItem disablePadding>
+                  <Tooltip title={!isOpen ? 'Đổi mật khẩu' : ''} placement="right">
+                    <ListItemButton
+                      onClick={() => handleNavigation(changePasswordPath)}
+                      component={motion.div}
+                      whileHover={isOpen ? { x: 4 } : { scale: 1.05 }}
+                      whileTap={{ scale: 0.98 }}
+                      sx={{
+                        mx: 1,
+                        my: 0.5,
+                        borderRadius: 2,
+                        backgroundColor: location.pathname === changePasswordPath || location.pathname.startsWith(changePasswordPath + '/')
+                          ? 'var(--color-primary-100)' 
+                          : 'transparent',
+                        color: location.pathname === changePasswordPath || location.pathname.startsWith(changePasswordPath + '/')
+                          ? 'var(--color-primary-dark)' 
+                          : 'var(--text-primary)',
+                        fontWeight: (location.pathname === changePasswordPath || location.pathname.startsWith(changePasswordPath + '/')) ? 600 : 500,
+                        transition: 'all 0.2s ease',
+                        justifyContent: isOpen ? 'flex-start' : 'center',
+                        px: isOpen ? 2 : 1,
+                        '&:hover': {
+                          backgroundColor: (location.pathname === changePasswordPath || location.pathname.startsWith(changePasswordPath + '/'))
+                            ? 'var(--color-primary-100)' 
+                            : 'var(--bg-secondary)',
+                          transform: isOpen ? 'translateX(4px)' : 'scale(1.05)',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ 
+                        color: (location.pathname === changePasswordPath || location.pathname.startsWith(changePasswordPath + '/'))
+                          ? 'var(--color-primary-dark)' 
+                          : 'var(--text-secondary)',
+                        minWidth: isOpen ? 40 : 'auto',
+                        justifyContent: isOpen ? 'flex-start' : 'center',
+                        mr: isOpen ? 0 : 0
+                      }}>
+                        <LockIcon />
+                      </ListItemIcon>
+                      {isOpen && (
+                        <ListItemText 
+                          primary="Đổi mật khẩu"
+                          primaryTypographyProps={{
+                            fontSize: '0.95rem',
+                            fontWeight: (location.pathname === changePasswordPath || location.pathname.startsWith(changePasswordPath + '/')) ? 600 : 500
+                          }}
+                        />
+                      )}
+                    </ListItemButton>
+                  </Tooltip>
+                </ListItem>
+              )}
+            </Box>
+          )}
+
+          {/* Logout Button */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

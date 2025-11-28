@@ -44,15 +44,15 @@ const AdminLayout = () => {
       label: 'Quản lý Người dùng',
       icon: GroupIcon,
       children: [
-        {
-          path: '/admin/staffAndManager',
-          label: 'Nhân Viên',
-          icon: UserIcon
-        },
-        {
-          path: '/admin/users',
-          label: 'Người Dùng',
-          icon: PeopleIcon
+    {
+      path: '/admin/staffAndManager',
+      label: 'Nhân Viên',
+      icon: UserIcon
+    },
+    {
+      path: '/admin/users',
+      label: 'Người Dùng',
+      icon: PeopleIcon
         }
       ]
     },
@@ -61,15 +61,15 @@ const AdminLayout = () => {
       label: 'Quản lý Hệ thống',
       icon: SystemIcon,
       children: [
-        {
-          path: '/admin/schools',
-          label: 'Trường',
-          icon: SchoolIcon
-        },
-        {
-          path: '/admin/student-levels',
-          label: 'Cấp Độ Học Sinh',
-          icon: StudentLevelIcon
+    {
+      path: '/admin/schools',
+      label: 'Trường',
+      icon: SchoolIcon
+    },
+    {
+      path: '/admin/student-levels',
+      label: 'Cấp Độ Học Sinh',
+      icon: StudentLevelIcon
         }
       ]
     },
@@ -78,20 +78,20 @@ const AdminLayout = () => {
       label: 'Quản lý Chi nhánh',
       icon: BranchGroupIcon,
       children: [
-        {
-          path: '/admin/branches',
-          label: 'Chi Nhánh',
-          icon: BranchIcon
-        },
-        {
-          path: '/admin/facilities',
-          label: 'Cơ Sở Vật Chất',
-          icon: FacilityIcon
-        },
-        {
-          path: '/admin/rooms',
-          label: 'Phòng Học',
-          icon: RoomIcon
+    {
+      path: '/admin/branches',
+      label: 'Chi Nhánh',
+      icon: BranchIcon
+    },
+    {
+      path: '/admin/facilities',
+      label: 'Cơ Sở Vật Chất',
+      icon: FacilityIcon
+    },
+    {
+      path: '/admin/rooms',
+      label: 'Phòng Học',
+      icon: RoomIcon
         }
       ]
     },
@@ -100,15 +100,15 @@ const AdminLayout = () => {
       label: 'Quản lý Dịch vụ',
       icon: ServiceIcon,
       children: [
-        {
-          path: '/admin/packages',
-          label: 'Gói Bán',
-          icon: PackageIcon
-        },
-        {
-          path: '/admin/benefits',
-          label: 'Lợi Ích',
-          icon: BenefitIcon
+    {
+      path: '/admin/packages',
+      label: 'Gói Bán',
+      icon: PackageIcon
+    },
+    {
+      path: '/admin/benefits',
+      label: 'Lợi Ích',
+      icon: BenefitIcon
         }
       ]
     }

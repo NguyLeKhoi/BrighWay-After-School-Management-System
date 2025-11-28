@@ -7,8 +7,8 @@ export const branchSlotSchema = yup.object({
     .test('not-empty', 'Vui lòng chọn khung giờ', (value) => value !== '' && value != null),
   slotTypeId: yup
     .string()
-    .required('Vui lòng chọn loại ca học')
-    .test('not-empty', 'Vui lòng chọn loại ca học', (value) => value !== '' && value != null),
+    .required('Vui lòng chọn loại ca giữ trẻ')
+    .test('not-empty', 'Vui lòng chọn loại ca giữ trẻ', (value) => value !== '' && value != null),
   weekDate: yup
     .mixed()
     .required('Vui lòng chọn ngày trong tuần')

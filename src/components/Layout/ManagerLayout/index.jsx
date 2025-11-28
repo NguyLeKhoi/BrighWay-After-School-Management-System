@@ -13,7 +13,9 @@ import {
   AccessTime as BranchSlotIcon,
   FamilyRestroom as ParentIcon,
   People as PeopleGroupIcon,
-  BusinessCenter as FacilityServiceIcon
+  BusinessCenter as FacilityServiceIcon,
+  Person as ProfileIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -36,20 +38,20 @@ const ManagerLayout = () => {
       label: 'Quản lý Người dùng',
       icon: PeopleGroupIcon,
       children: [
-        {
-          path: '/manager/staff',
-          label: 'Nhân Viên',
-          icon: UserIcon
-        },
-        {
-          path: '/manager/parents',
-          label: 'Người dùng',
-          icon: ParentIcon
-        },
-        {
-          path: '/manager/students',
-          label: 'Học Sinh',
-          icon: StudentIcon
+    {
+      path: '/manager/staff',
+      label: 'Nhân Viên',
+      icon: UserIcon
+    },
+    {
+      path: '/manager/parents',
+      label: 'Người dùng',
+      icon: ParentIcon
+    },
+    {
+      path: '/manager/students',
+      label: 'Học Sinh',
+      icon: StudentIcon
         }
       ]
     },
@@ -58,20 +60,20 @@ const ManagerLayout = () => {
       label: 'Quản lý Cơ sở & Dịch vụ',
       icon: FacilityServiceIcon,
       children: [
-        {
-          path: '/manager/rooms',
-          label: 'Phòng Học',
-          icon: RoomIcon
-        },
+    {
+      path: '/manager/rooms',
+      label: 'Phòng Học',
+      icon: RoomIcon
+    },
         {
           path: '/manager/branch-slots',
-          label: 'Ca Học',
+          label: 'Ca Giữ Trẻ',
           icon: BranchSlotIcon
         },
-        {
-          path: '/manager/packages',
-          label: 'Gói dịch vụ',
-          icon: CoursesIcon
+    {
+      path: '/manager/packages',
+      label: 'Gói dịch vụ',
+      icon: CoursesIcon
         }
       ]
     }
@@ -89,6 +91,8 @@ const ManagerLayout = () => {
           subtitle="Manager Portal"
           menuItems={menuItems}
           onLogout={handleLogout}
+          profilePath="/manager/profile"
+          changePasswordPath="/manager/change-password"
         />
 
         {/* Main Content */}

@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import { 
   Edit as EditIcon, 
-  Lock as LockIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -210,25 +209,6 @@ const StaffProfile = () => {
                 }}
               >
                 Chỉnh sửa
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<LockIcon />}
-                onClick={() => navigate('/staff/change-password')}
-                sx={{
-                  textTransform: 'none',
-                  borderRadius: 'var(--radius-lg)',
-                  fontWeight: 600,
-                  borderWidth: 2,
-                  borderColor: 'var(--color-primary)',
-                  color: 'var(--color-primary)',
-                  '&:hover': {
-                    borderWidth: 2,
-                    backgroundColor: 'var(--color-primary-50)'
-                  }
-                }}
-              >
-                Đổi mật khẩu
               </Button>
             </Box>
           )}

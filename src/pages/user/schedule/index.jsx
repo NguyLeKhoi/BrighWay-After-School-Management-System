@@ -45,7 +45,7 @@ const MySchedule = () => {
           });
         } catch (err) {
           // If child not found or no permission, navigate back
-          navigate(`/family/children/${childId}/schedule`);
+          navigate(`/user/management/schedule/${childId}`);
         } finally {
           setIsLoadingInitialData(false);
         }
@@ -129,7 +129,7 @@ const MySchedule = () => {
         
         if (selectedWeekDay !== slotWeekDay) {
           addNotification({
-            message: `Ngày đã chọn không khớp với lịch học của slot. Slot này chỉ có vào ${WEEKDAY_LABELS[slotWeekDay] || 'ngày phù hợp'}.`,
+            message: `Ngày đã chọn không khớp với lịch giữ trẻ của slot. Slot này chỉ có vào ${WEEKDAY_LABELS[slotWeekDay] || 'ngày phù hợp'}.`,
             severity: 'error'
           });
           setIsBooking(false);
@@ -157,23 +157,23 @@ const MySchedule = () => {
       });
 
       addNotification({
-        message: 'Đặt lịch học thành công!',
+        message: 'Đặt lịch giữ trẻ thành công!',
         severity: 'success'
       });
 
-      toast.success('Đặt lịch học thành công!', {
+      toast.success('Đặt lịch giữ trẻ thành công!', {
         position: 'top-right',
         autoClose: 3000
       });
 
       // Navigate back - if came from child schedule, go back there
       if (childId) {
-        navigate(`/family/children/${childId}/schedule`);
+        navigate(`/user/management/schedule/${childId}`);
       } else {
-        navigate('/family/children');
+        navigate('/user/management/children');
       }
     } catch (err) {
-      const errorMessage = err?.message || err?.error || 'Không thể đặt lịch học';
+      const errorMessage = err?.message || err?.error || 'Không thể đặt lịch giữ trẻ';
       addNotification({
         message: errorMessage,
         severity: 'error'
@@ -190,9 +190,9 @@ const MySchedule = () => {
   const handleCancel = useCallback(() => {
     // Navigate back - if came from child schedule, go back there
     if (childId) {
-      navigate(`/family/children/${childId}/schedule`);
+      navigate(`/user/management/schedule/${childId}`);
     } else {
-      navigate('/family/children');
+      navigate('/user/management/children');
     }
   }, [navigate, childId]);
 

@@ -42,7 +42,7 @@ const Step1BasicInfo = forwardRef(
 
   const slotTypeSelectOptions = useMemo(
     () => [
-      { value: '', label: 'Chọn loại ca học' },
+      { value: '', label: 'Chọn loại ca giữ trẻ' },
       ...slotTypeOptions.map((st) => ({
         value: st.id,
         label: st.name

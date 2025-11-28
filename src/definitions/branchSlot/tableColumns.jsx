@@ -56,7 +56,7 @@ export const createBranchSlotColumns = (styles) => [
   },
   {
     key: 'slotType',
-    header: <Typography className={styles?.noWrap}>Loại ca học</Typography>,
+    header: <Typography className={styles?.noWrap}>Loại ca giữ trẻ</Typography>,
     render: (_, item) => (
       <Box display="flex" alignItems="center" gap={1}>
         <SlotTypeIcon fontSize="small" color="primary" />

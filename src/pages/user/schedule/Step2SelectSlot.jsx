@@ -125,7 +125,7 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
           id: slot.id,
           branchName: slot.branch?.branchName || slot.branchName || '',
           weekDay: slot.weekDate,
-          status: slot.status || 'Available',
+          status: slot.status || 'Khả dụng',
           timeframeName: slot.timeframe?.name || slot.timeframeName || '',
           startTime: slot.timeframe?.startTime || slot.startTime,
           endTime: slot.timeframe?.endTime || slot.endTime,
@@ -139,14 +139,6 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
 
       setSlots(mapped);
     } catch (err) {
-      console.error('Error loading available slots:', err);
-      console.error('Error details:', {
-        message: err?.message,
-        response: err?.response,
-        data: err?.response?.data,
-        status: err?.response?.status,
-        studentId: studentId
-      });
       
       // Extract error message from various possible locations
       let errorMessage = 'Không thể tải slot phù hợp';
@@ -294,7 +286,7 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
                     slot.status?.toLowerCase() === 'available' ? styles.active : styles.pending
                   }`}
                 >
-                  {slot.status || 'Available'}
+                  {slot.status || 'Khả dụng'}
                 </span>
               </div>
 

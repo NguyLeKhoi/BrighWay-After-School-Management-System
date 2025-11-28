@@ -8,7 +8,9 @@ import {
   Dashboard as DashboardIcon,
   Category as ActivityTypeIcon,
   Event as ActivityIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
+  Person as ProfileIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -24,7 +26,7 @@ const StaffLayout = () => {
   const menuItems = [
     {
       path: '/staff/dashboard',
-      label: 'Dashboard',
+      label: 'Tổng quan',
       icon: DashboardIcon
     },
     {
@@ -56,6 +58,8 @@ const StaffLayout = () => {
           subtitle="Staff Portal"
           menuItems={menuItems}
           onLogout={handleLogout}
+          profilePath="/staff/profile"
+          changePasswordPath="/staff/change-password"
         />
 
         {/* Main Content */}

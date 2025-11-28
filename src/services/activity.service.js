@@ -169,6 +169,28 @@ const activityService = {
       throw error.response?.data || error.message;
     }
   },
+
+  /**
+   * Get my children's activities (paginated)
+   * @param {Object} params - Query parameters { studentId, pageIndex, pageSize, studentSlotId }
+   * @returns {Promise} Paginated list of children's activities
+   */
+  getMyChildrenActivities: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, String(value));
+        }
+      });
+      const queryString = queryParams.toString();
+      const url = queryString ? `/Activity/my-children-activities?${queryString}` : '/Activity/my-children-activities';
+      const response = await axiosInstance.get(url);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default activityService;

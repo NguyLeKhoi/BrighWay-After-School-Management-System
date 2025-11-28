@@ -1,39 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Grid, 
-  Card, 
-  CardContent,
-  Chip,
-  Divider,
-  Button,
-  Link as MuiLink
-} from '@mui/material';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Paper } from '@mui/material';
 import {
   Event as EventIcon,
   Assignment as AssignmentIcon,
   People as PeopleIcon,
+  Person as PersonIcon,
   Today as TodayIcon,
   VisibilityOff as VisibilityOffIcon,
   TrendingUp as TrendingUpIcon,
   CalendarToday as CalendarIcon,
-  CheckCircle as CheckCircleIcon
+  CheckCircle as CheckCircleIcon,
+  CalendarToday,
+  AccessTime,
+  MeetingRoom,
+  Business,
+  EventAvailable as ScheduleIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 import activityService from '../../../services/activity.service';
 import studentSlotService from '../../../services/studentSlot.service';
-import { useLoading } from '../../../hooks/useLoading';
+import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import AnimatedCard from '../../../components/Common/AnimatedCard';
-import PageWrapper from '../../../components/Common/PageWrapper';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useApp } from '../../../contexts/AppContext';
+import { extractDateString, formatDateOnlyUTC7 } from '../../../utils/dateHelper';
+import styles from './Dashboard.module.css';
 
 const StaffDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isLoading, showLoading, hideLoading } = useLoading();
+  const { showGlobalError } = useApp();
+  const { isLoading, loadingText, showLoading, hideLoading } = useContentLoading();
   
   const [stats, setStats] = useState({
     totalActivities: 0,
@@ -46,9 +45,96 @@ const StaffDashboard = () => {
     completedSlots: 0
   });
 
+  const [upcomingAssignments, setUpcomingAssignments] = useState([]);
+
   useEffect(() => {
     loadDashboardStats();
   }, []);
+
+  // Xác định loại lịch: past, current, upcoming
+  const getSlotTimeType = (slot) => {
+    const dateValue = slot.branchSlot?.date || slot.date;
+    const timeframe = slot.timeframe || slot.timeFrame;
+    
+    if (!dateValue || !timeframe) return 'upcoming';
+    
+    try {
+      const dateStr = extractDateString(dateValue);
+      const startTime = timeframe.startTime || '00:00:00';
+      const endTime = timeframe.endTime || '00:00:00';
+      
+      const formatTime = (time) => {
+        if (!time) return '00:00:00';
+        if (time.length === 5) return time + ':00';
+        return time;
+      };
+      
+      const formattedStartTime = formatTime(startTime);
+      const formattedEndTime = formatTime(endTime);
+      
+      const startDateTime = new Date(`${dateStr}T${formattedStartTime}+07:00`);
+      const endDateTime = new Date(`${dateStr}T${formattedEndTime}+07:00`);
+      const now = new Date();
+      
+      if (endDateTime < now) {
+        return 'past';
+      } else if (startDateTime <= now && now <= endDateTime) {
+        return 'current';
+      } else {
+        return 'upcoming';
+      }
+    } catch (error) {
+      return 'upcoming';
+    }
+  };
+
+  const loadUpcomingAssignments = async () => {
+    try {
+      // Load tất cả các trang
+      let pageIndex = 1;
+      const pageSize = 100;
+      let hasMore = true;
+      const allUpcomingSlots = [];
+      
+      while (hasMore) {
+        const response = await studentSlotService.getStaffSlots({
+          pageIndex: pageIndex,
+          pageSize: pageSize
+        });
+        
+        const items = response?.items || [];
+        const totalCount = response?.totalCount || 0;
+        const totalPages = response?.totalPages || Math.ceil(totalCount / pageSize);
+        
+        // Lọc lấy lịch đang diễn ra và sắp tới (không lấy lịch đã qua)
+        const upcomingItems = items.filter(slot => {
+          const timeType = getSlotTimeType(slot);
+          const isUpcoming = timeType === 'upcoming' || timeType === 'current';
+          return isUpcoming;
+        });
+        
+        allUpcomingSlots.push(...upcomingItems);
+        
+        if (pageIndex >= totalPages || items.length < pageSize) {
+          hasMore = false;
+        } else {
+          pageIndex++;
+        }
+      }
+      
+      // Sắp xếp theo thời gian (sớm nhất trước)
+      allUpcomingSlots.sort((a, b) => {
+        const dateA = new Date(a.branchSlot?.date || a.date || 0);
+        const dateB = new Date(b.branchSlot?.date || b.date || 0);
+        return dateA - dateB;
+      });
+      
+      // Chỉ lấy 5 lịch sắp tới gần nhất
+      setUpcomingAssignments(allUpcomingSlots.slice(0, 5));
+    } catch (error) {
+      setUpcomingAssignments([]);
+    }
+  };
 
   const loadDashboardStats = async () => {
     showLoading();
@@ -141,8 +227,11 @@ const StaffDashboard = () => {
         activitiesToday,
         completedSlots
       });
+
+      // Load upcoming assignments
+      await loadUpcomingAssignments();
     } catch (error) {
-      console.error('Error loading dashboard stats:', error);
+      showGlobalError('Không thể tải dữ liệu dashboard');
     } finally {
       hideLoading();
     }
@@ -152,444 +241,221 @@ const StaffDashboard = () => {
     {
       title: 'Tổng Hoạt Động',
       value: stats.totalActivities.toLocaleString('vi-VN'),
-      icon: <EventIcon />,
-      color: '#1976d2',
-      description: 'Tổng số hoạt động đã tạo',
-      action: () => navigate('/staff/activities')
+      icon: EventIcon,
+      color: 'primary',
+      onClick: () => navigate('/staff/activities')
     },
     {
       title: 'Hoạt Động Tháng Này',
       value: stats.activitiesThisMonth.toLocaleString('vi-VN'),
-      icon: <TrendingUpIcon />,
-      color: '#2e7d32',
-      description: 'Số hoạt động tạo trong tháng',
-      action: () => navigate('/staff/activities')
+      icon: TrendingUpIcon,
+      color: 'success',
+      onClick: () => navigate('/staff/activities')
     },
     {
       title: 'Slot Sắp Tới',
       value: stats.upcomingSlots.toLocaleString('vi-VN'),
-      icon: <CalendarIcon />,
-      color: '#f57c00',
-      description: 'Số slot học sắp tới',
-      action: () => navigate('/staff/assignments')
+      icon: CalendarIcon,
+      color: 'warning',
+      onClick: () => navigate('/staff/assignments')
     },
     {
       title: 'Học Sinh Hôm Nay',
       value: stats.studentsToday.toLocaleString('vi-VN'),
-      icon: <PeopleIcon />,
-      color: '#7b1fa2',
-      description: 'Số học sinh cần chăm sóc hôm nay',
-      action: () => navigate('/staff/assignments')
+      icon: PeopleIcon,
+      color: 'info',
+      onClick: () => navigate('/staff/assignments')
     }
   ];
 
-  const quickStats = [
+  const quickActions = [
     {
-      title: 'Hoạt Động Hôm Nay',
-      value: stats.activitiesToday,
-      icon: <TodayIcon />,
-      color: 'primary'
+      text: 'Quản Lý Hoạt Động',
+      icon: <EventIcon />,
+      primary: true,
+      onClick: () => navigate('/staff/activities')
     },
     {
-      title: 'Chưa Xem',
-      value: stats.unviewedActivities,
-      icon: <VisibilityOffIcon />,
-      color: 'warning'
-    },
-    {
-      title: 'Tổng Slot',
-      value: stats.totalSlots,
+      text: 'Xem Lịch Phân Công',
       icon: <AssignmentIcon />,
-      color: 'info'
+      primary: false,
+      onClick: () => navigate('/staff/assignments')
     },
     {
-      title: 'Đã Hoàn Thành',
-      value: stats.completedSlots,
-      icon: <CheckCircleIcon />,
-      color: 'success'
+      text: 'Loại Hoạt Động',
+      icon: <PeopleIcon />,
+      primary: false,
+      onClick: () => navigate('/staff/activity-types')
     }
   ];
 
   return (
-    <PageWrapper>
-      {isLoading && <ContentLoading isLoading={isLoading} text="Đang tải thống kê..." />}
-      <Box
-        sx={{
-          padding: { xs: 2, sm: 3, md: 4 },
-          maxWidth: '1400px',
-          margin: '0 auto',
-          minHeight: '100vh',
-          background: 'var(--bg-secondary)'
-        }}
+    <>
+      {isLoading && <ContentLoading isLoading={isLoading} text={loadingText} />}
+      <motion.div 
+        className={styles.container}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
       >
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography 
-            variant="h4" 
-            sx={{
-              fontWeight: 700,
-              color: 'var(--color-primary)',
-              fontFamily: 'var(--font-family-heading)',
-              mb: 1
-            }}
-          >
-            Dashboard Staff
-          </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{
-              color: 'text.secondary',
-              fontFamily: 'var(--font-family-primary)'
-            }}
-          >
+        <motion.div 
+          className={styles.header}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <h1 className={styles.title}>
+            Tổng quan
+          </h1>
+          <p className={styles.subtitle}>
             Chào mừng, {user?.name || 'Staff'}! Tổng quan công việc của bạn
-          </Typography>
-        </Box>
+          </p>
+        </motion.div>
 
-        {/* Main Stats Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          {statCards.map((stat, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <AnimatedCard delay={index * 0.1}>
-                <Card
-                  onClick={stat.action}
-                  sx={{
-                    height: '100%',
-                    cursor: 'pointer',
-                    backgroundColor: 'var(--bg-primary)',
-                    borderRadius: 'var(--radius-xl)',
-                    border: '1px solid var(--border-light)',
-                    boxShadow: 'var(--shadow-sm)',
-                    transition: 'all 0.3s ease',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: '4px',
-                      background: `linear-gradient(90deg, ${stat.color} 0%, ${stat.color}88 100%)`
-                    },
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 'var(--shadow-lg)',
-                      borderColor: stat.color
-                    }
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    <Box 
-                      sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'flex-start',
-                        mb: 2
-                      }}
-                    >
-                      <Box sx={{ flex: 1 }}>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary" 
-                          gutterBottom
-                          sx={{
-                            fontFamily: 'var(--font-family-primary)',
-                            fontWeight: 500
-                          }}
-                        >
-                          {stat.title}
-                        </Typography>
-                        <Typography 
-                          variant="h4" 
-                          fontWeight="bold" 
-                          sx={{ 
-                            color: stat.color,
-                            fontFamily: 'var(--font-family-heading)'
-                          }}
-                        >
-                          {stat.value}
+        {/* Stats Grid */}
+        <div className={styles.statsGrid}>
+          {statCards.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <AnimatedCard key={index} delay={index * 0.1} className={styles.statCard}>
+                <div className={styles.statHeader}>
+                  <span className={styles.statTitle}>
+                    {stat.title}
+                  </span>
+                  <div className={`${styles.statIcon} ${styles[stat.color]}`}>
+                    <Icon />
+                  </div>
+                </div>
+                <p className={styles.statValue} onClick={stat.onClick} style={{ cursor: 'pointer' }}>
+                  {stat.value}
+                </p>
+              </AnimatedCard>
+            );
+          })}
+        </div>
+
+        {/* Quick Actions */}
+        <AnimatedCard delay={0.4} className={styles.quickActionsCard}>
+          <h3 className={styles.quickActionsTitle}>
+            Thao tác nhanh
+          </h3>
+          <div className={styles.quickActionsGrid}>
+            {quickActions.map((action, index) => (
+              <button
+                key={index}
+                className={styles.quickActionButton}
+                onClick={action.onClick}
+                style={{
+                  background: action.primary ? 'var(--color-primary)' : 'var(--bg-primary)',
+                  color: action.primary ? 'white' : 'var(--text-primary)',
+                  borderColor: action.primary ? 'var(--color-primary)' : 'var(--border-light)'
+                }}
+              >
+                <span className={styles.quickActionIcon}>
+                  {action.icon}
+                </span>
+                <span className={styles.quickActionText}>
+                  {action.text}
+                </span>
+              </button>
+            ))}
+          </div>
+        </AnimatedCard>
+
+        {/* Upcoming Assignments */}
+        <AnimatedCard delay={0.5} className={styles.infoCard}>
+          <div className={styles.infoHeader}>
+            <h2 className={styles.infoTitle}>
+              Lịch làm việc sắp tới
+            </h2>
+            <button
+              className={styles.viewAllButton}
+              onClick={() => navigate('/staff/assignments')}
+            >
+              Xem tất cả
+            </button>
+          </div>
+          {upcomingAssignments.length > 0 ? (
+            <div className={styles.schedulesList}>
+              {upcomingAssignments.map((slot) => {
+                const dateValue = slot.branchSlot?.date || slot.date;
+                const timeframe = slot.timeframe || slot.timeFrame;
+                const roomName = slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định';
+                const branchName = slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định';
+                const studentName = slot.student?.name || slot.studentName || 'Chưa xác định';
+                const startTime = timeframe?.startTime || '';
+                const endTime = timeframe?.endTime || '';
+                
+                return (
+                  <Paper
+                    key={slot.id}
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 'var(--radius-lg)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        borderColor: 'var(--color-primary)',
+                        boxShadow: 'var(--shadow-sm)',
+                        transform: 'translateY(-2px)'
+                      }
+                    }}
+                    onClick={() => navigate('/staff/assignments')}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '180px' }}>
+                        <PersonIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+                        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.125rem' }}>
+                          {studentName}
                         </Typography>
                       </Box>
-                      <Box
-                        sx={{
-                          backgroundColor: `${stat.color}15`,
-                          borderRadius: '50%',
-                          p: 1.5,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Box sx={{ color: stat.color, fontSize: 32 }}>
-                          {stat.icon}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CalendarToday sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
+                          {dateValue ? formatDateOnlyUTC7(dateValue) : 'Chưa xác định'}
+                        </Typography>
+                      </Box>
+                      {startTime && endTime && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <AccessTime sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+                          <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
+                            {startTime.substring(0, 5)} - {endTime.substring(0, 5)}
+                          </Typography>
                         </Box>
+                      )}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <MeetingRoom sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
+                          {roomName}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Business sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
+                          {branchName}
+                        </Typography>
                       </Box>
                     </Box>
-                    <Typography 
-                      variant="caption" 
-                      color="text.secondary"
-                      sx={{
-                        fontFamily: 'var(--font-family-primary)'
-                      }}
-                    >
-                      {stat.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* Quick Stats and Info Section */}
-        <Grid container spacing={3}>
-          {/* Quick Stats */}
-          <Grid item xs={12} md={8}>
-            <AnimatedCard delay={0.4}>
-              <Paper
-                sx={{
-                  p: 3,
-                  backgroundColor: 'var(--bg-primary)',
-                  borderRadius: 'var(--radius-xl)',
-                  boxShadow: 'var(--shadow-sm)',
-                  border: '1px solid var(--border-light)',
-                  height: '100%'
-                }}
-              >
-                <Typography 
-                  variant="h6" 
-                  gutterBottom
-                  sx={{
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-family-heading)',
-                    mb: 3
-                  }}
-                >
-                  Thống Kê Nhanh
-                </Typography>
-                <Grid container spacing={2}>
-                  {quickStats.map((stat, index) => (
-                    <Grid item xs={6} sm={3} key={index}>
-                      <Box
-                        sx={{
-                          textAlign: 'center',
-                          p: 2,
-                          borderRadius: 'var(--radius-lg)',
-                          backgroundColor: 'action.hover',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            backgroundColor: 'action.selected',
-                            transform: 'scale(1.02)'
-                          }
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            color: `${stat.color}.main`,
-                            mb: 1,
-                            display: 'flex',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          {stat.icon}
-                        </Box>
-                        <Typography
-                          variant="h5"
-                          sx={{
-                            fontWeight: 700,
-                            color: `${stat.color}.main`,
-                            fontFamily: 'var(--font-family-heading)',
-                            mb: 0.5
-                          }}
-                        >
-                          {stat.value}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{
-                            fontFamily: 'var(--font-family-primary)',
-                            fontSize: '0.7rem'
-                          }}
-                        >
-                          {stat.title}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Paper>
-            </AnimatedCard>
-          </Grid>
-
-          {/* Quick Actions */}
-          <Grid item xs={12} md={4}>
-            <AnimatedCard delay={0.5}>
-              <Paper
-                sx={{
-                  p: 3,
-                  backgroundColor: 'var(--bg-primary)',
-                  borderRadius: 'var(--radius-xl)',
-                  boxShadow: 'var(--shadow-sm)',
-                  border: '1px solid var(--border-light)',
-                  height: '100%'
-                }}
-              >
-                <Typography 
-                  variant="h6" 
-                  gutterBottom
-                  sx={{
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-family-heading)',
-                    mb: 3
-                  }}
-                >
-                  Thao Tác Nhanh
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<EventIcon />}
-                    onClick={() => navigate('/staff/activities')}
-                    fullWidth
-                    sx={{
-                      textTransform: 'none',
-                      borderRadius: 'var(--radius-lg)',
-                      fontWeight: 600,
-                      py: 1.5,
-                      background: 'var(--color-secondary)',
-                      '&:hover': {
-                        background: 'var(--color-secondary-dark)'
-                      }
-                    }}
-                  >
-                    Quản Lý Hoạt Động
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<AssignmentIcon />}
-                    onClick={() => navigate('/staff/assignments')}
-                    fullWidth
-                    sx={{
-                      textTransform: 'none',
-                      borderRadius: 'var(--radius-lg)',
-                      fontWeight: 600,
-                      py: 1.5,
-                      borderWidth: 2,
-                      '&:hover': {
-                        borderWidth: 2
-                      }
-                    }}
-                  >
-                    Xem Lịch Phân Công
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<PeopleIcon />}
-                    onClick={() => navigate('/staff/activity-types')}
-                    fullWidth
-                    sx={{
-                      textTransform: 'none',
-                      borderRadius: 'var(--radius-lg)',
-                      fontWeight: 600,
-                      py: 1.5,
-                      borderWidth: 2,
-                      '&:hover': {
-                        borderWidth: 2
-                      }
-                    }}
-                  >
-                    Loại Hoạt Động
-                  </Button>
-                </Box>
-              </Paper>
-            </AnimatedCard>
-          </Grid>
-        </Grid>
-
-        {/* Info Card */}
-        <AnimatedCard delay={0.6}>
-          <Paper
-            sx={{
-              mt: 3,
-              p: 3,
-              backgroundColor: 'var(--bg-primary)',
-              borderRadius: 'var(--radius-xl)',
-              boxShadow: 'var(--shadow-sm)',
-              border: '1px solid var(--border-light)'
-            }}
-          >
-            <Typography 
-              variant="h6" 
-              gutterBottom
-              sx={{
-                fontWeight: 600,
-                fontFamily: 'var(--font-family-heading)',
-                mb: 2
-              }}
-            >
-              Thông Tin Hệ Thống
-            </Typography>
-            <Typography 
-              variant="body2" 
-              color="text.secondary"
-              sx={{
-                fontFamily: 'var(--font-family-primary)',
-                lineHeight: 1.8
-              }}
-            >
-              Đây là trang dashboard dành cho Staff. Tại đây bạn có thể:
-            </Typography>
-            <Box component="ul" sx={{ mt: 2, pl: 3, mb: 0 }}>
-              <Typography 
-                component="li" 
-                variant="body2" 
-                color="text.secondary"
-                sx={{
-                  fontFamily: 'var(--font-family-primary)',
-                  mb: 1
-                }}
-              >
-                Quản lý và tạo các hoạt động cho học sinh
+                  </Paper>
+                );
+              })}
+            </div>
+          ) : (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <ScheduleIcon sx={{ fontSize: 48, color: 'var(--text-secondary)', mb: 2, opacity: 0.5 }} />
+              <Typography variant="body1" color="text.secondary" fontWeight="medium">
+                Chưa có lịch làm việc sắp tới
               </Typography>
-              <Typography 
-                component="li" 
-                variant="body2" 
-                color="text.secondary"
-                sx={{
-                  fontFamily: 'var(--font-family-primary)',
-                  mb: 1
-                }}
-              >
-                Xem lịch phân công và điểm danh học sinh
-              </Typography>
-              <Typography 
-                component="li" 
-                variant="body2" 
-                color="text.secondary"
-                sx={{
-                  fontFamily: 'var(--font-family-primary)',
-                  mb: 1
-                }}
-              >
-                Quản lý các loại hoạt động
-              </Typography>
-              <Typography 
-                component="li" 
-                variant="body2" 
-                color="text.secondary"
-                sx={{
-                  fontFamily: 'var(--font-family-primary)'
-                }}
-              >
-                Theo dõi thống kê công việc hàng ngày
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Hiện tại không có lịch làm việc nào đang diễn ra hoặc sắp tới
               </Typography>
             </Box>
-          </Paper>
+          )}
         </AnimatedCard>
-      </Box>
-    </PageWrapper>
+      </motion.div>
+    </>
   );
 };
 

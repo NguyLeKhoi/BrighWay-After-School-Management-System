@@ -125,7 +125,7 @@ const CreateChild = () => {
         position: 'top-right',
         autoClose: 3000
       });
-      navigate('/family/children');
+      navigate('/user/management/children');
     } catch (err) {
       const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể đăng ký con';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
@@ -135,7 +135,7 @@ const CreateChild = () => {
   }, [navigate]);
 
   const handleCancel = useCallback(() => {
-    navigate('/family/children');
+    navigate('/user/management/children');
   }, [navigate]);
 
   const steps = useMemo(
