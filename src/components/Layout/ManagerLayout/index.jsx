@@ -11,7 +11,9 @@ import {
   MeetingRoom as RoomIcon,
   Group as StudentIcon,
   AccessTime as BranchSlotIcon,
-  FamilyRestroom as ParentIcon
+  FamilyRestroom as ParentIcon,
+  People as PeopleGroupIcon,
+  BusinessCenter as FacilityServiceIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -30,34 +32,48 @@ const ManagerLayout = () => {
       icon: DashboardIcon
     },
     {
-      path: '/manager/staff',
-      label: 'Nhân Viên',
-      icon: UserIcon
+      groupKey: 'user-management',
+      label: 'Quản lý Người dùng',
+      icon: PeopleGroupIcon,
+      children: [
+        {
+          path: '/manager/staff',
+          label: 'Nhân Viên',
+          icon: UserIcon
+        },
+        {
+          path: '/manager/parents',
+          label: 'Người dùng',
+          icon: ParentIcon
+        },
+        {
+          path: '/manager/students',
+          label: 'Học Sinh',
+          icon: StudentIcon
+        }
+      ]
     },
     {
-      path: '/manager/parents',
-      label: 'Người dùng',
-      icon: ParentIcon
-    },
-    {
-      path: '/manager/students',
-      label: 'Học Sinh',
-      icon: StudentIcon
-    },
-    {
-      path: '/manager/rooms',
-      label: 'Phòng Học',
-      icon: RoomIcon
-    },
-    {
-      path: '/manager/packages',
-      label: 'Gói dịch vụ',
-      icon: CoursesIcon
-    },
-    {
-      path: '/manager/branch-slots',
-      label: 'Ca Học',
-      icon: BranchSlotIcon
+      groupKey: 'facility-service-management',
+      label: 'Quản lý Cơ sở & Dịch vụ',
+      icon: FacilityServiceIcon,
+      children: [
+        {
+          path: '/manager/rooms',
+          label: 'Phòng Học',
+          icon: RoomIcon
+        },
+        {
+          path: '/manager/branch-slots',
+          label: 'Ca Học',
+          icon: BranchSlotIcon
+        },
+        {
+          path: '/manager/packages',
+          label: 'Gói dịch vụ',
+          icon: CoursesIcon
+        }
+      ]
     }
   ];
 
