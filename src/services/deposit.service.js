@@ -52,6 +52,34 @@ const depositService = {
       throw error.response?.data || error.message;
     }
   },
+
+  /**
+   * Lấy chi tiết deposit theo ID
+   * @param {string} depositId - Deposit ID
+   * @returns {Promise<any>} Chi tiết deposit
+   */
+  getDepositById: async (depositId) => {
+    try {
+      const response = await axiosInstance.get(`/Deposit/${depositId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Hủy deposit theo ID
+   * @param {string} depositId - Deposit ID
+   * @returns {Promise<any>} Kết quả hủy deposit
+   */
+  cancelDeposit: async (depositId) => {
+    try {
+      const response = await axiosInstance.post(`/Deposit/${depositId}/cancel`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default depositService;

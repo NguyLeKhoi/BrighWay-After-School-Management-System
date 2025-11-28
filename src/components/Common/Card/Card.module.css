@@ -139,7 +139,7 @@
 .badge.fullweek {
   background: var(--color-success-light);
   background: linear-gradient(135deg, var(--color-success-light) 0%, var(--color-success) 100%);
-  color: var(--color-success-dark);
+  color: white;
 }
 
 .badge.evenday {

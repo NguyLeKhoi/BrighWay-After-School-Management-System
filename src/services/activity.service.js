@@ -20,21 +20,51 @@ const activityService = {
 
   /**
    * Get paginated activities
-   * @param {Object} params - Pagination parameters { page, pageSize, keyword }
-   * @returns {Promise} Paginated activity list
+   * @param {Object} params - Pagination and filter parameters 
+   * { pageIndex, pageSize, StudentSlotId, ActivityTypeId, CreatedById, FromDate, ToDate, IsViewed, Keyword }
+   * @returns {Promise} Paginated activity list with structure: { items, pageIndex, totalPages, totalCount, pageSize, hasPreviousPage, hasNextPage }
    */
   getActivitiesPaged: async (params = {}) => {
     try {
-      const { page = 1, pageSize = 10, keyword = '' } = params;
+      const {
+        pageIndex = 1,
+        pageSize = 10,
+        StudentSlotId = null,
+        ActivityTypeId = null,
+        CreatedById = null,
+        FromDate = null,
+        ToDate = null,
+        IsViewed = null,
+        Keyword = null
+      } = params;
+
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
-      
-      if (keyword) {
-        queryParams.append('keyword', keyword);
+
+      if (StudentSlotId) {
+        queryParams.append('StudentSlotId', StudentSlotId);
       }
-      
+      if (ActivityTypeId) {
+        queryParams.append('ActivityTypeId', ActivityTypeId);
+      }
+      if (CreatedById) {
+        queryParams.append('CreatedById', CreatedById);
+      }
+      if (FromDate) {
+        queryParams.append('FromDate', FromDate);
+      }
+      if (ToDate) {
+        queryParams.append('ToDate', ToDate);
+      }
+      if (IsViewed !== null && IsViewed !== undefined) {
+        queryParams.append('IsViewed', IsViewed.toString());
+      }
+      if (Keyword) {
+        queryParams.append('Keyword', Keyword);
+      }
+
       const response = await axiosInstance.get(`/Activity/paged?${queryParams}`);
       return response.data;
     } catch (error) {
