@@ -94,7 +94,7 @@ const ScheduleSelect = () => {
                 marginBottom: 0.5
               }}
             >
-              Chọn con để xem lịch học
+              Chọn con để xem lịch giữ trẻ
             </Typography>
             <Typography
               variant="body1"
@@ -103,7 +103,7 @@ const ScheduleSelect = () => {
                 fontFamily: 'var(--font-family)'
               }}
             >
-              Vui lòng chọn một trong các con của bạn để xem lịch học
+              Vui lòng chọn một trong các con của bạn để xem lịch giữ trẻ
             </Typography>
           </Box>
         </Box>
@@ -197,7 +197,7 @@ const ScheduleSelect = () => {
                             fontWeight: 'var(--font-weight-semibold)'
                           }}
                         >
-                          Xem lịch học
+                          Xem lịch giữ trẻ
                         </Typography>
                         <ArrowForward sx={{ fontSize: 18 }} />
                       </Box>

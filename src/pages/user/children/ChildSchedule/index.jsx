@@ -291,14 +291,14 @@ const ChildSchedule = () => {
       setLoading(true);
       setError(null);
 
-      // Kiểm tra lại quyền truy cập trước khi lấy lịch học
+      // Kiểm tra lại quyền truy cập trước khi lấy lịch giữ trẻ
       const myChildren = await studentService.getMyChildren();
       const childIds = Array.isArray(myChildren) 
         ? myChildren.map(c => c.id) 
         : [];
       
       if (!childIds.includes(childId)) {
-        // Nếu childId không thuộc về user, không lấy lịch học
+        // Nếu childId không thuộc về user, không lấy lịch giữ trẻ
         setError('Bạn không có quyền xem lịch chăm sóc của trẻ em này');
         navigate('/user/management/children');
         return;
@@ -348,7 +348,7 @@ const ChildSchedule = () => {
       });
       setScheduleData(events);
     } catch (err) {
-      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải lịch học';
+      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải lịch giữ trẻ';
       setError(errorMessage);
       showGlobalError(errorMessage);
       
@@ -563,7 +563,7 @@ const ChildSchedule = () => {
     return (
       <div className={styles.schedulePage}>
         <div className={styles.container}>
-          <ContentLoading isLoading={true} text="Đang tải lịch học..." />
+          <ContentLoading isLoading={true} text="Đang tải lịch giữ trẻ..." />
         </div>
       </div>
     );

@@ -304,7 +304,7 @@ const Notifications = () => {
             className={`${styles.filterButton} ${filter === 'schedule' ? styles.active : ''}`}
             onClick={() => setFilter('schedule')}
           >
-            Lịch học
+            Lịch giữ trẻ
           </button>
           <button 
             className={`${styles.filterButton} ${filter === 'allowance' ? styles.active : ''}`}

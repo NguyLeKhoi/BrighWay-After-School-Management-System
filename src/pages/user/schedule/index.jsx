@@ -129,7 +129,7 @@ const MySchedule = () => {
         
         if (selectedWeekDay !== slotWeekDay) {
           addNotification({
-            message: `Ngày đã chọn không khớp với lịch học của slot. Slot này chỉ có vào ${WEEKDAY_LABELS[slotWeekDay] || 'ngày phù hợp'}.`,
+            message: `Ngày đã chọn không khớp với lịch giữ trẻ của slot. Slot này chỉ có vào ${WEEKDAY_LABELS[slotWeekDay] || 'ngày phù hợp'}.`,
             severity: 'error'
           });
           setIsBooking(false);
@@ -157,11 +157,11 @@ const MySchedule = () => {
       });
 
       addNotification({
-        message: 'Đặt lịch học thành công!',
+        message: 'Đặt lịch giữ trẻ thành công!',
         severity: 'success'
       });
 
-      toast.success('Đặt lịch học thành công!', {
+      toast.success('Đặt lịch giữ trẻ thành công!', {
         position: 'top-right',
         autoClose: 3000
       });
@@ -173,7 +173,7 @@ const MySchedule = () => {
         navigate('/user/management/children');
       }
     } catch (err) {
-      const errorMessage = err?.message || err?.error || 'Không thể đặt lịch học';
+      const errorMessage = err?.message || err?.error || 'Không thể đặt lịch giữ trẻ';
       addNotification({
         message: errorMessage,
         severity: 'error'

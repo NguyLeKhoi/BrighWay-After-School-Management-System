@@ -216,7 +216,7 @@ const UserServices = () => {
       const errorMessage =
         typeof err === 'string'
           ? err
-          : err?.message || err?.error || 'Không thể tải lịch học đã đặt';
+          : err?.message || err?.error || 'Không thể tải lịch giữ trẻ đã đặt';
       setSlotsError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
@@ -284,7 +284,7 @@ const UserServices = () => {
     childId: yup.string().required('Vui lòng chọn trẻ em'),
     studentSlotId: yup.string().when('childId', {
       is: (val) => val && val !== '',
-      then: (schema) => schema.required('Vui lòng chọn lịch học đã đặt'),
+      then: (schema) => schema.required('Vui lòng chọn lịch giữ trẻ đã đặt'),
       otherwise: (schema) => schema.nullable()
     }),
     quantity: yup.number().min(1, 'Số lượng phải lớn hơn 0').required('Vui lòng nhập số lượng')
@@ -302,7 +302,7 @@ const UserServices = () => {
           <div>
             <h1 className={styles.title}>Dịch vụ bổ sung</h1>
             <p className={styles.subtitle}>
-              Chọn trẻ em và lịch học để xem dịch vụ phù hợp
+              Chọn trẻ em và lịch giữ trẻ để xem dịch vụ phù hợp
             </p>
           </div>
         </div>
@@ -350,12 +350,12 @@ const UserServices = () => {
             </FormControl>
 
             <FormControl sx={{ minWidth: 200, flex: 1 }} disabled={!selectedChildId || isLoadingSlots}>
-              <InputLabel id="slot-select-label">Chọn lịch học</InputLabel>
+              <InputLabel id="slot-select-label">Chọn lịch giữ trẻ</InputLabel>
               <Select
                 labelId="slot-select-label"
                 id="slot-select"
                 value={selectedSlotId}
-                label="Chọn lịch học"
+                label="Chọn lịch giữ trẻ"
                 onChange={(e) => setSelectedSlotId(e.target.value)}
                 disabled={!selectedChildId || isLoadingSlots || studentSlots.length === 0}
               >
@@ -366,12 +366,12 @@ const UserServices = () => {
                 )}
                 {selectedChildId && isLoadingSlots && (
                   <MenuItem disabled value="">
-                    Đang tải lịch học...
+                    Đang tải lịch giữ trẻ...
                   </MenuItem>
                 )}
                 {selectedChildId && !isLoadingSlots && studentSlots.length === 0 && (
                   <MenuItem disabled value="">
-                    Chưa có lịch học nào
+                    Chưa có lịch giữ trẻ nào
                   </MenuItem>
                 )}
                 {studentSlots.map((slot) => (
@@ -397,8 +397,8 @@ const UserServices = () => {
             <div className={styles.emptyIcon}>
               <ServiceIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
             </div>
-            <h3>Chọn lịch học để xem dịch vụ</h3>
-            <p>Vui lòng chọn lịch học ở trên để xem dịch vụ bổ sung cho slot đó.</p>
+            <h3>Chọn lịch giữ trẻ để xem dịch vụ</h3>
+            <p>Vui lòng chọn lịch giữ trẻ ở trên để xem dịch vụ bổ sung cho slot đó.</p>
           </div>
         ) : isLoadingServices ? (
           <div className={styles.inlineLoading}>
@@ -476,7 +476,7 @@ const UserServices = () => {
               <ServiceIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
             </div>
             <h3>Chưa có dịch vụ bổ sung</h3>
-            <p>Không có dịch vụ bổ sung nào cho lịch học đã chọn. Vui lòng thử lịch học khác.</p>
+            <p>Không có dịch vụ bổ sung nào cho lịch giữ trẻ đã chọn. Vui lòng thử lịch giữ trẻ khác.</p>
           </div>
         )}
       </div>
@@ -564,10 +564,10 @@ const UserServices = () => {
             },
             ...((orderForm.childId || selectedChildId) && studentSlots.length > 0 ? [{
               name: 'studentSlotId',
-              label: 'Lịch học',
+              label: 'Lịch giữ trẻ',
               type: 'select',
               required: true,
-              placeholder: '-- Chọn lịch học --',
+              placeholder: '-- Chọn lịch giữ trẻ --',
               options: studentSlots.map(slot => ({
                 value: slot.id,
                 label: `${new Date(slot.date).toLocaleString('vi-VN')} · ${slot.status}`
@@ -581,22 +581,22 @@ const UserServices = () => {
               }
             }] : (orderForm.childId || selectedChildId) && isLoadingSlots ? [{
               name: 'studentSlotId',
-              label: 'Lịch học',
+              label: 'Lịch giữ trẻ',
               type: 'text',
               disabled: true,
-              placeholder: 'Đang tải lịch học...'
+              placeholder: 'Đang tải lịch giữ trẻ...'
             }] : (orderForm.childId || selectedChildId) && slotsError ? [{
               name: 'studentSlotId',
-              label: 'Lịch học',
+              label: 'Lịch giữ trẻ',
               type: 'text',
               disabled: true,
               placeholder: slotsError
             }] : (orderForm.childId || selectedChildId) ? [{
               name: 'studentSlotId',
-              label: 'Lịch học',
+              label: 'Lịch giữ trẻ',
               type: 'text',
               disabled: true,
-              placeholder: 'Chưa có lịch học nào. Vui lòng đặt lịch trước.'
+              placeholder: 'Chưa có lịch giữ trẻ nào. Vui lòng đặt lịch trước.'
             }] : []),
             {
               name: 'quantity',

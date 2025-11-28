@@ -165,7 +165,7 @@ const ChildScheduleDetail = () => {
         const foundSlot = slots.find(s => s.id === slotId);
 
         if (!foundSlot) {
-          setError('Không tìm thấy lịch học này');
+          setError('Không tìm thấy lịch giữ trẻ này');
           navigate(`/user/management/schedule/${childId}`);
           return;
         }
@@ -487,7 +487,7 @@ const ChildScheduleDetail = () => {
                 color: 'var(--text-primary)'
               }}
             >
-              Chi tiết lịch học
+              Chi tiết lịch giữ trẻ
             </Typography>
           </Box>
         </Paper>
@@ -689,7 +689,7 @@ const ChildScheduleDetail = () => {
                 }}
               >
                 <Info sx={{ color: 'var(--color-primary)' }} />
-                Thông tin lịch học
+                Thông tin lịch giữ trẻ
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -941,7 +941,7 @@ const ChildScheduleDetail = () => {
                                     }
                                   }}
                                 >
-                                  Lịch học này đã qua, không thể mua dịch vụ bổ sung
+                                  Lịch giữ trẻ này đã qua, không thể mua dịch vụ bổ sung
                                 </Alert>
                               )}
                             </Box>

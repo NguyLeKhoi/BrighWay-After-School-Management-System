@@ -67,7 +67,7 @@ const ManagerLayout = () => {
     },
         {
           path: '/manager/branch-slots',
-          label: 'Ca Học',
+          label: 'Ca Giữ Trẻ',
           icon: BranchSlotIcon
         },
     {

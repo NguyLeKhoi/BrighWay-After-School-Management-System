@@ -707,7 +707,7 @@ const MyPackages = () => {
       const errorMessage =
         typeof err === 'string'
           ? err
-          : err?.message || err?.error || 'Không thể tải lịch học đã đặt';
+          : err?.message || err?.error || 'Không thể tải lịch giữ trẻ đã đặt';
       setSlotsError(errorMessage);
       showGlobalError(errorMessage);
     } finally {
@@ -738,7 +738,7 @@ const MyPackages = () => {
 
     if (!orderForm.studentSlotId) {
       addNotification({
-        message: 'Vui lòng chọn lịch học đã đặt.',
+        message: 'Vui lòng chọn lịch giữ trẻ đã đặt.',
         severity: 'warning'
       });
       return;
@@ -1289,7 +1289,7 @@ const MyPackages = () => {
               childId: yup.string().required('Vui lòng chọn trẻ em'),
               studentSlotId: yup.string().when('childId', {
                 is: (val) => val && val !== '',
-                then: (schema) => schema.required('Vui lòng chọn lịch học đã đặt'),
+                then: (schema) => schema.required('Vui lòng chọn lịch giữ trẻ đã đặt'),
                 otherwise: (schema) => schema.nullable()
               }),
               quantity: yup.number().min(1, 'Số lượng phải lớn hơn 0').required('Vui lòng nhập số lượng')
@@ -1312,7 +1312,7 @@ const MyPackages = () => {
 
               if (!data.studentSlotId) {
                 addNotification({
-                  message: 'Vui lòng chọn lịch học đã đặt.',
+                  message: 'Vui lòng chọn lịch giữ trẻ đã đặt.',
                   severity: 'warning'
                 });
                 return;
@@ -1376,32 +1376,32 @@ const MyPackages = () => {
               },
               ...(orderForm.childId && studentSlots.length > 0 ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học',
+                label: 'Lịch giữ trẻ',
                 type: 'select',
                 required: true,
-                placeholder: '-- Chọn lịch học --',
+                placeholder: '-- Chọn lịch giữ trẻ --',
                 options: studentSlots.map(slot => ({
                   value: slot.id,
                   label: `${new Date(slot.date).toLocaleString('vi-VN')} · ${slot.status}`
                 }))
               }] : orderForm.childId && isLoadingSlots ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học',
+                label: 'Lịch giữ trẻ',
                 type: 'text',
                 disabled: true,
-                placeholder: 'Đang tải lịch học...'
+                placeholder: 'Đang tải lịch giữ trẻ...'
               }] : orderForm.childId && slotsError ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học',
+                label: 'Lịch giữ trẻ',
                 type: 'text',
                 disabled: true,
                 placeholder: slotsError
               }] : orderForm.childId ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học',
+                label: 'Lịch giữ trẻ',
                 type: 'text',
                 disabled: true,
-                placeholder: 'Chưa có lịch học nào. Vui lòng đặt lịch trước.'
+                placeholder: 'Chưa có lịch giữ trẻ nào. Vui lòng đặt lịch trước.'
               }] : []),
               {
                 name: 'quantity',

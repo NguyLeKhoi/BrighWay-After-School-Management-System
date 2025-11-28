@@ -109,7 +109,7 @@ const Step3AssignStaff = forwardRef(
           Bước {stepIndex + 1}/{totalSteps}: Gán nhân viên
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Chọn nhân viên để gán vào ca học này. Bạn có thể bỏ qua bước này và gán sau.
+          Chọn nhân viên để gán vào ca giữ trẻ này. Bạn có thể bỏ qua bước này và gán sau.
         </Typography>
 
         <FormControl
@@ -131,7 +131,7 @@ const Step3AssignStaff = forwardRef(
               </MenuItem>
             ))}
           </Select>
-          <FormHelperText>Chọn nhân viên để gán vào ca học (tùy chọn)</FormHelperText>
+          <FormHelperText>Chọn nhân viên để gán vào ca giữ trẻ (tùy chọn)</FormHelperText>
         </FormControl>
 
         <FormControl

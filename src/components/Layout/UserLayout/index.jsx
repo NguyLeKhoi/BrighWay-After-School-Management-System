@@ -56,7 +56,7 @@ const UserLayout = () => {
         },
         {
           path: '/user/management/schedule',
-          label: 'Lịch học',
+          label: 'Lịch giữ trẻ',
           icon: ScheduleIcon
         }
       ]

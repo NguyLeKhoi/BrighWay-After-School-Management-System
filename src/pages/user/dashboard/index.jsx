@@ -300,7 +300,7 @@ const UserDashboard = () => {
       onClick: () => navigate('/user/finance/main-wallet')
     },
     {
-      text: 'Xem lịch học',
+      text: 'Xem lịch giữ trẻ',
       icon: <ScheduleIcon />,
       primary: false,
       onClick: () => navigate('/user/management/children')
@@ -384,7 +384,7 @@ const UserDashboard = () => {
         <AnimatedCard delay={0.5} className={styles.infoCard}>
           <div className={styles.infoHeader}>
             <h2 className={styles.infoTitle}>
-              Lịch học sắp tới
+              Lịch giữ trẻ sắp tới
             </h2>
             <button
               className={styles.viewAllButton}
@@ -460,10 +460,10 @@ const UserDashboard = () => {
             <Box sx={{ py: 4, textAlign: 'center' }}>
               <ScheduleIcon sx={{ fontSize: 48, color: 'var(--text-secondary)', mb: 2, opacity: 0.5 }} />
               <Typography variant="body1" color="text.secondary" fontWeight="medium">
-                Chưa có lịch học sắp tới
+                Chưa có lịch giữ trẻ sắp tới
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Hiện tại không có lịch học nào đang diễn ra hoặc sắp tới
+                Hiện tại không có lịch giữ trẻ nào đang diễn ra hoặc sắp tới
               </Typography>
             </Box>
           )}

@@ -138,7 +138,7 @@ const CreateBranchSlot = () => {
 
     const result = await branchSlotService.createMyBranchSlot(payload);
     if (!result?.id) {
-      throw new Error('Không thể tạo ca học');
+      throw new Error('Không thể tạo ca giữ trẻ');
     }
 
     const updatedData = {
@@ -156,13 +156,13 @@ const CreateBranchSlot = () => {
       setActionLoading(true);
       try {
         const branchSlotId = await ensureBranchSlotExists(data);
-        toast.success('Lưu thông tin ca học thành công! Tiếp tục gán phòng.', {
+        toast.success('Lưu thông tin ca giữ trẻ thành công! Tiếp tục gán phòng.', {
           position: 'top-right',
           autoClose: 2500
         });
         return !!branchSlotId;
       } catch (error) {
-        const errorMessage = error?.response?.data?.message || error.message || 'Không thể lưu thông tin ca học';
+        const errorMessage = error?.response?.data?.message || error.message || 'Không thể lưu thông tin ca giữ trẻ';
         toast.error(errorMessage, {
           position: 'top-right',
           autoClose: 4000
@@ -265,7 +265,7 @@ const CreateBranchSlot = () => {
   );
 
   const handleComplete = useCallback(() => {
-    toast.success('Hoàn tất tạo ca học!', {
+    toast.success('Hoàn tất tạo ca giữ trẻ!', {
       position: 'top-right',
       autoClose: 2500
     });
@@ -309,7 +309,7 @@ const CreateBranchSlot = () => {
         steps={steps}
         onComplete={handleComplete}
         onCancel={handleCancel}
-        title="Tạo Ca Học Mới"
+        title="Tạo Ca Giữ Trẻ Mới"
         icon={<BranchSlotIcon />}
         initialData={formData}
         showStepConfirmation={true}
