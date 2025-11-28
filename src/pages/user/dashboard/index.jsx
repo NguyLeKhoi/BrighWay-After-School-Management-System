@@ -15,7 +15,11 @@ import {
   Notifications as NotificationIcon,
   Add as AddIcon,
   ShoppingCart as ShoppingIcon,
-  EventAvailable as ScheduleIcon
+  EventAvailable as ScheduleIcon,
+  CalendarToday,
+  AccessTime,
+  MeetingRoom,
+  Business
 } from '@mui/icons-material';
 import AnimatedCard from '../../../components/Common/AnimatedCard';
 import Card from '../../../components/Common/Card';
@@ -26,6 +30,8 @@ import studentService from '../../../services/student.service';
 import walletService from '../../../services/wallet.service';
 import packageService from '../../../services/package.service';
 import notificationService from '../../../services/notification.service';
+import studentSlotService from '../../../services/studentSlot.service';
+import { extractDateString, formatDateOnlyUTC7 } from '../../../utils/dateHelper';
 import styles from './Dashboard.module.css';
 
 const UserDashboard = () => {
@@ -40,11 +46,127 @@ const UserDashboard = () => {
     unreadNotifications: 0
   });
 
-  const [recentChildren, setRecentChildren] = useState([]);
+  const [upcomingSchedules, setUpcomingSchedules] = useState([]);
 
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  // Xác định loại lịch: past, current, upcoming
+  const getSlotTimeType = (slot) => {
+    const dateValue = slot.branchSlot?.date || slot.date;
+    const timeframe = slot.timeframe || slot.timeFrame;
+    
+    if (!dateValue || !timeframe) return 'upcoming';
+    
+    try {
+      const dateStr = extractDateString(dateValue);
+      const startTime = timeframe.startTime || '00:00:00';
+      const endTime = timeframe.endTime || '00:00:00';
+      
+      const formatTime = (time) => {
+        if (!time) return '00:00:00';
+        if (time.length === 5) return time + ':00';
+        return time;
+      };
+      
+      const formattedStartTime = formatTime(startTime);
+      const formattedEndTime = formatTime(endTime);
+      
+      const startDateTime = new Date(`${dateStr}T${formattedStartTime}+07:00`);
+      const endDateTime = new Date(`${dateStr}T${formattedEndTime}+07:00`);
+      const now = new Date();
+      
+      if (endDateTime < now) {
+        return 'past';
+      } else if (startDateTime <= now && now <= endDateTime) {
+        return 'current';
+      } else {
+        return 'upcoming';
+      }
+    } catch (error) {
+      console.error('Error parsing slot time:', error);
+      return 'upcoming';
+    }
+  };
+
+  const loadUpcomingSchedules = async (children) => {
+    if (!children || children.length === 0) {
+      console.log('No children to load schedules for');
+      setUpcomingSchedules([]);
+      return;
+    }
+    
+    try {
+      const allUpcomingSlots = [];
+      
+      for (const child of children) {
+        try {
+          // Load tất cả các trang
+          let pageIndex = 1;
+          const pageSize = 100;
+          let hasMore = true;
+          
+          while (hasMore) {
+            const response = await studentSlotService.getStudentSlots({
+              StudentId: child.id,
+              pageIndex: pageIndex,
+              pageSize: pageSize
+            });
+            
+            const items = response?.items || [];
+            const totalCount = response?.totalCount || 0;
+            const totalPages = response?.totalPages || Math.ceil(totalCount / pageSize);
+            
+            console.log(`Child ${child.name}: Found ${items.length} slots, total: ${totalCount}`);
+            
+            // Lọc lấy lịch đang diễn ra và sắp tới (không lấy lịch đã qua)
+            const upcomingItems = items.filter(slot => {
+              const timeType = getSlotTimeType(slot);
+              const isUpcoming = timeType === 'upcoming' || timeType === 'current';
+              if (isUpcoming) {
+                console.log(`Found upcoming slot: ${slot.id}, type: ${timeType}, date: ${slot.branchSlot?.date || slot.date}`);
+              }
+              return isUpcoming;
+            });
+            
+            console.log(`Child ${child.name}: ${upcomingItems.length} upcoming slots`);
+            
+            // Thêm thông tin child vào mỗi slot
+            upcomingItems.forEach(slot => {
+              allUpcomingSlots.push({
+                ...slot,
+                childName: child.name || child.userName || 'Chưa có tên',
+                childId: child.id
+              });
+            });
+            
+            if (pageIndex >= totalPages || items.length < pageSize) {
+              hasMore = false;
+            } else {
+              pageIndex++;
+            }
+          }
+        } catch (error) {
+          console.error(`Error loading schedules for child ${child.id}:`, error);
+        }
+      }
+      
+      // Sắp xếp theo thời gian (sớm nhất trước)
+      allUpcomingSlots.sort((a, b) => {
+        const dateA = new Date(a.branchSlot?.date || a.date || 0);
+        const dateB = new Date(b.branchSlot?.date || b.date || 0);
+        return dateA - dateB;
+      });
+      
+      // Chỉ lấy 5 lịch sắp tới gần nhất
+      console.log('Upcoming schedules loaded:', allUpcomingSlots.length);
+      setUpcomingSchedules(allUpcomingSlots.slice(0, 5));
+    } catch (error) {
+      console.error('Error loading upcoming schedules:', error);
+      setUpcomingSchedules([]);
+    }
+  };
 
   const loadDashboardData = async () => {
     showLoading();
@@ -56,11 +178,10 @@ const UserDashboard = () => {
         : (Array.isArray(childrenResponse?.items) ? childrenResponse.items : []);
       
       setStats(prev => ({ ...prev, childrenCount: children.length }));
-      setRecentChildren(children.slice(0, 3));
 
       // Load wallet balance
       try {
-        const wallet = await walletService.getMyWallet();
+        const wallet = await walletService.getCurrentWallet();
         const balance = wallet?.balance ?? 0;
         setStats(prev => ({ ...prev, walletBalance: balance }));
       } catch (error) {
@@ -96,11 +217,48 @@ const UserDashboard = () => {
       } catch (error) {
         console.error('Error loading notifications:', error);
       }
+
+      // Load upcoming schedules for all children
+      if (children && children.length > 0) {
+        await loadUpcomingSchedules(children);
+      } else {
+        setUpcomingSchedules([]);
+      }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       showGlobalError('Không thể tải dữ liệu dashboard');
     } finally {
       hideLoading();
+    }
+  };
+
+  // Format số tiền ngắn gọn
+  const formatCurrencyShort = (amount) => {
+    if (amount === 0) return '0 VNĐ';
+    
+    const billions = amount / 1000000000;
+    const millions = amount / 1000000;
+    const thousands = amount / 1000;
+    
+    if (billions >= 1) {
+      // Hiển thị tỷ
+      if (billions >= 10) {
+        return `${Math.floor(billions)} tỷ VNĐ`;
+      } else {
+        return `${billions.toFixed(1)} tỷ VNĐ`;
+      }
+    } else if (millions >= 1) {
+      // Hiển thị triệu
+      if (millions >= 10) {
+        return `${Math.floor(millions)} triệu VNĐ`;
+      } else {
+        return `${millions.toFixed(1)} triệu VNĐ`;
+      }
+    } else if (thousands >= 1) {
+      // Hiển thị nghìn
+      return `${Math.floor(thousands)}K VNĐ`;
+    } else {
+      return `${amount.toLocaleString('vi-VN')} VNĐ`;
     }
   };
 
@@ -121,7 +279,7 @@ const UserDashboard = () => {
     },
     {
       title: 'Số dư ví',
-      value: `${stats.walletBalance.toLocaleString('vi-VN')} VNĐ`,
+      value: formatCurrencyShort(stats.walletBalance),
       icon: WalletIcon,
       color: 'warning',
       onClick: () => navigate('/family/wallet')
@@ -235,43 +393,104 @@ const UserDashboard = () => {
           </div>
         </AnimatedCard>
 
-        {/* Recent Children */}
-        {recentChildren.length > 0 && (
-          <AnimatedCard delay={0.5} className={styles.infoCard}>
-            <div className={styles.infoHeader}>
-              <h2 className={styles.infoTitle}>
-                Con cái gần đây
-              </h2>
-              <button
-                className={styles.viewAllButton}
-                onClick={() => navigate('/family/children')}
-              >
-                Xem tất cả
-              </button>
+        {/* Upcoming Schedules */}
+        <AnimatedCard delay={0.5} className={styles.infoCard}>
+          <div className={styles.infoHeader}>
+            <h2 className={styles.infoTitle}>
+              Lịch học sắp tới
+            </h2>
+            <button
+              className={styles.viewAllButton}
+              onClick={() => navigate('/family/children')}
+            >
+              Xem tất cả
+            </button>
+          </div>
+          {upcomingSchedules.length > 0 ? (
+            <div className={styles.schedulesList}>
+              {upcomingSchedules.map((slot) => {
+                const dateValue = slot.branchSlot?.date || slot.date;
+                const timeframe = slot.timeframe || slot.timeFrame;
+                const roomName = slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định';
+                const branchName = slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định';
+                const startTime = timeframe?.startTime || '';
+                const endTime = timeframe?.endTime || '';
+                
+                return (
+                  <Paper
+                    key={slot.id}
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      mb: 2,
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 'var(--radius-lg)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        borderColor: 'var(--color-primary)',
+                        boxShadow: 'var(--shadow-sm)',
+                        transform: 'translateY(-2px)'
+                      }
+                    }}
+                    onClick={() => navigate(`/family/children/${slot.childId}/schedule/${slot.id}`)}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1rem', mb: 1 }}>
+                          {slot.childName}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CalendarToday sx={{ fontSize: 16, color: 'var(--text-secondary)' }} />
+                            <Typography variant="body2" color="text.secondary">
+                              {dateValue ? formatDateOnlyUTC7(dateValue) : 'Chưa xác định'}
+                            </Typography>
+                          </Box>
+                          {startTime && endTime && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <AccessTime sx={{ fontSize: 16, color: 'var(--text-secondary)' }} />
+                              <Typography variant="body2" color="text.secondary">
+                                {startTime.substring(0, 5)} - {endTime.substring(0, 5)}
+                              </Typography>
+                            </Box>
+                          )}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <MeetingRoom sx={{ fontSize: 16, color: 'var(--text-secondary)' }} />
+                            <Typography variant="body2" color="text.secondary">
+                              {roomName}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Business sx={{ fontSize: 16, color: 'var(--text-secondary)' }} />
+                            <Typography variant="body2" color="text.secondary">
+                              {branchName}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Paper>
+                );
+              })}
             </div>
-            <div className={styles.childrenGrid}>
-              {recentChildren.map((child) => (
-                <Card
-                  key={child.id}
-                  title={child.name || child.userName || 'Chưa có tên'}
-                  subtitle={child.branchName || ''}
-                  description={`Cấp độ: ${child.studentLevelName || 'Chưa xác định'}`}
-                  actions={[
-                    {
-                      text: 'Xem chi tiết',
-                      primary: false,
-                      onClick: () => navigate(`/family/children/${child.id}/profile`)
-                    }
-                  ]}
-                />
-              ))}
-            </div>
-          </AnimatedCard>
-        )}
+          ) : (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <ScheduleIcon sx={{ fontSize: 48, color: 'var(--text-secondary)', mb: 2, opacity: 0.5 }} />
+              <Typography variant="body1" color="text.secondary" fontWeight="medium">
+                Chưa có lịch học sắp tới
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Hiện tại không có lịch học nào đang diễn ra hoặc sắp tới
+              </Typography>
+            </Box>
+          )}
+        </AnimatedCard>
+
 
         {/* Empty State */}
         {stats.childrenCount === 0 && (
-          <AnimatedCard delay={0.6} className={styles.infoCard}>
+          <AnimatedCard delay={0.7} className={styles.infoCard}>
             <div className={styles.emptyState}>
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                 <ChildIcon sx={{ fontSize: 64, color: 'text.secondary' }} />

@@ -226,6 +226,12 @@
   gap: 16px;
 }
 
+.schedulesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 /* Empty State */
 .emptyState {
   text-align: center;

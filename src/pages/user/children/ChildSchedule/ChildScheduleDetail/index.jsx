@@ -25,7 +25,9 @@ import {
   CheckCircle,
   Note,
   AddShoppingCart,
-  Info
+  Info,
+  PhotoLibrary,
+  Visibility
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import ContentLoading from '../../../../../components/Common/ContentLoading';
@@ -36,8 +38,9 @@ import studentService from '../../../../../services/student.service';
 import studentSlotService from '../../../../../services/studentSlot.service';
 import serviceService from '../../../../../services/service.service';
 import orderService from '../../../../../services/order.service';
+import activityService from '../../../../../services/activity.service';
 import { useApp } from '../../../../../contexts/AppContext';
-import { formatDateTimeUTC7 } from '../../../../../utils/dateHelper';
+import { formatDateTimeUTC7, extractDateString } from '../../../../../utils/dateHelper';
 import * as yup from 'yup';
 import styles from './ChildScheduleDetail.module.css';
 
@@ -55,6 +58,11 @@ const ChildScheduleDetail = () => {
   const [services, setServices] = useState([]);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const [servicesError, setServicesError] = useState(null);
+  
+  // Activities state
+  const [activities, setActivities] = useState([]);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(false);
+  const [activitiesError, setActivitiesError] = useState(null);
   
   // Buy service dialog state
   const [showOrderDialog, setShowOrderDialog] = useState(false);
@@ -74,6 +82,49 @@ const ChildScheduleDetail = () => {
 
   const getStatusColor = (status) => {
     return 'var(--color-primary)';
+  };
+
+  // Xác định loại lịch: past, current, upcoming
+  const getSlotTimeType = (slot) => {
+    if (!slot) return 'upcoming';
+    
+    const dateValue = slot.branchSlot?.date || slot.date;
+    const timeframe = slot.timeframe || slot.timeFrame;
+    
+    if (!dateValue || !timeframe) return 'upcoming';
+    
+    try {
+      // Parse date và time
+      const dateStr = extractDateString(dateValue);
+      const startTime = timeframe.startTime || '00:00:00';
+      const endTime = timeframe.endTime || '00:00:00';
+      
+      const formatTime = (time) => {
+        if (!time) return '00:00:00';
+        if (time.length === 5) return time + ':00';
+        return time;
+      };
+      
+      const formattedStartTime = formatTime(startTime);
+      const formattedEndTime = formatTime(endTime);
+      
+      // Tạo datetime objects (UTC+7)
+      const startDateTime = new Date(`${dateStr}T${formattedStartTime}+07:00`);
+      const endDateTime = new Date(`${dateStr}T${formattedEndTime}+07:00`);
+      const now = new Date();
+      
+      // So sánh với thời gian hiện tại
+      if (endDateTime < now) {
+        return 'past'; // Đã qua
+      } else if (startDateTime <= now && now <= endDateTime) {
+        return 'current'; // Đang diễn ra
+      } else {
+        return 'upcoming'; // Sắp tới
+      }
+    } catch (error) {
+      console.error('Error parsing slot time:', error);
+      return 'upcoming';
+    }
   };
 
   useEffect(() => {
@@ -122,6 +173,7 @@ const ChildScheduleDetail = () => {
 
         setSlot(foundSlot);
         loadServices();
+        loadActivities();
       } catch (err) {
         const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin';
         setError(errorMessage);
@@ -167,6 +219,33 @@ const ChildScheduleDetail = () => {
       console.error('Error loading services:', err);
     } finally {
       setIsLoadingServices(false);
+    }
+  };
+
+  const loadActivities = async () => {
+    if (!childId || !slotId) return;
+    
+    setIsLoadingActivities(true);
+    setActivitiesError(null);
+    
+    try {
+      const response = await activityService.getMyChildrenActivities({
+        studentId: childId,
+        studentSlotId: slotId,
+        pageIndex: 1,
+        pageSize: 100
+      });
+      
+      const items = response?.items || [];
+      setActivities(items);
+    } catch (err) {
+      const errorMessage = typeof err === 'string'
+        ? err
+        : err?.message || err?.error || 'Không thể tải hoạt động';
+      setActivitiesError(errorMessage);
+      console.error('Error loading activities:', err);
+    } finally {
+      setIsLoadingActivities(false);
     }
   };
 
@@ -417,6 +496,176 @@ const ChildScheduleDetail = () => {
           </Box>
         </Paper>
 
+        {/* Activities Section */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12}>
+            <Paper 
+              elevation={0}
+              sx={{
+                padding: 3,
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--border-light)',
+                backgroundColor: 'var(--bg-primary)'
+              }}
+            >
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  mb: 3,
+                  fontFamily: 'var(--font-family-heading)',
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <PhotoLibrary sx={{ color: 'var(--color-primary)' }} />
+                Hoạt động của trẻ
+              </Typography>
+
+              {isLoadingActivities ? (
+                <Box sx={{ py: 4, textAlign: 'center' }}>
+                  <CircularProgress size={32} />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    Đang tải hoạt động...
+                  </Typography>
+                </Box>
+              ) : activitiesError ? (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {activitiesError}
+                </Alert>
+              ) : activities.length > 0 ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {activities.map((activity) => (
+                    <Card
+                      key={activity.id}
+                      elevation={0}
+                      sx={{
+                        border: '1px solid var(--border-light)',
+                        borderRadius: 'var(--radius-lg)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          borderColor: 'var(--color-primary)',
+                          boxShadow: 'var(--shadow-md)',
+                          transform: 'translateY(-2px)'
+                        }
+                      }}
+                    >
+                      <CardContent>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          {activity.imageUrl && (
+                            <Box
+                              component="img"
+                              src={activity.imageUrl}
+                              alt={activity.name || 'Hoạt động'}
+                              sx={{
+                                width: 120,
+                                height: 120,
+                                objectFit: 'cover',
+                                borderRadius: 'var(--radius-md)',
+                                flexShrink: 0
+                              }}
+                            />
+                          )}
+                          <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                              <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.1rem' }}>
+                                {activity.name || 'Hoạt động không tên'}
+                              </Typography>
+                              {activity.isViewed && (
+                                <Chip
+                                  icon={<Visibility />}
+                                  label="Đã xem"
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: 'var(--color-success)',
+                                    color: 'white',
+                                    fontSize: '0.75rem'
+                                  }}
+                                />
+                              )}
+                            </Box>
+                            
+                            {activity.activityType && (
+                              <Chip
+                                label={activity.activityType.name || activity.activityType}
+                                size="small"
+                                sx={{
+                                  backgroundColor: 'var(--color-primary-50)',
+                                  color: 'var(--color-primary-dark)',
+                                  fontWeight: 600,
+                                  mb: 1
+                                }}
+                              />
+                            )}
+                            
+                            {activity.activityType?.description && (
+                              <Typography 
+                                variant="body2" 
+                                color="text.secondary" 
+                                sx={{ 
+                                  mb: 1.5,
+                                  lineHeight: 1.6
+                                }}
+                              >
+                                {activity.activityType.description}
+                              </Typography>
+                            )}
+                            
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', mt: 1 }}>
+                              {activity.staffName && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <Person sx={{ fontSize: 16, color: 'var(--text-secondary)' }} />
+                                  <Typography variant="body2" color="text.secondary">
+                                    {activity.staffName}
+                                  </Typography>
+                                </Box>
+                              )}
+                              {activity.createdDate && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <CalendarToday sx={{ fontSize: 16, color: 'var(--text-secondary)' }} />
+                                  <Typography variant="body2" color="text.secondary">
+                                    {formatDateTimeUTC7(activity.createdDate, {
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+              ) : (
+                <Box 
+                  sx={{ 
+                    py: 6, 
+                    textAlign: 'center',
+                    border: '2px dashed var(--border-light)',
+                    borderRadius: 'var(--radius-lg)',
+                    backgroundColor: 'var(--bg-secondary)'
+                  }}
+                >
+                  <PhotoLibrary sx={{ fontSize: 48, color: 'var(--text-secondary)', mb: 2, opacity: 0.5 }} />
+                  <Typography variant="body1" color="text.secondary" fontWeight="medium">
+                    Chưa có hoạt động nào
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    Hiện tại chưa có hoạt động nào được ghi lại cho slot này
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
+          </Grid>
+        </Grid>
+
         {/* Content - Grid Layout */}
         <Grid container spacing={3}>
           {/* Left Column - Basic Information */}
@@ -612,100 +861,122 @@ const ChildScheduleDetail = () => {
                 </Alert>
               ) : services.length > 0 ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {services.map((service) => (
-                    <Card
-                      key={service.id}
-                      elevation={0}
-                      sx={{
-                        border: '2px solid',
-                        borderColor: service.isActive ? 'var(--color-primary)' : 'var(--border-light)',
-                        borderRadius: 'var(--radius-lg)',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          borderColor: 'var(--color-primary)',
-                          boxShadow: 'var(--shadow-md)',
-                          transform: 'translateY(-2px)'
-                        }
-                      }}
-                    >
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.1rem', mb: 1 }}>
-                              {service.name}
-                            </Typography>
-                            
-                            {service.description && (
-                              <Typography 
-                                variant="body2" 
-                                color="text.secondary" 
-                                sx={{ 
-                                  mb: 1.5,
-                                  lineHeight: 1.6,
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical',
-                                  overflow: 'hidden'
-                                }}
-                              >
-                                {service.description}
+                  {(() => {
+                    const slotTimeType = slot ? getSlotTimeType(slot) : 'upcoming';
+                    const isPast = slotTimeType === 'past';
+                    
+                    return services.map((service) => (
+                      <Card
+                        key={service.id}
+                        elevation={0}
+                        sx={{
+                          border: '2px solid',
+                          borderColor: service.isActive && !isPast ? 'var(--color-primary)' : 'var(--border-light)',
+                          borderRadius: 'var(--radius-lg)',
+                          transition: 'all 0.3s ease',
+                          opacity: isPast ? 0.6 : 1,
+                          '&:hover': {
+                            borderColor: isPast ? 'var(--border-light)' : 'var(--color-primary)',
+                            boxShadow: isPast ? 'none' : 'var(--shadow-md)',
+                            transform: isPast ? 'none' : 'translateY(-2px)'
+                          }
+                        }}
+                      >
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.1rem', mb: 1 }}>
+                                {service.name}
                               </Typography>
-                            )}
-                            
-                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                              <Chip
-                                icon={<ShoppingCartIcon />}
-                                label={formatCurrency(service.effectivePrice)}
-                                size="small"
-                                sx={{
-                                  backgroundColor: 'var(--color-primary)',
-                                  color: 'white',
-                                  fontWeight: 700,
-                                  fontSize: '0.85rem',
-                                  height: 28
-                                }}
-                              />
-                              {service.benefits && service.benefits.length > 0 && (
+                              
+                              {service.description && (
+                                <Typography 
+                                  variant="body2" 
+                                  color="text.secondary" 
+                                  sx={{ 
+                                    mb: 1.5,
+                                    lineHeight: 1.6,
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                  }}
+                                >
+                                  {service.description}
+                                </Typography>
+                              )}
+                              
+                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                                 <Chip
-                                  label={`${service.benefits.length} lợi ích`}
+                                  icon={<ShoppingCartIcon />}
+                                  label={formatCurrency(service.effectivePrice)}
                                   size="small"
-                                  variant="outlined"
                                   sx={{
-                                    borderColor: 'var(--color-secondary)',
-                                    color: 'var(--color-secondary)',
-                                    fontWeight: 600
+                                    backgroundColor: 'var(--color-primary)',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    fontSize: '0.85rem',
+                                    height: 28
                                   }}
                                 />
+                                {service.benefits && service.benefits.length > 0 && (
+                                  <Chip
+                                    label={`${service.benefits.length} lợi ích`}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{
+                                      borderColor: 'var(--color-secondary)',
+                                      color: 'var(--color-secondary)',
+                                      fontWeight: 600
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                              
+                              {isPast && (
+                                <Alert 
+                                  severity="info" 
+                                  icon={<Info />}
+                                  sx={{ 
+                                    mt: 2,
+                                    fontSize: '0.85rem',
+                                    '& .MuiAlert-icon': {
+                                      fontSize: '1.2rem'
+                                    }
+                                  }}
+                                >
+                                  Lịch học này đã qua, không thể mua dịch vụ bổ sung
+                                </Alert>
                               )}
                             </Box>
+                            
+                            {service.isActive && !isPast && (
+                              <Button
+                                variant="contained"
+                                startIcon={<ShoppingCartIcon />}
+                                onClick={() => handleOrderClick(service)}
+                                sx={{
+                                  textTransform: 'none',
+                                  borderRadius: 'var(--radius-lg)',
+                                  background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
+                                  boxShadow: 'var(--shadow-sm)',
+                                  fontWeight: 600,
+                                  px: 2.5,
+                                  '&:hover': {
+                                    background: 'linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary) 100%)',
+                                    boxShadow: 'var(--shadow-md)',
+                                    transform: 'translateY(-2px)'
+                                  }
+                                }}
+                              >
+                                Mua ngay
+                              </Button>
+                            )}
                           </Box>
-                          
-                          {service.isActive && (
-                            <Button
-                              variant="contained"
-                              startIcon={<ShoppingCartIcon />}
-                              onClick={() => handleOrderClick(service)}
-                              sx={{
-                                textTransform: 'none',
-                                borderRadius: 'var(--radius-lg)',
-                                background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
-                                boxShadow: 'var(--shadow-sm)',
-                                fontWeight: 600,
-                                px: 2.5,
-                                '&:hover': {
-                                  background: 'linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary) 100%)',
-                                  boxShadow: 'var(--shadow-md)',
-                                  transform: 'translateY(-2px)'
-                                }
-                              }}
-                            >
-                              Mua ngay
-                            </Button>
-                          )}
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ));
+                  })()}
                 </Box>
               ) : (
                 <Box 
