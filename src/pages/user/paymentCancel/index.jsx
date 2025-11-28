@@ -84,7 +84,6 @@ const PaymentCancel = () => {
               severity: 'success'
             });
           } catch (cancelError) {
-            console.error('Error canceling deposit:', cancelError);
             // Vẫn hiển thị trang cancel dù API có lỗi
             addNotification({
               message: 'Thanh toán đã bị hủy. Bạn có thể thử lại bất cứ lúc nào.',
@@ -105,7 +104,6 @@ const PaymentCancel = () => {
           status: status || code || 'cancelled'
         });
       } catch (error) {
-        console.error('Payment cancel error:', error);
         setIsValid(true);
         setPaymentInfo({
           orderCode: orderCode || 'N/A',

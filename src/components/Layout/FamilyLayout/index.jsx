@@ -14,7 +14,11 @@ import {
   School as BookIcon,
   Notifications as BellIcon,
   Person as ProfileIcon,
-  Lock as LockIcon
+  Lock as LockIcon,
+  AccountBalance as FinanceIcon,
+  Wallet as MainWalletIcon,
+  ChildCare as ChildrenWalletIcon,
+  History as TransactionHistoryIcon
 } from '@mui/icons-material';
 
 const FamilyLayout = () => {
@@ -39,9 +43,26 @@ const FamilyLayout = () => {
       icon: ChildIcon
     },
     {
-      path: '/family/wallet',
-      label: 'Ví',
-      icon: WalletIcon
+      groupKey: 'finance',
+      label: 'Tài chính',
+      icon: FinanceIcon,
+      children: [
+        {
+          path: '/family/finance/main-wallet',
+          label: 'Ví chính',
+          icon: MainWalletIcon
+        },
+        {
+          path: '/family/finance/children-wallet',
+          label: 'Ví con',
+          icon: ChildrenWalletIcon
+        },
+        {
+          path: '/family/finance/transaction-history',
+          label: 'Lịch sử giao dịch',
+          icon: TransactionHistoryIcon
+        }
+      ]
     },
     {
       path: '/family/notifications',

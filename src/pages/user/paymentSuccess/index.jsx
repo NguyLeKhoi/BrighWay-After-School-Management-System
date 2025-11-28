@@ -96,7 +96,6 @@ const PaymentSuccess = () => {
           severity: 'success'
         });
       } catch (error) {
-        console.error('Payment verification error:', error);
         // Even if verification fails, if we have orderCode/depositId/code from PayOS redirect,
         // we can still show success page (backend webhook will handle verification)
         // This is because PayOS redirects here only after successful payment

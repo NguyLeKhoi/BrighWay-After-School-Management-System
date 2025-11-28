@@ -26,7 +26,9 @@ import CreateChild from '../pages/user/children/CreateChild';
 import ChildProfile from '../pages/user/children/ChildProfile';
 import ChildSchedule from '../pages/user/children/ChildSchedule';
 import ChildScheduleDetail from '../pages/user/children/ChildSchedule/ChildScheduleDetail';
-import MyWallet from '../pages/user/wallet';
+import MainWallet from '../pages/user/finance/MainWallet';
+import ChildrenWallet from '../pages/user/finance/ChildrenWallet';
+import TransactionHistory from '../pages/user/finance/TransactionHistory';
 import MyPackages from '../pages/user/packages';
 import Notifications from '../pages/user/notifications';
 import PaymentSuccess from '../pages/user/paymentSuccess';
@@ -196,8 +198,16 @@ export const routes = createBrowserRouter([
         element: <MySchedule />,
       },
       {
-        path: 'wallet',
-        element: <MyWallet />,
+        path: 'finance/main-wallet',
+        element: <MainWallet />,
+      },
+      {
+        path: 'finance/children-wallet',
+        element: <ChildrenWallet />,
+      },
+      {
+        path: 'finance/transaction-history',
+        element: <TransactionHistory />,
       },
       {
         path: 'packages',

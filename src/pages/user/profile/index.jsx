@@ -245,7 +245,6 @@ const UserProfile = () => {
       });
       setAvatarFile(null);
     } catch (err) {
-      console.error('Error loading user data:', err);
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải thông tin tài khoản';
       setError(errorMessage);
       showGlobalError(errorMessage);
@@ -329,7 +328,6 @@ const UserProfile = () => {
         severity: 'success'
       });
     } catch (err) {
-      console.error('Update error:', err);
       const errorMessage = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Có lỗi xảy ra khi cập nhật thông tin';
       showGlobalError(errorMessage);
       addNotification({

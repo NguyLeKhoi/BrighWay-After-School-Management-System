@@ -122,7 +122,6 @@ const ChildScheduleDetail = () => {
         return 'upcoming'; // Sắp tới
       }
     } catch (error) {
-      console.error('Error parsing slot time:', error);
       return 'upcoming';
     }
   };
@@ -178,7 +177,6 @@ const ChildScheduleDetail = () => {
         const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin';
         setError(errorMessage);
         showGlobalError(errorMessage);
-        console.error('Error loading data:', err);
       } finally {
         setLoading(false);
       }
@@ -216,7 +214,6 @@ const ChildScheduleDetail = () => {
         ? err
         : err?.message || err?.error || 'Không thể tải danh sách dịch vụ';
       setServicesError(errorMessage);
-      console.error('Error loading services:', err);
     } finally {
       setIsLoadingServices(false);
     }
@@ -243,7 +240,6 @@ const ChildScheduleDetail = () => {
         ? err
         : err?.message || err?.error || 'Không thể tải hoạt động';
       setActivitiesError(errorMessage);
-      console.error('Error loading activities:', err);
     } finally {
       setIsLoadingActivities(false);
     }

@@ -85,14 +85,12 @@ const UserDashboard = () => {
         return 'upcoming';
       }
     } catch (error) {
-      console.error('Error parsing slot time:', error);
       return 'upcoming';
     }
   };
 
   const loadUpcomingSchedules = async (children) => {
     if (!children || children.length === 0) {
-      console.log('No children to load schedules for');
       setUpcomingSchedules([]);
       return;
     }
@@ -118,19 +116,12 @@ const UserDashboard = () => {
             const totalCount = response?.totalCount || 0;
             const totalPages = response?.totalPages || Math.ceil(totalCount / pageSize);
             
-            console.log(`Child ${child.name}: Found ${items.length} slots, total: ${totalCount}`);
-            
             // Lọc lấy lịch đang diễn ra và sắp tới (không lấy lịch đã qua)
             const upcomingItems = items.filter(slot => {
               const timeType = getSlotTimeType(slot);
               const isUpcoming = timeType === 'upcoming' || timeType === 'current';
-              if (isUpcoming) {
-                console.log(`Found upcoming slot: ${slot.id}, type: ${timeType}, date: ${slot.branchSlot?.date || slot.date}`);
-              }
               return isUpcoming;
             });
-            
-            console.log(`Child ${child.name}: ${upcomingItems.length} upcoming slots`);
             
             // Thêm thông tin child vào mỗi slot
             upcomingItems.forEach(slot => {
@@ -148,7 +139,7 @@ const UserDashboard = () => {
             }
           }
         } catch (error) {
-          console.error(`Error loading schedules for child ${child.id}:`, error);
+          // Skip this child if error loading schedules
         }
       }
       
@@ -160,10 +151,8 @@ const UserDashboard = () => {
       });
       
       // Chỉ lấy 5 lịch sắp tới gần nhất
-      console.log('Upcoming schedules loaded:', allUpcomingSlots.length);
       setUpcomingSchedules(allUpcomingSlots.slice(0, 5));
     } catch (error) {
-      console.error('Error loading upcoming schedules:', error);
       setUpcomingSchedules([]);
     }
   };
@@ -185,7 +174,6 @@ const UserDashboard = () => {
         const balance = wallet?.balance ?? 0;
         setStats(prev => ({ ...prev, walletBalance: balance }));
       } catch (error) {
-        console.error('Error loading wallet:', error);
         setStats(prev => ({ ...prev, walletBalance: 0 }));
       }
 
@@ -198,12 +186,12 @@ const UserDashboard = () => {
             const subs = Array.isArray(subscriptions) ? subscriptions : (subscriptions?.items || []);
             totalPackages += subs.length;
           } catch (error) {
-            console.error(`Error loading packages for child ${child.id}:`, error);
+            // Skip this child if error loading packages
           }
         }
         setStats(prev => ({ ...prev, packagesCount: totalPackages }));
       } catch (error) {
-        console.error('Error loading packages:', error);
+        // Silent fail
       }
 
       // Load unread notifications count
@@ -215,7 +203,7 @@ const UserDashboard = () => {
         const unreadCount = notifs.filter(n => !n.isRead).length;
         setStats(prev => ({ ...prev, unreadNotifications: unreadCount }));
       } catch (error) {
-        console.error('Error loading notifications:', error);
+        // Silent fail
       }
 
       // Load upcoming schedules for all children
@@ -225,7 +213,6 @@ const UserDashboard = () => {
         setUpcomingSchedules([]);
       }
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
       showGlobalError('Không thể tải dữ liệu dashboard');
     } finally {
       hideLoading();

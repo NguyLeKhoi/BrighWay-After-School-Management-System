@@ -111,7 +111,6 @@ const ChildProfile = () => {
         const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin trẻ em';
         setError(errorMessage);
         showGlobalError(errorMessage);
-        console.error('Error fetching child:', err);
         
         // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
         if (err?.response?.status === 403 || err?.response?.status === 404) {
@@ -156,7 +155,6 @@ const ChildProfile = () => {
         const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin trẻ em';
         setError(errorMessage);
         showGlobalError(errorMessage);
-        console.error('Error fetching child:', err);
       } finally {
         setLoading(false);
       }
