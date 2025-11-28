@@ -35,7 +35,9 @@ const DataTable = ({
   onDelete,
   emptyMessage = "Không có dữ liệu",
   showActions = true,
-  expandableConfig = null
+  expandableConfig = null,
+  getRowClassName = null,
+  getRowSx = null
 }) => {
   const [expandedRows, setExpandedRows] = React.useState({});
 
@@ -106,9 +108,12 @@ const DataTable = ({
               );
               const isExpanded = expandedRows[rowId] || false;
 
+              const rowClassName = getRowClassName ? getRowClassName(item, index) : '';
+              const rowSx = getRowSx ? getRowSx(item, index) : {};
+
               return (
                 <React.Fragment key={rowId}>
-                  <TableRow hover>
+                  <TableRow hover className={rowClassName} sx={rowSx}>
                     {expandable && (
                       <TableCell padding="checkbox">
                         <IconButton

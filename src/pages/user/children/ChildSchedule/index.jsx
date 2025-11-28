@@ -22,7 +22,12 @@ const ChildSchedule = () => {
   const { showGlobalError, addNotification } = useApp();
   const [child, setChild] = useState(null);
   const [scheduleData, setScheduleData] = useState([]);
-  const [rawSlots, setRawSlots] = useState([]);
+  const [rawSlots, setRawSlots] = useState({
+    past: [],
+    current: [],
+    upcoming: [],
+    all: []
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'schedule'
@@ -31,6 +36,61 @@ const ChildSchedule = () => {
   const getStatusColor = (status) => {
     // Tất cả events đều dùng màu teal
     return 'var(--color-primary)';
+  };
+
+  // Xác định loại lịch: past, current, upcoming
+  const getSlotTimeType = (slot) => {
+    const dateValue = slot.branchSlot?.date || slot.date;
+    const timeframe = slot.timeframe || slot.timeFrame;
+    
+    if (!dateValue || !timeframe) return 'upcoming';
+    
+    try {
+      // Parse date và time
+      const dateStr = extractDateString(dateValue);
+      const startTime = timeframe.startTime || '00:00:00';
+      const endTime = timeframe.endTime || '00:00:00';
+      
+      const formatTime = (time) => {
+        if (!time) return '00:00:00';
+        if (time.length === 5) return time + ':00';
+        return time;
+      };
+      
+      const formattedStartTime = formatTime(startTime);
+      const formattedEndTime = formatTime(endTime);
+      
+      // Tạo datetime objects (UTC+7)
+      const startDateTime = new Date(`${dateStr}T${formattedStartTime}+07:00`);
+      const endDateTime = new Date(`${dateStr}T${formattedEndTime}+07:00`);
+      const now = new Date();
+      
+      // So sánh với thời gian hiện tại
+      if (endDateTime < now) {
+        return 'past'; // Đã qua
+      } else if (startDateTime <= now && now <= endDateTime) {
+        return 'current'; // Đang diễn ra
+      } else {
+        return 'upcoming'; // Sắp tới
+      }
+    } catch (error) {
+      console.error('Error parsing slot time:', error);
+      return 'upcoming';
+    }
+  };
+
+  // Màu sắc cho từng loại lịch
+  const getTimeTypeColor = (timeType) => {
+    switch (timeType) {
+      case 'past':
+        return '#9e9e9e'; // Gray - đã qua
+      case 'current':
+        return '#ff9800'; // Orange - đang diễn ra
+      case 'upcoming':
+        return 'var(--color-primary)'; // Teal - sắp tới
+      default:
+        return 'var(--color-primary)';
+    }
   };
 
   // Chuyển đổi student slot từ API sang format FullCalendar
@@ -96,16 +156,20 @@ const ChildSchedule = () => {
     // Title sẽ được custom render trong eventContent
     const title = `${timeDisplay} ${roomName}`;
 
+    // Xác định loại lịch (past, current, upcoming)
+    const timeType = getSlotTimeType(slot);
+    const timeTypeColor = getTimeTypeColor(timeType);
+
     return {
       id: slot.id,
       title: title, // Title cho fallback, sẽ custom trong eventContent
       start: startDateTime,
       end: endDateTime,
-      backgroundColor: backgroundColor,
-      borderColor: backgroundColor,
+      backgroundColor: timeTypeColor,
+      borderColor: timeTypeColor,
       textColor: 'white', // Chữ màu trắng
       display: 'block', // Hiển thị full trong slot
-      classNames: ['custom-event'], // Thêm class để có thể style thêm
+      classNames: ['custom-event', `event-${timeType}`], // Thêm class để có thể style thêm
       extendedProps: {
         status: status,
         roomName: roomName,
@@ -116,7 +180,8 @@ const ChildSchedule = () => {
         staffs: slot.staffs || [],
         staffNames: staffNames,
         parentName: slot.parentName || '',
-        timeDisplay: timeDisplay
+        timeDisplay: timeDisplay,
+        timeType: timeType // Thêm timeType vào extendedProps
       }
     };
   };
@@ -160,6 +225,60 @@ const ChildSchedule = () => {
     }
   };
 
+  // Hàm helper để load tất cả các trang
+  const fetchAllStudentSlots = async (childId) => {
+    const allSlots = [];
+    let pageIndex = 1;
+    const pageSize = 100; // Kích thước trang hợp lý
+    let hasMore = true;
+    let totalCount = 0;
+    let totalPages = 0;
+
+    while (hasMore) {
+      const response = await studentSlotService.getStudentSlots({
+        StudentId: childId,
+        pageIndex: pageIndex,
+        pageSize: pageSize
+      });
+
+      const items = response?.items || [];
+      
+      // Lấy totalCount và totalPages từ response (nếu có)
+      if (pageIndex === 1) {
+        totalCount = response?.totalCount || 0;
+        totalPages = response?.totalPages;
+        
+        // Nếu không có totalPages, tính toán từ totalCount
+        if (!totalPages && totalCount > 0) {
+          totalPages = Math.ceil(totalCount / pageSize);
+        }
+      }
+
+      if (items.length > 0) {
+        allSlots.push(...items);
+      }
+
+      // Kiểm tra xem còn trang nào không
+      // Nếu có totalPages, dùng nó để kiểm tra
+      if (totalPages > 0) {
+        if (pageIndex >= totalPages) {
+          hasMore = false;
+        } else {
+          pageIndex++;
+        }
+      } else {
+        // Nếu không có totalPages, kiểm tra dựa vào số items trả về
+        if (items.length < pageSize) {
+          hasMore = false;
+        } else {
+          pageIndex++;
+        }
+      }
+    }
+
+    return allSlots;
+  };
+
   const fetchSchedule = async () => {
     if (!childId) return;
 
@@ -180,19 +299,48 @@ const ChildSchedule = () => {
         return;
       }
 
-      // Lấy tất cả student slots của trẻ em này
-      const response = await studentSlotService.getStudentSlots({
-        StudentId: childId,
-        pageIndex: 1,
-        pageSize: 1000 // Lấy nhiều để có đủ dữ liệu
-      });
-
-      const slots = response?.items || [];
+      // Lấy tất cả student slots của trẻ em này (load tất cả các trang)
+      const slots = await fetchAllStudentSlots(childId);
       const events = slots
         .map(transformSlotToEvent)
         .filter(Boolean); // Loại bỏ các event null
 
-      setRawSlots(slots);
+      // Phân loại slots theo thời gian
+      const now = new Date();
+      const pastSlots = [];
+      const currentSlots = [];
+      const upcomingSlots = [];
+
+      slots.forEach(slot => {
+        const timeType = getSlotTimeType(slot);
+        if (timeType === 'past') {
+          pastSlots.push(slot);
+        } else if (timeType === 'current') {
+          currentSlots.push(slot);
+        } else {
+          upcomingSlots.push(slot);
+        }
+      });
+
+      // Sắp xếp: past (mới nhất trước), current, upcoming (sớm nhất trước)
+      pastSlots.sort((a, b) => {
+        const dateA = new Date(a.branchSlot?.date || a.date || 0);
+        const dateB = new Date(b.branchSlot?.date || b.date || 0);
+        return dateB - dateA; // Mới nhất trước
+      });
+
+      upcomingSlots.sort((a, b) => {
+        const dateA = new Date(a.branchSlot?.date || a.date || 0);
+        const dateB = new Date(b.branchSlot?.date || b.date || 0);
+        return dateA - dateB; // Sớm nhất trước
+      });
+
+      setRawSlots({
+        past: pastSlots,
+        current: currentSlots,
+        upcoming: upcomingSlots,
+        all: slots // Giữ lại để dùng cho calendar view và các tính toán khác
+      });
       setScheduleData(events);
     } catch (err) {
       const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải lịch học';
@@ -270,6 +418,19 @@ const ChildSchedule = () => {
       return time.substring(0, 5);
     };
 
+    const getTimeTypeLabel = (timeType) => {
+      switch (timeType) {
+        case 'past':
+          return 'Đã qua';
+        case 'current':
+          return 'Đang diễn ra';
+        case 'upcoming':
+          return 'Sắp tới';
+        default:
+          return '';
+      }
+    };
+
     return [
       {
         key: 'date',
@@ -281,7 +442,23 @@ const ChildSchedule = () => {
         ),
         render: (value, item) => {
           const dateValue = item.branchSlot?.date || item.date;
-          return dateValue ? formatDateOnlyUTC7(dateValue) : 'Chưa xác định';
+          const timeType = getSlotTimeType(item);
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {dateValue ? formatDateOnlyUTC7(dateValue) : 'Chưa xác định'}
+              <Chip
+                label={getTimeTypeLabel(timeType)}
+                size="small"
+                sx={{
+                  height: 20,
+                  fontSize: '0.7rem',
+                  backgroundColor: getTimeTypeColor(timeType),
+                  color: 'white',
+                  fontWeight: 600
+                }}
+              />
+            </Box>
+          );
         }
       },
       {
@@ -522,19 +699,149 @@ const ChildSchedule = () => {
 
         {/* Table List View */}
         {viewMode === 'card' && (
-          <Box>
-            <DataTable
-              data={rawSlots}
-              columns={tableColumns}
-              loading={loading}
-              emptyMessage="Chưa có lịch chăm sóc nào được đăng ký cho trẻ em này."
-              showActions={true}
-              onEdit={handleCardClick}
-              onDelete={null}
-              page={0}
-              rowsPerPage={rawSlots.length}
-              totalCount={rawSlots.length}
-            />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Lịch đang diễn ra */}
+            <Box>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  mb: 2,
+                  fontFamily: 'var(--font-family-heading)',
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: '#ff9800',
+                    boxShadow: '0 0 8px rgba(255, 152, 0, 0.6)'
+                  }}
+                />
+                Đang diễn ra
+              </Typography>
+              <DataTable
+                data={rawSlots.current}
+                columns={tableColumns}
+                loading={false}
+                emptyMessage="Chưa có lịch đang diễn ra"
+                showActions={rawSlots.current.length > 0}
+                onEdit={handleCardClick}
+                onDelete={null}
+                page={0}
+                rowsPerPage={rawSlots.current.length || 10}
+                totalCount={rawSlots.current.length}
+                getRowSx={(item) => {
+                  return {
+                    borderLeft: '4px solid #ff9800',
+                    backgroundColor: 'rgba(255, 152, 0, 0.05)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 152, 0, 0.1)'
+                    }
+                  };
+                }}
+              />
+            </Box>
+
+            {/* Lịch sắp tới */}
+            <Box>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  mb: 2,
+                  fontFamily: 'var(--font-family-heading)',
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--color-primary)'
+                  }}
+                />
+                Sắp tới
+              </Typography>
+              <DataTable
+                data={rawSlots.upcoming}
+                columns={tableColumns}
+                loading={false}
+                emptyMessage="Chưa có lịch sắp tới"
+                showActions={rawSlots.upcoming.length > 0}
+                onEdit={handleCardClick}
+                onDelete={null}
+                page={0}
+                rowsPerPage={rawSlots.upcoming.length || 10}
+                totalCount={rawSlots.upcoming.length}
+                getRowSx={(item) => {
+                  return {
+                    borderLeft: '4px solid var(--color-primary)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(92, 189, 185, 0.1)'
+                    }
+                  };
+                }}
+              />
+            </Box>
+
+            {/* Lịch đã qua */}
+            <Box>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  mb: 2,
+                  fontFamily: 'var(--font-family-heading)',
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: '#9e9e9e'
+                  }}
+                />
+                Đã qua
+              </Typography>
+              <DataTable
+                data={rawSlots.past}
+                columns={tableColumns}
+                loading={false}
+                emptyMessage="Chưa có lịch đã qua"
+                showActions={rawSlots.past.length > 0}
+                onEdit={handleCardClick}
+                onDelete={null}
+                page={0}
+                rowsPerPage={rawSlots.past.length || 10}
+                totalCount={rawSlots.past.length}
+                getRowSx={(item) => {
+                  return {
+                    borderLeft: '4px solid #9e9e9e',
+                    backgroundColor: 'rgba(158, 158, 158, 0.05)',
+                    opacity: 0.8,
+                    '&:hover': {
+                      backgroundColor: 'rgba(158, 158, 158, 0.1)',
+                      opacity: 1
+                    }
+                  };
+                }}
+              />
+            </Box>
           </Box>
         )}
 
