@@ -256,8 +256,8 @@ const ChildSchedule = () => {
         // Nếu không có totalPages, tính toán từ totalCount
         if (!totalPages && totalCount > 0) {
           totalPages = Math.ceil(totalCount / pageSize);
-        }
       }
+    }
 
       if (items.length > 0) {
         allSlots.push(...items);

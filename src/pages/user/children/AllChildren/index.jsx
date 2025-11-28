@@ -232,9 +232,7 @@ const ChildrenList = () => {
                   formatDate(child.createdTime) ? { label: 'Ngày tham gia', value: formatDate(child.createdTime) } : null
                 ].filter(Boolean)}
                 actions={[
-                  { text: 'Xem Profile', primary: false, onClick: () => navigate(`/user/management/children/${child.id}/profile`) },
-                  { text: 'Lịch học', primary: false, onClick: () => navigate(`/user/management/schedule/${child.id}`) },
-                  { text: 'Mua gói', primary: true, onClick: () => navigate(`/user/management/packages/${child.id}`) }
+                  { text: 'Xem Profile', primary: false, onClick: () => navigate(`/user/management/children/${child.id}/profile`) }
                 ]}
                 onDelete={() => setDeleteConfirmDialog({ open: true, child })}
               />

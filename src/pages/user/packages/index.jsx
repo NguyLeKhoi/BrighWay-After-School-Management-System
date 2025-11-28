@@ -48,7 +48,7 @@ const MyPackages = () => {
   const isInitialMount = useRef(true);
   const selectedStudentId = childId || searchParams.get('studentId');
   const tabFromUrl = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState(tabFromUrl && ['available', 'purchased'].includes(tabFromUrl) ? tabFromUrl : 'available');
+  const [activeTab, setActiveTab] = useState(tabFromUrl && ['available', 'purchased'].includes(tabFromUrl) ? tabFromUrl : 'purchased');
   const [availablePackages, setAvailablePackages] = useState([]);
   const [purchasedPackages, setPurchasedPackages] = useState([]);
   const [services, setServices] = useState([]);
@@ -801,8 +801,8 @@ const MyPackages = () => {
   };
 
   const tabs = [
-    { id: 'available', label: `Các gói (${availablePackages.length})` },
-    { id: 'purchased', label: `Gói đã mua (${purchasedPackages.length})` }
+    { id: 'purchased', label: `Gói đã mua (${purchasedPackages.length})` },
+    { id: 'available', label: `Gói dịch vụ (${availablePackages.length})` }
   ];
 
   const renderPackageCard = (pkg, isPurchased = false) => (
