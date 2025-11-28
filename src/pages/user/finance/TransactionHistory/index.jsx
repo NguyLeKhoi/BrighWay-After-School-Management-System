@@ -67,7 +67,7 @@ const TransactionHistory = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     pageIndex: 1,
-    pageSize: 20,
+    pageSize: 10,
     totalPages: 1,
     totalCount: 0
   });
@@ -135,7 +135,7 @@ const TransactionHistory = () => {
     return walletType === 'Parent' ? 'Ví chính' : 'Ví con';
   };
 
-  const loadTransactions = async (pageIndex = 1, pageSize = 20) => {
+  const loadTransactions = async (pageIndex = 1, pageSize = 10) => {
     setIsLoading(true);
     setError(null);
 
@@ -185,7 +185,7 @@ const TransactionHistory = () => {
 
   useEffect(() => {
     showLoading();
-    loadTransactions(1, 20).finally(() => {
+    loadTransactions(1, 10).finally(() => {
       hideLoading();
     });
   }, []);
@@ -738,6 +738,22 @@ const TransactionHistory = () => {
           </Paper>
         ) : (
           <>
+            {/* Pagination - Top */}
+            {pagination.totalPages > 1 && (
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Typography variant="body2" color="text.secondary">
+                  Hiển thị {transactions.length} / {pagination.totalCount} giao dịch
+                </Typography>
+                <Pagination
+                  count={pagination.totalPages}
+                  page={pagination.pageIndex}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="large"
+                />
+              </Box>
+            )}
+
             <Box display="flex" flexDirection="column" gap={2} mb={3}>
               {transactions.map((transaction) => {
                 const typeInfo = getTransactionTypeInfo(transaction.type);
@@ -901,9 +917,12 @@ const TransactionHistory = () => {
               })}
             </Box>
 
-            {/* Pagination */}
+            {/* Pagination - Bottom */}
             {pagination.totalPages > 1 && (
-              <Box display="flex" justifyContent="center" mt={4}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mt={4}>
+                <Typography variant="body2" color="text.secondary">
+                  Hiển thị {transactions.length} / {pagination.totalCount} giao dịch
+                </Typography>
                 <Pagination
                   count={pagination.totalPages}
                   page={pagination.pageIndex}
@@ -914,12 +933,14 @@ const TransactionHistory = () => {
               </Box>
             )}
 
-            {/* Total Count */}
-            <Box display="flex" justifyContent="center" mt={2}>
-              <Typography variant="body2" color="text.secondary">
-                Hiển thị {transactions.length} / {pagination.totalCount} giao dịch
-              </Typography>
-            </Box>
+            {/* Total Count - Only show if no pagination */}
+            {pagination.totalPages <= 1 && (
+              <Box display="flex" justifyContent="center" mt={2}>
+                <Typography variant="body2" color="text.secondary">
+                  Hiển thị {transactions.length} / {pagination.totalCount} giao dịch
+                </Typography>
+              </Box>
+            )}
           </>
         )}
 
