@@ -19,34 +19,24 @@ import styles from './UserManagement.module.css';
 // Table columns definition
 const createUserColumns = () => [
   {
-    id: 'name',
-    label: 'Tên',
-    minWidth: 150,
+    key: 'name',
+    header: 'Tên',
     align: 'left'
   },
   {
-    id: 'email',
-    label: 'Email',
-    minWidth: 200,
+    key: 'email',
+    header: 'Email',
     align: 'left'
   },
   {
-    id: 'createdAt',
-    label: 'Ngày tạo',
-    minWidth: 120,
+    key: 'createdAt',
+    header: 'Ngày tạo',
     align: 'left',
-    format: (value) => {
+    render: (value) => {
       if (!value) return '—';
       const date = new Date(value);
       return date.toLocaleDateString('vi-VN');
     }
-  },
-  {
-    id: 'actions',
-    label: 'Thao tác',
-    minWidth: 120,
-    align: 'center',
-    sortable: false
   }
 ];
 

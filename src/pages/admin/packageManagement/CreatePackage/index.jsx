@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { Box, Typography, Autocomplete, TextField, Checkbox, ListItemText, CircularProgress } from '@mui/material';
+import { Box, Typography, Autocomplete, TextField, Checkbox, ListItemText, CircularProgress, Button } from '@mui/material';
 import { ShoppingCart as PackageIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import StepperForm from '../../../../components/Common/StepperForm';
@@ -9,7 +9,12 @@ import packageTemplateService from '../../../../services/packageTemplate.service
 import usePackageDependencies from '../../../../hooks/usePackageDependencies';
 import Form from '../../../../components/Common/Form';
 import { createPackageFormFields } from '../../../../definitions/package/formFields';
-import { packageSchema } from '../../../../utils/validationSchemas/packageSchemas';
+import { 
+  packageSchema, 
+  packageStep1BasicSchema, 
+  packageStep2AssociationsSchema, 
+  packageStep3PricingSchema 
+} from '../../../../utils/validationSchemas/packageSchemas';
 import { toast } from 'react-toastify';
 
 // Step 1: Basic info (no benefits here)
@@ -87,7 +92,7 @@ const Step1PackageBasic = forwardRef(({ data, updateData }, ref) => {
       <Form
         ref={formRef}
         key={`create-package-step`}
-        schema={packageSchema}
+        schema={packageStep1BasicSchema}
         defaultValues={data.packageForm || {}}
         onSubmit={handleSubmit}
         hideSubmitButton
@@ -104,30 +109,17 @@ const Step2Associations = forwardRef(({ data, updateData }, ref) => {
   const {
     studentLevelOptions,
     branchOptions,
-    loading: dependenciesLoading
+    loading: dependenciesLoading,
+    error: dependenciesError,
+    fetchDependencies
   } = usePackageDependencies();
-  const [templateOptions, setTemplateOptions] = useState([]);
-  const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loading, setLoading] = useState(false);
   const formRef = React.useRef(null);
 
-  // Fetch templates on mount
+  // Fetch dependencies on mount
   useEffect(() => {
-    const fetchTemplates = async () => {
-      setLoadingTemplates(true);
-      try {
-        const templates = await packageTemplateService.getAllTemplates();
-        setTemplateOptions(templates || []);
-      } catch (err) {
-        console.error('Error fetching templates:', err);
-        setTemplateOptions([]);
-        toast.error('Không thể tải danh sách mẫu gói');
-      } finally {
-        setLoadingTemplates(false);
-      }
-    };
-    fetchTemplates();
-  }, []);
+    fetchDependencies();
+  }, [fetchDependencies]);
 
   useImperativeHandle(ref, () => ({
     async submit() {
@@ -138,20 +130,19 @@ const Step2Associations = forwardRef(({ data, updateData }, ref) => {
     }
   }));
 
-  const templateSelectOptions = useMemo(() => (templateOptions || []).map(t => ({ value: t.id, label: t.name })), [templateOptions]);
-  const branchSelectOptions = useMemo(() => (branchOptions || []).map(b => ({ value: b.id, label: b.branchName })), [branchOptions]);
+  const branchSelectOptions = useMemo(() => (branchOptions || []).map(b => ({ value: b.id, label: b.name || b.branchName })), [branchOptions]);
   const studentLevelSelectOptions = useMemo(() => (studentLevelOptions || []).map(s => ({ value: s.id, label: s.name })), [studentLevelOptions]);
   const fields = useMemo(() => {
     return createPackageFormFields({
       packageActionLoading: loading,
       dependenciesLoading,
-      loadingTemplates,
-      templateSelectOptions,
+      loadingTemplates: false,
+      templateSelectOptions: [],
       branchSelectOptions,
       studentLevelSelectOptions,
       benefitSelectOptions: []
-    }).filter(f => ['packageTemplateId', 'branchId', 'studentLevelId'].includes(f.name));
-  }, [loading, dependenciesLoading, loadingTemplates, templateSelectOptions, branchSelectOptions, studentLevelSelectOptions]);
+    }).filter(f => ['branchId', 'studentLevelId'].includes(f.name));
+  }, [loading, dependenciesLoading, branchSelectOptions, studentLevelSelectOptions]);
 
   const handleSubmit = async (values) => {
     // just carry forward associations
@@ -159,17 +150,31 @@ const Step2Associations = forwardRef(({ data, updateData }, ref) => {
     return true;
   };
 
+  // Show error if dependencies failed to load
+  if (dependenciesError) {
+    return (
+      <Box>
+        <Typography color="error" sx={{ mb: 2 }}>
+          {dependenciesError}
+        </Typography>
+        <Button variant="outlined" onClick={fetchDependencies}>
+          Thử lại
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <Form
         ref={formRef}
         key={`package-assoc`}
-        schema={packageSchema}
+        schema={packageStep2AssociationsSchema}
         defaultValues={data.packageForm || {}}
         onSubmit={handleSubmit}
         hideSubmitButton
-        loading={loading || dependenciesLoading || loadingTemplates}
-        disabled={loading || dependenciesLoading || loadingTemplates}
+        loading={loading || dependenciesLoading}
+        disabled={loading || dependenciesLoading}
         fields={fields}
       />
     </Box>
@@ -220,7 +225,7 @@ const Step3PricingSlots = forwardRef(({ data, updateData }, ref) => {
       <Form
         ref={formRef}
         key={`package-pricing`}
-        schema={packageSchema}
+        schema={packageStep3PricingSchema}
         defaultValues={data.packageForm || {}}
         onSubmit={handleSubmit}
         hideSubmitButton

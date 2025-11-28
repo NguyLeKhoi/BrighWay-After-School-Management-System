@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   ChildCare as ChildIcon,
   Inventory as PackageIcon,
@@ -43,7 +43,9 @@ const getFieldWithFallback = (source, candidates, defaultValue = 0) => {
 const MyPackages = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isInitialMount = useRef(true);
+  const selectedStudentId = searchParams.get('studentId');
   const [activeTab, setActiveTab] = useState('available');
   const [availablePackages, setAvailablePackages] = useState([]);
   const [purchasedPackages, setPurchasedPackages] = useState([]);
@@ -106,14 +108,28 @@ const MyPackages = () => {
       
       setHasChildren(true);
 
-      // Fetch suitable packages for each child
-      const packagesPromises = children.map(child => 
+      // If studentId is provided in query params, filter by that student's branch
+      let targetChildren = children;
+      let targetBranchId = null;
+      let targetBranchName = null;
+
+      if (selectedStudentId) {
+        const selectedChild = children.find(child => child.id === selectedStudentId);
+        if (selectedChild) {
+          targetChildren = [selectedChild];
+          targetBranchId = selectedChild.branchId || selectedChild.branch?.id;
+          targetBranchName = selectedChild.branchName || selectedChild.branch?.branchName;
+        }
+      }
+
+      // Fetch suitable packages for target children
+      const packagesPromises = targetChildren.map(child => 
         packageService.getSuitablePackages(child.id)
       );
 
       const packagesArrays = await Promise.all(packagesPromises);
       
-      // Flatten and remove duplicates by package ID
+      // Flatten and remove duplicates by package ID, filter by branch if needed
       const allPackages = [];
       const seenPackageIds = new Set();
       
@@ -122,6 +138,14 @@ const MyPackages = () => {
           packages.forEach(pkg => {
             // Only add if we haven't seen this package ID before
             if (!seenPackageIds.has(pkg.id)) {
+              // If filtering by branch, check if package belongs to that branch
+              if (targetBranchId) {
+                const pkgBranchId = pkg.branchId || pkg.branch?.id;
+                if (pkgBranchId && pkgBranchId !== targetBranchId) {
+                  return; // Skip packages from different branches
+                }
+              }
+
               seenPackageIds.add(pkg.id);
               
               // Map API response to component format
@@ -153,8 +177,14 @@ const MyPackages = () => {
                 durationInMonths,
                 totalSlots,
                 branch: pkg.branch 
-                  ? { branchName: pkg.branch.branchName || pkg.branchName || '' }
-                  : { branchName: pkg.branchName || '' },
+                  ? { 
+                      id: pkg.branch.id || pkg.branchId,
+                      branchName: pkg.branch.branchName || pkg.branchName || '' 
+                    }
+                  : { 
+                      id: pkg.branchId,
+                      branchName: pkg.branchName || '' 
+                    },
                 studentLevel: pkg.studentLevel 
                   ? { levelName: pkg.studentLevel.name || pkg.studentLevel.levelName || '' } 
                   : { levelName: pkg.studentLevelName || '' },
@@ -179,7 +209,7 @@ const MyPackages = () => {
     } finally {
       setIsLoadingAvailable(false);
     }
-  }, [showGlobalError]);
+  }, [showGlobalError, selectedStudentId]);
 
   // Load purchased packages (subscriptions) from API
   const loadPurchasedPackages = useCallback(async () => {
@@ -444,7 +474,7 @@ const MyPackages = () => {
     loadChildren();
   }, []);
 
-  // Reload data when navigate back to this page
+  // Reload data when navigate back to this page or when studentId changes
   useEffect(() => {
     if (location.pathname === '/family/packages') {
       // Skip first mount to avoid double loading
@@ -458,7 +488,7 @@ const MyPackages = () => {
       loadChildren();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [location.pathname, selectedStudentId]);
 
   // Handle buy package
   const handleBuyClick = (pkg) => {
@@ -949,7 +979,11 @@ const MyPackages = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Các gói dịch vụ</h1>
-          <p className={styles.subtitle}>Xem và quản lý các gói dịch vụ của bạn</p>
+          <p className={styles.subtitle}>
+            {selectedStudentId && children.length > 0
+              ? `Gói dịch vụ cho ${children.find(c => c.id === selectedStudentId)?.name || 'học sinh'} - Chi nhánh ${children.find(c => c.id === selectedStudentId)?.branchName || ''}`
+              : 'Xem và quản lý các gói dịch vụ của bạn'}
+          </p>
         </div>
 
         <Tabs
