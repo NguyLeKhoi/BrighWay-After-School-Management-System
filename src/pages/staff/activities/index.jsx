@@ -23,13 +23,10 @@ import {
   Select,
   MenuItem,
   Divider,
-  CircularProgress,
   Pagination,
-  Stack
+  Collapse
 } from '@mui/material';
 import {
-  Event as EventIcon,
-  Person as PersonIcon,
   AccessTime as TimeIcon,
   Image as ImageIcon,
   Edit as EditIcon,
@@ -39,20 +36,23 @@ import {
   VisibilityOff as VisibilityOffIcon,
   FilterList as FilterIcon,
   School as SchoolIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import activityService from '../../../services/activity.service';
 import activityTypeService from '../../../services/activityType.service';
 import studentSlotService from '../../../services/studentSlot.service';
 import imageService from '../../../services/image.service';
 import { useLoading } from '../../../hooks/useLoading';
-import Loading from '../../../components/Common/Loading';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import ImageUpload from '../../../components/Common/ImageUpload';
+import PageWrapper from '../../../components/Common/PageWrapper';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
 import { toast } from 'react-toastify';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import styles from './activities.module.css';
 
 const StaffActivities = () => {
   // Activities data
@@ -431,132 +431,194 @@ const StaffActivities = () => {
   };
 
   return (
-    <>
-      {isLoading && <Loading />}
-      <div className={styles.activitiesPage}>
-        <div className={styles.container}>
-          {/* Header with Filters */}
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>
-              Hoạt Động
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <Button
-                variant={showFilters ? 'contained' : 'outlined'}
-                startIcon={<FilterIcon />}
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                Bộ lọc
-              </Button>
-            </Box>
-          </Box>
+    <PageWrapper>
+      {isLoading && <ContentLoading isLoading={isLoading} text="Đang tải hoạt động..." />}
+      <Box
+        sx={{
+          padding: { xs: 2, sm: 3, md: 4 },
+          maxWidth: '1400px',
+          margin: '0 auto',
+          minHeight: '100vh',
+          background: 'var(--bg-secondary)'
+        }}
+      >
+        {/* Header */}
+        <ManagementPageHeader
+          title="Quản lý Hoạt Động"
+        >
+          <Button
+            variant={showFilters ? 'contained' : 'outlined'}
+            startIcon={showFilters ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            onClick={() => setShowFilters(!showFilters)}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 2,
+              fontWeight: 600
+            }}
+          >
+            {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
+          </Button>
+        </ManagementPageHeader>
 
-          {/* Filters Panel */}
-          {showFilters && (
-            <Paper sx={{ p: 3, mb: 3, backgroundColor: 'background.paper' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <TextField
-                    fullWidth
-                    label="Tìm kiếm"
-                    placeholder="Nhập từ khóa..."
-                    value={filters.Keyword}
-                    onChange={(e) => handleFilterChange('Keyword', e.target.value)}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Loại hoạt động</InputLabel>
-                    <Select
-                      value={filters.ActivityTypeId}
-                      onChange={(e) => handleFilterChange('ActivityTypeId', e.target.value)}
-                      label="Loại hoạt động"
-                    >
-                      <MenuItem value="">Tất cả</MenuItem>
-                      {activityTypes.map((type) => (
-                        <MenuItem key={type.id} value={type.id}>
-                          {type.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Slot học</InputLabel>
-                    <Select
-                      value={filters.StudentSlotId}
-                      onChange={(e) => handleFilterChange('StudentSlotId', e.target.value)}
-                      label="Slot học"
-                      disabled={loadingSlots}
-                    >
-                      <MenuItem value="">Tất cả</MenuItem>
-                      {studentSlots.map((slot) => (
-                        <MenuItem key={slot.id} value={slot.id}>
-                          {slot.studentName || slot.student?.name || 'Không tên'} - {formatDate(slot.date)}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Trạng thái xem</InputLabel>
-                    <Select
-                      value={filters.IsViewed}
-                      onChange={(e) => handleFilterChange('IsViewed', e.target.value)}
-                      label="Trạng thái xem"
-                    >
-                      <MenuItem value="">Tất cả</MenuItem>
-                      <MenuItem value="true">Đã xem</MenuItem>
-                      <MenuItem value="false">Chưa xem</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <TextField
-                    fullWidth
-                    label="Từ ngày"
-                    type="date"
-                    value={filters.FromDate}
-                    onChange={(e) => handleFilterChange('FromDate', e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <TextField
-                    fullWidth
-                    label="Đến ngày"
-                    type="date"
-                    value={filters.ToDate}
-                    onChange={(e) => handleFilterChange('ToDate', e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Button variant="outlined" onClick={clearFilters} size="small">
-                    Xóa bộ lọc
-                  </Button>
-                </Grid>
+        {/* Filters Panel */}
+        <Collapse in={showFilters}>
+          <Paper 
+            sx={{ 
+              p: 3, 
+              mb: 3, 
+              backgroundColor: 'var(--bg-primary)',
+              borderRadius: 'var(--radius-xl)',
+              boxShadow: 'var(--shadow-sm)',
+              border: '1px solid var(--border-light)'
+            }}
+          >
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Tìm kiếm"
+                  placeholder="Nhập từ khóa..."
+                  value={filters.Keyword}
+                  onChange={(e) => handleFilterChange('Keyword', e.target.value)}
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 'var(--radius-lg)'
+                    }
+                  }}
+                />
               </Grid>
-            </Paper>
-          )}
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Loại hoạt động</InputLabel>
+                  <Select
+                    value={filters.ActivityTypeId}
+                    onChange={(e) => handleFilterChange('ActivityTypeId', e.target.value)}
+                    label="Loại hoạt động"
+                    sx={{
+                      borderRadius: 'var(--radius-lg)'
+                    }}
+                  >
+                    <MenuItem value="">Tất cả</MenuItem>
+                    {activityTypes.map((type) => (
+                      <MenuItem key={type.id} value={type.id}>
+                        {type.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Slot học</InputLabel>
+                  <Select
+                    value={filters.StudentSlotId}
+                    onChange={(e) => handleFilterChange('StudentSlotId', e.target.value)}
+                    label="Slot học"
+                    disabled={loadingSlots}
+                    sx={{
+                      borderRadius: 'var(--radius-lg)'
+                    }}
+                  >
+                    <MenuItem value="">Tất cả</MenuItem>
+                    {studentSlots.map((slot) => (
+                      <MenuItem key={slot.id} value={slot.id}>
+                        {slot.studentName || slot.student?.name || 'Không tên'} - {formatDate(slot.date)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Trạng thái xem</InputLabel>
+                  <Select
+                    value={filters.IsViewed}
+                    onChange={(e) => handleFilterChange('IsViewed', e.target.value)}
+                    label="Trạng thái xem"
+                    sx={{
+                      borderRadius: 'var(--radius-lg)'
+                    }}
+                  >
+                    <MenuItem value="">Tất cả</MenuItem>
+                    <MenuItem value="true">Đã xem</MenuItem>
+                    <MenuItem value="false">Chưa xem</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Từ ngày"
+                  type="date"
+                  value={filters.FromDate}
+                  onChange={(e) => handleFilterChange('FromDate', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 'var(--radius-lg)'
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Đến ngày"
+                  type="date"
+                  value={filters.ToDate}
+                  onChange={(e) => handleFilterChange('ToDate', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 'var(--radius-lg)'
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button 
+                  variant="outlined" 
+                  onClick={clearFilters} 
+                  size="small"
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    fontWeight: 600
+                  }}
+                >
+                  Xóa bộ lọc
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Collapse>
 
-          {/* Activities Grid */}
-          {error ? (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          ) : activities.length === 0 && !isLoading ? (
-            <Alert severity="info">
-              Chưa có hoạt động nào được tạo.
-            </Alert>
-          ) : (
-            <>
-              <Grid container spacing={3}>
+        {/* Activities Grid */}
+        {error ? (
+          <Alert 
+            severity="error" 
+            sx={{ 
+              mb: 3,
+              borderRadius: 'var(--radius-lg)'
+            }}
+          >
+            {error}
+          </Alert>
+        ) : activities.length === 0 && !isLoading ? (
+          <Alert 
+            severity="info"
+            sx={{
+              borderRadius: 'var(--radius-lg)'
+            }}
+          >
+            Chưa có hoạt động nào được tạo.
+          </Alert>
+        ) : (
+          <>
+            <Grid container spacing={3}>
                 {activities.map((activity) => {
                   const slot = slotInfo(activity);
                   return (
@@ -569,8 +631,10 @@ const StaffActivities = () => {
                           flexDirection: 'column',
                           borderRadius: 'var(--radius-xl)',
                           border: '1px solid var(--border-light)',
+                          backgroundColor: 'var(--bg-primary)',
                           transition: 'all 0.3s ease',
                           cursor: 'pointer',
+                          boxShadow: 'var(--shadow-sm)',
                           '&:hover': {
                             transform: 'translateY(-4px)',
                             boxShadow: 'var(--shadow-lg)',
@@ -772,29 +836,53 @@ const StaffActivities = () => {
                 })}
               </Grid>
 
-              {/* Pagination */}
-              {pagination.totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                  <Pagination
-                    count={pagination.totalPages}
-                    page={pagination.pageIndex}
-                    onChange={handlePageChange}
-                    color="primary"
-                    size="large"
-                  />
-                </Box>
-              )}
-
-              {/* Pagination Info */}
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Hiển thị {activities.length} / {pagination.totalCount} hoạt động
-                </Typography>
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  mt: 4,
+                  mb: 2
+                }}
+              >
+                <Pagination
+                  count={pagination.totalPages}
+                  page={pagination.pageIndex}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="large"
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      borderRadius: 'var(--radius-md)'
+                    }
+                  }}
+                />
               </Box>
-            </>
-          )}
-        </div>
-      </div>
+            )}
+
+            {/* Pagination Info */}
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                mt: 2,
+                mb: 2
+              }}
+            >
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{
+                  fontFamily: 'var(--font-family-primary)'
+                }}
+              >
+                Hiển thị {activities.length} / {pagination.totalCount} hoạt động
+              </Typography>
+            </Box>
+          </>
+        )}
+      </Box>
 
       {/* Detail Dialog */}
       <Dialog 
@@ -802,18 +890,49 @@ const StaffActivities = () => {
         onClose={handleCloseDetailDialog}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 'var(--radius-xl)'
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle
+          sx={{
+            backgroundColor: 'var(--bg-primary)',
+            borderBottom: '1px solid var(--border-light)'
+          }}
+        >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" component="div">
+            <Typography 
+              variant="h6" 
+              component="div"
+              sx={{
+                fontFamily: 'var(--font-family-heading)',
+                fontWeight: 600
+              }}
+            >
               Chi tiết Hoạt Động
             </Typography>
-            <IconButton onClick={handleCloseDetailDialog} size="small">
+            <IconButton 
+              onClick={handleCloseDetailDialog} 
+              size="small"
+              sx={{
+                color: 'text.secondary',
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent
+          sx={{
+            backgroundColor: 'var(--bg-primary)',
+            pt: 3
+          }}
+        >
           {selectedActivity && (() => {
             const slot = slotInfo(selectedActivity);
             return (
@@ -953,8 +1072,23 @@ const StaffActivities = () => {
             );
           })()}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDetailDialog} variant="contained">
+        <DialogActions
+          sx={{
+            backgroundColor: 'var(--bg-primary)',
+            borderTop: '1px solid var(--border-light)',
+            px: 3,
+            py: 2
+          }}
+        >
+          <Button 
+            onClick={handleCloseDetailDialog} 
+            variant="contained"
+            sx={{
+              textTransform: 'none',
+              borderRadius: 'var(--radius-lg)',
+              fontWeight: 600
+            }}
+          >
             Đóng
           </Button>
         </DialogActions>
@@ -966,18 +1100,49 @@ const StaffActivities = () => {
         onClose={handleCloseEditDialog}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 'var(--radius-xl)'
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle
+          sx={{
+            backgroundColor: 'var(--bg-primary)',
+            borderBottom: '1px solid var(--border-light)'
+          }}
+        >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" component="div">
+            <Typography 
+              variant="h6" 
+              component="div"
+              sx={{
+                fontFamily: 'var(--font-family-heading)',
+                fontWeight: 600
+              }}
+            >
               Sửa Hoạt Động
             </Typography>
-            <IconButton onClick={handleCloseEditDialog} size="small">
+            <IconButton 
+              onClick={handleCloseEditDialog} 
+              size="small"
+              sx={{
+                color: 'text.secondary',
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent
+          sx={{
+            backgroundColor: 'var(--bg-primary)',
+            pt: 3
+          }}
+        >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
             {/* Activity Type Selection */}
             <FormControl fullWidth required>
@@ -1056,10 +1221,22 @@ const StaffActivities = () => {
             )}
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions
+          sx={{
+            backgroundColor: 'var(--bg-primary)',
+            borderTop: '1px solid var(--border-light)',
+            px: 3,
+            py: 2
+          }}
+        >
           <Button 
             onClick={handleCloseEditDialog} 
             disabled={submitting}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 'var(--radius-lg)',
+              fontWeight: 600
+            }}
           >
             Hủy
           </Button>
@@ -1067,6 +1244,11 @@ const StaffActivities = () => {
             onClick={handleSubmitEdit} 
             variant="contained"
             disabled={submitting || !editForm.activityTypeId}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 'var(--radius-lg)',
+              fontWeight: 600
+            }}
           >
             {submitting ? 'Đang cập nhật...' : 'Cập nhật'}
           </Button>
@@ -1085,7 +1267,7 @@ const StaffActivities = () => {
         confirmColor="error"
         highlightText={selectedActivity?.activityType?.name}
       />
-    </>
+    </PageWrapper>
   );
 };
 
