@@ -26,7 +26,7 @@ const StaffLayout = () => {
   const menuItems = [
     {
       path: '/staff/dashboard',
-      label: 'Dashboard',
+      label: 'Tổng quan',
       icon: DashboardIcon
     },
     {
