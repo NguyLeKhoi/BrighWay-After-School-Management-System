@@ -17,7 +17,11 @@ import {
   School as StudentLevelIcon,
   ShoppingCart as PackageIcon,
   AccountBalance as SchoolIcon,
-  People as PeopleIcon
+  People as PeopleIcon,
+  Group as GroupIcon,
+  BusinessCenter as SystemIcon,
+  LocationCity as BranchGroupIcon,
+  LocalOffer as ServiceIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -36,53 +40,78 @@ const AdminLayout = () => {
       icon: DashboardIcon
     },
     {
-      path: '/admin/staffAndManager',
-      label: 'Nhân Viên',
-      icon: UserIcon
+      groupKey: 'user-management',
+      label: 'Quản lý Người dùng',
+      icon: GroupIcon,
+      children: [
+        {
+          path: '/admin/staffAndManager',
+          label: 'Nhân Viên',
+          icon: UserIcon
+        },
+        {
+          path: '/admin/users',
+          label: 'Người Dùng',
+          icon: PeopleIcon
+        }
+      ]
     },
     {
-      path: '/admin/users',
-      label: 'Người Dùng',
-      icon: PeopleIcon
+      groupKey: 'system-management',
+      label: 'Quản lý Hệ thống',
+      icon: SystemIcon,
+      children: [
+        {
+          path: '/admin/schools',
+          label: 'Trường',
+          icon: SchoolIcon
+        },
+        {
+          path: '/admin/student-levels',
+          label: 'Cấp Độ Học Sinh',
+          icon: StudentLevelIcon
+        }
+      ]
     },
     {
-      path: '/admin/schools',
-      label: 'Trường',
-      icon: SchoolIcon
+      groupKey: 'branch-management',
+      label: 'Quản lý Chi nhánh',
+      icon: BranchGroupIcon,
+      children: [
+        {
+          path: '/admin/branches',
+          label: 'Chi Nhánh',
+          icon: BranchIcon
+        },
+        {
+          path: '/admin/facilities',
+          label: 'Cơ Sở Vật Chất',
+          icon: FacilityIcon
+        },
+        {
+          path: '/admin/rooms',
+          label: 'Phòng Học',
+          icon: RoomIcon
+        }
+      ]
     },
     {
-      path: '/admin/student-levels',
-      label: 'Cấp Độ Học Sinh',
-      icon: StudentLevelIcon
-    },
-    {
-      path: '/admin/branches',
-      label: 'Chi Nhánh',
-      icon: BranchIcon
-    },
-    {
-      path: '/admin/facilities',
-      label: 'Cơ Sở Vật Chất',
-      icon: FacilityIcon
-    },
-    {
-      path: '/admin/rooms',
-      label: 'Phòng Học',
-      icon: RoomIcon
-    },
-    {
-      path: '/admin/packages',
-      label: 'Gói Bán',
-      icon: PackageIcon
-    },
-    {
-      path: '/admin/benefits',
-      label: 'Lợi Ích',
-      icon: BenefitIcon
-    },
-   
-   
-    
+      groupKey: 'service-management',
+      label: 'Quản lý Dịch vụ',
+      icon: ServiceIcon,
+      children: [
+        {
+          path: '/admin/packages',
+          label: 'Gói Bán',
+          icon: PackageIcon
+        },
+        {
+          path: '/admin/benefits',
+          label: 'Lợi Ích',
+          icon: BenefitIcon
+        }
+      ]
+    }
   ];
 
   return (
