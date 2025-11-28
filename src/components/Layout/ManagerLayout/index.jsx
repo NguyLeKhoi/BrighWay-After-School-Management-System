@@ -36,20 +36,20 @@ const ManagerLayout = () => {
       label: 'Quản lý Người dùng',
       icon: PeopleGroupIcon,
       children: [
-        {
-          path: '/manager/staff',
-          label: 'Nhân Viên',
-          icon: UserIcon
-        },
-        {
-          path: '/manager/parents',
-          label: 'Người dùng',
-          icon: ParentIcon
-        },
-        {
-          path: '/manager/students',
-          label: 'Học Sinh',
-          icon: StudentIcon
+    {
+      path: '/manager/staff',
+      label: 'Nhân Viên',
+      icon: UserIcon
+    },
+    {
+      path: '/manager/parents',
+      label: 'Người dùng',
+      icon: ParentIcon
+    },
+    {
+      path: '/manager/students',
+      label: 'Học Sinh',
+      icon: StudentIcon
         }
       ]
     },
@@ -58,20 +58,20 @@ const ManagerLayout = () => {
       label: 'Quản lý Cơ sở & Dịch vụ',
       icon: FacilityServiceIcon,
       children: [
-        {
-          path: '/manager/rooms',
-          label: 'Phòng Học',
-          icon: RoomIcon
-        },
+    {
+      path: '/manager/rooms',
+      label: 'Phòng Học',
+      icon: RoomIcon
+    },
         {
           path: '/manager/branch-slots',
           label: 'Ca Học',
           icon: BranchSlotIcon
         },
-        {
-          path: '/manager/packages',
-          label: 'Gói dịch vụ',
-          icon: CoursesIcon
+    {
+      path: '/manager/packages',
+      label: 'Gói dịch vụ',
+      icon: CoursesIcon
         }
       ]
     }

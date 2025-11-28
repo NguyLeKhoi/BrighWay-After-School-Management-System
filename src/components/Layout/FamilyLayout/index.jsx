@@ -7,6 +7,7 @@ import UserHeader from '../../Headers/UserHeader';
 import PageTransition from '../../Common/PageTransition';
 import {
   Person as PersonIcon,
+  Dashboard as DashboardIcon,
   ChildCare as ChildIcon,
   EventAvailable as ScheduleIcon,
   AccountBalanceWallet as WalletIcon,
@@ -16,11 +17,6 @@ import {
 
 const FamilyLayout = () => {
   const navigate = useNavigate();
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(true);
-
-  const handleToggleDrawer = () => {
-    setIsDrawerOpen((prev) => !prev);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -30,6 +26,11 @@ const FamilyLayout = () => {
   };
 
   const menuItems = [
+    {
+      path: '/family/dashboard',
+      label: 'Dashboard',
+      icon: DashboardIcon
+    },
     {
       path: '/family/children',
       label: 'Con cái',
@@ -50,7 +51,7 @@ const FamilyLayout = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: '64px' }}>
       {/* Header */}
-      <UserHeader onToggleDrawer={handleToggleDrawer} isDrawerOpen={isDrawerOpen} />
+      <UserHeader />
 
       <Box sx={{ display: 'flex' }}>
         {/* Generic Drawer */}
@@ -59,8 +60,6 @@ const FamilyLayout = () => {
           subtitle="Family Portal"
           menuItems={menuItems}
           onLogout={handleLogout}
-          isOpen={isDrawerOpen}
-          onToggle={handleToggleDrawer}
         />
 
         {/* Main Content */}

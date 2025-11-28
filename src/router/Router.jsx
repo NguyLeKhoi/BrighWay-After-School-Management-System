@@ -17,6 +17,7 @@ import Contact from '../pages/main/Contact';
 import Login from '../pages/auth/Login';
 
 // useruser Pages
+import UserDashboard from '../pages/user/dashboard';
 import FamilyProfile from '../pages/user/profile';
 import ChangePassword from '../pages/user/changePassword';
 import MySchedule from '../pages/user/schedule';
@@ -24,6 +25,7 @@ import ChildrenList from '../pages/user/children/AllChildren';
 import CreateChild from '../pages/user/children/CreateChild';
 import ChildProfile from '../pages/user/children/ChildProfile';
 import ChildSchedule from '../pages/user/children/ChildSchedule';
+import ChildScheduleDetail from '../pages/user/children/ChildSchedule/ChildScheduleDetail';
 import MyWallet from '../pages/user/wallet';
 import MyPackages from '../pages/user/packages';
 import Notifications from '../pages/user/notifications';
@@ -154,7 +156,11 @@ export const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <ChildrenList />,
+        element: <UserDashboard />,
+      },
+      {
+        path: 'dashboard',
+        element: <UserDashboard />,
       },
       {
         path: 'profile',
@@ -179,6 +185,10 @@ export const routes = createBrowserRouter([
       {
         path: 'children/:childId/schedule',
         element: <ChildSchedule />,
+      },
+      {
+        path: 'children/:childId/schedule/:slotId',
+        element: <ChildScheduleDetail />,
       },
       {
         path: 'children/:childId/schedule/register',

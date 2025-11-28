@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import {
   Edit as EditIcon,
+  Visibility as VisibilityIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
@@ -133,9 +134,9 @@ const DataTable = ({
                               size="small"
                               color="primary"
                               onClick={() => handleEdit(item)}
-                              title="Chỉnh sửa"
+                              title="Xem chi tiết"
                             >
-                              <EditIcon fontSize="small" />
+                              <VisibilityIcon fontSize="small" />
                             </IconButton>
                           )}
                           {onDelete && (

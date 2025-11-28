@@ -125,7 +125,7 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
           id: slot.id,
           branchName: slot.branch?.branchName || slot.branchName || '',
           weekDay: slot.weekDate,
-          status: slot.status || 'Available',
+          status: slot.status || 'Khả dụng',
           timeframeName: slot.timeframe?.name || slot.timeframeName || '',
           startTime: slot.timeframe?.startTime || slot.startTime,
           endTime: slot.timeframe?.endTime || slot.endTime,
@@ -294,7 +294,7 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
                     slot.status?.toLowerCase() === 'available' ? styles.active : styles.pending
                   }`}
                 >
-                  {slot.status || 'Available'}
+                  {slot.status || 'Khả dụng'}
                 </span>
               </div>
 

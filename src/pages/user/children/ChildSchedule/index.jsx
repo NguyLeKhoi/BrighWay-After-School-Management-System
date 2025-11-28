@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Box, CircularProgress, Alert, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Divider, Paper, Chip } from '@mui/material';
-import { ArrowBack, Add } from '@mui/icons-material';
-import { toast } from 'react-toastify';
+import { Box, CircularProgress, Alert, Typography, Button, Paper, Chip, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ArrowBack, Add, ViewList, CalendarMonth, CalendarToday, AccessTime, MeetingRoom, Business, Person, CheckCircle } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
+import DataTable from '../../../../components/Common/DataTable';
 import studentService from '../../../../services/student.service';
 import studentSlotService from '../../../../services/studentSlot.service';
 import { useApp } from '../../../../contexts/AppContext';
-import { extractDateString, formatDateTimeUTC7 } from '../../../../utils/dateHelper';
+import { extractDateString, formatDateOnlyUTC7 } from '../../../../utils/dateHelper';
 import styles from './ChildSchedule.module.css';
 
 const ChildSchedule = () => {
@@ -19,13 +19,13 @@ const ChildSchedule = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isInitialMount = useRef(true);
-  const { showGlobalError } = useApp();
+  const { showGlobalError, addNotification } = useApp();
   const [child, setChild] = useState(null);
   const [scheduleData, setScheduleData] = useState([]);
+  const [rawSlots, setRawSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('card'); // 'card' or 'schedule'
 
   // Màu sắc cho các trạng thái khác nhau - sử dụng màu teal cho tất cả
   const getStatusColor = (status) => {
@@ -50,7 +50,7 @@ const ChildSchedule = () => {
     // Parse date string từ UTC+7 (BE timezone) để tránh timezone issues
     const dateStr = extractDateString(dateValue);
     if (!dateStr) {
-      return null;
+        return null;
     }
     
     // Lấy startTime và endTime từ timeframe
@@ -192,6 +192,7 @@ const ChildSchedule = () => {
         .map(transformSlotToEvent)
         .filter(Boolean); // Loại bỏ các event null
 
+      setRawSlots(slots);
       setScheduleData(events);
     } catch (err) {
       const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải lịch học';
@@ -236,14 +237,130 @@ const ChildSchedule = () => {
   // Event handlers cho FullCalendar
   const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
-    setSelectedEvent(event);
-    setDetailDialogOpen(true);
+    const slotId = event.id;
+    navigate(`/family/children/${childId}/schedule/${slotId}`);
+  };
+
+  // Handler cho card click
+  const handleCardClick = (slot) => {
+    const slotId = slot.id;
+    navigate(`/family/children/${childId}/schedule/${slotId}`);
+  };
+
+  // Handler cho view mode change
+  const handleViewModeChange = (event, newMode) => {
+    if (newMode !== null) {
+      setViewMode(newMode);
+    }
+  };
+
+
+  // Define columns for DataTable
+  const tableColumns = useMemo(() => {
+    const statusLabels = {
+      'Booked': 'Đã đăng ký',
+      'Confirmed': 'Đã xác nhận',
+      'Cancelled': 'Đã hủy',
+      'Completed': 'Đã hoàn thành',
+      'Pending': 'Chờ xử lý'
     };
 
-  const handleCloseDetailDialog = () => {
-    setDetailDialogOpen(false);
-    setSelectedEvent(null);
-  };
+    const formatTimeDisplay = (time) => {
+      if (!time) return '00:00';
+      return time.substring(0, 5);
+    };
+
+    return [
+      {
+        key: 'date',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CalendarToday fontSize="small" />
+            <span>Ngày</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          const dateValue = item.branchSlot?.date || item.date;
+          return dateValue ? formatDateOnlyUTC7(dateValue) : 'Chưa xác định';
+        }
+      },
+      {
+        key: 'time',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AccessTime fontSize="small" />
+            <span>Giờ</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          const timeframe = item.timeframe || item.timeFrame;
+          if (!timeframe) return 'Chưa xác định';
+          return `${formatTimeDisplay(timeframe.startTime)}-${formatTimeDisplay(timeframe.endTime)}`;
+        }
+      },
+      {
+        key: 'room',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <MeetingRoom fontSize="small" />
+            <span>Phòng</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          return item.room?.roomName || item.roomName || item.branchSlot?.roomName || 'Chưa xác định';
+        }
+      },
+      {
+        key: 'branch',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Business fontSize="small" />
+            <span>Chi nhánh</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          return item.branchSlot?.branchName || item.branchName || 'Chưa xác định';
+        }
+      },
+      {
+        key: 'staffs',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Person fontSize="small" />
+            <span>Nhân viên</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          const staffNames = (item.staffs || []).map(s => s.staffName || s.name || '').filter(Boolean);
+          return staffNames.length > 0 ? staffNames.join(', ') : 'Chưa có';
+        }
+      },
+      {
+        key: 'status',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CheckCircle fontSize="small" />
+            <span>Trạng thái</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          const status = item.status || 'Booked';
+          return (
+            <Chip
+              label={statusLabels[status] || status}
+              size="small"
+              sx={{
+                backgroundColor: getStatusColor(status),
+                color: 'white',
+                fontWeight: 600
+              }}
+            />
+          );
+        }
+      }
+    ];
+  }, []);
+
 
   // Ngăn chặn drag & drop và các thao tác chỉnh sửa
   const handleDateSelect = () => {
@@ -297,9 +414,8 @@ const ChildSchedule = () => {
           sx={{
             padding: 3,
             marginBottom: 3,
-            background: 'linear-gradient(135deg, var(--color-primary-50) 0%, var(--bg-primary) 100%)',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--border-light)'
+            backgroundColor: 'transparent',
+            boxShadow: 'none'
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
@@ -307,16 +423,17 @@ const ChildSchedule = () => {
               <Button
                 startIcon={<ArrowBack />}
                 onClick={handleBack}
-                variant="outlined"
+                variant="contained"
                 sx={{
                   borderRadius: 'var(--radius-lg)',
                   textTransform: 'none',
                   fontFamily: 'var(--font-family)',
-                  borderColor: 'var(--border-light)',
-                  color: 'var(--text-primary)',
+                  background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
+                  boxShadow: 'var(--shadow-sm)',
                   '&:hover': {
-                    borderColor: 'var(--color-primary)',
-                    backgroundColor: 'var(--color-primary-50)'
+                    background: 'linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary) 100%)',
+                    boxShadow: 'var(--shadow-md)',
+                    transform: 'translateY(-2px)'
                   }
                 }}
               >
@@ -359,6 +476,12 @@ const ChildSchedule = () => {
                 </Box>
               </Box>
             </Box>
+          </Box>
+        </Paper>
+
+        {/* Action Buttons and View Mode Toggle */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <Button
               startIcon={<Add />}
               variant="contained"
@@ -379,20 +502,55 @@ const ChildSchedule = () => {
               Đăng ký ca chăm sóc
             </Button>
           </Box>
-        </Paper>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            aria-label="chế độ xem"
+            size="small"
+          >
+            <ToggleButton value="card" aria-label="xem danh sách">
+              <ViewList sx={{ mr: 1 }} />
+              Danh sách
+            </ToggleButton>
+            <ToggleButton value="schedule" aria-label="xem lịch">
+              <CalendarMonth sx={{ mr: 1 }} />
+              Lịch
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
 
-        {/* FullCalendar Component */}
-        <Paper 
-          elevation={0}
-          sx={{
-            padding: 2,
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--border-light)',
-            backgroundColor: 'transparent'
-          }}
-        >
-        <div className={styles.scheduleContainer}>
-          <FullCalendar
+        {/* Table List View */}
+        {viewMode === 'card' && (
+          <Box>
+            <DataTable
+              data={rawSlots}
+              columns={tableColumns}
+              loading={loading}
+              emptyMessage="Chưa có lịch chăm sóc nào được đăng ký cho trẻ em này."
+              showActions={true}
+              onEdit={handleCardClick}
+              onDelete={null}
+              page={0}
+              rowsPerPage={rawSlots.length}
+              totalCount={rawSlots.length}
+            />
+          </Box>
+        )}
+
+        {/* Schedule View */}
+        {viewMode === 'schedule' && (
+          <Paper 
+            elevation={0}
+            sx={{
+              padding: 2,
+              borderRadius: 'var(--radius-xl)',
+              border: '1px solid var(--border-light)',
+              backgroundColor: 'transparent'
+            }}
+          >
+            <div className={styles.scheduleContainer}>
+              <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             headerToolbar={{
@@ -512,154 +670,13 @@ const ChildSchedule = () => {
             />
           </div>
         </Paper>
+        )}
 
-        
-        {scheduleData.length === 0 && !loading && (
+        {viewMode === 'schedule' && scheduleData.length === 0 && !loading && (
           <Alert severity="info" sx={{ mt: 2 }}>
             Chưa có lịch chăm sóc nào được đăng ký cho trẻ em này.
           </Alert>
         )}
-
-        {/* Detail Dialog */}
-        <Dialog 
-          open={detailDialogOpen} 
-          onClose={handleCloseDetailDialog}
-          maxWidth="sm"
-          fullWidth
-        >
-          {selectedEvent && (() => {
-            const props = selectedEvent.extendedProps;
-            const startTime = formatDateTimeUTC7(selectedEvent.start, {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-            
-            const statusLabels = {
-              'Booked': 'Đã đăng ký',
-              'Confirmed': 'Đã xác nhận',
-              'Cancelled': 'Đã hủy',
-              'Completed': 'Đã hoàn thành',
-              'Pending': 'Chờ xử lý'
-            };
-
-            const timeframeName = props.timeframe?.name || 'Chưa xác định';
-            const startTimeOnly = props.timeframe?.startTime || '';
-            const endTimeOnly = props.timeframe?.endTime || '';
-
-            return (
-              <>
-                <DialogTitle>
-                  <Typography variant="h6" component="div">
-                    Chi tiết lịch học
-                  </Typography>
-                </DialogTitle>
-                <DialogContent>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                    {/* Thông tin cơ bản */}
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Ngày học
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {startTime}
-                      </Typography>
-                    </Box>
-
-                    <Divider />
-
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Phòng
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {props.roomName || 'Chưa xác định'}
-                      </Typography>
-                    </Box>
-
-                    <Divider />
-
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Khung giờ
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {timeframeName} ({startTimeOnly} - {endTimeOnly})
-                      </Typography>
-                    </Box>
-
-                    <Divider />
-
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Chi nhánh
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {props.branchName || 'Chưa xác định'}
-                      </Typography>
-                    </Box>
-
-                    <Divider />
-
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Trạng thái
-                      </Typography>
-                      <Typography 
-                        variant="body1" 
-                        fontWeight="medium"
-                        sx={{ 
-                          color: getStatusColor(props.status || 'Booked'),
-                          display: 'inline-block'
-                        }}
-                      >
-                        {statusLabels[props.status] || props.status || 'Chưa xác định'}
-                      </Typography>
-                    </Box>
-
-                    {props.staffs && props.staffs.length > 0 && (
-                      <>
-                        <Divider />
-                        <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                            Nhân viên chăm sóc
-                          </Typography>
-                          <Typography variant="body1" fontWeight="medium">
-                            {props.staffs.map((staff, index) => 
-                              staff.staffName || staff.name || 'Chưa xác định'
-                            ).join(', ')}
-                          </Typography>
-                        </Box>
-                      </>
-                    )}
-
-                    {props.parentNote && (
-                      <>
-                        <Divider />
-                        <Box>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                            Ghi chú
-                          </Typography>
-                          <Typography variant="body1">
-                            {props.parentNote}
-                          </Typography>
-                        </Box>
-                      </>
-                    )}
-                  </Box>
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleCloseDetailDialog} variant="contained">
-                    Đóng
-                  </Button>
-                </DialogActions>
-              </>
-            );
-          })()}
-        </Dialog>
       </div>
     </div>
   );

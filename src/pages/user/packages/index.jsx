@@ -45,7 +45,8 @@ const MyPackages = () => {
   const [searchParams] = useSearchParams();
   const isInitialMount = useRef(true);
   const selectedStudentId = searchParams.get('studentId');
-  const [activeTab, setActiveTab] = useState('available');
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabFromUrl && ['available', 'purchased'].includes(tabFromUrl) ? tabFromUrl : 'available');
   const [availablePackages, setAvailablePackages] = useState([]);
   const [purchasedPackages, setPurchasedPackages] = useState([]);
   const [services, setServices] = useState([]);
@@ -410,7 +411,7 @@ const MyPackages = () => {
       const mappedServices = items.map((service) => ({
         id: service.serviceId || service.id,
         name: service.name || 'Dịch vụ không tên',
-        type: service.serviceType || 'Add-on',
+        type: service.serviceType || 'Dịch vụ bổ sung',
         isActive: service.isActive !== false,
         description: service.description || service.desc || '',
         price: service.priceOverride ?? service.price ?? service.effectivePrice ?? 0,
@@ -452,6 +453,13 @@ const MyPackages = () => {
     loadServices();
     loadChildren();
   }, []);
+
+  // Update activeTab when tab query param changes
+  useEffect(() => {
+    if (tabFromUrl && ['available', 'purchased'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
 
   // Reload data when navigate back to this page or when studentId changes
   useEffect(() => {
@@ -705,8 +713,7 @@ const MyPackages = () => {
 
   const tabs = [
     { id: 'available', label: `Các gói (${availablePackages.length})` },
-    { id: 'purchased', label: `Gói đã mua (${purchasedPackages.length})` },
-    { id: 'services', label: `Dịch vụ (${services.length})` }
+    { id: 'purchased', label: `Gói đã mua (${purchasedPackages.length})` }
   ];
 
   const renderPackageCard = (pkg, isPurchased = false) => (
@@ -836,7 +843,7 @@ const MyPackages = () => {
       <div className={styles.packageInfo}>
         <div className={styles.infoRow}>
           <span className={styles.infoLabel}>Loại dịch vụ:</span>
-          <span className={styles.infoValue}>{service.type || 'Add-on'}</span>
+          <span className={styles.infoValue}>{service.type || 'Dịch vụ bổ sung'}</span>
         </div>
         <div className={styles.infoRow}>
           <span className={styles.infoLabel}>Giá:</span>
@@ -897,11 +904,11 @@ const MyPackages = () => {
       {isPageLoading && <ContentLoading isLoading={isPageLoading} text={loadingText} />}
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Các gói dịch vụ</h1>
+          <h1 className={styles.title}>Các gói</h1>
           <p className={styles.subtitle}>
             {selectedStudentId && children.length > 0
-              ? `Gói dịch vụ cho ${children.find(c => c.id === selectedStudentId)?.name || 'học sinh'} - Chi nhánh ${children.find(c => c.id === selectedStudentId)?.branchName || ''}`
-              : 'Xem và quản lý các gói dịch vụ của bạn'}
+              ? `Gói slot cho ${children.find(c => c.id === selectedStudentId)?.name || 'học sinh'} - Chi nhánh ${children.find(c => c.id === selectedStudentId)?.branchName || ''}`
+              : 'Xem và quản lý các gói của bạn'}
           </p>
         </div>
 
@@ -1048,35 +1055,6 @@ const MyPackages = () => {
           </div>
         )}
 
-        {/* Services Add-ons */}
-        {activeTab === 'services' && (
-          <div className={styles.packagesSection}>
-            {isLoadingServices ? (
-              <div className={styles.inlineLoading}>
-                <ContentLoading isLoading={true} text="Đang tải dịch vụ..." />
-              </div>
-            ) : servicesError ? (
-              <div className={styles.errorState}>
-                <p className={styles.errorMessage}>{servicesError}</p>
-                <button className={styles.retryButton} onClick={loadServices}>
-                  Thử lại
-                </button>
-              </div>
-            ) : services.length > 0 ? (
-              <div className={styles.packagesGrid}>
-                {services.map((service) => renderServiceCard(service))}
-              </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>
-                  <ServiceIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
-                </div>
-                <h3>Chưa có dịch vụ nào</h3>
-                <p>Hiện tại chi nhánh chưa cung cấp dịch vụ add-on nào cho phụ huynh.</p>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Buy Package Dialog */}
         <ManagementFormDialog
@@ -1300,7 +1278,7 @@ const MyPackages = () => {
               },
               ...(orderForm.childId && studentSlots.length > 0 ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học (Student Slot)',
+                label: 'Lịch học',
                 type: 'select',
                 required: true,
                 placeholder: '-- Chọn lịch học --',
@@ -1310,19 +1288,19 @@ const MyPackages = () => {
                 }))
               }] : orderForm.childId && isLoadingSlots ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học (Student Slot)',
+                label: 'Lịch học',
                 type: 'text',
                 disabled: true,
                 placeholder: 'Đang tải lịch học...'
               }] : orderForm.childId && slotsError ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học (Student Slot)',
+                label: 'Lịch học',
                 type: 'text',
                 disabled: true,
                 placeholder: slotsError
               }] : orderForm.childId ? [{
                 name: 'studentSlotId',
-                label: 'Lịch học (Student Slot)',
+                label: 'Lịch học',
                 type: 'text',
                 disabled: true,
                 placeholder: 'Chưa có lịch học nào. Vui lòng đặt lịch trước.'
