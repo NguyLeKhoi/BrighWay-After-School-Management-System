@@ -486,7 +486,7 @@ const MyPackages = () => {
   // Redirect if no childId
   useEffect(() => {
     if (!childId && !selectedStudentId) {
-      navigate('/family/management/packages');
+      navigate('/user/management/packages');
     }
   }, [childId, selectedStudentId, navigate]);
 
@@ -1034,7 +1034,7 @@ const MyPackages = () => {
                 <p>Bạn cần thêm thông tin trẻ em trước khi xem các gói dịch vụ. Các gói sẽ được hiển thị dựa trên thông tin trẻ em của bạn.</p>
                 <button 
                   className={styles.browseButton}
-                  onClick={() => navigate('/family/management/children/create')}
+                  onClick={() => navigate('/user/management/children/create')}
                 >
                   Thêm trẻ em ngay
                 </button>

@@ -87,7 +87,7 @@ const PackageCatalog = () => {
             // Redirect to login if not authenticated, or to family/services
             const user = localStorage.getItem('user');
             if (user) {
-              window.location.href = '/family/services';
+              window.location.href = '/user/services';
             } else {
               window.location.href = '/login';
             }

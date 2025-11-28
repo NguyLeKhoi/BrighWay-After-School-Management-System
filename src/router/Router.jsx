@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../components/Layout/MainLayout';
 import AuthLayout from '../components/Layout/AuthLayout';
-import FamilyLayout from '../components/Layout/FamilyLayout';
+import UserLayout from '../components/Layout/UserLayout';
 import AdminLayout from '../components/Layout/AdminLayout';
 import ManagerLayout from '../components/Layout/ManagerLayout';
 import StaffLayout from '../components/Layout/StaffLayout';
@@ -18,7 +18,7 @@ import Login from '../pages/auth/Login';
 
 // user Pages
 import UserDashboard from '../pages/user/dashboard';
-import FamilyProfile from '../pages/user/profile';
+import UserProfile from '../pages/user/profile';
 import ChangePassword from '../pages/common/ChangePassword';
 import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
@@ -152,10 +152,10 @@ export const routes = createBrowserRouter([
 
   // Parent Layout Routes (Parent Portal)
   {
-    path: '/family',
+    path: '/user',
     element: (
       <ProtectedRoute allowedRoles={['User']}>
-        <FamilyLayout />
+        <UserLayout />
       </ProtectedRoute>
     ),
     children: [
@@ -169,7 +169,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'profile',
-        element: <FamilyProfile />,
+        element: <UserProfile />,
       },
       {
         path: 'change-password',

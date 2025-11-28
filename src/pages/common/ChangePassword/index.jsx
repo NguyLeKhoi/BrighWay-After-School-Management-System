@@ -51,7 +51,7 @@ const getProfilePath = (role) => {
     return '/manager/profile';
   } else {
     // Default to family/profile for user or any other role
-    return '/family/profile';
+    return '/user/profile';
   }
 };
 

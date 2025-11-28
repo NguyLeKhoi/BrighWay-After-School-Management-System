@@ -16,7 +16,7 @@ import studentSlotService from '../../../services/studentSlot.service';
 import * as yup from 'yup';
 import styles from './Services.module.css';
 
-const FamilyServices = () => {
+const UserServices = () => {
   const location = useLocation();
   const isInitialMount = useRef(true);
   const [services, setServices] = useState([]);
@@ -71,7 +71,7 @@ const FamilyServices = () => {
 
   // Reload data when navigate back to this page
   useEffect(() => {
-    if (location.pathname === '/family/services') {
+    if (location.pathname === '/user/services') {
       // Skip first mount to avoid double loading
       if (isInitialMount.current) {
         isInitialMount.current = false;
@@ -757,5 +757,5 @@ const FamilyServices = () => {
   );
 };
 
-export default FamilyServices;
+export default UserServices;
 

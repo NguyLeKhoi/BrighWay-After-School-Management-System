@@ -146,7 +146,7 @@ const ChildScheduleDetail = () => {
         
         if (!childIds.includes(childId)) {
           setError('Bạn không có quyền xem thông tin này');
-          navigate(`/family/management/schedule/${childId}`);
+          navigate(`/user/management/schedule/${childId}`);
           return;
         }
 
@@ -166,7 +166,7 @@ const ChildScheduleDetail = () => {
 
         if (!foundSlot) {
           setError('Không tìm thấy lịch học này');
-          navigate(`/family/management/schedule/${childId}`);
+          navigate(`/user/management/schedule/${childId}`);
           return;
         }
 
@@ -385,7 +385,7 @@ const ChildScheduleDetail = () => {
   };
 
   const handleBack = () => {
-    navigate(`/family/children/${childId}/schedule`);
+    navigate(`/user/management/schedule/${childId}`);
   };
 
   if (loading) {

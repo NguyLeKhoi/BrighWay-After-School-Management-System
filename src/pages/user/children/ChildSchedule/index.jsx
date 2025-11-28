@@ -24,7 +24,7 @@ const ChildSchedule = () => {
   // Redirect if no childId
   useEffect(() => {
     if (!childId) {
-      navigate('/family/management/schedule');
+      navigate('/user/management/schedule');
     }
   }, [childId, navigate]);
   const [child, setChild] = useState(null);
@@ -194,7 +194,7 @@ const ChildSchedule = () => {
 
   const fetchChild = async () => {
     if (!childId) {
-      navigate('/family/management/children');
+      navigate('/user/management/children');
       return;
     }
 
@@ -212,7 +212,7 @@ const ChildSchedule = () => {
           position: 'top-right',
           autoClose: 3000
         });
-        navigate('/family/management/children');
+        navigate('/user/management/children');
         return;
       }
 
@@ -225,7 +225,7 @@ const ChildSchedule = () => {
       
       // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
       if (err?.response?.status === 403 || err?.response?.status === 404) {
-        navigate('/family/management/children');
+        navigate('/user/management/children');
       }
     }
   };
@@ -300,7 +300,7 @@ const ChildSchedule = () => {
       if (!childIds.includes(childId)) {
         // Nếu childId không thuộc về user, không lấy lịch học
         setError('Bạn không có quyền xem lịch chăm sóc của trẻ em này');
-        navigate('/family/management/children');
+        navigate('/user/management/children');
         return;
       }
 
@@ -354,7 +354,7 @@ const ChildSchedule = () => {
       
       // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
       if (err?.response?.status === 403 || err?.response?.status === 404) {
-        navigate('/family/management/children');
+        navigate('/user/management/children');
       }
     } finally {
       setLoading(false);
@@ -372,7 +372,7 @@ const ChildSchedule = () => {
 
   // Reload data when navigate back to this page
   useEffect(() => {
-    if (location.pathname === `/family/management/schedule/${childId}`) {
+    if (location.pathname === `/user/management/schedule/${childId}`) {
       if (isInitialMount.current) {
         isInitialMount.current = false;
         return;
@@ -383,20 +383,20 @@ const ChildSchedule = () => {
   }, [location.pathname]);
 
   const handleBack = () => {
-    navigate('/family/children');
+    navigate('/user/management/children');
   };
 
   // Event handlers cho FullCalendar
   const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
     const slotId = event.id;
-    navigate(`/family/management/schedule/${childId}/${slotId}`);
+    navigate(`/user/management/schedule/${childId}/${slotId}`);
   };
 
   // Handler cho card click
   const handleCardClick = (slot) => {
     const slotId = slot.id;
-    navigate(`/family/management/schedule/${childId}/${slotId}`);
+    navigate(`/user/management/schedule/${childId}/${slotId}`);
   };
 
   // Handler cho view mode change
@@ -666,7 +666,7 @@ const ChildSchedule = () => {
             <Button
               startIcon={<Add />}
               variant="contained"
-              onClick={() => navigate(`/family/management/schedule/${childId}/register`)}
+              onClick={() => navigate(`/user/management/schedule/${childId}/register`)}
               sx={{
                 borderRadius: 'var(--radius-lg)',
                 textTransform: 'none',

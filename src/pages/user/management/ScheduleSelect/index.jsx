@@ -55,7 +55,7 @@ const ScheduleSelect = () => {
   };
 
   const handleSelectChild = (childId) => {
-    navigate(`/family/management/schedule/${childId}`);
+    navigate(`/user/management/schedule/${childId}`);
   };
 
   if (isLoading) {

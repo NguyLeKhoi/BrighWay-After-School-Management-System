@@ -81,7 +81,7 @@ const ChildProfile = () => {
 
   const fetchChild = async () => {
       if (!childId) {
-        navigate('/family/management/children');
+        navigate('/user/management/children');
         return;
       }
 
@@ -101,7 +101,7 @@ const ChildProfile = () => {
             position: 'top-right',
             autoClose: 3000
           });
-          navigate('/family/management/children');
+          navigate('/user/management/children');
           return;
         }
 
@@ -114,7 +114,7 @@ const ChildProfile = () => {
         
         // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
         if (err?.response?.status === 403 || err?.response?.status === 404) {
-          navigate('/family/management/children');
+          navigate('/user/management/children');
         }
       } finally {
         setLoading(false);
@@ -128,7 +128,7 @@ const ChildProfile = () => {
 
   // Reload data when navigate back to this page (e.g., from other pages)
   useEffect(() => {
-    if (location.pathname === `/family/management/children/${childId}/profile`) {
+    if (location.pathname === `/user/management/children/${childId}/profile`) {
       // Skip first mount to avoid double loading
       if (isInitialMount.current) {
         isInitialMount.current = false;
@@ -140,7 +140,7 @@ const ChildProfile = () => {
   }, [location.pathname]);
 
   const handleBack = () => {
-    navigate('/family/children');
+    navigate('/user/management/children');
   };
 
   const handleAddDocumentSuccess = () => {
@@ -382,7 +382,7 @@ const ChildProfile = () => {
       });
       
       // Navigate back to children list
-      navigate('/family/children');
+      navigate('/user/management/children');
     } catch (err) {
         const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể xóa trẻ em';
       toast.error(message, { position: 'top-right', autoClose: 4000 });

@@ -255,28 +255,28 @@ const UserDashboard = () => {
       value: stats.childrenCount,
       icon: ChildIcon,
       color: 'primary',
-      onClick: () => navigate('/family/management/children')
+      onClick: () => navigate('/user/management/children')
     },
     {
       title: 'Gói dịch vụ',
       value: stats.packagesCount,
       icon: PackageIcon,
       color: 'success',
-      onClick: () => navigate('/family/packages')
+      onClick: () => navigate('/user/management/packages')
     },
     {
       title: 'Số dư ví',
       value: formatCurrencyShort(stats.walletBalance),
       icon: WalletIcon,
       color: 'warning',
-      onClick: () => navigate('/family/wallet')
+      onClick: () => navigate('/user/finance/main-wallet')
     },
     {
       title: 'Thông báo',
       value: stats.unreadNotifications,
       icon: NotificationIcon,
       color: 'info',
-      onClick: () => navigate('/family/notifications')
+      onClick: () => navigate('/user/notifications')
     }
   ];
 
@@ -285,25 +285,25 @@ const UserDashboard = () => {
       text: 'Thêm con mới',
       icon: <AddIcon />,
       primary: true,
-      onClick: () => navigate('/family/management/children/create')
+      onClick: () => navigate('/user/management/children/create')
     },
     {
       text: 'Mua gói dịch vụ',
       icon: <ShoppingIcon />,
       primary: false,
-      onClick: () => navigate('/family/packages')
+      onClick: () => navigate('/user/management/packages')
     },
     {
       text: 'Nạp tiền ví',
       icon: <WalletIcon />,
       primary: false,
-      onClick: () => navigate('/family/wallet')
+      onClick: () => navigate('/user/finance/main-wallet')
     },
     {
       text: 'Xem lịch học',
       icon: <ScheduleIcon />,
       primary: false,
-      onClick: () => navigate('/family/management/children')
+      onClick: () => navigate('/user/management/children')
     }
   ];
 
@@ -323,7 +323,7 @@ const UserDashboard = () => {
           transition={{ duration: 0.4 }}
         >
           <h1 className={styles.title}>
-            Bảng điều khiển
+            Tổng quan
           </h1>
           <p className={styles.subtitle}>
             Tổng quan tài khoản của bạn
@@ -388,7 +388,7 @@ const UserDashboard = () => {
             </h2>
             <button
               className={styles.viewAllButton}
-              onClick={() => navigate('/family/children')}
+              onClick={() => navigate('/user/management/children')}
             >
               Xem tất cả
             </button>
@@ -420,7 +420,7 @@ const UserDashboard = () => {
                         transform: 'translateY(-2px)'
                       }
                     }}
-                    onClick={() => navigate(`/family/management/schedule/${slot.childId}/${slot.id}`)}
+                    onClick={() => navigate(`/user/management/schedule/${slot.childId}/${slot.id}`)}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
                       <Box sx={{ flex: 1 }}>
@@ -490,7 +490,7 @@ const UserDashboard = () => {
               </p>
               <button
                 className={styles.emptyButton}
-                onClick={() => navigate('/family/management/children/create')}
+                onClick={() => navigate('/user/management/children/create')}
               >
                 <AddIcon sx={{ fontSize: 20 }} />
                 Thêm con mới

@@ -108,7 +108,7 @@ const ChildrenWallet = () => {
   }, []);
 
   useEffect(() => {
-    if (location.pathname === '/family/finance/children-wallet') {
+    if (location.pathname === '/user/finance/children-wallet') {
       if (isInitialMount.current) {
         isInitialMount.current = false;
         return;

@@ -23,7 +23,7 @@ import {
   Inventory as PackageIcon
 } from '@mui/icons-material';
 
-const FamilyLayout = () => {
+const UserLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -35,8 +35,8 @@ const FamilyLayout = () => {
 
   const menuItems = [
     {
-      path: '/family/dashboard',
-      label: 'Bảng điều kiển',
+      path: '/user/dashboard',
+      label: 'Tổng quan',
       icon: DashboardIcon
     },
     {
@@ -45,17 +45,17 @@ const FamilyLayout = () => {
       icon: ChildIcon,
       children: [
         {
-          path: '/family/management/children',
+          path: '/user/management/children',
           label: 'Hồ sơ của các con',
           icon: ChildIcon
         },
         {
-          path: '/family/management/packages',
+          path: '/user/management/packages',
           label: 'Mua gói',
           icon: PackageIcon
         },
         {
-          path: '/family/management/schedule',
+          path: '/user/management/schedule',
           label: 'Lịch học',
           icon: ScheduleIcon
         }
@@ -67,24 +67,24 @@ const FamilyLayout = () => {
       icon: FinanceIcon,
       children: [
         {
-          path: '/family/finance/main-wallet',
+          path: '/user/finance/main-wallet',
           label: 'Ví chính',
           icon: MainWalletIcon
         },
         {
-          path: '/family/finance/children-wallet',
+          path: '/user/finance/children-wallet',
           label: 'Ví con',
           icon: ChildrenWalletIcon
         },
         {
-          path: '/family/finance/transaction-history',
+          path: '/user/finance/transaction-history',
           label: 'Lịch sử giao dịch',
           icon: TransactionHistoryIcon
         }
       ]
     },
     {
-      path: '/family/notifications',
+      path: '/user/notifications',
       label: 'Thông báo',
       icon: BellIcon
     }
@@ -99,11 +99,11 @@ const FamilyLayout = () => {
         {/* Generic Drawer */}
         <GenericDrawer
           title="BRIGHWAY"
-          subtitle="Family Portal"
+          subtitle="User Portal"
           menuItems={menuItems}
           onLogout={handleLogout}
-          profilePath="/family/profile"
-          changePasswordPath="/family/change-password"
+          profilePath="/user/profile"
+          changePasswordPath="/user/change-password"
         />
 
         {/* Main Content */}
@@ -126,4 +126,4 @@ const FamilyLayout = () => {
   );
 };
 
-export default FamilyLayout;
+export default UserLayout;

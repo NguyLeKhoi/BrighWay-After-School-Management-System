@@ -55,7 +55,7 @@ const PackageSelect = () => {
   };
 
   const handleSelectChild = (childId) => {
-    navigate(`/family/management/packages/${childId}`);
+    navigate(`/user/management/packages/${childId}`);
   };
 
   if (isLoading) {

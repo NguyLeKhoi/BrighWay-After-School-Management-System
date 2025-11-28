@@ -66,7 +66,7 @@ const PaymentSuccess = () => {
     // If no valid parameters from PayOS, redirect to wallet
     // This prevents users from accessing this page directly by typing URL
     if (!orderCode && !depositId && !code) {
-      navigate('/family/wallet', { replace: true });
+      navigate('/user/finance/main-wallet', { replace: true });
       return;
     }
 
@@ -114,7 +114,7 @@ const PaymentSuccess = () => {
   }, [user, navigate, searchParams, hasChecked, showLoading, hideLoading, addNotification]);
 
   const handleBackToWallet = () => {
-    navigate('/family/wallet', { replace: true });
+    navigate('/user/finance/main-wallet', { replace: true });
   };
 
   // Show loading while checking
