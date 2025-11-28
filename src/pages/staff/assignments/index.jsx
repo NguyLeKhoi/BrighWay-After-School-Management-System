@@ -38,6 +38,7 @@ import Loading from '../../../components/Common/Loading';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import ImageUpload from '../../../components/Common/ImageUpload';
+import { extractDateString, formatDateOnlyUTC7 } from '../../../utils/dateHelper';
 import styles from './assignments.module.css';
 
 const StaffAssignments = () => {
@@ -86,23 +87,10 @@ const StaffAssignments = () => {
         return;
       }
 
-      // Tạo key để group: branchSlotId + date (chỉ lấy phần date, không có time)
-      // Parse date string trực tiếp để tránh timezone issues
-      let dateStr;
-      if (typeof dateValue === 'string') {
-        // Nếu là string, lấy phần date trước 'T' hoặc space
-        dateStr = dateValue.split('T')[0].split(' ')[0];
-      } else {
-        // Nếu là Date object, format trực tiếp theo local timezone
-        const slotDate = new Date(dateValue);
-        if (isNaN(slotDate.getTime())) {
-          return;
-        }
-        // Format date theo local timezone để tránh lệch ngày
-        const year = slotDate.getFullYear();
-        const month = String(slotDate.getMonth() + 1).padStart(2, '0');
-        const day = String(slotDate.getDate()).padStart(2, '0');
-        dateStr = `${year}-${month}-${day}`;
+      // Parse date string từ UTC+7 (BE timezone) để tránh timezone issues
+      const dateStr = extractDateString(dateValue);
+      if (!dateStr) {
+        return;
       }
       const groupKey = `${branchSlotId}_${dateStr}`;
 
@@ -124,22 +112,10 @@ const StaffAssignments = () => {
         }
 
         const dateValue = firstSlot.date;
-        // Parse date string trực tiếp để tránh timezone issues
-        let dateStr;
-        if (typeof dateValue === 'string') {
-          // Nếu là string, lấy phần date trước 'T' hoặc space
-          dateStr = dateValue.split('T')[0].split(' ')[0];
-        } else {
-          // Nếu là Date object, format trực tiếp theo local timezone
-          const slotDate = new Date(dateValue);
-          if (isNaN(slotDate.getTime())) {
-            return null;
-          }
-          // Format date theo local timezone để tránh lệch ngày
-          const year = slotDate.getFullYear();
-          const month = String(slotDate.getMonth() + 1).padStart(2, '0');
-          const day = String(slotDate.getDate()).padStart(2, '0');
-          dateStr = `${year}-${month}-${day}`;
+        // Parse date string từ UTC+7 (BE timezone) để tránh timezone issues
+        const dateStr = extractDateString(dateValue);
+        if (!dateStr) {
+          return null;
         }
 
         const startTime = timeframe.startTime || '00:00:00';
@@ -513,6 +489,7 @@ const StaffAssignments = () => {
               eventResize={handleEventResize}
               height="auto"
               locale="vi"
+              timeZone="Asia/Ho_Chi_Minh"
               buttonText={{
                 today: 'Hôm nay',
                 month: 'Tháng',
@@ -632,7 +609,7 @@ const StaffAssignments = () => {
                   {selectedSlot.branchName} • {selectedSlot.timeframeName} • {selectedSlot.roomName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {new Date(selectedSlot.date).toLocaleDateString('vi-VN', {
+                  {formatDateOnlyUTC7(selectedSlot.date, {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
