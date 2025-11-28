@@ -6,74 +6,75 @@ import StepperForm from '../../../../components/Common/StepperForm';
 import packageTemplateService from '../../../../services/packageTemplate.service';
 import { createTemplateFormFields } from '../../../../definitions/package/formFields';
 import Form from '../../../../components/Common/Form';
-import { packageTemplateSchema } from '../../../../utils/validationSchemas/packageSchemas';
+import { packageTemplateSchema, packageTemplateBasicSchema } from '../../../../utils/validationSchemas/packageSchemas';
 import { getErrorMessage } from '../../../../utils/errorHandler';
 import { toast } from 'react-toastify';
 
-// Step 1: Basic Info (create template here to get id)
+// Step 1: Basic Info (only validate, don't create template yet)
 const Step1TemplateBasic = forwardRef(({ data, updateData }, ref) => {
-  const [loading, setLoading] = useState(false);
   const formRef = React.useRef(null);
   useImperativeHandle(ref, () => ({
     async submit() {
+      // Only validate, don't submit to API yet
+      if (formRef.current?.validate) {
+        const isValid = await formRef.current.validate();
+        if (isValid) {
+          // Get form values and save to data
+          const formValues = formRef.current.getValues();
+          updateData({ templateForm: formValues });
+          return true;
+        }
+        return false;
+      }
+      // Fallback: use submit method but override handleSubmit
       if (formRef.current?.submit) {
-        return await formRef.current.submit();
+        // Trigger validation only
+        const isValid = await formRef.current.validate();
+        if (isValid) {
+          const formValues = formRef.current.getValues();
+          updateData({ templateForm: formValues });
+          return true;
+        }
+        return false;
       }
       return false;
     }
   }));
 
   const handleSubmit = async (formValues) => {
-    if (loading) return false;
-    try {
-      setLoading(true);
-      // Remove isActive from payload as backend DTO doesn't include it
-      const { isActive, ...payload } = formValues;
-      const created = await packageTemplateService.createTemplate(payload);
-      updateData({ createdTemplateId: created.id, templateForm: formValues });
-      toast.success('Tạo mẫu gói thành công');
-      return true;
-    } catch (err) {
-      const errorMessage = getErrorMessage(err) || 'Tạo mẫu gói thất bại';
-      toast.error(errorMessage, {
-        autoClose: 5000,
-        style: { whiteSpace: 'pre-line' }
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    // Only save data, don't create template yet
+    updateData({ templateForm: formValues });
+    return true;
   };
 
   // Use only basic fields
   const fields = useMemo(() => {
-    const all = createTemplateFormFields({ templateActionLoading: loading });
+    const all = createTemplateFormFields({ templateActionLoading: false });
     const keep = new Set(['name', 'desc']);
     return all.filter(f => keep.has(f.name));
-  }, [loading]);
+  }, []);
 
   return (
     <Box>
       <Form
         ref={formRef}
         key={`create-template-step`}
-        schema={packageTemplateSchema}
+        schema={packageTemplateBasicSchema}
         defaultValues={data.templateForm || {}}
         onSubmit={handleSubmit}
         hideSubmitButton
-        loading={loading}
-        disabled={loading}
+        loading={false}
+        disabled={false}
         fields={fields}
       />
     </Box>
   );
 });
 
-// Step 2: Pricing & Duration (update existing template)
+// Step 2: Pricing & Duration (create template here if not exists, then update)
 const Step2PricingDuration = forwardRef(({ data, updateData }, ref) => {
   const [loading, setLoading] = useState(false);
   const formRef = React.useRef(null);
-  useImperativeHandle(ref, () => ({ async submit() { return true; } }));
   useImperativeHandle(ref, () => ({
     async submit() {
       if (formRef.current?.submit) {
@@ -84,13 +85,30 @@ const Step2PricingDuration = forwardRef(({ data, updateData }, ref) => {
   }));
 
   const handleSubmit = async (values) => {
-    if (!data?.createdTemplateId) return false;
+    if (loading) return false;
     try {
       setLoading(true);
       const payload = (({ minPrice, defaultPrice, maxPrice, minDurationInMonths, defaultDurationInMonths, maxDurationInMonths }) =>
         ({ minPrice, defaultPrice, maxPrice, minDurationInMonths, defaultDurationInMonths, maxDurationInMonths }))(values);
-      await packageTemplateService.updateTemplate(data.createdTemplateId, payload);
-      updateData({ templateForm: { ...(data.templateForm || {}), ...payload } });
+      
+      // If template not created yet, create it first with basic info + pricing
+      if (!data?.createdTemplateId) {
+        const basicInfo = data.templateForm || {};
+        const { isActive, ...createPayload } = {
+          ...basicInfo,
+          ...payload
+        };
+        const created = await packageTemplateService.createTemplate(createPayload);
+        updateData({ 
+          createdTemplateId: created.id, 
+          templateForm: { ...basicInfo, ...payload } 
+        });
+        toast.success('Tạo mẫu gói thành công');
+      } else {
+        // Update existing template
+        await packageTemplateService.updateTemplate(data.createdTemplateId, payload);
+        updateData({ templateForm: { ...(data.templateForm || {}), ...payload } });
+      }
       return true;
     } catch (err) {
       const errorMessage = getErrorMessage(err) || 'Lưu thất bại';
