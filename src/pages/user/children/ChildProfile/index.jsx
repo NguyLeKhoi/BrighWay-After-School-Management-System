@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Box, Avatar, Chip, CircularProgress, Alert, Typography, Button, Paper, IconButton, Grid } from '@mui/material';
+import { Box, Avatar, Chip, CircularProgress, Alert, Typography, Button, Paper, IconButton, Grid, Pagination } from '@mui/material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import { motion } from 'framer-motion';
 import AnimatedCard from '../../../../components/Common/AnimatedCard';
@@ -19,10 +19,14 @@ import {
   Description as DocumentIcon,
   OpenInNew as OpenInNewIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Inventory as PackageIcon,
+  Event as EventIcon,
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import studentService from '../../../../services/student.service';
+import packageService from '../../../../services/package.service';
 import { useApp } from '../../../../contexts/AppContext';
 import ManagementFormDialog from '../../../../components/Management/FormDialog';
 import Form from '../../../../components/Common/Form';
@@ -75,13 +79,16 @@ const ChildProfile = () => {
   const [child, setChild] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
+  const [packagePage, setPackagePage] = useState(1);
   const [openAddDocumentDialog, setOpenAddDocumentDialog] = useState(false);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const fetchChild = async () => {
       if (!childId) {
-        navigate('/family/children');
+        navigate('/user/management/children');
         return;
       }
 
@@ -101,21 +108,23 @@ const ChildProfile = () => {
             position: 'top-right',
             autoClose: 3000
           });
-          navigate('/family/children');
+          navigate('/user/management/children');
           return;
         }
 
         const data = await studentService.getMyChildById(childId);
         setChild(data);
+        
+        // Load subscriptions for this child
+        loadSubscriptions(childId);
       } catch (err) {
         const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin trẻ em';
         setError(errorMessage);
         showGlobalError(errorMessage);
-        console.error('Error fetching child:', err);
         
         // Nếu lỗi 403 hoặc 404, có thể là do không có quyền truy cập
         if (err?.response?.status === 403 || err?.response?.status === 404) {
-          navigate('/family/children');
+          navigate('/user/management/children');
         }
       } finally {
         setLoading(false);
@@ -127,9 +136,80 @@ const ChildProfile = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [childId]);
 
+  useEffect(() => {
+    // Reset to page 1 when subscriptions change
+    setPackagePage(1);
+  }, [subscriptions.length]);
+
+  const loadSubscriptions = async (studentId) => {
+    if (!studentId) return;
+    
+    setIsLoadingSubscriptions(true);
+    try {
+      const response = await packageService.getSubscriptionsByStudent(studentId);
+      const subscriptionsArray = Array.isArray(response) ? response : (Array.isArray(response?.items) ? response.items : []);
+      
+      // Check if we need to fetch package details
+      const needsPackageDetails = subscriptionsArray.some(sub => {
+        const needsTotalSlots = sub.totalslotsSnapshot === null || sub.totalslotsSnapshot === undefined;
+        return needsTotalSlots && sub.packageId;
+      });
+      
+      // Fetch suitable packages if needed
+      let suitablePackages = null;
+      if (needsPackageDetails) {
+        try {
+          suitablePackages = await packageService.getSuitablePackages(studentId);
+        } catch {
+          // Silent fail - will use 0 for totalSlots
+        }
+      }
+      
+      // Map subscriptions to include calculated fields
+      const mappedSubscriptions = subscriptionsArray.map(sub => {
+        // Find package details if needed
+        let packageDetails = null;
+        if (suitablePackages && sub.packageId) {
+          if (Array.isArray(suitablePackages)) {
+            packageDetails = suitablePackages.find(pkg => pkg.id === sub.packageId);
+          } else if (suitablePackages.id === sub.packageId) {
+            packageDetails = suitablePackages;
+          }
+        }
+        
+        // Get totalSlots - prioritize snapshot, then from package details
+        const totalSlotsFromPackage = packageDetails?.totalslots 
+          ?? packageDetails?.totalSlots 
+          ?? packageDetails?.totalSlotsSnapshot
+          ?? 0;
+        
+        const totalSlots = (sub.totalslotsSnapshot !== null && sub.totalslotsSnapshot !== undefined) 
+          ? sub.totalslotsSnapshot 
+          : totalSlotsFromPackage;
+        
+        const usedSlots = sub.usedSlot ?? sub.usedslot ?? 0;
+        const remainingSlots = Math.max(0, totalSlots - usedSlots);
+        
+        return {
+          ...sub,
+          totalSlots,
+          usedSlots,
+          remainingSlots
+        };
+      });
+      
+      setSubscriptions(mappedSubscriptions);
+    } catch (err) {
+      // Silent fail - just don't show subscriptions
+      setSubscriptions([]);
+    } finally {
+      setIsLoadingSubscriptions(false);
+    }
+  };
+
   // Reload data when navigate back to this page (e.g., from other pages)
   useEffect(() => {
-    if (location.pathname === `/family/children/${childId}/profile`) {
+    if (location.pathname === `/user/management/children/${childId}/profile`) {
       // Skip first mount to avoid double loading
       if (isInitialMount.current) {
         isInitialMount.current = false;
@@ -141,7 +221,7 @@ const ChildProfile = () => {
   }, [location.pathname]);
 
   const handleBack = () => {
-    navigate('/family/children');
+    navigate('/user/management/children');
   };
 
   const handleAddDocumentSuccess = () => {
@@ -152,11 +232,13 @@ const ChildProfile = () => {
         setError(null);
         const data = await studentService.getMyChildById(childId);
         setChild(data);
+        
+        // Load subscriptions for this child
+        loadSubscriptions(childId);
       } catch (err) {
         const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin trẻ em';
         setError(errorMessage);
         showGlobalError(errorMessage);
-        console.error('Error fetching child:', err);
       } finally {
         setLoading(false);
       }
@@ -384,7 +466,7 @@ const ChildProfile = () => {
       });
       
       // Navigate back to children list
-      navigate('/family/children');
+      navigate('/user/management/children');
     } catch (err) {
         const message = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Không thể xóa trẻ em';
       toast.error(message, { position: 'top-right', autoClose: 4000 });
@@ -526,65 +608,53 @@ const ChildProfile = () => {
             ← Quay lại
           </motion.button>
           <h1 className={styles.title}>Thông tin trẻ em</h1>
-          <Box display="flex" gap={1}>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<EditIcon />}
-                onClick={() => {
-                  // Initialize updateFormData with current child data when opening dialog
-                  setUpdateFormData({
-                    name: child?.name || '',
-                    dateOfBirth: child?.dateOfBirth || '',
-                    note: child?.note && child.note !== 'string' ? child.note : '',
-                    imageFile: null
-                  });
-                  setOpenUpdateDialog(true);
-                }}
-                sx={{ 
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderWidth: 2,
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
-                  }
-                }}
-              >
-                Chỉnh sửa
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => setOpenDeleteDialog(true)}
-                sx={{ 
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderWidth: 2,
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
-                  }
-                }}
-              >
-                Xóa
-              </Button>
-            </motion.div>
-          </Box>
         </motion.div>
 
         {/* Profile Content */}
         <div className={styles.profileContent}>
+          {/* Two Column Layout: Basic Information and Packages */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
+              gap: 3,
+              marginBottom: 3
+            }}
+          >
           {/* Basic Information Card */}
           <AnimatedCard delay={0.1} className={styles.profileCard}>
+            <Box display="flex" justifyContent="flex-end" alignItems="center" mb={2}>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<EditIcon />}
+                  onClick={() => {
+                    // Initialize updateFormData with current child data when opening dialog
+                    setUpdateFormData({
+                      name: child?.name || '',
+                      dateOfBirth: child?.dateOfBirth || '',
+                      note: child?.note && child.note !== 'string' ? child.note : '',
+                      imageFile: null
+                    });
+                    setOpenUpdateDialog(true);
+                  }}
+                  sx={{ 
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    borderWidth: 2,
+                    '&:hover': {
+                      borderWidth: 2,
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                    }
+                  }}
+                >
+                  Chỉnh sửa
+                </Button>
+              </motion.div>
+            </Box>
             <Box display="flex" alignItems="center" gap={3} mb={3}>
               <Avatar
                 src={child.image && child.image !== 'string' ? child.image : undefined}
@@ -699,6 +769,171 @@ const ChildProfile = () => {
               )}
             </div>
           </AnimatedCard>
+
+            {/* Packages Card */}
+            {subscriptions.length > 0 && (() => {
+              const packagesPerPage = 2;
+              const alwaysShowCount = 2;
+              const alwaysShowPackages = subscriptions.slice(0, alwaysShowCount);
+              const remainingPackages = subscriptions.slice(alwaysShowCount);
+              const totalPages = Math.ceil(remainingPackages.length / packagesPerPage);
+              const startIndex = (packagePage - 1) * packagesPerPage;
+              const endIndex = startIndex + packagesPerPage;
+              const currentPagePackages = remainingPackages.slice(startIndex, endIndex);
+              const displayPackages = packagePage === 1 
+                ? alwaysShowPackages
+                : currentPagePackages;
+
+              const renderPackage = (sub) => {
+                const remainingSlots = sub.remainingSlots ?? 0;
+                const totalSlots = sub.totalSlots ?? 0;
+                const usedSlots = sub.usedSlots ?? 0;
+                const isLowSlots = remainingSlots <= 3 && remainingSlots > 0;
+                const isNoSlots = remainingSlots === 0;
+                
+                return (
+                  <Box
+                    key={sub.id}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2,
+                      bgcolor: isNoSlots 
+                        ? 'error.50' 
+                        : isLowSlots 
+                        ? 'warning.50' 
+                        : 'primary.50',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        boxShadow: 1
+                      }
+                    }}
+                  >
+                    <Box mb={2}>
+                      <Box display="flex" alignItems="center" gap={0.5} mb={1}>
+                        <PackageIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                        <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
+                          {sub.packageName || 'Gói không tên'}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {totalSlots > 0 && (
+                      <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
+                        <Box>
+                          <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
+                            <CheckCircleIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                              Slot đã dùng
+                            </Typography>
+                          </Box>
+                          <Typography variant="body1" fontWeight="medium">
+                            {usedSlots}/{totalSlots}
+                          </Typography>
+                        </Box>
+                        
+                        <Box>
+                          <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
+                            <CheckCircleIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                              Slot còn lại
+                            </Typography>
+                          </Box>
+                          <Typography 
+                            variant="body1" 
+                            fontWeight="bold"
+                            sx={{
+                              color: isNoSlots 
+                                ? 'error.dark' 
+                                : isLowSlots 
+                                ? 'warning.dark' 
+                                : 'success.dark'
+                            }}
+                          >
+                            {remainingSlots} slot
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+                      {sub.startDate && (
+                        <Box>
+                          <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
+                            <EventIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                              Bắt đầu
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2">
+                            {formatDate(sub.startDate)}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {sub.endDate && (
+                        <Box>
+                          <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
+                            <EventIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                              Kết thúc
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2">
+                            {formatDate(sub.endDate)}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              };
+
+              return (
+                <AnimatedCard delay={0.15} className={styles.profileCard}>
+                  <Box display="flex" alignItems="center" gap={1} mb={3}>
+                    <PackageIcon sx={{ fontSize: 24, color: 'primary.main' }} />
+                    <Typography variant="h6" fontWeight="bold">
+                      Gói đang sử dụng
+                    </Typography>
+                  </Box>
+                  {isLoadingSubscriptions ? (
+                    <Box display="flex" justifyContent="center" py={3}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : (
+                    <Box>
+                      {displayPackages.length > 0 ? (
+                        <Box 
+                          display="grid" 
+                          gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} 
+                          gap={2}
+                          mb={remainingPackages.length > 0 ? 2 : 0}
+                        >
+                          {displayPackages.map(renderPackage)}
+                        </Box>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+                          Không có gói nào
+                        </Typography>
+                      )}
+                      
+                      {remainingPackages.length > 0 && totalPages > 0 && (
+                        <Box display="flex" justifyContent="center" mt={3}>
+                          <Pagination
+                            count={totalPages}
+                            page={packagePage}
+                            onChange={(event, value) => setPackagePage(value)}
+                            color="primary"
+                            size="small"
+                          />
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+                </AnimatedCard>
+              );
+            })()}
+          </Box>
 
           {/* Documents Card */}
           <AnimatedCard delay={0.2} className={styles.profileCard}>

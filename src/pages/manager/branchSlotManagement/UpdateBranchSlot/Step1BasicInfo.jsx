@@ -29,7 +29,7 @@ const Step1BasicInfo = forwardRef(({ data, updateData, stepIndex, totalSteps, ti
 
   const slotTypeSelectOptions = useMemo(
     () => [
-      { value: '', label: 'Chọn loại ca học' },
+      { value: '', label: 'Chọn loại ca giữ trẻ' },
       ...slotTypeOptions.map((st) => ({
         value: st.id,
         label: st.name
@@ -107,7 +107,7 @@ const Step1BasicInfo = forwardRef(({ data, updateData, stepIndex, totalSteps, ti
         Bước {stepIndex + 1}/{totalSteps}: Thông tin cơ bản
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.875rem' }}>
-        Cập nhật thông tin cơ bản về ca học. Sau khi hoàn thành, bạn sẽ có thể cập nhật phòng và nhân viên.
+        Cập nhật thông tin cơ bản về ca giữ trẻ. Sau khi hoàn thành, bạn sẽ có thể cập nhật phòng và nhân viên.
       </Typography>
       <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <Form

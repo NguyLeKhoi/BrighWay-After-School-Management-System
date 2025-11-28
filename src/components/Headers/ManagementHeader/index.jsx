@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   AppBar,
@@ -8,12 +9,12 @@ import {
   Avatar
 } from '@mui/material';
 import {
-  Business as BusinessIcon,
-  Person as PersonIcon
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import userService from '../../../services/user.service.js';
 
 const ManagerStaffHeader = () => {
+  const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,8 +25,6 @@ const ManagerStaffHeader = () => {
         setUserInfo(user);
       } catch (error) {
         console.error('Error fetching current user:', error);
-        // Don't show error in header - it's not critical for page functionality
-        // Just set userInfo to null so header still renders
         setUserInfo(null);
       } finally {
         setLoading(false);
@@ -34,6 +33,16 @@ const ManagerStaffHeader = () => {
 
     fetchCurrentUser();
   }, []);
+
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.charAt(0).toUpperCase();
+  };
 
   if (loading) {
     return (
@@ -83,30 +92,31 @@ const ManagerStaffHeader = () => {
 
           {/* User Name */}
           {userInfo?.name && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  fontWeight: 600,
-                  color: 'white'
-                }}
-              >
-                {userInfo.name}
-              </Typography>
-              {userInfo?.roleName && (
-                <Chip
-                  label={userInfo.roleName}
-                  size="small"
-                  sx={{
-                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                    color: 'white',
-                    fontWeight: 600,
-                    border: '1px solid rgba(255, 255, 255, 0.3)'
-                  }}
-                />
-              )}
-            </Box>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                fontWeight: 600,
+                color: 'white',
+                display: { xs: 'none', sm: 'block' }
+              }}
+            >
+              {userInfo.name}
+            </Typography>
           )}
+
+          {/* Avatar (display only, no menu) */}
+          <Avatar
+            src={userInfo?.profilePictureUrl || ''}
+            alt={userInfo?.name || userInfo?.fullName || 'User'}
+            sx={{
+              bgcolor: 'rgba(255, 255, 255, 0.2)',
+              width: 36,
+              height: 36,
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+            }}
+          >
+            {!userInfo?.profilePictureUrl && getInitials(userInfo?.name || userInfo?.fullName)}
+          </Avatar>
         </Box>
       </Toolbar>
     </AppBar>

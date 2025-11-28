@@ -49,7 +49,7 @@ const Step1TemplateBasic = forwardRef(({ data, updateData }, ref) => {
   const handleSubmit = async (formValues) => {
     // Only save data, don't create template yet
     updateData({ templateForm: formValues });
-    return true;
+      return true;
   };
 
   // Use only basic fields
@@ -117,12 +117,12 @@ const Step2PricingDuration = forwardRef(({ data, updateData }, ref) => {
 
   const handleSubmit = async (values) => {
     // Only save data, don't create template yet
-    const payload = (({ minPrice, defaultPrice, maxPrice, minDurationInMonths, defaultDurationInMonths, maxDurationInMonths }) =>
-      ({ minPrice, defaultPrice, maxPrice, minDurationInMonths, defaultDurationInMonths, maxDurationInMonths }))(values);
+      const payload = (({ minPrice, defaultPrice, maxPrice, minDurationInMonths, defaultDurationInMonths, maxDurationInMonths }) =>
+        ({ minPrice, defaultPrice, maxPrice, minDurationInMonths, defaultDurationInMonths, maxDurationInMonths }))(values);
     updateData({ 
       templateForm: { ...(data.templateForm || {}), ...payload } 
     });
-    return true;
+      return true;
   };
 
   const fields = useMemo(() => {

@@ -67,7 +67,7 @@ const Login = () => {
       } else if (role === 'Staff' || role === 2) {
         navigate('/staff');
       } else if (role === 'User' || role === 4) {
-        navigate('/family/profile');
+        navigate('/user/dashboard');
       } else {
         navigate('/parent/profile');
       }

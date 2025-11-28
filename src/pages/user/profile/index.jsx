@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Box, Button, Grid, IconButton, Typography, Avatar, Paper } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Phone as PhoneIcon, Person as PersonIcon, Lock as LockIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Phone as PhoneIcon, Person as PersonIcon } from '@mui/icons-material';
 import { useApp } from '../../../contexts/AppContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import useContentLoading from '../../../hooks/useContentLoading';
@@ -245,7 +245,6 @@ const UserProfile = () => {
       });
       setAvatarFile(null);
     } catch (err) {
-      console.error('Error loading user data:', err);
       const errorMessage = err.message || 'Có lỗi xảy ra khi tải thông tin tài khoản';
       setError(errorMessage);
       showGlobalError(errorMessage);
@@ -329,7 +328,6 @@ const UserProfile = () => {
         severity: 'success'
       });
     } catch (err) {
-      console.error('Update error:', err);
       const errorMessage = err?.response?.data?.detail || err?.response?.data?.message || err?.message || 'Có lỗi xảy ra khi cập nhật thông tin';
       showGlobalError(errorMessage);
       addNotification({
@@ -413,24 +411,6 @@ const UserProfile = () => {
                   </svg>
                   Chỉnh sửa
                 </button>
-                <Button
-                  variant="outlined"
-                  startIcon={<LockIcon />}
-                  onClick={() => navigate('/family/change-password')}
-                  sx={{
-                    borderColor: 'var(--color-primary)',
-                    color: 'var(--color-primary)',
-                    py: 1,
-                    px: 2,
-                    fontSize: '14px',
-                    '&:hover': {
-                      borderColor: 'var(--color-primary-dark)',
-                      backgroundColor: 'var(--color-primary-50)'
-                    }
-                  }}
-                >
-                  Đổi mật khẩu
-                </Button>
               </Box>
             )}
           </div>

@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import {
   Edit as EditIcon,
+  Visibility as VisibilityIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
@@ -34,7 +35,9 @@ const DataTable = ({
   onDelete,
   emptyMessage = "Không có dữ liệu",
   showActions = true,
-  expandableConfig = null
+  expandableConfig = null,
+  getRowClassName = null,
+  getRowSx = null
 }) => {
   const [expandedRows, setExpandedRows] = React.useState({});
 
@@ -105,9 +108,12 @@ const DataTable = ({
               );
               const isExpanded = expandedRows[rowId] || false;
 
+              const rowClassName = getRowClassName ? getRowClassName(item, index) : '';
+              const rowSx = getRowSx ? getRowSx(item, index) : {};
+
               return (
                 <React.Fragment key={rowId}>
-                  <TableRow hover>
+                  <TableRow hover className={rowClassName} sx={rowSx}>
                     {expandable && (
                       <TableCell padding="checkbox">
                         <IconButton
@@ -133,9 +139,9 @@ const DataTable = ({
                               size="small"
                               color="primary"
                               onClick={() => handleEdit(item)}
-                              title="Chỉnh sửa"
+                              title="Xem chi tiết"
                             >
-                              <EditIcon fontSize="small" />
+                              <VisibilityIcon fontSize="small" />
                             </IconButton>
                           )}
                           {onDelete && (

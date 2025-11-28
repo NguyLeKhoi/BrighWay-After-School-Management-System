@@ -54,7 +54,7 @@ const UpdateBranchSlot = () => {
         setInitialLoading(true);
         await fetchDependencies();
         
-        // Lấy dữ liệu ca học
+        // Lấy dữ liệu ca giữ trẻ
         if (id) {
           const slotData = await branchSlotService.getBranchSlotById(id);
           setBranchSlotData(slotData);
@@ -125,7 +125,7 @@ const UpdateBranchSlot = () => {
         }
       } catch (err) {
         console.error('Error loading data:', err);
-        toast.error('Không thể tải dữ liệu ca học', {
+        toast.error('Không thể tải dữ liệu ca giữ trẻ', {
           position: "top-right",
           autoClose: 3000,
         });
@@ -171,7 +171,7 @@ const UpdateBranchSlot = () => {
   // Final completion - Execute all API calls in sequence
   const handleComplete = useCallback(async () => {
     if (!id) {
-      toast.error('Không tìm thấy ID ca học!', {
+      toast.error('Không tìm thấy ID ca giữ trẻ!', {
         position: "top-right",
         autoClose: 3000,
       });
@@ -200,7 +200,7 @@ const UpdateBranchSlot = () => {
 
       await branchSlotService.updateBranchSlot(id, submitData);
       
-      toast.success('Cập nhật ca học thành công!', {
+      toast.success('Cập nhật ca giữ trẻ thành công!', {
         position: "top-right",
         autoClose: 2000,
       });
@@ -220,7 +220,7 @@ const UpdateBranchSlot = () => {
           });
         } catch (err) {
           console.error('Error updating rooms:', err);
-          toast.warning('Cập nhật ca học thành công nhưng cập nhật phòng thất bại. Bạn có thể cập nhật phòng sau.', {
+          toast.warning('Cập nhật ca giữ trẻ thành công nhưng cập nhật phòng thất bại. Bạn có thể cập nhật phòng sau.', {
             position: "top-right",
             autoClose: 4000,
           });
@@ -242,21 +242,21 @@ const UpdateBranchSlot = () => {
           });
         } catch (err) {
           console.error('Error updating staff:', err);
-          toast.warning('Cập nhật ca học thành công nhưng cập nhật nhân viên thất bại. Bạn có thể cập nhật nhân viên sau.', {
+          toast.warning('Cập nhật ca giữ trẻ thành công nhưng cập nhật nhân viên thất bại. Bạn có thể cập nhật nhân viên sau.', {
             position: "top-right",
             autoClose: 4000,
           });
         }
       }
 
-      toast.success('Cập nhật ca học hoàn tất!', {
+      toast.success('Cập nhật ca giữ trẻ hoàn tất!', {
         position: "top-right",
         autoClose: 3000,
       });
       
       navigate('/manager/branch-slots');
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi cập nhật ca học';
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi cập nhật ca giữ trẻ';
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 4000,
@@ -317,7 +317,7 @@ const UpdateBranchSlot = () => {
         steps={steps}
         onComplete={handleComplete}
         onCancel={handleCancel}
-        title="Cập nhật Ca Học"
+        title="Cập nhật Ca Giữ Trẻ"
         icon={<BranchSlotIcon />}
         initialData={formData}
         stepProps={{

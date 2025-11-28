@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../components/Layout/MainLayout';
 import AuthLayout from '../components/Layout/AuthLayout';
-import FamilyLayout from '../components/Layout/FamilyLayout';
+import UserLayout from '../components/Layout/UserLayout';
 import AdminLayout from '../components/Layout/AdminLayout';
 import ManagerLayout from '../components/Layout/ManagerLayout';
 import StaffLayout from '../components/Layout/StaffLayout';
@@ -16,19 +16,25 @@ import Contact from '../pages/main/Contact';
 // Auth Pages
 import Login from '../pages/auth/Login';
 
-// useruser Pages
-import FamilyProfile from '../pages/user/profile';
-import ChangePassword from '../pages/user/changePassword';
+// user Pages
+import UserDashboard from '../pages/user/dashboard';
+import UserProfile from '../pages/user/profile';
+import ChangePassword from '../pages/common/ChangePassword';
 import MySchedule from '../pages/user/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
 import CreateChild from '../pages/user/children/CreateChild';
 import ChildProfile from '../pages/user/children/ChildProfile';
 import ChildSchedule from '../pages/user/children/ChildSchedule';
-import MyWallet from '../pages/user/wallet';
+import ChildScheduleDetail from '../pages/user/children/ChildSchedule/ChildScheduleDetail';
+import MainWallet from '../pages/user/finance/MainWallet';
+import ChildrenWallet from '../pages/user/finance/ChildrenWallet';
+import TransactionHistory from '../pages/user/finance/TransactionHistory';
 import MyPackages from '../pages/user/packages';
 import Notifications from '../pages/user/notifications';
 import PaymentSuccess from '../pages/user/paymentSuccess';
 import PaymentCancel from '../pages/user/paymentCancel';
+import ScheduleSelect from '../pages/user/management/ScheduleSelect';
+import PackageSelect from '../pages/user/management/PackageSelect';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/dashboard';
@@ -70,6 +76,7 @@ import StaffDashboard from '../pages/staff/dashboard';
 import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
 import StaffAssignments from '../pages/staff/assignments';
+import StaffProfile from '../pages/staff/profile';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -145,56 +152,84 @@ export const routes = createBrowserRouter([
 
   // Parent Layout Routes (Parent Portal)
   {
-    path: '/family',
+    path: '/user',
     element: (
       <ProtectedRoute allowedRoles={['User']}>
-        <FamilyLayout />
+        <UserLayout />
       </ProtectedRoute>
     ),
     children: [
       {
         index: true,
-        element: <ChildrenList />,
+        element: <UserDashboard />,
+      },
+      {
+        path: 'dashboard',
+        element: <UserDashboard />,
       },
       {
         path: 'profile',
-        element: <FamilyProfile />,
+        element: <UserProfile />,
       },
       {
         path: 'change-password',
         element: <ChangePassword />,
       },
       {
-        path: 'children',
+        path: 'management/children',
         element: <ChildrenList />,
       },
       {
-        path: 'children/create',
+        path: 'management/children/create',
         element: <CreateChild />,
       },
       {
-        path: 'children/:childId/profile',
+        path: 'management/children/:childId/profile',
         element: <ChildProfile />,
       },
       {
-        path: 'children/:childId/schedule',
+        path: 'management/schedule',
+        element: <ScheduleSelect />,
+      },
+      {
+        path: 'management/schedule/:childId',
         element: <ChildSchedule />,
       },
       {
-        path: 'children/:childId/schedule/register',
+        path: 'management/schedule/:childId/:slotId',
+        element: <ChildScheduleDetail />,
+      },
+      {
+        path: 'management/schedule/:childId/register',
         element: <MySchedule />,
       },
       {
-        path: 'wallet',
-        element: <MyWallet />,
+        path: 'management/packages',
+        element: <PackageSelect />,
       },
       {
-        path: 'packages',
+        path: 'management/packages/:childId',
         element: <MyPackages />,
+      },
+      {
+        path: 'finance/main-wallet',
+        element: <MainWallet />,
+      },
+      {
+        path: 'finance/children-wallet',
+        element: <ChildrenWallet />,
+      },
+      {
+        path: 'finance/transaction-history',
+        element: <TransactionHistory />,
       },
       {
         path: 'notifications',
         element: <Notifications />,
+      },
+      {
+        path: 'payment/cancel',
+        element: <PaymentCancel />,
       },
     ],
   },
@@ -339,6 +374,14 @@ export const routes = createBrowserRouter([
         path: 'branch-slots/update/:id',
         element: <UpdateBranchSlot />,
       },
+      {
+        path: 'profile',
+        element: <StaffProfile />,
+      },
+      {
+        path: 'change-password',
+        element: <ChangePassword />,
+      },
     ],
   },
 
@@ -371,6 +414,14 @@ export const routes = createBrowserRouter([
       {
         path: 'assignments',
         element: <StaffAssignments />,
+      },
+      {
+        path: 'profile',
+        element: <StaffProfile />,
+      },
+      {
+        path: 'change-password',
+        element: <ChangePassword />,
       },
     ],
   },

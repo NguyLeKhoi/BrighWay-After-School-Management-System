@@ -16,6 +16,7 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import ContentLoading from '../../../components/Common/ContentLoading';
 import AuthCard from '../../../components/Auth/AuthCard';
+import depositService from '../../../services/deposit.service';
 import styles from './PaymentCancel.module.css';
 
 const PaymentCancel = () => {
@@ -63,36 +64,55 @@ const PaymentCancel = () => {
     // If no valid parameters from PayOS, redirect to wallet
     // This prevents users from accessing this page directly by typing URL
     if (!orderCode && !depositId && !code) {
-      navigate('/family/wallet', { replace: true });
+      navigate('/user/finance/main-wallet', { replace: true });
       return;
     }
 
-    // Set payment info
-    const setPaymentInfoData = () => {
+    // Set payment info and call cancel API
+    const setPaymentInfoData = async () => {
       if (hasChecked) return;
       setHasChecked(true);
 
       showLoading();
       try {
-        // Payment was cancelled - no need to verify with backend
+        // Nếu có depositId, gọi API để hủy deposit
+        if (depositId && depositId !== 'N/A') {
+          try {
+            await depositService.cancelDeposit(depositId);
+            addNotification({
+              message: 'Đã hủy giao dịch thành công.',
+              severity: 'success'
+            });
+          } catch (cancelError) {
+            // Vẫn hiển thị trang cancel dù API có lỗi
+            addNotification({
+              message: 'Thanh toán đã bị hủy. Bạn có thể thử lại bất cứ lúc nào.',
+              severity: 'info'
+            });
+          }
+        } else {
+          addNotification({
+            message: 'Thanh toán đã bị hủy. Bạn có thể thử lại bất cứ lúc nào.',
+            severity: 'info'
+          });
+        }
+
         setIsValid(true);
         setPaymentInfo({
           orderCode: orderCode || 'N/A',
           depositId: depositId || 'N/A',
           status: status || code || 'cancelled'
         });
-
+      } catch (error) {
+        setIsValid(true);
+        setPaymentInfo({
+          orderCode: orderCode || 'N/A',
+          depositId: depositId || 'N/A',
+          status: status || code || 'cancelled'
+        });
         addNotification({
           message: 'Thanh toán đã bị hủy. Bạn có thể thử lại bất cứ lúc nào.',
           severity: 'info'
-        });
-      } catch (error) {
-        console.error('Payment cancel error:', error);
-        setIsValid(true);
-        setPaymentInfo({
-          orderCode: orderCode || 'N/A',
-          depositId: depositId || 'N/A',
-          status: status || code || 'cancelled'
         });
       } finally {
         hideLoading();
@@ -103,7 +123,7 @@ const PaymentCancel = () => {
   }, [user, navigate, searchParams, hasChecked, showLoading, hideLoading, addNotification]);
 
   const handleBackToWallet = () => {
-    navigate('/family/wallet', { replace: true });
+    navigate('/user/finance/main-wallet', { replace: true });
   };
 
   // Show loading while checking
