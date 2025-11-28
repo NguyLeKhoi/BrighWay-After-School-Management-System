@@ -18,28 +18,17 @@ import {
   ListItem,
   ListItemText,
   Chip,
-  CircularProgress,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Checkbox,
-  FormControlLabel
+  CircularProgress
 } from '@mui/material';
-import { AddPhotoAlternate as AddPhotoIcon } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import studentSlotService from '../../../services/studentSlot.service';
-import activityService from '../../../services/activity.service';
-import activityTypeService from '../../../services/activityType.service';
-import imageService from '../../../services/image.service';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
 import { useApp } from '../../../contexts/AppContext';
-import { useAuth } from '../../../contexts/AuthContext';
-import ImageUpload from '../../../components/Common/ImageUpload';
 import { extractDateString, formatDateOnlyUTC7 } from '../../../utils/dateHelper';
 import styles from './assignments.module.css';
+import PageWrapper from '../../../components/Common/PageWrapper';
+import ManagementPageHeader from '../../../components/Management/PageHeader';
 
 const StaffAssignments = () => {
   const [scheduleData, setScheduleData] = useState([]);
@@ -49,21 +38,8 @@ const StaffAssignments = () => {
   const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
   const [studentsList, setStudentsList] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
-  const [checkedStudents, setCheckedStudents] = useState(new Set()); // Track checked students
-  const [checkingIn, setCheckingIn] = useState(new Set()); // Track students being checked in
-  const [activityDialogOpen, setActivityDialogOpen] = useState(false);
-  const [selectedStudentSlot, setSelectedStudentSlot] = useState(null);
-  const [activityTypes, setActivityTypes] = useState([]);
-  const [loadingActivityTypes, setLoadingActivityTypes] = useState(false);
-  const [activityForm, setActivityForm] = useState({
-    activityTypeId: '',
-    note: '',
-    imageFile: null
-  });
-  const [submittingActivity, setSubmittingActivity] = useState(false);
   const { isLoading, showLoading, hideLoading } = useLoading();
   const { showGlobalError } = useApp();
-  const { user } = useAuth();
 
   // Màu sắc cho các trạng thái
   const getStatusColor = (status) => {
@@ -207,25 +183,8 @@ const StaffAssignments = () => {
 
   useEffect(() => {
     fetchSchedule();
-    fetchActivityTypes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const fetchActivityTypes = async () => {
-    try {
-      setLoadingActivityTypes(true);
-      const data = await activityTypeService.getAllActivityTypes();
-      setActivityTypes(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Error fetching activity types:', err);
-      toast.error('Không thể tải danh sách loại hoạt động', {
-        position: 'top-right',
-        autoClose: 4000
-      });
-    } finally {
-      setLoadingActivityTypes(false);
-    }
-  };
 
   // Event handlers cho FullCalendar
   const handleEventClick = async (clickInfo) => {
@@ -284,148 +243,6 @@ const StaffAssignments = () => {
     setStudentsDialogOpen(false);
     setSelectedSlot(null);
     setStudentsList([]);
-    setCheckedStudents(new Set());
-    setCheckingIn(new Set());
-  };
-
-  // Handle checkin checkbox
-  const handleCheckinToggle = async (slot, checked) => {
-    if (!slot.studentId) {
-      toast.error('Không tìm thấy ID học sinh', {
-        position: 'top-right',
-        autoClose: 4000
-      });
-      return;
-    }
-
-    if (checked) {
-      // Check in student
-      setCheckingIn(prev => new Set(prev).add(slot.studentId));
-      try {
-        await activityService.checkinStaff(slot.studentId);
-        
-        // Update checked state
-        setCheckedStudents(prev => new Set(prev).add(slot.studentId));
-        
-        toast.success(`Đã điểm danh cho ${slot.studentName || 'học sinh'}`, {
-          position: 'top-right',
-          autoClose: 3000
-        });
-      } catch (err) {
-        const errorMessage = err?.response?.data?.message || err?.message || 'Không thể điểm danh';
-        toast.error(errorMessage, {
-          position: 'top-right',
-          autoClose: 4000
-        });
-      } finally {
-        setCheckingIn(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(slot.studentId);
-          return newSet;
-        });
-      }
-    } else {
-      // Uncheck - just remove from checked set
-      setCheckedStudents(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(slot.studentId);
-        return newSet;
-      });
-    }
-  };
-
-  // Handle click on student slot to create activity
-  const handleCreateActivity = (slot) => {
-    setSelectedStudentSlot(slot);
-    setActivityForm({
-      activityTypeId: '',
-      note: '',
-      imageFile: null
-    });
-    setActivityDialogOpen(true);
-  };
-
-  const handleCloseActivityDialog = () => {
-    setActivityDialogOpen(false);
-    setSelectedStudentSlot(null);
-    setActivityForm({
-      activityTypeId: '',
-      note: '',
-      imageFile: null
-    });
-  };
-
-  const handleSubmitActivity = async () => {
-    if (!selectedStudentSlot) {
-      toast.error('Vui lòng chọn học sinh', {
-        position: 'top-right',
-        autoClose: 4000
-      });
-      return;
-    }
-
-    if (!activityForm.activityTypeId) {
-      toast.error('Vui lòng chọn loại hoạt động', {
-        position: 'top-right',
-        autoClose: 4000
-      });
-      return;
-    }
-
-    if (!user?.id) {
-      toast.error('Không thể xác định người dùng', {
-        position: 'top-right',
-        autoClose: 4000
-      });
-      return;
-    }
-
-    setSubmittingActivity(true);
-    try {
-      let imageUrl = '';
-
-      // Upload image file if exists
-      if (activityForm.imageFile) {
-        try {
-          imageUrl = await imageService.uploadImage(activityForm.imageFile);
-          if (!imageUrl) {
-            throw new Error('Không nhận được URL ảnh từ server');
-          }
-        } catch (uploadError) {
-          const errorMessage = uploadError?.response?.data?.message || uploadError?.message || 'Không thể upload ảnh';
-          toast.error(errorMessage, {
-            position: 'top-right',
-            autoClose: 4000
-          });
-          throw uploadError;
-        }
-      }
-
-      // Create activity
-      await activityService.createActivity({
-        activityTypeId: activityForm.activityTypeId,
-        studentSlotId: selectedStudentSlot.id,
-        note: activityForm.note || '',
-        imageUrl: imageUrl,
-        createdById: user.id
-      });
-
-      toast.success('Tạo hoạt động thành công!', {
-        position: 'top-right',
-        autoClose: 3000
-      });
-
-      handleCloseActivityDialog();
-    } catch (err) {
-      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tạo hoạt động';
-      toast.error(errorMessage, {
-        position: 'top-right',
-        autoClose: 4000
-      });
-      console.error('Error creating activity:', err);
-    } finally {
-      setSubmittingActivity(false);
-    }
   };
 
   // Ngăn chặn drag & drop và các thao tác chỉnh sửa
@@ -443,17 +260,29 @@ const StaffAssignments = () => {
 
   if (loading) {
     return (
-      <div className={styles.schedulePage}>
-        <div className={styles.container}>
+      <PageWrapper>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
           <Loading />
-        </div>
-      </div>
+        </Box>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className={styles.schedulePage}>
-      <div className={styles.container}>
+    <PageWrapper>
+      <Box
+        sx={{
+          padding: { xs: 2, sm: 3, md: 4 },
+          maxWidth: '1400px',
+          margin: '0 auto',
+          minHeight: '100vh',
+          background: 'var(--bg-secondary)'
+        }}
+      >
+        {/* Header */}
+        <ManagementPageHeader
+          title="Lịch Làm Việc"
+        />
         {error && (
           <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
             {error}
@@ -467,7 +296,9 @@ const StaffAssignments = () => {
             padding: 2,
             borderRadius: 'var(--radius-xl)',
             border: '1px solid var(--border-light)',
-            backgroundColor: 'transparent'
+            backgroundColor: 'var(--bg-primary)',
+            boxShadow: 'var(--shadow-sm)',
+            mt: 3
           }}
         >
           <div className={styles.scheduleContainer}>
@@ -598,10 +429,15 @@ const StaffAssignments = () => {
           onClose={handleCloseStudentsDialog}
           maxWidth="md"
           fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 'var(--radius-xl)'
+            }
+          }}
         >
           <DialogTitle>
-            <Typography variant="h6" component="div">
-              Danh sách học sinh - Điểm danh
+            <Typography variant="h6" component="div" sx={{ fontFamily: 'var(--font-family-heading)', fontWeight: 600 }}>
+              Danh sách học sinh
             </Typography>
             {selectedSlot && (
               <Box sx={{ mt: 1 }}>
@@ -647,25 +483,27 @@ const StaffAssignments = () => {
                     >
                       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={checkedStudents.has(slot.studentId)}
-                                onChange={(e) => handleCheckinToggle(slot, e.target.checked)}
-                                disabled={checkingIn.has(slot.studentId)}
-                                color="primary"
-                              />
-                            }
-                            label={
+                          <ListItemText
+                            primary={
                               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                                 {slot.studentName || 'Chưa có tên'}
                               </Typography>
                             }
-                            sx={{ margin: 0 }}
+                            secondary={
+                              <>
+                                {slot.parentName && (
+                                  <Typography variant="body2" color="text.secondary">
+                                    Phụ huynh: {slot.parentName}
+                                  </Typography>
+                                )}
+                                {slot.parentNote && (
+                                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                    Ghi chú: {slot.parentNote}
+                                  </Typography>
+                                )}
+                              </>
+                            }
                           />
-                          {checkingIn.has(slot.studentId) && (
-                            <CircularProgress size={20} />
-                          )}
                         </Box>
                         <Chip
                           label={slot.status === 'Booked' || slot.status === 'booked' ? 'Đã đăng ký' : slot.status}
@@ -673,27 +511,6 @@ const StaffAssignments = () => {
                           size="small"
                         />
                       </Box>
-                      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.5, mb: 1 }}>
-                        {slot.parentName && (
-                          <Typography variant="body2" color="text.secondary">
-                            Phụ huynh: {slot.parentName}
-                          </Typography>
-                        )}
-                        {slot.parentNote && (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            Ghi chú: {slot.parentNote}
-                          </Typography>
-                        )}
-                      </Box>
-                      <Button
-                        variant="contained"
-                        startIcon={<AddPhotoIcon />}
-                        onClick={() => handleCreateActivity(slot)}
-                        size="small"
-                        sx={{ mt: 1 }}
-                      >
-                        Tạo hoạt động
-                      </Button>
                     </ListItem>
                     {index < studentsList.length - 1 && <Divider />}
                   </React.Fragment>
@@ -707,90 +524,8 @@ const StaffAssignments = () => {
             </Button>
           </DialogActions>
         </Dialog>
-
-        {/* Dialog tạo hoạt động */}
-        <Dialog 
-          open={activityDialogOpen} 
-          onClose={handleCloseActivityDialog}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>
-            <Typography variant="h6" component="div">
-              Tạo hoạt động cho học sinh
-            </Typography>
-            {selectedStudentSlot && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                {selectedStudentSlot.studentName || 'Chưa có tên'}
-              </Typography>
-            )}
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
-              {/* Activity Type Selection */}
-              <FormControl fullWidth required>
-                <InputLabel>Loại hoạt động</InputLabel>
-                <Select
-                  value={activityForm.activityTypeId}
-                  onChange={(e) => setActivityForm({ ...activityForm, activityTypeId: e.target.value })}
-                  label="Loại hoạt động"
-                  disabled={loadingActivityTypes || submittingActivity}
-                >
-                  {loadingActivityTypes ? (
-                    <MenuItem disabled>Đang tải...</MenuItem>
-                  ) : activityTypes.length === 0 ? (
-                    <MenuItem disabled>Không có loại hoạt động</MenuItem>
-                  ) : (
-                    activityTypes.map((type) => (
-                      <MenuItem key={type.id} value={type.id}>
-                        {type.name || 'Chưa có tên'}
-                      </MenuItem>
-                    ))
-                  )}
-                </Select>
-              </FormControl>
-
-              {/* Note */}
-              <TextField
-                label="Ghi chú"
-                placeholder="Ví dụ: Nay cháu ăn uống tốt"
-                multiline
-                rows={4}
-                value={activityForm.note}
-                onChange={(e) => setActivityForm({ ...activityForm, note: e.target.value })}
-                disabled={submittingActivity}
-                fullWidth
-              />
-
-              {/* Image Upload */}
-              <ImageUpload
-                label="Ảnh hoạt động"
-                helperText="Chọn ảnh để tải lên cho phụ huynh xem"
-                value={activityForm.imageFile}
-                onChange={(file) => setActivityForm({ ...activityForm, imageFile: file })}
-                disabled={submittingActivity}
-                required={false}
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button 
-              onClick={handleCloseActivityDialog} 
-              disabled={submittingActivity}
-            >
-              Hủy
-            </Button>
-            <Button 
-              onClick={handleSubmitActivity} 
-              variant="contained"
-              disabled={submittingActivity || !activityForm.activityTypeId}
-            >
-              {submittingActivity ? 'Đang tạo...' : 'Tạo hoạt động'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </div>
-    </div>
+      </Box>
+    </PageWrapper>
   );
 };
 

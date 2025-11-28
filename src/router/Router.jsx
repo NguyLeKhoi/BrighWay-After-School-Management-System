@@ -70,6 +70,8 @@ import StaffDashboard from '../pages/staff/dashboard';
 import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
 import StaffAssignments from '../pages/staff/assignments';
+import StaffProfile from '../pages/staff/profile';
+import StaffChangePassword from '../pages/staff/changePassword';
 
 // Other Pages
 import NotFound from '../components/Common/NotFound';
@@ -375,6 +377,14 @@ export const routes = createBrowserRouter([
       {
         path: 'assignments',
         element: <StaffAssignments />,
+      },
+      {
+        path: 'profile',
+        element: <StaffProfile />,
+      },
+      {
+        path: 'change-password',
+        element: <StaffChangePassword />,
       },
     ],
   },
