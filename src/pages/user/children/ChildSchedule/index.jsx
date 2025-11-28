@@ -11,6 +11,7 @@ import ContentLoading from '../../../../components/Common/ContentLoading';
 import studentService from '../../../../services/student.service';
 import studentSlotService from '../../../../services/studentSlot.service';
 import { useApp } from '../../../../contexts/AppContext';
+import { extractDateString, formatDateTimeUTC7 } from '../../../../utils/dateHelper';
 import styles from './ChildSchedule.module.css';
 
 const ChildSchedule = () => {
@@ -46,22 +47,10 @@ const ChildSchedule = () => {
       return null;
     }
 
-    // Parse date string trực tiếp để tránh timezone issues
-    let dateStr;
-    if (typeof dateValue === 'string') {
-      // Nếu là string, lấy phần date trước 'T' hoặc space
-      dateStr = dateValue.split('T')[0].split(' ')[0];
-    } else {
-      // Nếu là Date object, format trực tiếp theo local timezone
-      const slotDate = new Date(dateValue);
-      if (isNaN(slotDate.getTime())) {
-        return null;
-      }
-      // Format date theo local timezone để tránh lệch ngày
-      const year = slotDate.getFullYear();
-      const month = String(slotDate.getMonth() + 1).padStart(2, '0');
-      const day = String(slotDate.getDate()).padStart(2, '0');
-      dateStr = `${year}-${month}-${day}`;
+    // Parse date string từ UTC+7 (BE timezone) để tránh timezone issues
+    const dateStr = extractDateString(dateValue);
+    if (!dateStr) {
+      return null;
     }
     
     // Lấy startTime và endTime từ timeframe
@@ -421,6 +410,7 @@ const ChildSchedule = () => {
             eventResize={handleEventResize}
             height="auto"
             locale="vi"
+            timeZone="Asia/Ho_Chi_Minh"
             buttonText={{
               today: 'Hôm nay',
               month: 'Tháng',
@@ -539,7 +529,7 @@ const ChildSchedule = () => {
         >
           {selectedEvent && (() => {
             const props = selectedEvent.extendedProps;
-            const startTime = selectedEvent.start.toLocaleString('vi-VN', {
+            const startTime = formatDateTimeUTC7(selectedEvent.start, {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
