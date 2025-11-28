@@ -30,16 +30,38 @@ const Notifications = () => {
   // Map iconName từ API sang type để hiển thị icon
   const mapIconNameToType = (iconName) => {
     if (!iconName) return 'default';
+    const lowerIconName = iconName.toLowerCase();
+    
+    // Map các loại thông báo thanh toán (bao gồm tất cả các loại liên quan đến tiền bạc)
+    const paymentKeywords = [
+      'payment', 'pay', 'paid', 'purchase', 'buy', 'order',
+      'deposit', 'topup', 'refill', 'add_money', 'recharge', 'nạp tiền',
+      'refund', 'money_back', 'return', 'hoàn tiền',
+      'package_payment', 'subscription_payment', 'package', 'subscription',
+      'wallet_payment', 'wallet', 'ví',
+      'credit_card', 'card', 'card_payment',
+      'transaction', 'billing', 'invoice', 'checkout',
+      'shopping_cart', 'receipt'
+    ];
+    
+    // Kiểm tra nếu iconName chứa từ khóa thanh toán
+    const isPayment = paymentKeywords.some(keyword => lowerIconName.includes(keyword));
+    
     const iconMap = {
-      'shopping_cart': 'payment',
       'check_circle': 'attendance',
       'schedule': 'schedule',
       'account_balance_wallet': 'allowance',
       'announcement': 'announcement',
       'assessment': 'evaluation',
-      'payment': 'payment'
     };
-    return iconMap[iconName.toLowerCase()] || 'default';
+    
+    // Nếu là thông báo thanh toán, trả về 'payment'
+    if (isPayment) {
+      return 'payment';
+    }
+    
+    // Kiểm tra các loại khác
+    return iconMap[lowerIconName] || 'default';
   };
 
   const loadNotifications = async () => {

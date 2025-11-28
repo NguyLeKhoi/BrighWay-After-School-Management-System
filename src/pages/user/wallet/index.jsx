@@ -304,6 +304,16 @@ const MyWallet = () => {
           }
         }
         
+        // Lấy checkoutUrl từ localStorage nếu có
+        let checkoutUrl = deposit.checkoutUrl || null;
+        if (!checkoutUrl && deposit.id) {
+          try {
+            checkoutUrl = localStorage.getItem(`deposit_checkout_${deposit.id}`) || null;
+          } catch (e) {
+            console.warn('Could not get checkout URL from localStorage:', e);
+          }
+        }
+
         return {
           id: deposit.id,
           type: 'topup', // Tất cả deposits đều là topup
@@ -313,7 +323,8 @@ const MyWallet = () => {
           status: deposit.status?.toLowerCase() || 'pending',
           wallet: 'main',
           payOSOrderCode: deposit.payOSOrderCode,
-          payOSTransactionId: deposit.payOSTransactionId
+          payOSTransactionId: deposit.payOSTransactionId,
+          checkoutUrl: checkoutUrl // Lưu checkoutUrl vào transaction
         };
       });
 
@@ -447,6 +458,16 @@ const MyWallet = () => {
 
       const depositResponse = await depositService.createDeposit(amount);
       const checkoutUrl = depositResponse?.checkoutUrl;
+      const depositId = depositResponse?.depositId;
+
+      // Lưu checkoutUrl vào localStorage để có thể lấy lại sau
+      if (depositId && checkoutUrl) {
+        try {
+          localStorage.setItem(`deposit_checkout_${depositId}`, checkoutUrl);
+        } catch (e) {
+          console.warn('Could not save checkout URL to localStorage:', e);
+        }
+      }
 
       if (checkoutUrl) {
         if (checkoutWindow) {
@@ -1595,6 +1616,55 @@ const MyWallet = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2 }}
+                          onClick={async () => {
+                            // Nếu là giao dịch pending, mở link thanh toán
+                            if (transaction.status === 'pending') {
+                              let checkoutUrl = transaction.checkoutUrl;
+                              
+                              // Nếu chưa có checkoutUrl, thử lấy từ localStorage hoặc fetch từ API
+                              if (!checkoutUrl) {
+                                // Thử lấy từ localStorage
+                                try {
+                                  checkoutUrl = localStorage.getItem(`deposit_checkout_${transaction.id}`) || null;
+                                } catch (e) {
+                                  console.warn('Could not get checkout URL from localStorage:', e);
+                                }
+                                
+                                // Nếu vẫn chưa có, fetch từ API
+                                if (!checkoutUrl && transaction.id) {
+                                  try {
+                                    const depositDetail = await depositService.getDepositById(transaction.id);
+                                    checkoutUrl = depositDetail?.checkoutUrl || null;
+                                    
+                                    // Lưu vào localStorage để lần sau không cần fetch
+                                    if (checkoutUrl) {
+                                      try {
+                                        localStorage.setItem(`deposit_checkout_${transaction.id}`, checkoutUrl);
+                                      } catch (e) {
+                                        console.warn('Could not save checkout URL to localStorage:', e);
+                                      }
+                                    }
+                                  } catch (error) {
+                                    console.error('Could not fetch deposit details:', error);
+                                    addNotification({
+                                      message: 'Không thể lấy thông tin thanh toán. Vui lòng thử lại sau.',
+                                      severity: 'error'
+                                    });
+                                    return;
+                                  }
+                                }
+                              }
+                              
+                              if (checkoutUrl) {
+                                window.open(checkoutUrl, '_blank');
+                              } else {
+                                addNotification({
+                                  message: 'Không tìm thấy link thanh toán cho giao dịch này.',
+                                  severity: 'warning'
+                                });
+                              }
+                            }
+                          }}
                           sx={{
                             padding: 2.5,
                             backgroundColor: 'var(--bg-primary)',
@@ -1605,10 +1675,12 @@ const MyWallet = () => {
                             alignItems: 'center',
                             gap: 2.5,
                             transition: 'all var(--transition-base)',
+                            cursor: transaction.status === 'pending' ? 'pointer' : 'default',
                             '&:hover': {
                               boxShadow: 'var(--shadow-md)',
-                              transform: 'translateY(-2px)',
-                              borderColor: 'var(--color-primary-50)'
+                              transform: transaction.status === 'pending' ? 'translateY(-2px)' : 'none',
+                              borderColor: transaction.status === 'pending' ? 'var(--color-primary-50)' : 'var(--border-light)',
+                              backgroundColor: transaction.status === 'pending' ? 'var(--color-primary-5)' : 'var(--bg-primary)'
                             }
                           }}
                         >
