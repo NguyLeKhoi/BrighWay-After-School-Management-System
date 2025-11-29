@@ -59,9 +59,6 @@ const BenefitDetail = () => {
     navigate('/admin/benefits');
   };
 
-  const handleEdit = () => {
-    navigate('/admin/benefits');
-  };
 
   if (loading) {
     return (
@@ -133,18 +130,6 @@ const BenefitDetail = () => {
             >
               Chi tiết Lợi Ích
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 

@@ -62,11 +62,6 @@ const UserDetail = () => {
     navigate('/admin/users');
   };
 
-  const handleEdit = () => {
-    // User management chỉ có update dialog, không có update page riêng
-    // Có thể mở dialog edit từ đây nếu cần
-    navigate('/admin/users');
-  };
 
   if (loading) {
     return (
@@ -144,18 +139,6 @@ const UserDetail = () => {
             >
               Chi tiết Người Dùng
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 

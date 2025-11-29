@@ -59,9 +59,6 @@ const StudentLevelDetail = () => {
     navigate('/admin/student-levels');
   };
 
-  const handleEdit = () => {
-    navigate('/admin/student-levels');
-  };
 
   if (loading) {
     return (
@@ -133,18 +130,6 @@ const StudentLevelDetail = () => {
             >
               Chi tiết Cấp Độ Học Sinh
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 

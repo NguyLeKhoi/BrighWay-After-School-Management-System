@@ -63,9 +63,6 @@ const ManagerDetail = () => {
     navigate('/admin/staffAndManager');
   };
 
-  const handleEdit = () => {
-    navigate('/admin/staffAndManager');
-  };
 
   if (loading) {
     return (
@@ -143,18 +140,6 @@ const ManagerDetail = () => {
             >
               Chi tiết Quản Lý
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 

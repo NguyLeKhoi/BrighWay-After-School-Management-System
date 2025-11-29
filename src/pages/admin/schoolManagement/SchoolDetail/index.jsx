@@ -61,9 +61,6 @@ const SchoolDetail = () => {
     navigate('/admin/schools');
   };
 
-  const handleEdit = () => {
-    navigate('/admin/schools');
-  };
 
   if (loading) {
     return (
@@ -135,18 +132,6 @@ const SchoolDetail = () => {
             >
               Chi tiết Trường Học
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 

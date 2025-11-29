@@ -76,9 +76,6 @@ const PackageDetail = () => {
     navigate('/admin/packages');
   };
 
-  const handleEdit = () => {
-    navigate(`/admin/packages/update/${id}`);
-  };
 
   if (loading) {
     return (
@@ -156,18 +153,6 @@ const PackageDetail = () => {
             >
               Chi tiết Gói Bán
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 

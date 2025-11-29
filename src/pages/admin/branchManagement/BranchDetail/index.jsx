@@ -95,9 +95,6 @@ const BranchDetail = () => {
     navigate('/admin/branches');
   };
 
-  const handleEdit = () => {
-    navigate(`/admin/branches/update/${id}`);
-  };
 
   if (loading) {
     return (
@@ -186,18 +183,6 @@ const BranchDetail = () => {
             >
               Chi tiết Chi Nhánh
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 

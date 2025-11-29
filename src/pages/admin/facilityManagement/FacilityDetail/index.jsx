@@ -59,9 +59,6 @@ const FacilityDetail = () => {
     navigate('/admin/facilities');
   };
 
-  const handleEdit = () => {
-    navigate(`/admin/facilities/update/${id}`);
-  };
 
   if (loading) {
     return (
@@ -133,18 +130,6 @@ const FacilityDetail = () => {
             >
               Chi tiết Cơ Sở Vật Chất
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 

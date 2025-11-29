@@ -89,9 +89,6 @@ const RoomDetail = () => {
     navigate('/admin/rooms');
   };
 
-  const handleEdit = () => {
-    navigate(`/admin/rooms/update/${id}`);
-  };
 
   if (loading) {
     return (
@@ -177,18 +174,6 @@ const RoomDetail = () => {
             >
               Chi tiết Phòng Học
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 'var(--radius-lg)',
-                textTransform: 'none',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              Sửa
-            </Button>
           </Box>
         </Paper>
 
