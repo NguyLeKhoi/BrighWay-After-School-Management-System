@@ -369,12 +369,9 @@ const ManagerPackageManagement = () => {
               totalCount={totalCount}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
+              onView={(pkg) => navigate(`/manager/packages/detail/${pkg.id}`)}
               onEdit={handlePackageEdit}
               onDelete={handleDeletePrompt}
-              expandableConfig={{
-                isRowExpandable: (item) => Array.isArray(item?.benefits) && item.benefits.length > 0,
-                renderExpandedContent: renderBenefits
-              }}
             />
           </div>
         </>

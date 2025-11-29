@@ -50,7 +50,7 @@ const ManagerLayout = () => {
     },
     {
       path: '/manager/students',
-      label: 'Học Sinh',
+      label: 'Trẻ em',
       icon: StudentIcon
         }
       ]

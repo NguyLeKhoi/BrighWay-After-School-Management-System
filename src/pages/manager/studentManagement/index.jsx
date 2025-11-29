@@ -225,7 +225,7 @@ const StudentManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.branchId, user?.branchName]);
   
-  // Handle view detail
+  // Handle view detail - for DataTable onView prop
   const handleViewDetail = useCallback(async (student) => {
     setDetailDialog({
       open: true,
@@ -251,96 +251,28 @@ const StudentManagement = () => {
       });
     }
   }, []);
+
+  // Handle delete - for DataTable onDelete prop
+  const handleDeleteClick = useCallback((student) => {
+    setDeleteConfirmDialog({ open: true, student });
+  }, []);
   
-  // Columns for unverified students (with view detail button only)
+  // Columns for unverified students (no actions column - will use DataTable's built-in actions)
   const unverifiedColumns = useMemo(() => {
-    const baseColumns = createManagerStudentColumns();
-    return [
-      ...baseColumns,
-      {
-        key: 'actions',
-        header: 'Thao Tác',
-        align: 'center',
-        render: (_, item) => (
-          <Box display="flex" gap={0.5} justifyContent="center">
-            <Tooltip title="Xem chi tiết">
-              <IconButton
-                size="small"
-                color="primary"
-                onClick={() => handleViewDetail(item)}
-              >
-                <ViewIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )
-      }
-    ];
-  }, [handleViewDetail]);
+    return createManagerStudentColumns();
+  }, []);
   
-  // Columns for approved students (with view detail and delete buttons, without unverified documents column)
+  // Columns for approved students (without unverified documents column)
   const approvedColumns = useMemo(() => {
     const baseColumns = createManagerStudentColumns();
     // Filter out unverifiedDocuments column for approved students tab
-    const filteredColumns = baseColumns.filter(col => col.key !== 'unverifiedDocuments');
-    return [
-      ...filteredColumns,
-      {
-        key: 'actions',
-        header: 'Thao Tác',
-        align: 'center',
-        render: (_, item) => (
-          <Box display="flex" gap={0.5} justifyContent="center">
-            <Tooltip title="Xem chi tiết">
-              <IconButton
-                size="small"
-                color="primary"
-                onClick={() => handleViewDetail(item)}
-              >
-                <ViewIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Xóa học sinh">
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => setDeleteConfirmDialog({ open: true, student: item })}
-                disabled={deletingStudentId === item.id}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )
-      }
-    ];
-  }, [handleViewDetail, deletingStudentId]);
+    return baseColumns.filter(col => col.key !== 'unverifiedDocuments');
+  }, []);
   
   // Columns for approved students with unverified documents (keep unverified documents column)
   const approvedWithDocsColumns = useMemo(() => {
-    const baseColumns = createManagerStudentColumns();
-    return [
-      ...baseColumns,
-      {
-        key: 'actions',
-        header: 'Thao Tác',
-        align: 'center',
-        render: (_, item) => (
-          <Box display="flex" gap={0.5} justifyContent="center">
-            <Tooltip title="Xem chi tiết">
-              <IconButton
-                size="small"
-                color="primary"
-                onClick={() => handleViewDetail(item)}
-              >
-                <ViewIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )
-      }
-    ];
-  }, [handleViewDetail]);
+    return createManagerStudentColumns();
+  }, []);
 
   const fetchDependencies = useCallback(async () => {
     setDependenciesLoading(true);
@@ -827,7 +759,7 @@ const StudentManagement = () => {
         >
           <Tab label="Trẻ Em Đã Duyệt" />
           <Tab label="Trẻ Em Chưa Duyệt" />
-          <Tab label="Đã Duyệt - Tài Liệu Chưa Duyệt" />
+          <Tab label="Tài Liệu Chưa Duyệt" />
         </Tabs>
       </Paper>
 
@@ -937,7 +869,8 @@ const StudentManagement = () => {
           }).length}
           onPageChange={studentCrud.handlePageChange}
           onRowsPerPageChange={studentCrud.handleRowsPerPageChange}
-              showActions={false}
+          onView={handleViewDetail}
+          onDelete={handleDeleteClick}
               emptyMessage="Chưa có trẻ em nào đã được duyệt."
             />
           </div>
@@ -1082,7 +1015,7 @@ const StudentManagement = () => {
               }).length}
             onPageChange={() => {}}
             onRowsPerPageChange={() => {}}
-            showActions={false}
+            onView={handleViewDetail}
               emptyMessage="Không có trẻ em nào chưa được duyệt."
         />
       </div>
@@ -1225,7 +1158,7 @@ const StudentManagement = () => {
               }).length}
               onPageChange={() => {}}
               onRowsPerPageChange={() => {}}
-              showActions={false}
+              onView={handleViewDetail}
               emptyMessage="Không có trẻ em nào đã duyệt nhưng có tài liệu chưa duyệt."
           />
         </div>

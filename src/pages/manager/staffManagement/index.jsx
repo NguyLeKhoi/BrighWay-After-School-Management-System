@@ -11,11 +11,12 @@ import {
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import StaffAccountForm from '../../../components/AccountForms/StaffAccountForm';
+import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ContentLoading from '../../../components/Common/ContentLoading';
-import { createUserSchema } from '../../../utils/validationSchemas/userSchemas';
+import { createUserSchema, updateUserSchema } from '../../../utils/validationSchemas/userSchemas';
 import userService from '../../../services/user.service';
 import branchService from '../../../services/branch.service';
 import { useApp } from '../../../contexts/AppContext';
@@ -24,9 +25,9 @@ import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createStaffAndParentColumns } from '../../../definitions/manager/staff/tableColumns';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '../../../utils/errorHandler';
-import styles from './staffAndParentManagement.module.css';
+import styles from './staffManagement.module.css';
 
-const StaffAndParentManagement = () => {
+const StaffManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isInitialMount = React.useRef(true);
@@ -43,6 +44,8 @@ const StaffAndParentManagement = () => {
   
   const staffCrud = useBaseCRUD({
     loadFunction: loadStaffFunction,
+    updateFunction: userService.updateUserByManager,
+    deleteFunction: userService.deleteUserByManager,
     loadOnMount: true
   });
 
@@ -72,6 +75,7 @@ const StaffAndParentManagement = () => {
   
   // Dialog states
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Global state
@@ -109,12 +113,29 @@ const StaffAndParentManagement = () => {
   // Create handler
   const handleCreateStaff = () => {
     setIsSubmitting(false);
-      setOpenCreateDialog(true);
+    setOpenCreateDialog(true);
   };
-  
-  // Manager chỉ có quyền get và create, không có update và delete
-  
-  // Staff submit handler
+
+  // Edit handler
+  const handleEditStaff = async (staff) => {
+    try {
+      const expandedStaff = await userService.getUserById(staff.id, true);
+      staffCrud.handleEdit(expandedStaff);
+      setOpenUpdateDialog(true);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi lấy thông tin nhân viên';
+      toast.error(errorMessage);
+      staffCrud.handleEdit(staff);
+      setOpenUpdateDialog(true);
+    }
+  };
+
+  // Delete handler
+  const handleDeleteStaff = (staff) => {
+    staffCrud.handleDelete(staff);
+  };
+
+  // Staff submit handler (create)
   const handleStaffSubmit = async (data) => {
     try {
       await userService.createStaff(data);
@@ -133,6 +154,40 @@ const StaffAndParentManagement = () => {
       throw err;
     }
   };
+
+  // Staff update submit handler
+  const handleStaffUpdateSubmit = async (formData) => {
+    if (!staffCrud.selectedItem) return;
+    
+    const updateData = {
+      name: formData.name || staffCrud.selectedItem?.name || '',
+      isActive: formData.isActive !== undefined ? formData.isActive : (staffCrud.selectedItem?.isActive !== undefined ? staffCrud.selectedItem.isActive : true)
+    };
+    
+    await staffCrud.handleFormSubmit(updateData);
+  };
+
+  // Form fields for update (similar to admin)
+  const updateFormFields = useMemo(() => [
+    {
+      section: 'Thông tin cá nhân',
+      sectionDescription: 'Cập nhật thông tin hiển thị của nhân viên.',
+      name: 'name',
+      label: 'Họ và Tên',
+      type: 'text',
+      required: true,
+      placeholder: 'Ví dụ: Nguyễn Văn A',
+      disabled: staffCrud.actionLoading,
+      gridSize: 6
+    },
+    {
+      name: 'isActive',
+      label: 'Trạng thái hoạt động',
+      type: 'switch',
+      disabled: staffCrud.actionLoading,
+      gridSize: 6
+    }
+  ], [staffCrud.actionLoading]);
   
   return (
     <div className={styles.container}>
@@ -178,7 +233,9 @@ const StaffAndParentManagement = () => {
             totalCount={staffCrud.totalCount}
             onPageChange={staffCrud.handlePageChange}
             onRowsPerPageChange={staffCrud.handleRowsPerPageChange}
-                showActions={false}
+            onView={(staff) => navigate(`/manager/staff/detail/${staff.id}`)}
+            onEdit={handleEditStaff}
+            onDelete={handleDeleteStaff}
                 emptyMessage="Không có nhân viên nào. Hãy tạo tài khoản nhân viên đầu tiên để bắt đầu."
               />
             </div>
@@ -208,8 +265,47 @@ const StaffAndParentManagement = () => {
             }}
           />
       </ManagementFormDialog>
+
+      {/* Update Account Dialog */}
+      <ManagementFormDialog
+        open={openUpdateDialog && staffCrud.dialogMode === 'edit'}
+        onClose={() => {
+          setOpenUpdateDialog(false);
+          staffCrud.setOpenDialog(false);
+        }}
+        mode="edit"
+        title="Cập Nhật Tài Khoản Nhân Viên"
+        icon={GroupsIcon}
+        loading={staffCrud.actionLoading}
+        maxWidth="sm"
+      >
+        <Form
+          schema={updateUserSchema}
+          defaultValues={{
+            name: staffCrud.selectedItem?.name || '',
+            isActive: staffCrud.selectedItem?.isActive !== undefined ? staffCrud.selectedItem.isActive : true
+          }}
+          onSubmit={handleStaffUpdateSubmit}
+          submitText="Cập nhật Thông Tin"
+          loading={staffCrud.actionLoading}
+          disabled={staffCrud.actionLoading}
+          fields={updateFormFields}
+        />
+      </ManagementFormDialog>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        open={staffCrud.confirmDialog.open}
+        onClose={() => staffCrud.setConfirmDialog(prev => ({ ...prev, open: false }))}
+        onConfirm={staffCrud.confirmDialog.onConfirm}
+        title={staffCrud.confirmDialog.title || 'Xác nhận xóa'}
+        description={staffCrud.confirmDialog.description || 'Bạn có chắc chắn muốn xóa nhân viên này không?'}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        confirmColor="error"
+      />
     </div>
   );
 };
 
-export default StaffAndParentManagement;
+export default StaffManagement;

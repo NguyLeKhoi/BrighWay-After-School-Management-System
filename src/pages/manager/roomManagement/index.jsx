@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -27,6 +28,7 @@ import { toast } from 'react-toastify';
 import styles from './RoomManagement.module.css';
 
 const ManagerRoomManagement = () => {
+  const navigate = useNavigate();
   const [managerBranchId, setManagerBranchId] = useState(null);
   
   // Facility and Branch data
@@ -226,6 +228,7 @@ const ManagerRoomManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(room) => navigate(`/manager/rooms/detail/${room.id}`)}
           onEdit={handleEditWithData}
           onDelete={handleDelete}
           emptyMessage="Không có phòng học nào. Hãy thêm phòng học đầu tiên để bắt đầu."

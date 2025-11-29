@@ -13,7 +13,6 @@ const branchSlotService = {
       const {
         pageIndex = 1,
         pageSize = 10,
-        searchTerm = '',
         status = null,
         weekDate = null,
         timeframeId = null,
@@ -25,24 +24,20 @@ const branchSlotService = {
         pageSize: pageSize.toString()
       });
 
-      if (searchTerm) {
-        queryParams.append('filter.Name', searchTerm);
-      }
-
       if (status !== null && status !== undefined && status !== '') {
-        queryParams.append('filter.Status', status.toString());
+        queryParams.append('status', status.toString());
       }
 
       if (weekDate !== null && weekDate !== undefined && weekDate !== '') {
-        queryParams.append('filter.WeekDate', weekDate.toString());
+        queryParams.append('weekDate', weekDate.toString());
       }
 
       if (timeframeId !== null && timeframeId !== undefined && timeframeId !== '') {
-        queryParams.append('filter.TimeframeId', timeframeId.toString());
+        queryParams.append('timeframeId', timeframeId.toString());
       }
 
       if (slotTypeId !== null && slotTypeId !== undefined && slotTypeId !== '') {
-        queryParams.append('filter.SlotTypeId', slotTypeId.toString());
+        queryParams.append('slotTypeId', slotTypeId.toString());
       }
 
       const response = await axiosInstance.get(`/BranchSlot/manager/paged?${queryParams}`);

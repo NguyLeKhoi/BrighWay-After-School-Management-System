@@ -67,10 +67,13 @@ import SchoolDetail from '../pages/admin/schoolManagement/SchoolDetail';
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
 import ManagerRoomManagement from '../pages/manager/roomManagement';
-import StaffAndParentManagement from '../pages/manager/staffAndParentManagement';
+import ManagerRoomDetail from '../pages/manager/roomManagement/RoomDetail';
+import StaffManagement from '../pages/manager/staffManagement';
+import StaffDetail from '../pages/manager/staffManagement/StaffDetail';
 import ParentManagement from '../pages/manager/parentManagement';
-import CreateParent from '../pages/manager/staffAndParentManagement/CreateParent';
+import CreateParent from '../pages/manager/parentManagement/CreateParent';
 import ManagerPackageManagement from '../pages/manager/packageManagement';
+import ManagerPackageDetail from '../pages/manager/packageManagement/PackageDetail';
 import CreatePackage from '../pages/manager/packageManagement/CreatePackage';
 import UpdatePackage from '../pages/manager/packageManagement/UpdatePackage';
 import ManagerStudentManagement from '../pages/manager/studentManagement';
@@ -372,7 +375,11 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'staff',
-        element: <StaffAndParentManagement />,
+        element: <StaffManagement />,
+      },
+      {
+        path: 'staff/detail/:id',
+        element: <StaffDetail />,
       },
       {
         path: 'parents',
@@ -387,8 +394,16 @@ export const routes = createBrowserRouter([
         element: <ManagerRoomManagement />,
       },
       {
+        path: 'rooms/detail/:id',
+        element: <ManagerRoomDetail />,
+      },
+      {
         path: 'packages',
         element: <ManagerPackageManagement />,
+      },
+      {
+        path: 'packages/detail/:id',
+        element: <ManagerPackageDetail />,
       },
       {
         path: 'packages/create',
