@@ -198,6 +198,7 @@ const BranchManagement = () => {
         loading={assignBenefits.loading}
         actionLoading={actionLoading}
         onRemove={handleRemoveBenefit}
+        onRemoveDirect={assignBenefits.handleRemoveDirect}
         onSubmit={assignBenefits.handleSubmit}
       />
 
@@ -213,6 +214,7 @@ const BranchManagement = () => {
         loading={assignSchools.loading}
         actionLoading={actionLoading}
         onRemove={handleRemoveSchool}
+        onRemoveDirect={assignSchools.handleRemoveDirect}
         onSubmit={assignSchools.handleSubmit}
       />
 
@@ -227,6 +229,7 @@ const BranchManagement = () => {
         setSelectedStudentLevels={assignStudentLevels.setSelectedStudentLevels}
         loading={assignStudentLevels.loading}
         actionLoading={actionLoading}
+        onRemoveDirect={assignStudentLevels.handleRemoveDirect}
         onSubmit={assignStudentLevels.handleSubmit}
       />
       </motion.div>

@@ -33,6 +33,7 @@ const AssignSchoolsDialog = ({
   loading,
   actionLoading,
   onRemove,
+  onRemoveDirect,
   onSubmit
 }) => {
   return (
@@ -54,29 +55,38 @@ const AssignSchoolsDialog = ({
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
-                Chọn trường
+                Chọn trường để gán thêm
               </Typography>
               <FormControl fullWidth>
                 <Autocomplete
                   multiple
-                  options={availableSchools}
+                  options={availableSchools.filter(s => {
+                    const schoolId = s.id || s.schoolId;
+                    return schoolId && !assignedSchools.some(as => {
+                      const assignedId = as.id || as.schoolId;
+                      return assignedId && assignedId === schoolId;
+                    });
+                  })}
                   getOptionLabel={(option) => option.name || option.schoolName || 'Không rõ tên'}
                   getOptionKey={(option) => option.id || option.schoolId}
                   value={availableSchools.filter(s => {
                     const schoolId = s.id || s.schoolId;
-                    return schoolId && selectedSchools.includes(schoolId);
+                    return schoolId && selectedSchools.includes(schoolId) && !assignedSchools.some(as => {
+                      const assignedId = as.id || as.schoolId;
+                      return assignedId && assignedId === schoolId;
+                    });
                   })}
                   onChange={(event, newValue) => {
-                    const ids = newValue
+                    const newIds = newValue
                       .map(s => s.id || s.schoolId)
                       .filter(id => id != null && id !== '');
-                    setSelectedSchools(ids);
+                    setSelectedSchools(newIds);
                   }}
                   disableCloseOnSelect
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      placeholder="Tìm kiếm và chọn trường..."
+                      placeholder="Tìm kiếm và chọn trường để gán thêm..."
                       variant="outlined"
                     />
                   )}
@@ -102,7 +112,10 @@ const AssignSchoolsDialog = ({
               <Divider />
               <Box mt={2}>
                 <Typography variant="body2" color="text.secondary">
-                  Đã chọn: <strong>{selectedSchools.length}</strong> trường
+                  Trường mới sẽ gán: <strong>{selectedSchools.filter(id => !assignedSchools.some(as => {
+                    const assignedId = as.id || as.schoolId;
+                    return assignedId && assignedId === id;
+                  })).length}</strong>
                 </Typography>
               </Box>
             </Grid>
@@ -125,7 +138,7 @@ const AssignSchoolsDialog = ({
                               edge="end"
                               size="small"
                               color="error"
-                              onClick={() => onRemove(selectedBranch.id, school.id || school.schoolId, schoolName)}
+                              onClick={() => onRemoveDirect ? onRemoveDirect(selectedBranch.id, school.id || school.schoolId, schoolName) : onRemove(selectedBranch.id, school.id || school.schoolId, schoolName)}
                               disabled={actionLoading}
                             >
                               <DeleteIcon fontSize="small" />
