@@ -58,6 +58,7 @@ import PackageManagement from '../pages/admin/packageManagement';
 import PackageDetail from '../pages/admin/packageManagement/PackageDetail';
 import AdminCreateTemplate from '../pages/admin/packageManagement/CreateTemplate';
 import AdminUpdateTemplate from '../pages/admin/packageManagement/UpdateTemplate';
+import TemplateDetail from '../pages/admin/packageManagement/TemplateDetail';
 import AdminCreatePackage from '../pages/admin/packageManagement/CreatePackage';
 import AdminUpdatePackage from '../pages/admin/packageManagement/UpdatePackage';
 import SchoolManagement from '../pages/admin/schoolManagement';
@@ -338,6 +339,7 @@ export const routes = createBrowserRouter([
         element: <AdminCreateTemplate />
       },
       { path: 'packages/templates/update/:id', element: <AdminUpdateTemplate /> },
+      { path: 'packages/templates/detail/:id', element: <TemplateDetail /> },
       { path: 'packages/create', element: <AdminCreatePackage /> },
       { path: 'packages/update/:id', element: <AdminUpdatePackage /> },
       {

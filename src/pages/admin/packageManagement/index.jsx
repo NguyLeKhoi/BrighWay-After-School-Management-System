@@ -209,6 +209,7 @@ const PackageManagement = () => {
 
   const handleCreateTemplate = () => navigate('/admin/packages/templates/create');
   const handleEditTemplate = (item) => navigate(`/admin/packages/templates/update/${item.id}`);
+  const handleViewTemplate = (item) => navigate(`/admin/packages/templates/detail/${item.id}`);
 
   const handleCreatePackage = () => navigate('/admin/packages/create');
   const handleEditPackage = (item) => navigate(`/admin/packages/update/${item.id}`);
@@ -510,6 +511,7 @@ const PackageManagement = () => {
               totalCount={templateTotalCount}
               onPageChange={templateHandlePageChange}
               onRowsPerPageChange={templateHandleRowsPerPageChange}
+              onView={handleViewTemplate}
               onEdit={handleEditTemplate}
               onDelete={templateHandleDelete}
               emptyMessage="Chưa có mẫu gói nào. Hãy tạo mẫu đầu tiên để sử dụng lại nhanh chóng."
