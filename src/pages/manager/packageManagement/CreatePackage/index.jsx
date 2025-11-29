@@ -187,6 +187,11 @@ const CreatePackage = () => {
     );
   }
 
+  // Skip step 1 (chọn mẫu gói) if template is already selected from dialog
+  const shouldSkipStep1 = !!templateParam;
+  const initialStep = shouldSkipStep1 ? 1 : 0;
+  const skipSteps = shouldSkipStep1 ? [0] : [];
+
   return (
     <Box sx={{ minHeight: 'calc(100vh - 64px - 48px)', display: 'flex', flexDirection: 'column' }}>
       <StepperForm
@@ -196,6 +201,8 @@ const CreatePackage = () => {
         title="Tạo gói bán"
         icon={<PackageIcon />}
         initialData={formData}
+        initialStep={initialStep}
+        skipSteps={skipSteps}
         stepProps={{
           templateOptions,
           templates,
@@ -204,7 +211,8 @@ const CreatePackage = () => {
           dependenciesLoading,
           selectedTemplateId,
           selectedTemplate,
-          onTemplateSelect: handleTemplateSelect
+          onTemplateSelect: handleTemplateSelect,
+          isTemplatePreSelected: !!templateParam
         }}
       />
     </Box>

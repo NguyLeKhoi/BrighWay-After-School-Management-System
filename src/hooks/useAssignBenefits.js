@@ -26,7 +26,7 @@ export const useAssignBenefits = (expandedRows, updateRowBenefits, loadData) => 
       
       setAvailableBenefits(allBenefits);
       setAssignedBenefits(assigned);
-      setSelectedBenefits(assigned.map(b => b.id));
+      setSelectedBenefits([]);
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tải danh sách lợi ích');
     } finally {
@@ -64,32 +64,36 @@ export const useAssignBenefits = (expandedRows, updateRowBenefits, loadData) => 
     }
   };
 
+  const handleRemoveDirect = async (branchId, benefitId, benefitName) => {
+    try {
+      await benefitService.removeBenefitFromBranch(branchId, benefitId);
+      toast.success(`Đã gỡ lợi ích "${benefitName}" khỏi chi nhánh thành công!`);
+      
+      const updated = await benefitService.getBenefitsByBranchId(branchId);
+      
+      if (selectedBranch?.id === branchId) {
+        setAssignedBenefits(updated);
+        setSelectedBenefits(prev => prev.filter(id => id !== benefitId));
+      }
+      
+      updateRowBenefits(branchId, updated);
+      
+      if (loadData) {
+        await loadData(false);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gỡ lợi ích');
+    }
+  };
+
   const handleRemove = async (branchId, benefitId, benefitName, setConfirmDialog) => {
     setConfirmDialog({
       open: true,
       title: 'Xác nhận gỡ lợi ích',
       description: `Bạn có chắc chắn muốn gỡ lợi ích "${benefitName}" khỏi chi nhánh này không?`,
       onConfirm: async () => {
-        try {
-          await benefitService.removeBenefitFromBranch(branchId, benefitId);
-          toast.success(`Đã gỡ lợi ích "${benefitName}" khỏi chi nhánh thành công!`);
-          
-          const updated = await benefitService.getBenefitsByBranchId(branchId);
-          updateRowBenefits(branchId, updated);
-          
-          if (selectedBranch?.id === branchId) {
-            setAssignedBenefits(updated);
-          }
-          
-          if (loadData) {
-            await loadData(false);
-          }
-          
-          setConfirmDialog(prev => ({ ...prev, open: false }));
-        } catch (err) {
-          toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gỡ lợi ích');
-          setConfirmDialog(prev => ({ ...prev, open: false }));
-        }
+        await handleRemoveDirect(branchId, benefitId, benefitName);
+        setConfirmDialog(prev => ({ ...prev, open: false }));
       }
     });
   };
@@ -105,7 +109,8 @@ export const useAssignBenefits = (expandedRows, updateRowBenefits, loadData) => 
     loading,
     handleOpen,
     handleSubmit,
-    handleRemove
+    handleRemove,
+    handleRemoveDirect
   };
 };
 

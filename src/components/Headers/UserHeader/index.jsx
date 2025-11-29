@@ -79,7 +79,7 @@ const UserHeader = () => {
           )}
               <Avatar
                 src={userInfo?.profilePictureUrl || ''}
-                alt={userInfo?.fullName || 'User'}
+                alt={userInfo?.fullName || 'Người dùng'}
                 sx={{
                   bgcolor: 'rgba(255, 255, 255, 0.2)',
                   width: 36,

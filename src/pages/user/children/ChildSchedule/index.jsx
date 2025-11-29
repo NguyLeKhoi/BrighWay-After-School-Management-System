@@ -38,6 +38,13 @@ const ChildSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'schedule'
+  
+  // Pagination states for each section
+  const [pagination, setPagination] = useState({
+    current: { page: 0, rowsPerPage: 10 },
+    upcoming: { page: 0, rowsPerPage: 10 },
+    past: { page: 0, rowsPerPage: 10 }
+  });
 
   // Màu sắc cho các trạng thái khác nhau - sử dụng màu teal cho tất cả
   const getStatusColor = (status) => {
@@ -406,6 +413,28 @@ const ChildSchedule = () => {
     }
   };
 
+  // Pagination handlers
+  const handlePageChange = (section, newPage) => {
+    setPagination(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        page: newPage
+      }
+    }));
+  };
+
+  const handleRowsPerPageChange = (section, newRowsPerPage) => {
+    setPagination(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        rowsPerPage: newRowsPerPage,
+        page: 0 // Reset to first page when changing rows per page
+      }
+    }));
+  };
+
 
   // Define columns for DataTable
   const tableColumns = useMemo(() => {
@@ -730,16 +759,21 @@ const ChildSchedule = () => {
                 Đang diễn ra
               </Typography>
             <DataTable
-                data={rawSlots.current}
+                data={rawSlots.current.slice(
+                  pagination.current.page * pagination.current.rowsPerPage,
+                  pagination.current.page * pagination.current.rowsPerPage + pagination.current.rowsPerPage
+                )}
               columns={tableColumns}
                 loading={false}
                 emptyMessage="Chưa có lịch đang diễn ra"
                 showActions={rawSlots.current.length > 0}
               onEdit={handleCardClick}
               onDelete={null}
-              page={0}
-                rowsPerPage={rawSlots.current.length || 10}
+              page={pagination.current.page}
+                rowsPerPage={pagination.current.rowsPerPage}
                 totalCount={rawSlots.current.length}
+                onPageChange={(event, newPage) => handlePageChange('current', newPage)}
+                onRowsPerPageChange={(event) => handleRowsPerPageChange('current', parseInt(event.target.value, 10))}
                 getRowSx={(item) => {
                   return {
                     borderLeft: '4px solid #ff9800',
@@ -777,16 +811,21 @@ const ChildSchedule = () => {
                 Sắp tới
               </Typography>
               <DataTable
-                data={rawSlots.upcoming}
+                data={rawSlots.upcoming.slice(
+                  pagination.upcoming.page * pagination.upcoming.rowsPerPage,
+                  pagination.upcoming.page * pagination.upcoming.rowsPerPage + pagination.upcoming.rowsPerPage
+                )}
                 columns={tableColumns}
                 loading={false}
                 emptyMessage="Chưa có lịch sắp tới"
                 showActions={rawSlots.upcoming.length > 0}
                 onEdit={handleCardClick}
                 onDelete={null}
-                page={0}
-                rowsPerPage={rawSlots.upcoming.length || 10}
+                page={pagination.upcoming.page}
+                rowsPerPage={pagination.upcoming.rowsPerPage}
                 totalCount={rawSlots.upcoming.length}
+                onPageChange={(event, newPage) => handlePageChange('upcoming', newPage)}
+                onRowsPerPageChange={(event) => handleRowsPerPageChange('upcoming', parseInt(event.target.value, 10))}
                 getRowSx={(item) => {
                   return {
                     borderLeft: '4px solid var(--color-primary)',
@@ -823,16 +862,21 @@ const ChildSchedule = () => {
                 Đã qua
               </Typography>
               <DataTable
-                data={rawSlots.past}
+                data={rawSlots.past.slice(
+                  pagination.past.page * pagination.past.rowsPerPage,
+                  pagination.past.page * pagination.past.rowsPerPage + pagination.past.rowsPerPage
+                )}
                 columns={tableColumns}
                 loading={false}
                 emptyMessage="Chưa có lịch đã qua"
                 showActions={rawSlots.past.length > 0}
                 onEdit={handleCardClick}
                 onDelete={null}
-                page={0}
-                rowsPerPage={rawSlots.past.length || 10}
+                page={pagination.past.page}
+                rowsPerPage={pagination.past.rowsPerPage}
                 totalCount={rawSlots.past.length}
+                onPageChange={(event, newPage) => handlePageChange('past', newPage)}
+                onRowsPerPageChange={(event) => handleRowsPerPageChange('past', parseInt(event.target.value, 10))}
                 getRowSx={(item) => {
                   return {
                     borderLeft: '4px solid #9e9e9e',

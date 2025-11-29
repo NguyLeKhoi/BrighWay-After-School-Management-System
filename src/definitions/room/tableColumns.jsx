@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Chip } from '@mui/material';
 import { MeetingRoom as RoomIcon } from '@mui/icons-material';
 
 export const createRoomColumns = () => [
@@ -41,6 +41,70 @@ export const createRoomColumns = () => [
         {value} người
       </Typography>
     )
+  },
+  {
+    key: 'status',
+    header: 'Trạng Thái',
+    align: 'center',
+    render: (_, row) => {
+      // Map numeric status to string enum (same as branch)
+      const statusMap = {
+        0: 'Active',
+        1: 'Active',
+        2: 'Inactive',
+        3: 'UnderMaintenance',
+        4: 'Closed',
+        '0': 'Active',
+        '1': 'Active',
+        '2': 'Inactive',
+        '3': 'UnderMaintenance',
+        '4': 'Closed',
+        'Active': 'Active',
+        'Inactive': 'Inactive',
+        'UnderMaintenance': 'UnderMaintenance',
+        'Closed': 'Closed'
+      };
+      
+      const statusLabels = {
+        'Active': 'Hoạt động',
+        'Inactive': 'Không hoạt động',
+        'UnderMaintenance': 'Đang bảo trì',
+        'Closed': 'Đã đóng'
+      };
+      const statusColors = {
+        'Active': 'success',
+        'Inactive': 'default',
+        'UnderMaintenance': 'warning',
+        'Closed': 'error'
+      };
+      
+      // Convert numeric status to string enum
+      const rawStatus = row.status;
+      let status = rawStatus;
+      
+      // If status exists in map, convert to enum
+      if (rawStatus !== null && rawStatus !== undefined && statusMap[rawStatus] !== undefined) {
+        status = statusMap[rawStatus];
+      }
+      
+      // Default to Active if status is not valid
+      if (!status || !statusLabels[status]) {
+        status = 'Active';
+      }
+      
+      const isDeleted = row.isDeleted !== undefined ? row.isDeleted : row.IsDeleted !== undefined ? row.IsDeleted : false;
+      const displayStatus = isDeleted ? 'Đã xóa' : (statusLabels[status] || 'Hoạt động');
+      const displayColor = isDeleted ? 'error' : (statusColors[status] || 'success');
+      
+      return (
+        <Chip
+          label={displayStatus}
+          color={displayColor}
+          size="small"
+          variant={isDeleted ? 'outlined' : 'filled'}
+        />
+      );
+    }
   }
 ];
 

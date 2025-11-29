@@ -15,6 +15,7 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import notificationService from '../../../services/notification.service';
 import AnimatedCard from '../../../components/Common/AnimatedCard';
+import { parseAsUTC7, formatDateTimeUTC7, getCurrentTimeUTC7 } from '../../../utils/dateHelper';
 import styles from './Notifications.module.css';
 
 const Notifications = () => {
@@ -149,9 +150,20 @@ const Notifications = () => {
 
   const formatTime = (timeString) => {
     if (!timeString) return '';
-    const date = new Date(timeString);
-    const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
+    
+    // Parse date như UTC+7
+    const dateUTC7 = parseAsUTC7(timeString);
+    if (!dateUTC7) return '';
+    
+    // Lấy thời gian hiện tại ở UTC+7 (milliseconds)
+    const nowUTC7Ms = getCurrentTimeUTC7();
+    
+    // Lấy timestamp của notification (milliseconds)
+    const dateUTC7Ms = dateUTC7.getTime();
+    
+    // Tính khoảng cách thời gian (milliseconds) giữa hai thời điểm UTC+7
+    const diffInMs = nowUTC7Ms - dateUTC7Ms;
+    const diffInHours = diffInMs / (1000 * 60 * 60);
     
     if (diffInHours < 1) {
       return 'Vừa xong';
@@ -160,7 +172,14 @@ const Notifications = () => {
     } else if (diffInHours < 168) {
       return `${Math.floor(diffInHours / 24)} ngày trước`;
     } else {
-      return date.toLocaleDateString('vi-VN');
+      // Format date với UTC+7 timezone
+      return formatDateTimeUTC7(dateUTC7, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
   };
 

@@ -89,9 +89,9 @@ const facilityService = {
    */
   getFacilitiesPaged: async (params = {}) => {
     try {
-      const { page = 1, pageSize = 10, searchTerm = '' } = params;
+      const { pageIndex = 1, pageSize = 10, searchTerm = '' } = params;
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
       

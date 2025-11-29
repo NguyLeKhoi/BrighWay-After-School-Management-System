@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { Alert, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -18,6 +18,7 @@ import styles from './BenefitManagement.module.css';
 
 const BenefitManagement = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isInitialMount = useRef(true);
   
   // Use shared CRUD hook
@@ -51,12 +52,12 @@ const BenefitManagement = () => {
     loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
-      const response = await benefitService.getBenefitsPaged({
-        ...params,
+      return await benefitService.getBenefitsPaged({
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || '',
         status: params.status || null
       });
-      return response;
     },
     createFunction: benefitService.createBenefit,
     updateFunction: benefitService.updateBenefit,
@@ -132,6 +133,7 @@ const BenefitManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(benefit) => navigate(`/admin/benefits/detail/${benefit.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
           emptyMessage="Không có lợi ích nào. Hãy thêm lợi ích đầu tiên để bắt đầu."

@@ -27,6 +27,8 @@ import styles from './StepperForm.module.css';
  * @param {boolean} showStepConfirmation - Show confirmation dialog after each step
  * @param {string} storageKey - Optional custom storage key. If not provided, will use location.pathname
  * @param {boolean} enableLocalStorage - Enable localStorage persistence (default: true)
+ * @param {number} initialStep - Initial step to start from (default: 0)
+ * @param {Array} skipSteps - Array of step indices to skip and mark as completed
  */
 const StepperForm = ({
   steps = [],
@@ -38,7 +40,9 @@ const StepperForm = ({
   stepProps = {},
   showStepConfirmation = false,
   storageKey = null,
-  enableLocalStorage = true
+  enableLocalStorage = true,
+  initialStep = 0,
+  skipSteps = []
 }) => {
   const location = useLocation();
   
@@ -173,7 +177,22 @@ const StepperForm = ({
     Object.values(initialData).some(val => val !== '' && val !== null && val !== undefined);
   const isCreateMode = !hasMeaningfulData;
   
-  const [activeStep, setActiveStep] = useState(isCreateMode ? 0 : (savedDataOnMount?.activeStep || 0));
+  // Initialize completed steps with skipSteps
+  const initialCompletedSteps = React.useMemo(() => {
+    const completed = new Set(skipSteps);
+    if (savedDataOnMount?.completedSteps) {
+      savedDataOnMount.completedSteps.forEach(step => completed.add(step));
+    }
+    return completed;
+  }, [skipSteps, savedDataOnMount]);
+  
+  // Always prioritize initialStep if it's greater than 0 (means we want to skip steps)
+  const [activeStep, setActiveStep] = useState(() => {
+    if (initialStep > 0) {
+      return initialStep;
+    }
+    return isCreateMode ? initialStep : (savedDataOnMount?.activeStep || initialStep);
+  });
   // Merge initialData with saved data, prioritizing initialData for critical fields like studentId
   const [formData, setFormData] = useState(() => {
     if (isCreateMode) {
@@ -184,7 +203,7 @@ const StepperForm = ({
     return { ...saved, ...initialData };
   });
   const [stepErrors, setStepErrors] = useState({});
-  const [completedSteps, setCompletedSteps] = useState(isCreateMode ? new Set() : (savedDataOnMount?.completedSteps || new Set()));
+  const [completedSteps, setCompletedSteps] = useState(initialCompletedSteps);
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     title: '',
@@ -207,16 +226,20 @@ const StepperForm = ({
   // Load saved data on mount (only once)
   React.useEffect(() => {
     if (!hasLoadedSavedData.current && enableLocalStorage) {
+      // If initialStep > 0 or skipSteps exist, always use them (skip steps scenario)
+      const shouldUseInitialStep = initialStep > 0 || skipSteps.length > 0;
+      
       // Check if this is create mode - has meaningful data means edit mode
       const hasMeaningfulDataCheck = initialData && Object.keys(initialData).length > 0 && 
         Object.values(initialData).some(val => val !== '' && val !== null && val !== undefined);
       const isCreateModeCheck = !hasMeaningfulDataCheck;
       
-      if (isCreateModeCheck) {
-        // In create mode, start fresh - don't load saved data
+      if (isCreateModeCheck || shouldUseInitialStep) {
+        // In create mode or when skipping steps, start fresh - don't load saved data
         setFormData({ ...initialData });
-        setActiveStep(0);
-        setCompletedSteps(new Set());
+        // Always use initialStep when provided (for skipping steps)
+        setActiveStep(initialStep);
+        setCompletedSteps(initialCompletedSteps);
         formDataRef.current = { ...initialData };
         hasLoadedSavedData.current = true;
         // Clear any existing saved data
@@ -228,8 +251,11 @@ const StepperForm = ({
           // Merge saved data with initialData, prioritizing initialData for critical fields
           const merged = { ...saved.formData, ...initialData };
           setFormData(merged);
-          setActiveStep(saved.activeStep);
-          setCompletedSteps(saved.completedSteps);
+          // Use initialStep if provided and skipSteps exist, otherwise use saved step
+          const stepToUse = (skipSteps.length > 0 || initialStep > 0) ? initialStep : saved.activeStep;
+          const completedToUse = skipSteps.length > 0 ? initialCompletedSteps : saved.completedSteps;
+          setActiveStep(stepToUse);
+          setCompletedSteps(completedToUse);
           formDataRef.current = merged;
           hasLoadedSavedData.current = true;
         } else {
@@ -238,7 +264,7 @@ const StepperForm = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enableLocalStorage]); // Only depend on enableLocalStorage, not loadSavedData
+  }, [enableLocalStorage, initialStep, skipSteps]); // Add initialStep and skipSteps to deps
   
   // Update formData when initialData changes (for update scenarios)
   // Merge initialData into formData to ensure important fields like studentId are always present

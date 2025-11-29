@@ -46,10 +46,10 @@ const ManagerDashboard = () => {
         transition={{ duration: 0.4 }}
       >
         <h1 className={styles.title}>
-          Dashboard Manager
+          Tổng quan Quản Lý
         </h1>
         <p className={styles.subtitle}>
-          Chào mừng đến với trang quản lý của Manager
+          Chào mừng đến với hệ thống quản lý chi nhánh
         </p>
       </motion.div>
 
@@ -74,7 +74,7 @@ const ManagerDashboard = () => {
           Thông tin hệ thống
         </h2>
         <p className={styles.infoText}>
-          Đây là trang dashboard dành cho Manager. Tại đây bạn có thể quản lý nhân viên chăm sóc,
+          Đây là trang dashboard dành cho Quản lý chi nhánh. Tại đây bạn có thể quản lý nhân viên chăm sóc,
           xem báo cáo và thực hiện các tác vụ quản lý khác.
         </p>
       </AnimatedCard>

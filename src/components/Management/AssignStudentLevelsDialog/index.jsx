@@ -12,10 +12,13 @@ import {
   List,
   ListItem,
   Button,
-  CircularProgress
+  CircularProgress,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
-  Class as ClassIcon
+  Class as ClassIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import ManagementFormDialog from '../FormDialog';
 
@@ -29,6 +32,7 @@ const AssignStudentLevelsDialog = ({
   setSelectedStudentLevels,
   loading,
   actionLoading,
+  onRemoveDirect,
   onSubmit
 }) => {
   return (
@@ -50,28 +54,38 @@ const AssignStudentLevelsDialog = ({
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
-                Chọn cấp độ học sinh
+                Chọn cấp độ học sinh để gán thêm
               </Typography>
               <FormControl fullWidth>
                 <Autocomplete
                   multiple
-                  options={availableStudentLevels}
+                  options={availableStudentLevels.filter(sl => {
+                    const levelId = sl.id || sl.studentLevelId;
+                    return levelId && !assignedStudentLevels.some(asl => {
+                      const assignedId = asl.id || asl.studentLevelId;
+                      return assignedId && assignedId === levelId;
+                    });
+                  })}
                   getOptionLabel={(option) => option.name || option.levelName || 'Không rõ tên'}
                   getOptionKey={(option) => option.id || option.studentLevelId}
                   value={availableStudentLevels.filter(sl => {
                     const levelId = sl.id || sl.studentLevelId;
-                    return levelId && selectedStudentLevels.includes(levelId);
+                    return levelId && selectedStudentLevels.includes(levelId) && !assignedStudentLevels.some(asl => {
+                      const assignedId = asl.id || asl.studentLevelId;
+                      return assignedId && assignedId === levelId;
+                    });
                   })}
                   onChange={(event, newValue) => {
-                    const ids = newValue
+                    const newIds = newValue
                       .map(sl => sl.id || sl.studentLevelId)
                       .filter(id => id != null && id !== '');
-                    setSelectedStudentLevels(ids);
+                    setSelectedStudentLevels(newIds);
                   }}
+                  disableCloseOnSelect
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      placeholder="Tìm kiếm và chọn cấp độ học sinh..."
+                      placeholder="Tìm kiếm và chọn cấp độ học sinh để gán thêm..."
                       variant="outlined"
                     />
                   )}
@@ -97,7 +111,10 @@ const AssignStudentLevelsDialog = ({
               <Divider />
               <Box mt={2}>
                 <Typography variant="body2" color="text.secondary">
-                  Đã chọn: <strong>{selectedStudentLevels.length}</strong> cấp độ học sinh
+                  Cấp độ học sinh mới sẽ gán: <strong>{selectedStudentLevels.filter(id => !assignedStudentLevels.some(asl => {
+                    const assignedId = asl.id || asl.studentLevelId;
+                    return assignedId && assignedId === id;
+                  })).length}</strong>
                 </Typography>
               </Box>
             </Grid>
@@ -112,7 +129,24 @@ const AssignStudentLevelsDialog = ({
                   {assignedStudentLevels.map((studentLevel) => {
                     const levelName = studentLevel.name || studentLevel.levelName || 'Không rõ tên';
                     return (
-                      <ListItem key={studentLevel.id || studentLevel.studentLevelId}>
+                      <ListItem
+                        key={studentLevel.id || studentLevel.studentLevelId}
+                        secondaryAction={
+                          onRemoveDirect && (
+                            <Tooltip title="Gỡ cấp độ học sinh">
+                              <IconButton
+                                edge="end"
+                                size="small"
+                                color="error"
+                                onClick={() => onRemoveDirect(selectedBranch.id, studentLevel.id || studentLevel.studentLevelId, levelName)}
+                                disabled={actionLoading}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )
+                        }
+                      >
                         <ClassIcon fontSize="small" color="warning" sx={{ mr: 1 }} />
                         <ListItemText
                           primary={levelName}

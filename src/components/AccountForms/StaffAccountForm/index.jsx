@@ -73,7 +73,7 @@ const StaffAccountForm = ({
       <Form
         schema={createStaffSchema}
         onSubmit={handleFormSubmit}
-        submitText="Tạo Staff"
+        submitText="Tạo Nhân viên"
         loading={isSubmitting}
         defaultValues={{}}
         fields={[
@@ -132,7 +132,7 @@ const StaffAccountForm = ({
         >
           <PersonIcon sx={{ color: 'white' }} />
           <Typography variant="h6" component="span" sx={{ color: 'white' }}>
-            Xác nhận Tạo Tài Khoản Staff
+            Xác nhận Tạo Tài Khoản Nhân viên
           </Typography>
         </DialogTitle>
         <DialogContent>
@@ -145,7 +145,7 @@ const StaffAccountForm = ({
           {confirmDialog.userData && (
             <Paper elevation={1} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom color="primary">
-                Thông tin tài khoản Staff
+                Thông tin tài khoản Nhân viên
               </Typography>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -172,7 +172,7 @@ const StaffAccountForm = ({
                     Vai Trò:
                   </Typography>
                   <Chip 
-                    label="Staff"
+                    label="Nhân viên"
                     color="info" 
                     size="small"
                     variant="outlined"

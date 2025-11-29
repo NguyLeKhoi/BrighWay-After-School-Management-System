@@ -99,7 +99,7 @@ const UserLayout = () => {
         {/* Generic Drawer */}
         <GenericDrawer
           title="BRIGHWAY"
-          subtitle="User Portal"
+          subtitle="Cổng Người Dùng"
           menuItems={menuItems}
           onLogout={handleLogout}
           profilePath="/user/profile"

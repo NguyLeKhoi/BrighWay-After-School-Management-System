@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { Alert } from '@mui/material';
 import { Room as RoomIcon } from '@mui/icons-material';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -18,6 +18,7 @@ import styles from './FacilityManagement.module.css';
 
 const FacilityManagement = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isInitialMount = useRef(true);
   
   // Use shared CRUD hook
@@ -48,7 +49,13 @@ const FacilityManagement = () => {
     handleRowsPerPageChange,
     loadData
   } = useBaseCRUD({
-    loadFunction: facilityService.getFacilitiesPaged,
+    loadFunction: async (params) => {
+      return facilityService.getFacilitiesPaged({
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
+        searchTerm: params.searchTerm || params.Keyword || ''
+      });
+    },
     createFunction: facilityService.createFacility,
     updateFunction: facilityService.updateFacility,
     deleteFunction: facilityService.deleteFacility,
@@ -112,6 +119,7 @@ const FacilityManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(facility) => navigate(`/admin/facilities/detail/${facility.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
           emptyMessage="Không có cơ sở vật chất nào. Hãy thêm cơ sở vật chất đầu tiên để bắt đầu."

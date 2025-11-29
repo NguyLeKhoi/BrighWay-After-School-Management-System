@@ -55,7 +55,7 @@ const StaffLayout = () => {
         {/* Sidebar */}
         <GenericDrawer
           title="BRIGHWAY"
-          subtitle="Staff Portal"
+          subtitle="Cổng Nhân Viên"
           menuItems={menuItems}
           onLogout={handleLogout}
           profilePath="/staff/profile"

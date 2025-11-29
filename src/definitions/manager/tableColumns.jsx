@@ -10,15 +10,15 @@ import {
 const formatRoleLabel = (roleString) => {
   switch (roleString) {
     case 'Admin':
-      return 'Admin';
+      return 'Quản trị viên';
     case 'Staff':
-      return 'Staff';
+      return 'Nhân viên';
     case 'Manager':
-      return 'Manager';
+      return 'Quản lý';
     case 'User':
-      return 'User';
+      return 'Người dùng';
     default:
-      return roleString || 'Unknown';
+      return roleString || 'Chưa xác định';
   }
 };
 
@@ -116,6 +116,22 @@ export const createManagerColumns = () => [
         {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
       </Typography>
     )
+  },
+  {
+    key: 'isActive',
+    header: 'Trạng Thái',
+    align: 'center',
+    render: (value, item) => {
+      const isActive = item.isActive !== undefined ? item.isActive : value !== undefined ? value : true;
+      return (
+        <Chip
+          label={isActive ? 'Hoạt động' : 'Không hoạt động'}
+          color={isActive ? 'success' : 'default'}
+          size="small"
+          variant={isActive ? 'filled' : 'outlined'}
+        />
+      );
+    }
   }
 ];
 

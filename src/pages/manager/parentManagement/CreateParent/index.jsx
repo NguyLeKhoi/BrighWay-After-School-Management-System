@@ -203,10 +203,10 @@ const CreateParent = () => {
         await userService.createParent(formData);
       }
 
-      toast.success(`Tạo tài khoản User (Parent) "${confirmData.name}" thành công!`);
+      toast.success(`Tạo tài khoản Người dùng (Phụ huynh) "${confirmData.name}" thành công!`);
       navigate('/manager/parents');
     } catch (err) {
-      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi tạo tài khoản User (Parent)';
+      const errorMessage = getErrorMessage(err) || 'Có lỗi xảy ra khi tạo tài khoản Người dùng (Phụ huynh)';
       toast.error(errorMessage, {
         autoClose: 5000,
         style: { whiteSpace: 'pre-line' }

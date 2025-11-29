@@ -9,7 +9,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import {
   MeetingRoom as RoomIcon
 } from '@mui/icons-material';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -27,6 +27,7 @@ import styles from './RoomManagement.module.css';
 
 const RoomManagement = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isInitialMount = useRef(true);
   // Facility and Branch data
   const {
@@ -70,14 +71,13 @@ const RoomManagement = () => {
     loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
-      const response = await roomService.getRoomsPaged(
-        params.page,
+      return await roomService.getRoomsPaged(
+        params.pageIndex,
         params.pageSize,
         params.searchTerm || params.Keyword || '',
         params.facilityFilter || '',
         params.branchFilter || ''
       );
-      return response;
     },
     createFunction: roomService.createRoom,
     updateFunction: roomService.updateRoom,
@@ -226,6 +226,7 @@ const RoomManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(room) => navigate(`/admin/rooms/detail/${room.id}`)}
           onEdit={handleEditWithData}
           onDelete={handleDelete}
           emptyMessage={

@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -27,6 +28,7 @@ import { toast } from 'react-toastify';
 import styles from './RoomManagement.module.css';
 
 const ManagerRoomManagement = () => {
+  const navigate = useNavigate();
   const [managerBranchId, setManagerBranchId] = useState(null);
   
   // Facility and Branch data
@@ -69,14 +71,13 @@ const ManagerRoomManagement = () => {
     
     const effectiveBranchFilter = managerBranchId; // Always use manager's branch
     
-    const response = await roomService.getRoomsPaged(
-      params.page || params.pageIndex || 1,
-      params.pageSize || params.rowsPerPage || 10,
+    return await roomService.getRoomsPaged(
+      params.pageIndex,
+      params.pageSize,
       params.Keyword || params.searchTerm || '',
       '',
       effectiveBranchFilter
     );
-    return response;
   }, [managerBranchId]);
 
   // Use Manager CRUD hook with custom load function
@@ -227,6 +228,7 @@ const ManagerRoomManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(room) => navigate(`/manager/rooms/detail/${room.id}`)}
           onEdit={handleEditWithData}
           onDelete={handleDelete}
           emptyMessage="Không có phòng học nào. Hãy thêm phòng học đầu tiên để bắt đầu."

@@ -9,8 +9,9 @@ const AuthLayout = () => {
     <div className={styles.authLayout}>
       <div className={styles.threadsBackground}>
         <Threads
-          amplitude={2.5}
-          distance={0}
+          color={[0.1, 0.1, 0.1]}
+          amplitude={3}
+          distance={0.1}
           enableMouseInteraction={false}
         />
       </div>

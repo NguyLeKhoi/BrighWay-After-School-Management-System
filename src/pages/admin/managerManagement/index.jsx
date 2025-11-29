@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Alert, Box, TextField } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import { Person as PersonIcon } from '@mui/icons-material';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -22,6 +22,7 @@ import styles from './staffAndManagerManagement.module.css';
 
 const ManagerManagement = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isInitialMount = useRef(true);
   
   // Branch selection state
@@ -61,14 +62,13 @@ const ManagerManagement = () => {
     loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
-      const response = await userService.getUsersPagedByRole({
-        pageIndex: params.page || params.pageIndex || 1,
-        pageSize: params.pageSize || params.rowsPerPage || 10,
+      return await userService.getUsersPagedByRole({
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
         Role: 'Manager',
         Keyword: params.Keyword || params.searchTerm || '',
         BranchId: params.branchFilter || ''
       });
-      return response;
     },
     createFunction: async (data) => {
       if (userRoleType === 'manager') {
@@ -182,8 +182,8 @@ const ManagerManagement = () => {
       
       {/* Header */}
       <ManagementPageHeader
-        title="Quản lý Manager"
-        createButtonText="Tạo Manager"
+        title="Quản lý tài khoản Quản lý"
+        createButtonText="Tạo tài khoản Quản lý"
         onCreateClick={handleCreate}
       />
 
@@ -239,6 +239,7 @@ const ManagerManagement = () => {
           totalCount={filteredTotalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(user) => navigate(`/admin/staffAndManager/detail/${user.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
           emptyMessage="Không có người dùng nào. Hãy tạo tài khoản đầu tiên để bắt đầu."
@@ -250,7 +251,7 @@ const ManagerManagement = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         mode={dialogMode}
-        title="Manager"
+        title="Tài khoản Quản lý"
         icon={PersonIcon}
         loading={actionLoading}
         maxWidth="sm"
@@ -273,7 +274,7 @@ const ManagerManagement = () => {
                 }
           }
           onSubmit={handleFormSubmit}
-          submitText={dialogMode === 'create' ? 'Tạo Manager' : 'Cập nhật Thông Tin'}
+          submitText={dialogMode === 'create' ? 'Tạo tài khoản Quản lý' : 'Cập nhật Thông Tin'}
           loading={actionLoading}
           disabled={actionLoading}
           fields={formFields}

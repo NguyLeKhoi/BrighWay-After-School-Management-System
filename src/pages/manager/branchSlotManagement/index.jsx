@@ -104,9 +104,8 @@ const ManagerBranchSlotManagement = () => {
   } = useBaseCRUD({
     loadFunction: async (params) => {
       return branchSlotService.getMyBranchSlotsPaged({
-        page: params.page,
+        pageIndex: params.pageIndex,
         pageSize: params.pageSize,
-        searchTerm: params.searchTerm || params.Keyword || '',
         status: params.status === '' ? null : params.status,
         weekDate: params.weekDate === '' ? null : params.weekDate,
         timeframeId: params.timeframeId === '' ? null : params.timeframeId,
@@ -536,6 +535,7 @@ const ManagerBranchSlotManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(slot) => navigate(`/manager/branch-slots/detail/${slot.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
           expandableConfig={{

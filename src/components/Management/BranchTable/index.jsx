@@ -11,25 +11,16 @@ import {
   TablePagination,
   CircularProgress
 } from '@mui/material';
-import BranchExpandedRowContent from '../BranchExpandedRowContent';
 
 const BranchTable = ({
   branches,
   columns,
-  expandedRows,
-  rowBenefits,
-  rowSchools,
-  rowStudentLevels,
   isPageLoading,
   page,
   rowsPerPage,
   totalCount,
   onPageChange,
-  onRowsPerPageChange,
-  actionLoading,
-  onRemoveBenefit,
-  onRemoveSchool,
-  onRemoveStudentLevel
+  onRowsPerPageChange
 }) => {
   return (
     <TableContainer>
@@ -60,38 +51,13 @@ const BranchTable = ({
             </TableRow>
           ) : (
             branches.map((branch, index) => (
-              <React.Fragment key={branch.id || index}>
-                <TableRow hover>
-                  {columns.map((column) => (
-                    <TableCell key={column.key} align={column.align || 'left'}>
-                      {column.render ? column.render(branch[column.key], branch) : branch[column.key]}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                {expandedRows.has(branch.id) && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      sx={{
-                        backgroundColor: 'grey.50',
-                        p: 0,
-                        borderBottom: 'none'
-                      }}
-                    >
-                      <BranchExpandedRowContent
-                        branch={branch}
-                        rowBenefits={rowBenefits}
-                        rowSchools={rowSchools}
-                        rowStudentLevels={rowStudentLevels}
-                        actionLoading={actionLoading}
-                        onRemoveBenefit={onRemoveBenefit}
-                        onRemoveSchool={onRemoveSchool}
-                        onRemoveStudentLevel={onRemoveStudentLevel}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
-              </React.Fragment>
+              <TableRow key={branch.id || index} hover>
+                {columns.map((column) => (
+                  <TableCell key={column.key} align={column.align || 'left'}>
+                    {column.render ? column.render(branch[column.key], branch) : branch[column.key]}
+                  </TableCell>
+                ))}
+              </TableRow>
             ))
           )}
         </TableBody>

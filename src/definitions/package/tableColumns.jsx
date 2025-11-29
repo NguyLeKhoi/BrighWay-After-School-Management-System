@@ -150,4 +150,64 @@ export const createPackageColumns = (styles) => [
   }
 ];
 
+// Manager-specific columns: only show Thông tin, Giá, Số lượng slot, Thời hạn, Trạng thái
+export const createManagerPackageColumns = (styles) => [
+  {
+    key: 'packageInfo',
+    header: <Typography className={styles?.noWrap}>Thông tin</Typography>,
+    render: (_, item) => (
+      <Box display="flex" alignItems="flex-start" gap={2}>
+        <PackageIcon fontSize="small" color="primary" />
+        <Box>
+          <Typography variant="subtitle2" fontWeight="medium" className={styles?.primaryText}>
+            {item?.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {item?.desc || 'Không có mô tả'}
+          </Typography>
+        </Box>
+      </Box>
+    )
+  },
+  {
+    key: 'packagePrice',
+    header: <Typography className={styles?.noWrap}>Giá</Typography>,
+    render: (_, item) => (
+      <Typography variant="body2" fontWeight="medium">
+        {formatCurrency(item?.price)}
+      </Typography>
+    )
+  },
+  {
+    key: 'packageSlots',
+    header: <Typography className={styles?.noWrap}>Số lượng slot</Typography>,
+    render: (_, item) => (
+      <Typography variant="body2" fontWeight="medium">
+        {item?.totalSlots || 0}
+      </Typography>
+    )
+  },
+  {
+    key: 'packageDuration',
+    header: <Typography className={styles?.noWrap}>Thời hạn</Typography>,
+    render: (_, item) => (
+      <Typography variant="body2" fontWeight="medium">
+        {item?.durationInMonths || 0} tháng
+      </Typography>
+    )
+  },
+  {
+    key: 'packageStatus',
+    header: <Typography className={styles?.noWrap}>Trạng thái</Typography>,
+    render: (_, item) => (
+      <Chip
+        label={item?.isActive ? 'Hoạt động' : 'Không hoạt động'}
+        color={item?.isActive ? 'success' : 'default'}
+        size="small"
+        variant={item?.isActive ? 'filled' : 'outlined'}
+      />
+    )
+  }
+];
+
 

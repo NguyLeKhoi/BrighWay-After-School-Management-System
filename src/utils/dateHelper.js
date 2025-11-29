@@ -153,3 +153,59 @@ export const formatDateTimeUTC7 = (dateValue, options = {}) => {
   return date.toLocaleString('vi-VN', defaultOptions);
 };
 
+/**
+ * Get current time in UTC+7 (Vietnam timezone)
+ * Returns milliseconds since epoch for current UTC+7 time
+ * @returns {number} Current UTC+7 time in milliseconds
+ */
+export const getCurrentTimeUTC7 = () => {
+  const now = new Date();
+  // Get current UTC time
+  const utcNow = now.getTime();
+  // Get timezone offset in minutes
+  const localOffset = now.getTimezoneOffset(); // in minutes
+  // UTC+7 offset is -420 minutes (7 hours * 60 minutes)
+  const utc7Offset = -420;
+  // Calculate UTC+7 time
+  const utc7Time = utcNow + (localOffset - utc7Offset) * 60 * 1000;
+  return utc7Time;
+};
+
+/**
+ * Parse date string as UTC+7 and return as Date object
+ * If timestamp has no timezone, treat it as UTC+7
+ * @param {string|Date} dateValue - Date string from API or Date object
+ * @returns {Date|null} Date object
+ */
+export const parseAsUTC7 = (dateValue) => {
+  if (!dateValue) return null;
+
+  if (dateValue instanceof Date) {
+    return isNaN(dateValue.getTime()) ? null : dateValue;
+  }
+
+  if (typeof dateValue === 'string') {
+    // If has timezone indicator (Z, +07:00, etc.), parse normally
+    if (dateValue.includes('Z') || dateValue.match(/[+-]\d{2}:\d{2}$/)) {
+      return new Date(dateValue);
+    } else {
+      // No timezone indicator - assume it's UTC+7
+      // Parse the ISO string and treat it as UTC+7 by appending +07:00
+      // Extract date parts
+      const match = dateValue.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?/);
+      if (match) {
+        const [, year, month, day, hour, minute, second, millisecond] = match;
+        // Create ISO string with UTC+7 timezone
+        const ms = millisecond ? `.${millisecond.substring(0, 3)}` : '';
+        const isoString = `${year}-${month}-${day}T${hour}:${minute}:${second}${ms}+07:00`;
+        return new Date(isoString);
+      }
+      // Fallback: try parsing as is
+      const parsed = new Date(dateValue);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+  }
+
+  return null;
+};
+

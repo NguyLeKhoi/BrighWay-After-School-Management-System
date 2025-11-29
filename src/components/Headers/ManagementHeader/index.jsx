@@ -107,7 +107,7 @@ const ManagerStaffHeader = () => {
           {/* Avatar (display only, no menu) */}
           <Avatar
             src={userInfo?.profilePictureUrl || ''}
-            alt={userInfo?.name || userInfo?.fullName || 'User'}
+            alt={userInfo?.name || userInfo?.fullName || 'Người dùng'}
             sx={{
               bgcolor: 'rgba(255, 255, 255, 0.2)',
               width: 36,
