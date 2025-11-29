@@ -7,21 +7,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Tabs,
   Tab,
-  Paper,
-  Chip
+  Paper
 } from '@mui/material';
 import {
   ShoppingCart as PackageIcon,
-  DashboardCustomize as TemplateTabIcon,
-  CardGiftcard as BenefitIcon
+  DashboardCustomize as TemplateTabIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -329,71 +321,6 @@ const PackageManagement = () => {
   //   ]
   // );
 
-  const renderBenefitDetails = useCallback((benefits = []) => {
-    if (!benefits.length) {
-      return (
-        <Typography variant="body2" color="text.secondary">
-          Không có lợi ích nào trong gói này.
-        </Typography>
-      );
-    }
-
-    return (
-      <Box className={styles.benefitWrapper}>
-        <Box className={styles.benefitMeta}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            Lợi ích trong gói
-          </Typography>
-          <Chip
-            label={`${benefits.length} lợi ích`}
-            color="primary"
-            variant="outlined"
-            size="small"
-            sx={{ fontWeight: 500 }}
-          />
-        </Box>
-
-        <TableContainer component={Paper} variant="outlined" className={styles.benefitTable}>
-          <Table size="small">
-            <TableHead sx={{ backgroundColor: 'grey.100' }}>
-              <TableRow>
-                <TableCell sx={{ width: 56, fontWeight: 600 }}>#</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Tên lợi ích</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Mô tả</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {benefits.map((benefit, idx) => (
-              <TableRow
-                key={benefit.id || idx}
-                hover
-                    sx={{ '&:hover': { backgroundColor: 'grey.50' } }}
-              >
-                <TableCell>{idx + 1}</TableCell>
-                <TableCell>
-                  <Box display="flex" alignItems="center" gap={1}>
-                        <BenefitIcon fontSize="small" color="primary" />
-                    <Typography fontWeight={600}>
-                      {benefit.name || benefit.benefitName || 'Không rõ tên'}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {benefit.description ||
-                          benefit.desc ||
-                          benefit.benefitDescription ||
-                          'Chưa có mô tả chi tiết.'}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    );
-  }, []);
 
   // Package default values are defined in CreatePackage/UpdatePackage components
 
@@ -631,20 +558,16 @@ const PackageManagement = () => {
       <div className={styles.tableContainer}>
         <DataTable
           data={packages}
-              columns={packageColumns}
-              loading={packageIsPageLoading}
-              page={packagePage}
-              rowsPerPage={packageRowsPerPage}
-              totalCount={packageTotalCount}
-              onPageChange={packageHandlePageChange}
-              onRowsPerPageChange={packageHandleRowsPerPageChange}
-              onView={(pkg) => navigate(`/admin/packages/detail/${pkg.id}`)}
-              onEdit={handleEditPackage}
-              onDelete={packageHandleDelete}
-              expandableConfig={{
-                isRowExpandable: (item) => Array.isArray(item?.benefits) && item.benefits.length > 0,
-                renderExpandedContent: (item) => renderBenefitDetails(item?.benefits || [])
-              }}
+          columns={packageColumns}
+          loading={packageIsPageLoading}
+          page={packagePage}
+          rowsPerPage={packageRowsPerPage}
+          totalCount={packageTotalCount}
+          onPageChange={packageHandlePageChange}
+          onRowsPerPageChange={packageHandleRowsPerPageChange}
+          onView={(pkg) => navigate(`/admin/packages/detail/${pkg.id}`)}
+          onEdit={handleEditPackage}
+          onDelete={packageHandleDelete}
           emptyMessage="Không có gói bán nào. Hãy thêm gói bán đầu tiên để bắt đầu."
         />
       </div>

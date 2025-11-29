@@ -72,6 +72,7 @@ const AssignSchoolsDialog = ({
                       .filter(id => id != null && id !== '');
                     setSelectedSchools(ids);
                   }}
+                  disableCloseOnSelect
                   renderInput={(params) => (
                     <TextField
                       {...params}

@@ -60,13 +60,12 @@ const BranchManagement = () => {
     loadOnMount: true
   });
 
-  // Expanded rows hook
+  // Expanded rows hook (for managing assigned items state)
   const {
     expandedRows,
     rowBenefits,
     rowSchools,
     rowStudentLevels,
-    handleToggleExpand,
     updateRowBenefits,
     updateRowSchools,
     updateRowStudentLevels
@@ -120,8 +119,6 @@ const BranchManagement = () => {
 
   // Define table columns
   const columns = createBranchColumns({
-    expandedRows,
-    onToggleExpand: handleToggleExpand,
     onAssignBenefits: assignBenefits.handleOpen,
     onAssignSchools: assignSchools.handleOpen,
     onAssignStudentLevels: assignStudentLevels.handleOpen,
@@ -168,21 +165,13 @@ const BranchManagement = () => {
         <BranchTable
           branches={branches}
           columns={columns}
-          expandedRows={expandedRows}
-          rowBenefits={rowBenefits}
-          rowSchools={rowSchools}
-          rowStudentLevels={rowStudentLevels}
           isPageLoading={isPageLoading}
-            page={page}
+          page={page}
           rowsPerPage={rowsPerPage}
           totalCount={totalCount}
-            onPageChange={handlePageChange}
-            onRowsPerPageChange={handleRowsPerPageChange}
-          actionLoading={actionLoading}
-          onRemoveBenefit={handleRemoveBenefit}
-          onRemoveSchool={handleRemoveSchool}
-          onRemoveStudentLevel={handleRemoveStudentLevel}
-          />
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
         </div>
 
       {/* Confirm Dialog */}

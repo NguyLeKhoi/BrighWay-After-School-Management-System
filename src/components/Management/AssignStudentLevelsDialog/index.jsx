@@ -68,6 +68,7 @@ const AssignStudentLevelsDialog = ({
                       .filter(id => id != null && id !== '');
                     setSelectedStudentLevels(ids);
                   }}
+                  disableCloseOnSelect
                   renderInput={(params) => (
                     <TextField
                       {...params}

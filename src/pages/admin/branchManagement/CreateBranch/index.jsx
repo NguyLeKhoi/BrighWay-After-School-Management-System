@@ -180,6 +180,7 @@ const Step2AssignBenefits = forwardRef(({ data }, ref) => {
           getOptionLabel={(option) => option.name}
           value={availableBenefits.filter(b => selectedBenefitIds.includes(b.id))}
           onChange={(event, newValue) => setSelectedBenefitIds(newValue.map(b => b.id))}
+          disableCloseOnSelect
           renderOption={(props, option) => (
             <Box component="li" {...props}>
               <Checkbox checked={selectedBenefitIds.includes(option.id)} />
@@ -261,6 +262,7 @@ const Step3AssignSchools = forwardRef(({ data }, ref) => {
               .filter(id => id != null && id !== '');
             setSelectedSchoolIds(ids);
           }}
+          disableCloseOnSelect
           renderOption={(props, option) => {
             const schoolId = option.id || option.schoolId;
             const isSelected = schoolId && selectedSchoolIds.includes(schoolId);
@@ -349,6 +351,7 @@ const Step4AssignStudentLevels = forwardRef(({ data }, ref) => {
               .filter(id => id != null && id !== '');
             setSelectedStudentLevelIds(ids);
           }}
+          disableCloseOnSelect
           renderOption={(props, option) => {
             const levelId = option.id || option.studentLevelId;
             const isSelected = levelId && selectedStudentLevelIds.includes(levelId);

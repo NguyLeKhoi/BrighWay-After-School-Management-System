@@ -66,6 +66,7 @@ const AssignBenefitsDialog = ({
                   onChange={(event, newValue) => {
                     setSelectedBenefits(newValue.map(b => b.id));
                   }}
+                  disableCloseOnSelect
                   renderInput={(params) => (
                     <TextField
                       {...params}

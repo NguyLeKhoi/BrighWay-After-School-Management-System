@@ -5,8 +5,6 @@ import {
   Assignment as AssignIcon,
   School as SchoolIcon,
   Class as ClassIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as VisibilityIcon,
@@ -14,8 +12,6 @@ import {
 } from '@mui/icons-material';
 
 export const createBranchColumns = ({
-  expandedRows,
-  onToggleExpand,
   onAssignBenefits,
   onAssignSchools,
   onAssignStudentLevels,
@@ -28,13 +24,6 @@ export const createBranchColumns = ({
     header: 'Tên Chi Nhánh',
     render: (value, item) => (
       <Box display="flex" alignItems="center" gap={1}>
-        <IconButton
-          size="small"
-          onClick={() => onToggleExpand(item.id)}
-          sx={{ padding: '4px', ml: -1 }}
-        >
-          {expandedRows.has(item.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </IconButton>
         <BusinessIcon fontSize="small" color="primary" />
         <Typography variant="subtitle2" fontWeight="medium">
           {value}
