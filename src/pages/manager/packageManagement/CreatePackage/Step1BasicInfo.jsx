@@ -12,7 +12,8 @@ const Step1BasicInfo = React.forwardRef(
       templateOptions = [],
       templates = [],
       dependenciesLoading = false,
-      onTemplateSelect
+      onTemplateSelect,
+      isTemplatePreSelected = false
     },
     ref
   ) => {
@@ -61,22 +62,33 @@ const Step1BasicInfo = React.forwardRef(
           <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
             Mẫu gói áp dụng
           </Typography>
+          {isTemplatePreSelected && currentTemplateId && (
+            <Alert severity="success" sx={{ mb: 1 }}>
+              Mẫu gói đã được chọn từ danh sách mẫu gói.
+            </Alert>
+          )}
           <Autocomplete
             disableClearable
             options={templateOptions}
             value={templateOptions.find((option) => option.value === currentTemplateId) || null}
             onChange={handleTemplateChange}
             loading={dependenciesLoading}
+            disabled={isTemplatePreSelected && currentTemplateId}
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Chọn mẫu gói"
+                placeholder={isTemplatePreSelected && currentTemplateId ? "Mẫu gói đã được chọn" : "Chọn mẫu gói"}
                 size="small"
-                disabled={dependenciesLoading || templateOptions.length === 0}
+                disabled={dependenciesLoading || templateOptions.length === 0 || (isTemplatePreSelected && currentTemplateId)}
               />
             )}
           />
-          {!currentTemplateId && (
+          {isTemplatePreSelected && currentTemplateId && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+              Mẫu gói đã được chọn từ danh sách. Bạn có thể bỏ disabled để thay đổi nếu cần.
+            </Typography>
+          )}
+          {!currentTemplateId && !isTemplatePreSelected && (
             <Alert severity="info" sx={{ mt: 1 }}>
               Vui lòng chọn mẫu gói để sử dụng các thông số gợi ý (giá, thời hạn, slot, lợi ích).
             </Alert>

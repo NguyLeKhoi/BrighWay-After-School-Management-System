@@ -147,7 +147,7 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
       <Card sx={{ mb: 4, p: 2 }}>
         <CardHeader
           avatar={<PersonIcon color="primary" />}
-          title="Thông Tin User"
+          title="Thông Tin Người Dùng"
           subheader="Thông tin tài khoản chính của gia đình"
           sx={{ backgroundColor: 'var(--bg-secondary)' }}
         />
@@ -156,7 +156,7 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
             <Grid item xs={12} sm={6}>
               <TextField
                 {...register('user.fullName')}
-                label="Họ và Tên User"
+                label="Họ và Tên Người Dùng"
                 fullWidth
                 required
                 placeholder="Ví dụ: Nguyễn Văn A"
@@ -168,7 +168,7 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
             <Grid item xs={12} sm={6}>
               <TextField
                 {...register('user.email')}
-                label="Email User"
+                label="Email Người Dùng"
                 type="email"
                 fullWidth
                 required
@@ -181,7 +181,7 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
             <Grid item xs={12} sm={6}>
               <TextField
                 {...register('user.phoneNumber')}
-                label="Số Điện Thoại User"
+                label="Số Điện Thoại Người Dùng"
                 fullWidth
                 required
                 placeholder="Ví dụ: 0901234567"
@@ -193,11 +193,11 @@ const FamilyAccountForm = ({ onSubmit, loading = false, defaultValues = null, is
             <Grid item xs={12} sm={6}>
               <TextField
                 {...register('user.password')}
-                label="Mật Khẩu User"
+                label="Mật Khẩu Người Dùng"
                 type="password"
                 fullWidth
                 required
-                placeholder="Nhập mật khẩu cho user"
+                placeholder="Nhập mật khẩu cho người dùng"
                 disabled={loading}
                 error={!!errors.user?.password}
                 helperText={errors.user?.password?.message}

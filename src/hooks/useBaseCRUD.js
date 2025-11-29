@@ -72,7 +72,7 @@ const useBaseCRUD = ({
     
     try {
       const params = {
-        page: page + 1,
+        pageIndex: page + 1,
         pageSize: rowsPerPage,
         ...filters
       };
@@ -85,9 +85,15 @@ const useBaseCRUD = ({
       const response = await loadFunction(params);
       
       // Handle both paginated and non-paginated responses
-      if (response.items) {
-        setData(response.items);
-        setTotalCount(response.totalCount || response.items.length);
+      // Backend may return Items/TotalCount (capital) or items/totalCount (lowercase)
+      const items = response.items || response.Items;
+      const totalCount = response.totalCount !== undefined 
+        ? response.totalCount 
+        : (response.TotalCount !== undefined ? response.TotalCount : undefined);
+      
+      if (items) {
+        setData(Array.isArray(items) ? items : []);
+        setTotalCount(totalCount !== undefined ? totalCount : (Array.isArray(items) ? items.length : 0));
       } else if (Array.isArray(response)) {
         setData(response);
         setTotalCount(response.length);

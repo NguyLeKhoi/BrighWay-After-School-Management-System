@@ -1,25 +1,18 @@
 import React, { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import {
-  Box,
   Alert,
-  Button,
-  Typography,
-  TextField,
-  MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Tabs,
-  Tab,
-  CircularProgress,
   FormControl,
   InputLabel,
   Select,
-  Chip
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Box,
+  Typography,
+  CircularProgress,
+  Button,
+  TablePagination
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -34,8 +27,7 @@ import useManagerPackageDependencies from '../../../hooks/useManagerPackageDepen
 import { getErrorMessage } from '../../../utils/errorHandler';
 import { useApp } from '../../../contexts/AppContext';
 import packageService from '../../../services/package.service';
-import { createPackageColumns } from '../../../definitions/package/tableColumns';
-import { CardGiftcard as BenefitIcon } from '@mui/icons-material';
+import { createManagerPackageColumns } from '../../../definitions/package/tableColumns';
 import styles from './PackageManagement.module.css';
 
 const ManagerPackageManagement = () => {
@@ -68,7 +60,15 @@ const ManagerPackageManagement = () => {
     updateFilter,
     loadData
   } = useBaseCRUD({
-    loadFunction: packageService.getMyBranchPackagesPaged,
+    loadFunction: async (params) => {
+      return packageService.getMyBranchPackagesPaged({
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
+        searchTerm: params.searchTerm || params.Keyword || '',
+        status: params.status === '' ? null : params.status === 'true',
+        branchId: params.branchId || ''
+      });
+    },
     createFunction: packageService.createMyBranchPackage,
     updateFunction: packageService.updateMyBranchPackage,
     deleteFunction: null,
@@ -76,15 +76,16 @@ const ManagerPackageManagement = () => {
     loadOnMount: true
   });
 
-  const packageColumns = useMemo(() => createPackageColumns(styles), []);
-
-  const [activeTab, setActiveTab] = useState('packages');
+  const packageColumns = useMemo(() => createManagerPackageColumns(styles), []);
 
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     item: null
   });
   const [deletingPackageId, setDeletingPackageId] = useState(null);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [templatePage, setTemplatePage] = useState(0);
+  const templatesPerPage = 3;
 
   const statusFilterControl = useMemo(() => (
     <FormControl size="small" className={styles.filterControl}>
@@ -116,15 +117,9 @@ const ManagerPackageManagement = () => {
     </FormControl>
   ), [filters.status, updateFilter]);
 
-  useEffect(() => {
-    if (activeTab === 'templates' && !dependenciesLoading && templates.length === 0) {
-      fetchDependencies();
-    }
-  }, [activeTab, dependenciesLoading, templates.length, fetchDependencies]);
-
   // Reload data when navigate back to this page (e.g., from create/update pages)
   useEffect(() => {
-    if (location.pathname === '/manager/packages' && activeTab === 'packages') {
+    if (location.pathname === '/manager/packages') {
       // Skip first mount to avoid double loading
       if (isInitialMount.current) {
         isInitialMount.current = false;
@@ -133,11 +128,44 @@ const ManagerPackageManagement = () => {
       loadData(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, activeTab]);
+  }, [location.pathname]);
 
   const handlePackageCreate = useCallback(() => {
-    navigate('/manager/packages/create');
-  }, [navigate]);
+    setTemplateDialogOpen(true);
+    setTemplatePage(0); // Reset to first page when opening dialog
+    if (templates.length === 0) {
+      fetchDependencies();
+    }
+  }, [templates.length, fetchDependencies]);
+
+  const handleTemplateSelect = useCallback(
+    (template) => {
+      setTemplateDialogOpen(false);
+      navigate(`/manager/packages/create?templateId=${template.id}`);
+    },
+    [navigate]
+  );
+
+  const handleTemplateDialogClose = useCallback(() => {
+    setTemplateDialogOpen(false);
+    setTemplatePage(0); // Reset page when closing dialog
+  }, []);
+
+  // Calculate paginated templates
+  const paginatedTemplates = useMemo(() => {
+    const startIndex = templatePage * templatesPerPage;
+    const endIndex = startIndex + templatesPerPage;
+    return templates.slice(startIndex, endIndex);
+  }, [templates, templatePage, templatesPerPage]);
+
+  const handleTemplatePageChange = useCallback((event, newPage) => {
+    setTemplatePage(newPage);
+  }, []);
+
+  const handleTemplateRowsPerPageChange = useCallback((event) => {
+    // Keep templatesPerPage fixed at 3, but handle if needed
+    setTemplatePage(0);
+  }, []);
 
   const handlePackageEdit = useCallback(
     (packageItem) => {
@@ -145,87 +173,6 @@ const ManagerPackageManagement = () => {
     },
     [navigate]
   );
-
-  const handleTemplateCreate = useCallback(
-    (template) => {
-      navigate(`/manager/packages/create?templateId=${template.id}`);
-    },
-    [navigate]
-  );
-
-  const renderBenefits = useCallback((item) => {
-    const benefits = item?.benefits || [];
-
-    if (!benefits.length) {
-      return (
-        <Typography variant="body2" color="text.secondary">
-          Gói này chưa gán lợi ích nào.
-        </Typography>
-      );
-    }
-
-    return (
-      <Box className={styles.benefitWrapper}>
-        <Box className={styles.benefitMeta}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            Lợi ích trong gói
-          </Typography>
-          <Chip
-            label={`${benefits.length} lợi ích`}
-            color="primary"
-            variant="outlined"
-            size="small"
-            sx={{ fontWeight: 500 }}
-          />
-        </Box>
-        <TableContainer component={Paper} variant="outlined" className={styles.benefitTable}>
-          <Table size="small">
-            <TableHead sx={{ backgroundColor: 'grey.100' }}>
-              <TableRow>
-                <TableCell sx={{ width: 56, fontWeight: 600 }}>#</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Tên lợi ích</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Mô tả</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {benefits.map((benefit, idx) => (
-                  <TableRow
-                    key={benefit.id || idx}
-                    hover
-                    sx={{ '&:hover': { backgroundColor: 'grey.50' } }}
-                  >
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <BenefitIcon fontSize="small" color="primary" />
-                        <Typography fontWeight={600}>{benefit.name}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {benefit.description || benefit.desc || 'Không có mô tả'}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    );
-  }, []);
-
-  const buildUpdatePayload = (pkg, override = {}) => ({
-    name: pkg.name,
-    desc: pkg.desc,
-    durationInMonths: pkg.durationInMonths,
-    totalSlots: pkg.totalSlots,
-    price: pkg.price,
-    isActive: pkg.isActive,
-    studentLevelId: pkg.studentLevel?.id || pkg.studentLevelId || null,
-    packageTemplateId: pkg.packageTemplateId || pkg.packageTemplate?.id || null,
-    ...override
-  });
 
   const handleDeletePrompt = useCallback(
     (item) => {
@@ -267,169 +214,44 @@ const ManagerPackageManagement = () => {
 
       <ManagementPageHeader
         title="Quản lý gói của chi nhánh"
+        createButtonText="Tạo gói"
+        onCreateClick={handlePackageCreate}
       />
 
-      <Paper
-        className={styles.tabsWrapper}
-        elevation={0}
-        sx={{
-          borderRadius: 2,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          overflow: 'hidden',
-          border: '1px solid #e0e0e0',
-          backgroundColor: '#fff',
-          mb: 2
+      <ManagementSearchSection
+        keyword={keyword}
+        onKeywordChange={handleKeywordChange}
+        onSearch={handleKeywordSearch}
+        onClear={() => {
+          handleClearSearch();
+          updateFilter('status', '');
         }}
+        placeholder="Tìm kiếm theo tên gói bán..."
       >
-        <Tabs
-          value={activeTab}
-          onChange={(_, value) => setActiveTab(value)}
-          variant="fullWidth"
-          aria-label="manager package tabs"
-          sx={{
-            '& .MuiTab-root': {
-              textTransform: 'none',
-              fontSize: '15px',
-              fontWeight: 500,
-              minHeight: 56,
-              padding: '12px 24px',
-              color: 'text.secondary',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                color: 'primary.main'
-              },
-              '&.Mui-selected': {
-                color: 'primary.main',
-                fontWeight: 600
-              }
-            },
-            '& .MuiTabs-indicator': {
-              height: 3,
-              borderRadius: '3px 3px 0 0',
-              backgroundColor: '#1976d2'
-            }
-          }}
-        >
-          <Tab value="packages" label="Gói đang bán" disableRipple />
-          <Tab value="templates" label="Mẫu gói" disableRipple />
-        </Tabs>
-      </Paper>
+        {statusFilterControl}
+      </ManagementSearchSection>
 
-      {dependenciesError && (
-        <Alert
-          severity="warning"
-          className={styles.errorAlert}
-          action={
-            <Button color="inherit" size="small" onClick={fetchDependencies}>
-              Thử lại
-            </Button>
-          }
-        >
-          {dependenciesError}
+      {error && (
+        <Alert severity="error" className={styles.errorAlert}>
+          {error}
         </Alert>
       )}
 
-      {activeTab === 'packages' && (
-        <>
-          <ManagementSearchSection
-            keyword={keyword}
-            onKeywordChange={handleKeywordChange}
-            onSearch={handleKeywordSearch}
-            onClear={() => {
-              handleClearSearch();
-              updateFilter('status', '');
-            }}
-            placeholder="Tìm kiếm theo tên gói bán..."
-          >
-            {statusFilterControl}
-          </ManagementSearchSection>
-
-          {error && (
-            <Alert severity="error" className={styles.errorAlert}>
-              {error}
-            </Alert>
-          )}
-
-          <div className={styles.tableWrapper}>
-            <DataTable
-              data={packages}
-              columns={packageColumns}
-              loading={isPageLoading}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              totalCount={totalCount}
-              onPageChange={handlePageChange}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              onEdit={handlePackageEdit}
-              onDelete={handleDeletePrompt}
-              expandableConfig={{
-                isRowExpandable: (item) => Array.isArray(item?.benefits) && item.benefits.length > 0,
-                renderExpandedContent: renderBenefits
-              }}
-            />
-          </div>
-        </>
-      )}
-
-      {activeTab === 'templates' && (
-        <div className={styles.templateTabContent}>
-          {dependenciesLoading && templates.length === 0 ? (
-            <Box className={styles.templateLoading}>
-              <CircularProgress size={32} />
-              <Typography variant="body2" color="text.secondary">
-                Đang tải mẫu gói...
-              </Typography>
-            </Box>
-          ) : (
-            <>
-              {templates.length === 0 ? (
-                <Alert severity="info" className={styles.templateEmpty}>
-                  Hiện chưa có mẫu gói nào khả dụng. Liên hệ quản trị viên để được cấp mẫu.
-                </Alert>
-              ) : (
-                <Box 
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                    gap: 3,
-                    mt: 2
-                  }}
-                >
-                  {templates.map((template) => (
-                    <Card
-                      key={template.id}
-                      title={template.name}
-                      description={template.desc || 'Không có mô tả'}
-                      infoRows={[
-                        {
-                          label: 'GIÁ (VNĐ)',
-                          value: `${template.minPrice?.toLocaleString('vi-VN') ?? '-'} - ${template.maxPrice?.toLocaleString('vi-VN') ?? '-'}`
-                        },
-                        {
-                          label: 'THỜI HẠN (THÁNG)',
-                          value: `${template.minDurationInMonths ?? '-'} - ${template.maxDurationInMonths ?? '-'}`
-                        },
-                        {
-                          label: 'SLOTS',
-                          value: `${template.minSlots ?? '-'} - ${template.maxSlots ?? '-'}`
-                        }
-                      ]}
-                      actions={[
-                        {
-                          text: 'Tạo gói từ mẫu',
-                          primary: true,
-                          onClick: () => handleTemplateCreate(template)
-                        }
-                      ]}
-                    />
-                  ))}
-                </Box>
-              )}
-            </>
-          )}
-        </div>
-      )}
+      <div className={styles.tableWrapper}>
+        <DataTable
+          data={packages}
+          columns={packageColumns}
+          loading={isPageLoading}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalCount={totalCount}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(pkg) => navigate(`/manager/packages/detail/${pkg.id}`)}
+          onEdit={handlePackageEdit}
+          onDelete={handleDeletePrompt}
+        />
+      </div>
 
       <ConfirmDialog
         open={deleteDialog.open}
@@ -442,6 +264,112 @@ const ManagerPackageManagement = () => {
         confirmColor="error"
         loading={deletingPackageId !== null}
       />
+
+      {/* Template Selection Dialog */}
+      <Dialog
+        open={templateDialogOpen}
+        onClose={handleTemplateDialogClose}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h6" fontWeight={600}>
+            Chọn mẫu gói
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          {dependenciesError && (
+            <Alert
+              severity="warning"
+              sx={{ mb: 2 }}
+              action={
+                <Button color="inherit" size="small" onClick={fetchDependencies}>
+                  Thử lại
+                </Button>
+              }
+            >
+              {dependenciesError}
+            </Alert>
+          )}
+
+          {dependenciesLoading && templates.length === 0 ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
+              <CircularProgress size={32} />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                Đang tải mẫu gói...
+              </Typography>
+            </Box>
+          ) : templates.length === 0 ? (
+            <Alert severity="info">
+              Hiện chưa có mẫu gói nào khả dụng. Liên hệ quản trị viên để được cấp mẫu.
+            </Alert>
+          ) : (
+            <>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gap: 3,
+                  py: 2
+                }}
+              >
+                {paginatedTemplates.map((template) => (
+                  <Card
+                    key={template.id}
+                    title={template.name}
+                    description={template.desc || 'Không có mô tả'}
+                    infoRows={[
+                      {
+                        label: 'GIÁ (VNĐ)',
+                        value: `${template.minPrice?.toLocaleString('vi-VN') ?? '-'} - ${template.maxPrice?.toLocaleString('vi-VN') ?? '-'}`
+                      },
+                      {
+                        label: 'THỜI HẠN (THÁNG)',
+                        value: `${template.minDurationInMonths ?? '-'} - ${template.maxDurationInMonths ?? '-'}`
+                      },
+                      {
+                        label: 'SLOTS',
+                        value: `${template.minSlots ?? '-'} - ${template.maxSlots ?? '-'}`
+                      }
+                    ]}
+                    actions={[
+                      {
+                        text: 'Tạo gói từ mẫu',
+                        primary: true,
+                        onClick: () => handleTemplateSelect(template)
+                      }
+                    ]}
+                  />
+                ))}
+              </Box>
+              {templates.length > templatesPerPage && (
+                <TablePagination
+                  component="div"
+                  count={templates.length}
+                  page={templatePage}
+                  onPageChange={handleTemplatePageChange}
+                  rowsPerPage={templatesPerPage}
+                  onRowsPerPageChange={handleTemplateRowsPerPageChange}
+                  rowsPerPageOptions={[templatesPerPage]}
+                  labelRowsPerPage="Mẫu mỗi trang:"
+                  labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`}
+                  sx={{
+                    borderTop: '1px solid #e0e0e0',
+                    mt: 2,
+                    pt: 2
+                  }}
+                />
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

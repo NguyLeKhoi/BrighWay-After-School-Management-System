@@ -48,12 +48,11 @@ const BranchManagement = () => {
     loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
-      const response = await branchService.getBranchesPaged({
-        page: params.page,
+      return await branchService.getBranchesPaged({
+        pageIndex: params.pageIndex,
         pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || ''
       });
-      return response;
     },
     createFunction: branchService.createBranch,
     updateFunction: branchService.updateBranch,
@@ -61,13 +60,12 @@ const BranchManagement = () => {
     loadOnMount: true
   });
 
-  // Expanded rows hook
+  // Expanded rows hook (for managing assigned items state)
   const {
     expandedRows,
     rowBenefits,
     rowSchools,
     rowStudentLevels,
-    handleToggleExpand,
     updateRowBenefits,
     updateRowSchools,
     updateRowStudentLevels
@@ -84,6 +82,10 @@ const BranchManagement = () => {
 
   const handleCreateWithData = () => {
     navigate('/admin/branches/create');
+  };
+
+  const handleViewDetail = (branch) => {
+    navigate(`/admin/branches/detail/${branch.id}`);
   };
 
   const handleEditWithData = (branch) => {
@@ -117,11 +119,10 @@ const BranchManagement = () => {
 
   // Define table columns
   const columns = createBranchColumns({
-    expandedRows,
-    onToggleExpand: handleToggleExpand,
     onAssignBenefits: assignBenefits.handleOpen,
     onAssignSchools: assignSchools.handleOpen,
     onAssignStudentLevels: assignStudentLevels.handleOpen,
+    onViewBranch: handleViewDetail,
     onEditBranch: handleEditWithData,
     onDeleteBranch: handleDelete
   });
@@ -164,21 +165,13 @@ const BranchManagement = () => {
         <BranchTable
           branches={branches}
           columns={columns}
-          expandedRows={expandedRows}
-          rowBenefits={rowBenefits}
-          rowSchools={rowSchools}
-          rowStudentLevels={rowStudentLevels}
           isPageLoading={isPageLoading}
-            page={page}
+          page={page}
           rowsPerPage={rowsPerPage}
           totalCount={totalCount}
-            onPageChange={handlePageChange}
-            onRowsPerPageChange={handleRowsPerPageChange}
-          actionLoading={actionLoading}
-          onRemoveBenefit={handleRemoveBenefit}
-          onRemoveSchool={handleRemoveSchool}
-          onRemoveStudentLevel={handleRemoveStudentLevel}
-          />
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
         </div>
 
       {/* Confirm Dialog */}
@@ -205,6 +198,7 @@ const BranchManagement = () => {
         loading={assignBenefits.loading}
         actionLoading={actionLoading}
         onRemove={handleRemoveBenefit}
+        onRemoveDirect={assignBenefits.handleRemoveDirect}
         onSubmit={assignBenefits.handleSubmit}
       />
 
@@ -220,6 +214,7 @@ const BranchManagement = () => {
         loading={assignSchools.loading}
         actionLoading={actionLoading}
         onRemove={handleRemoveSchool}
+        onRemoveDirect={assignSchools.handleRemoveDirect}
         onSubmit={assignSchools.handleSubmit}
       />
 
@@ -234,6 +229,7 @@ const BranchManagement = () => {
         setSelectedStudentLevels={assignStudentLevels.setSelectedStudentLevels}
         loading={assignStudentLevels.loading}
         actionLoading={actionLoading}
+        onRemoveDirect={assignStudentLevels.handleRemoveDirect}
         onSubmit={assignStudentLevels.handleSubmit}
       />
       </motion.div>

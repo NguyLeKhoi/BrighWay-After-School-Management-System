@@ -1,11 +1,43 @@
 import React, { useCallback, useMemo, useState, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Business as BranchIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import StepperForm from '../../../../components/Common/StepperForm';
 import useLocationData from '../../../../hooks/useLocationData';
 import branchService from '../../../../services/branch.service';
 import { toast } from 'react-toastify';
+
+// Branch Status Enum Values
+const BRANCH_STATUS_OPTIONS = [
+  { value: 'Active', label: 'Hoạt động' },
+  { value: 'Inactive', label: 'Không hoạt động' },
+  { value: 'UnderMaintenance', label: 'Đang bảo trì' },
+  { value: 'Closed', label: 'Đã đóng' }
+];
+
+// Convert numeric status from backend to string enum
+const convertStatusToEnum = (status) => {
+  const statusMap = {
+    0: 'Active',
+    1: 'Active',
+    2: 'Inactive',
+    3: 'UnderMaintenance',
+    4: 'Closed',
+    '0': 'Active',
+    '1': 'Active',
+    '2': 'Inactive',
+    '3': 'UnderMaintenance',
+    '4': 'Closed'
+  };
+  
+  // If already a string enum, return as is
+  if (typeof status === 'string' && ['Active', 'Inactive', 'UnderMaintenance', 'Closed'].includes(status)) {
+    return status;
+  }
+  
+  // Convert numeric status to string enum
+  return statusMap[status] || 'Active';
+};
 
 const Step1BasicInfo = forwardRef(({ data, updateData }, ref) => {
   const [branchName, setBranchName] = useState(data.branchName || '');
@@ -48,6 +80,7 @@ const Step2AddressContact = forwardRef(({ data, updateData }, ref) => {
   const [phone, setPhone] = useState(data.phone || '');
   const [provinceId, setProvinceId] = useState('');
   const [districtId, setDistrictId] = useState(data.districtId || '');
+  const [status, setStatus] = useState(data.status || 'Active');
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   // Fetch provinces on mount
@@ -62,8 +95,9 @@ const Step2AddressContact = forwardRef(({ data, updateData }, ref) => {
   useEffect(() => { 
     setAddress(data.address || ''); 
     setPhone(data.phone || ''); 
-    setDistrictId(data.districtId || ''); 
-  }, [data.address, data.phone, data.districtId]);
+    setDistrictId(data.districtId || '');
+    setStatus(convertStatusToEnum(data.status));
+  }, [data.address, data.phone, data.districtId, data.status]);
 
   // Find and set provinceId when data is available
   useEffect(() => {
@@ -137,7 +171,7 @@ const Step2AddressContact = forwardRef(({ data, updateData }, ref) => {
       if (!districtId) { toast.error('Vui lòng chọn Quận/Huyện'); return false; }
       if (!address.trim()) { toast.error('Vui lòng nhập địa chỉ'); return false; }
       if (!phone.trim()) { toast.error('Vui lòng nhập số điện thoại'); return false; }
-      updateData({ address: address.trim(), phone: phone.trim(), districtId });
+      updateData({ address: address.trim(), phone: phone.trim(), districtId, status });
       return true;
     }
   }));
@@ -188,6 +222,19 @@ const Step2AddressContact = forwardRef(({ data, updateData }, ref) => {
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
       />
+      <FormControl fullWidth required>
+        <InputLabel>Trạng Thái</InputLabel>
+        <Select
+          label="Trạng Thái"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          MenuProps={{ disableScrollLock: true }}
+        >
+          {BRANCH_STATUS_OPTIONS.map(option => (
+            <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
     </Box>
   );
 });
@@ -208,7 +255,8 @@ const UpdateBranch = () => {
           phone: branch.phone || '',
           districtId: branch.districtId || '',
           provinceName: branch.provinceName || '',
-          districtName: branch.districtName || ''
+          districtName: branch.districtName || '',
+          status: convertStatusToEnum(branch.status)
         });
       } finally {
         setInitialLoading(false);
@@ -222,7 +270,8 @@ const UpdateBranch = () => {
       branchName: data.branchName,
       address: data.address,
       phone: data.phone,
-      districtId: data.districtId
+      districtId: data.districtId,
+      status: data.status || 'Active'
     });
     toast.success('Cập nhật chi nhánh thành công');
     navigate('/admin/branches');

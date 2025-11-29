@@ -84,9 +84,9 @@ const studentLevelService = {
    */
   getStudentLevelsPaged: async (params = {}) => {
     try {
-      const { page = 1, pageSize = 10, keyword = '' } = params;
+      const { pageIndex = 1, pageSize = 10, keyword = '' } = params;
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
       

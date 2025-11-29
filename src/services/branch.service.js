@@ -60,7 +60,8 @@ const branchService = {
         branchName: branchData.branchName,
         address: branchData.address,
         phone: branchData.phone,
-        districtId: branchData.districtId
+        districtId: branchData.districtId,
+        status: branchData.status
       };
       
       const response = await axiosInstance.put(`/Branch/${branchId}`, updateData);
@@ -91,9 +92,9 @@ const branchService = {
    */
   getBranchesPaged: async (params = {}) => {
     try {
-      const { page = 1, pageSize = 10, searchTerm = '' } = params;
+      const { pageIndex = 1, pageSize = 10, searchTerm = '' } = params;
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
       

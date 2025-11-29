@@ -106,8 +106,11 @@ const StaffDashboard = () => {
         const totalCount = response?.totalCount || 0;
         const totalPages = response?.totalPages || Math.ceil(totalCount / pageSize);
         
-        // Lọc lấy lịch đang diễn ra và sắp tới (không lấy lịch đã qua)
+        // Lọc lấy các slot (ca giữ trẻ) đang diễn ra và sắp tới (không lấy slot đã qua)
         const upcomingItems = items.filter(slot => {
+          // Đảm bảo đây là slot, không phải hoạt động
+          if (!slot.date && !slot.branchSlot?.date) return false;
+          
           const timeType = getSlotTimeType(slot);
           const isUpcoming = timeType === 'upcoming' || timeType === 'current';
           return isUpcoming;
@@ -308,7 +311,7 @@ const StaffDashboard = () => {
             Tổng quan
           </h1>
           <p className={styles.subtitle}>
-            Chào mừng, {user?.name || 'Staff'}! Tổng quan công việc của bạn
+            Chào mừng, {user?.name || 'Nhân viên'}! Tổng quan công việc của bạn
           </p>
         </motion.div>
 
@@ -366,7 +369,7 @@ const StaffDashboard = () => {
         <AnimatedCard delay={0.5} className={styles.infoCard}>
           <div className={styles.infoHeader}>
             <h2 className={styles.infoTitle}>
-              Lịch làm việc sắp tới
+              Ca giữ trẻ sắp tới
             </h2>
             <button
               className={styles.viewAllButton}
@@ -446,10 +449,10 @@ const StaffDashboard = () => {
             <Box sx={{ py: 4, textAlign: 'center' }}>
               <ScheduleIcon sx={{ fontSize: 48, color: 'var(--text-secondary)', mb: 2, opacity: 0.5 }} />
               <Typography variant="body1" color="text.secondary" fontWeight="medium">
-                Chưa có lịch làm việc sắp tới
+                Chưa có ca giữ trẻ sắp tới
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Hiện tại không có lịch làm việc nào đang diễn ra hoặc sắp tới
+                Hiện tại không có ca giữ trẻ nào đang diễn ra hoặc sắp tới
               </Typography>
             </Box>
           )}

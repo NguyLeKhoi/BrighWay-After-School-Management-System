@@ -10,7 +10,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import styles from './Form.module.css';
 
 // Password field component with show/hide toggle
-const PasswordField = ({ name, control, placeholder, required, error, disabled, fieldProps }) => {
+const PasswordField = ({ name, control, placeholder, required, error, disabled, fieldProps, helperText }) => {
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
@@ -18,48 +18,62 @@ const PasswordField = ({ name, control, placeholder, required, error, disabled, 
       name={name}
       control={control}
       defaultValue=""
-      render={({ field: controllerField }) => (
-        <div style={{ position: 'relative', width: '100%' }}>
-          <input
+      render={({ field: controllerField, fieldState }) => (
+        <TextField
           {...controllerField}
           type={showPassword ? 'text' : 'password'}
           id={name}
-            name={name}
-            className={styles.formInput}
+          name={name}
+          variant="standard"
           placeholder={placeholder}
           required={required}
           disabled={disabled}
-            value={controllerField.value || ''}
-            style={{
-              paddingRight: '45px'
-            }}
-            {...fieldProps}
-          />
+          error={!!fieldState.error || !!error}
+          helperText={fieldState.error?.message || error || helperText}
+          fullWidth
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
                 <IconButton
                   aria-label="toggle password visibility"
                   onClick={() => setShowPassword(!showPassword)}
                   edge="end"
                   size="small"
-            disabled={disabled}
-            sx={{
-              position: 'absolute',
-              right: '8px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              padding: '4px',
-              color: 'var(--text-secondary)',
-              '&:hover': {
-                backgroundColor: 'var(--color-primary-50)',
-                color: 'var(--color-primary)'
-              },
-              '&:disabled': {
-                opacity: 0.5
-              }
-            }}
+                  disabled={disabled}
                 >
-            {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                  {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
                 </IconButton>
-        </div>
+              </InputAdornment>
+            )
+          }}
+          sx={{
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'var(--color-primary)'
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'var(--color-primary-dark)'
+            },
+            '& .MuiInput-underline:after': {
+              borderBottomColor: 'var(--color-primary)'
+            },
+            '& .MuiInputBase-input': {
+              color: 'var(--text-primary) !important'
+            },
+            '& .MuiInputLabel-root': {
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            '& .MuiInputLabel-root.Mui-focused': {
+              color: 'var(--color-primary)'
+            },
+            '& .MuiFormHelperText-root': {
+              color: 'rgba(255, 255, 255, 0.6)'
+            },
+            '& .MuiFormHelperText-root.Mui-error': {
+              color: 'var(--color-error)'
+            }
+          }}
+          {...fieldProps}
+        />
       )}
     />
   );
@@ -513,16 +527,51 @@ const Form = forwardRef(({
         />
       );
     } else {
+      // Text, email, number, etc. - use TextField with standard variant
       inputElement = (
-        <input
-          {...register(name)}
-          type={type}
-          id={name}
+        <Controller
           name={name}
-          className={styles.formInput}
-          placeholder={field.placeholder}
-          required={field.required}
-          {...fieldProps}
+          control={control}
+          defaultValue=""
+          render={({ field: controllerField, fieldState }) => (
+            <TextField
+              {...controllerField}
+              type={type}
+              id={name}
+              name={name}
+              variant="standard"
+              placeholder={field.placeholder}
+              required={field.required}
+              disabled={field.disabled}
+              error={!!fieldState.error}
+              helperText={fieldState.error?.message || helperText}
+              fullWidth
+              sx={{
+                '& .MuiInput-underline:before': {
+                  borderBottomColor: 'var(--color-primary)'
+                },
+                '& .MuiInput-underline:hover:before': {
+                  borderBottomColor: 'var(--color-primary-dark)'
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottomColor: 'var(--color-primary)'
+                },
+                '& .MuiInputBase-input': {
+                  color: 'var(--text-primary) !important'
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)'
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: 'var(--color-primary)'
+                },
+                '& .MuiFormHelperText-root': {
+                  color: 'rgba(255, 255, 255, 0.6)'
+                }
+              }}
+              {...fieldProps}
+            />
+          )}
         />
       );
     }
@@ -530,8 +579,7 @@ const Form = forwardRef(({
     const fieldContent = (
       <div className={styles.inputWrapper}>
         {inputElement}
-        {helperText && <div className={styles.helperText}>{helperText}</div>}
-        {error && <div className={styles.errorMessage}>{error.message}</div>}
+        {/* Error messages are handled by TextField's helperText prop, so we don't need to display them separately */}
       </div>
     );
 

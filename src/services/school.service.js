@@ -107,9 +107,9 @@ const schoolService = {
    */
   getSchoolsPaged: async (params = {}) => {
     try {
-      const { page = 1, pageSize = 10, name = '', includeDeleted = false } = params;
+      const { pageIndex = 1, pageSize = 10, name = '', includeDeleted = false } = params;
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
       

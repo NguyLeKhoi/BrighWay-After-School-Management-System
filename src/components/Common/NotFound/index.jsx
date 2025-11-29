@@ -10,6 +10,7 @@ const NotFound = () => {
     <div className={styles.notfoundPage}>
       <div className={styles.threadsBackground}>
         <Threads
+          color={[0.1, 0.1, 0.1]}
           amplitude={2.5}
           distance={0}
           enableMouseInteraction={false}

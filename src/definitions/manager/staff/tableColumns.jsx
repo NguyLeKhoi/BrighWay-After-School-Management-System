@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip, Chip } from '@mui/material';
 import { Person as PersonIcon, Email as EmailIcon, Visibility as ViewIcon } from '@mui/icons-material';
 
 export const createStaffAndParentColumns = () => [
@@ -35,6 +35,22 @@ export const createStaffAndParentColumns = () => [
         {value ? new Date(value).toLocaleDateString('vi-VN') : 'N/A'}
       </Typography>
     )
+  },
+  {
+    key: 'isActive',
+    header: 'Trạng Thái',
+    align: 'center',
+    render: (value, item) => {
+      const isActive = item.isActive !== undefined ? item.isActive : value !== undefined ? value : true;
+      return (
+        <Chip
+          label={isActive ? 'Hoạt động' : 'Không hoạt động'}
+          color={isActive ? 'success' : 'default'}
+          size="small"
+          variant={isActive ? 'filled' : 'outlined'}
+        />
+      );
+    }
   }
 ];
 

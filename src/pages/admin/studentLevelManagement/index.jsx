@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { Alert } from '@mui/material';
 import { School as StudentLevelIcon } from '@mui/icons-material';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -18,6 +18,7 @@ import styles from './StudentLevelManagement.module.css';
 
 const StudentLevelManagement = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isInitialMount = useRef(true);
   
   // Use shared CRUD hook
@@ -49,11 +50,11 @@ const StudentLevelManagement = () => {
     loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
-      const response = await studentLevelService.getStudentLevelsPaged({
-        ...params,
+      return await studentLevelService.getStudentLevelsPaged({
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
         keyword: params.searchTerm || params.Keyword || ''
       });
-      return response;
     },
     createFunction: studentLevelService.createStudentLevel,
     updateFunction: studentLevelService.updateStudentLevel,
@@ -118,6 +119,7 @@ const StudentLevelManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(studentLevel) => navigate(`/admin/student-levels/detail/${studentLevel.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
           emptyMessage="Không có cấp độ trẻ em nào. Hãy thêm cấp độ đầu tiên để bắt đầu."

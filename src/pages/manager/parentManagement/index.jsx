@@ -1,239 +1,142 @@
-import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   Typography,
-  ToggleButton,
-  ToggleButtonGroup
+  Card,
+  CardContent,
+  CardActionArea,
+  Grid
 } from '@mui/material';
 import {
   PhotoCamera as PhotoCameraIcon,
   Edit as EditIcon
 } from '@mui/icons-material';
-import DataTable from '../../../components/Common/DataTable';
-import Form from '../../../components/Common/Form';
-import ManagementPageHeader from '../../../components/Management/PageHeader';
-import ManagementSearchSection from '../../../components/Management/SearchSection';
-import ManagementFormDialog from '../../../components/Management/FormDialog';
-import ContentLoading from '../../../components/Common/ContentLoading';
-import { useApp } from '../../../contexts/AppContext';
-import { useAuth } from '../../../contexts/AuthContext';
-import useBaseCRUD from '../../../hooks/useBaseCRUD';
-import { createStaffAndParentColumns } from '../../../definitions/manager/staff/tableColumns';
-import userService from '../../../services/user.service';
-import { toast } from 'react-toastify';
-import styles from '../staffAndParentManagement/staffAndParentManagement.module.css';
+import styles from './parentManagement.module.css';
 
 const ParentManagement = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isInitialMount = useRef(true);
-  
-  // Parent CRUD - memoize loadFunction to prevent unnecessary re-renders
-  const loadParentFunction = useCallback(async (params) => {
-    return await userService.getUsersPagedByRole({
-      pageIndex: params.page || params.pageIndex || 1,
-      pageSize: params.pageSize || params.rowsPerPage || 10,
-      Role: 'User',
-      Keyword: params.Keyword || params.searchTerm || ''
-    });
-  }, []);
 
-  const parentCrud = useBaseCRUD({
-    loadFunction: loadParentFunction,
-    loadOnMount: true
-  });
-
-  // Reload data when navigate back to this page (e.g., from create pages)
-  useEffect(() => {
-    if (location.pathname === '/manager/parents') {
-      // Skip first mount to avoid double loading
-      if (isInitialMount.current) {
-        isInitialMount.current = false;
-        return;
-      }
-      
-      // Only reload if we're actually navigating back (not just re-rendering)
-      // Use a ref to track if we've already reloaded for this pathname
-      const timeoutId = setTimeout(() => {
-        parentCrud.loadData(false);
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
-  
-  // Common state
-  const [error, setError] = useState(null);
-  
-  
-  // Global state
-  const { showGlobalError } = useApp();
-  
-  const columns = useMemo(() => createStaffAndParentColumns(), []);
-  
-  // Create handler
-  const handleCreateParent = () => {
-    // Show mode selection dialog for parent
-    setShowParentModeDialog(true);
+  const handleCreateWithOCR = () => {
+    navigate('/manager/parents/create?mode=ocr');
   };
 
-  const handleNavigateToCreateParent = (parentMode) => {
-    navigate(`/manager/parents/create?mode=${parentMode}`);
+  const handleCreateWithManual = () => {
+    navigate('/manager/parents/create?mode=manual');
   };
-  
-  // Manager chỉ có quyền get và create, không có update và delete
-  
-  // Parent creation mode state
-  const [parentCreationMode, setParentCreationMode] = useState('ocr'); // 'ocr' or 'manual'
-  const [showParentModeDialog, setShowParentModeDialog] = useState(false);
   
   return (
     <div className={styles.container}>
-      {parentCrud.isPageLoading && <ContentLoading isLoading={parentCrud.isPageLoading} text={parentCrud.loadingText} />}
-      
-      {/* Header */}
-      <ManagementPageHeader
-        title="Quản lý Phụ Huynh"
-        createButtonText="Tạo Phụ Huynh"
-        onCreateClick={handleCreateParent}
-      />
-
-      {/* Error Alert */}
-      {(error || parentCrud.error) && (
-        <Alert 
-          severity="error" 
-          className={styles.errorAlert} 
-          onClose={() => {
-            setError(null);
+      <Box sx={{ mb: 4 }}>
+        <Typography 
+          variant="h4" 
+          component="h1"
+          sx={{
+            fontFamily: 'var(--font-family-heading)',
+            fontWeight: 'var(--font-weight-bold)',
+            color: 'var(--text-primary)'
           }}
         >
-          {error || parentCrud.error}
-        </Alert>
-      )}
-
-      {/* Content */}
-      <Box sx={{ mt: 2 }}>
-        <ManagementSearchSection
-          keyword={parentCrud.keyword}
-          onKeywordChange={parentCrud.handleKeywordChange}
-          onSearch={parentCrud.handleKeywordSearch}
-          onClear={parentCrud.handleClearSearch}
-          placeholder="Tìm kiếm phụ huynh theo tên, email..."
-        />
-
-        <div className={styles.tableContainer}>
-          <DataTable
-            data={parentCrud.data}
-            columns={columns}
-            loading={parentCrud.isPageLoading}
-            page={parentCrud.page}
-            rowsPerPage={parentCrud.rowsPerPage}
-            totalCount={parentCrud.totalCount}
-            onPageChange={parentCrud.handlePageChange}
-            onRowsPerPageChange={parentCrud.handleRowsPerPageChange}
-            showActions={false}
-            emptyMessage="Không có phụ huynh nào. Hãy tạo tài khoản phụ huynh đầu tiên để bắt đầu."
-          />
-        </div>
+          Tạo Tài Khoản Phụ Huynh
+        </Typography>
+        <Typography 
+          variant="body1" 
+          color="text.secondary"
+          sx={{ mt: 1 }}
+        >
+          Chọn phương thức tạo tài khoản phụ huynh
+        </Typography>
       </Box>
 
-      {/* Parent Mode Selection Dialog */}
-      <Dialog
-        open={showParentModeDialog}
-        onClose={() => setShowParentModeDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          Chọn phương thức tạo tài khoản Phụ huynh
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Vui lòng chọn một trong hai phương thức sau:
-          </Typography>
-          <ToggleButtonGroup
-            value={parentCreationMode}
-            exclusive
-            onChange={(e, value) => value && setParentCreationMode(value)}
-            fullWidth
-            orientation="vertical"
-            sx={{ gap: 2 }}
-          >
-            <ToggleButton
-              value="ocr"
-              sx={{
-                p: 3,
-                textAlign: 'left',
-                justifyContent: 'flex-start',
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.50',
-                  borderColor: 'primary.main',
-                  borderWidth: 2
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                <PhotoCameraIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Sử dụng OCR (Chụp CCCD)
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tự động trích xuất thông tin từ ảnh CCCD
-                  </Typography>
-                </Box>
-              </Box>
-            </ToggleButton>
-            <ToggleButton
-              value="manual"
-              sx={{
-                p: 3,
-                textAlign: 'left',
-                justifyContent: 'flex-start',
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.50',
-                  borderColor: 'primary.main',
-                  borderWidth: 2
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                <EditIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Nhập thủ công
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Nhập thông tin từng bước bằng form
-                  </Typography>
-                </Box>
-              </Box>
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowParentModeDialog(false)}>
-            Hủy
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setShowParentModeDialog(false);
-              handleNavigateToCreateParent(parentCreationMode);
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Card 
+            sx={{ 
+              height: '100%',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 'var(--shadow-lg)'
+              }
             }}
           >
-            Tiếp tục
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <CardActionArea 
+              onClick={handleCreateWithOCR}
+              sx={{ height: '100%', p: 3 }}
+            >
+              <CardContent>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 2 }}>
+                  <PhotoCameraIcon 
+                    sx={{ 
+                      fontSize: 64, 
+                      color: 'primary.main',
+                      mb: 1
+                    }} 
+                  />
+                  <Typography 
+                    variant="h5" 
+                    component="h2"
+                    sx={{ fontWeight: 600, mb: 1 }}
+                  >
+                    Sử dụng OCR (Chụp CCCD)
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                  >
+                    Tự động trích xuất thông tin từ ảnh CCCD để tạo tài khoản nhanh chóng và chính xác
+                  </Typography>
+                </Box>
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card 
+            sx={{ 
+              height: '100%',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 'var(--shadow-lg)'
+              }
+            }}
+          >
+            <CardActionArea 
+              onClick={handleCreateWithManual}
+              sx={{ height: '100%', p: 3 }}
+            >
+              <CardContent>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 2 }}>
+                  <EditIcon 
+                    sx={{ 
+                      fontSize: 64, 
+                      color: 'secondary.main',
+                      mb: 1
+                    }} 
+                  />
+                  <Typography 
+                    variant="h5" 
+                    component="h2"
+                    sx={{ fontWeight: 600, mb: 1 }}
+                  >
+                    Nhập Thủ Công
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                  >
+                    Nhập thông tin từng bước bằng form để tạo tài khoản phụ huynh
+                  </Typography>
+                </Box>
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        </Grid>
+      </Grid>
     </div>
   );
 };

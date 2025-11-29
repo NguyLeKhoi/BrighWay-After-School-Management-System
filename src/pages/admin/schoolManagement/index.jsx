@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { Alert } from '@mui/material';
 import { School as SchoolIcon } from '@mui/icons-material';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -19,6 +19,7 @@ import styles from './SchoolManagement.module.css';
 
 const SchoolManagement = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isInitialMount = useRef(true);
   // Use shared CRUD hook
   const {
@@ -49,12 +50,12 @@ const SchoolManagement = () => {
     loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
-      const response = await schoolService.getSchoolsPaged({
-        ...params,
+      return await schoolService.getSchoolsPaged({
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
         name: params.searchTerm || params.Keyword || '',
         includeDeleted: false
       });
-      return response;
     },
     createFunction: schoolService.createSchool,
     updateFunction: schoolService.updateSchool,
@@ -91,12 +92,8 @@ const SchoolManagement = () => {
   };
 
   const columns = useMemo(
-    () =>
-      createSchoolColumns({
-        onEdit: handleEdit,
-        onDelete: handleDelete
-      }),
-    [handleEdit, handleDelete]
+    () => createSchoolColumns(),
+    []
   );
 
   const schoolFormFields = useMemo(
@@ -155,9 +152,9 @@ const SchoolManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(school) => navigate(`/admin/schools/detail/${school.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          showActions={false}
           emptyMessage="Không có trường nào. Hãy thêm trường đầu tiên để bắt đầu."
         />
       </div>

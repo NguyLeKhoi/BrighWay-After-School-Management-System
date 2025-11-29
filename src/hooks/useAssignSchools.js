@@ -32,10 +32,7 @@ export const useAssignSchools = (expandedRows, updateRowSchools, loadData) => {
         : [];
       
       setAssignedSchools(assigned);
-      const assignedIds = assigned
-        .map(s => s.id || s.schoolId)
-        .filter(id => id != null && id !== '');
-      setSelectedSchools(assignedIds);
+      setSelectedSchools([]);
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tải danh sách trường');
     } finally {
@@ -52,19 +49,15 @@ export const useAssignSchools = (expandedRows, updateRowSchools, loadData) => {
         .filter(id => id != null && id !== '');
       
       const toAdd = selectedSchools.filter(id => id && !currentAssigned.includes(id));
-      const toRemove = currentAssigned.filter(id => id && !selectedSchools.includes(id));
+      
+      if (toAdd.length === 0) {
+        toast.info('Không có trường mới nào để gán');
+        return;
+      }
       
       for (const schoolId of toAdd) {
         if (!schoolId) continue;
         await branchService.connectSchool({
-          branchId: selectedBranch.id,
-          schoolId: schoolId
-        });
-      }
-      
-      for (const schoolId of toRemove) {
-        if (!schoolId) continue;
-        await branchService.disconnectSchool({
           branchId: selectedBranch.id,
           schoolId: schoolId
         });
@@ -95,39 +88,42 @@ export const useAssignSchools = (expandedRows, updateRowSchools, loadData) => {
     }
   };
 
+  const handleRemoveDirect = async (branchId, schoolIdParam, schoolName) => {
+    try {
+      await branchService.disconnectSchool({
+        branchId: branchId,
+        schoolId: schoolIdParam
+      });
+      toast.success(`Đã gỡ trường "${schoolName}" khỏi chi nhánh thành công!`);
+      
+      const updatedBranch = await branchService.getBranchById(branchId);
+      const updated = updatedBranch?.schools && Array.isArray(updatedBranch.schools)
+        ? updatedBranch.schools
+        : [];
+      
+      if (selectedBranch?.id === branchId) {
+        setAssignedSchools(updated);
+        setSelectedSchools(prev => prev.filter(id => id !== schoolIdParam));
+      }
+      
+      updateRowSchools(branchId, updated);
+      
+      if (loadData) {
+        await loadData(false);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gỡ trường');
+    }
+  };
+
   const handleRemove = async (branchId, schoolId, schoolName, setConfirmDialog) => {
     setConfirmDialog({
       open: true,
       title: 'Xác nhận gỡ trường',
       description: `Bạn có chắc chắn muốn gỡ trường "${schoolName}" khỏi chi nhánh này không?`,
       onConfirm: async () => {
-        try {
-          await branchService.disconnectSchool({
-            branchId: branchId,
-            schoolId: schoolId
-          });
-          toast.success(`Đã gỡ trường "${schoolName}" khỏi chi nhánh thành công!`);
-          
-          const updatedBranch = await branchService.getBranchById(branchId);
-          const updated = updatedBranch?.schools && Array.isArray(updatedBranch.schools)
-            ? updatedBranch.schools
-            : [];
-          
-          updateRowSchools(branchId, updated);
-          
-          if (selectedBranch?.id === branchId) {
-            setAssignedSchools(updated);
-          }
-          
-          if (loadData) {
-            await loadData(false);
-          }
-          
-          setConfirmDialog(prev => ({ ...prev, open: false }));
-        } catch (err) {
-          toast.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gỡ trường');
-          setConfirmDialog(prev => ({ ...prev, open: false }));
-        }
+        await handleRemoveDirect(branchId, schoolId, schoolName);
+        setConfirmDialog(prev => ({ ...prev, open: false }));
       }
     });
   };
@@ -143,7 +139,8 @@ export const useAssignSchools = (expandedRows, updateRowSchools, loadData) => {
     loading,
     handleOpen,
     handleSubmit,
-    handleRemove
+    handleRemove,
+    handleRemoveDirect
   };
 };
 

@@ -34,6 +34,7 @@ const AssignBenefitsDialog = ({
   loading,
   actionLoading,
   onRemove,
+  onRemoveDirect,
   onSubmit
 }) => {
   return (
@@ -55,21 +56,26 @@ const AssignBenefitsDialog = ({
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
-                Chọn lợi ích
+                Chọn lợi ích để gán thêm
               </Typography>
               <FormControl fullWidth>
                 <Autocomplete
                   multiple
-                  options={availableBenefits}
+                  options={availableBenefits.filter(b => !assignedBenefits.some(ab => ab.id === b.id))}
                   getOptionLabel={(option) => option.name}
-                  value={availableBenefits.filter(b => selectedBenefits.includes(b.id))}
+                  value={availableBenefits.filter(b => 
+                    selectedBenefits.includes(b.id) && !assignedBenefits.some(ab => ab.id === b.id)
+                  )}
                   onChange={(event, newValue) => {
-                    setSelectedBenefits(newValue.map(b => b.id));
+                    const newIds = newValue.map(b => b.id);
+                    const currentAssignedIds = assignedBenefits.map(b => b.id);
+                    setSelectedBenefits([...currentAssignedIds, ...newIds]);
                   }}
+                  disableCloseOnSelect
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      placeholder="Tìm kiếm và chọn lợi ích..."
+                      placeholder="Tìm kiếm và chọn lợi ích để gán thêm..."
                       variant="outlined"
                     />
                   )}
@@ -91,7 +97,7 @@ const AssignBenefitsDialog = ({
               <Divider />
               <Box mt={2}>
                 <Typography variant="body2" color="text.secondary">
-                  Đã chọn: <strong>{selectedBenefits.length}</strong> lợi ích
+                  Lợi ích mới sẽ gán: <strong>{selectedBenefits.filter(id => !assignedBenefits.some(ab => ab.id === id)).length}</strong>
                 </Typography>
               </Box>
             </Grid>
@@ -112,7 +118,7 @@ const AssignBenefitsDialog = ({
                             edge="end"
                             size="small"
                             color="error"
-                            onClick={() => onRemove(selectedBranch.id, benefit.id, benefit.name)}
+                            onClick={() => onRemoveDirect ? onRemoveDirect(selectedBranch.id, benefit.id, benefit.name) : onRemove(selectedBranch.id, benefit.id, benefit.name)}
                             disabled={actionLoading}
                           >
                             <DeleteIcon fontSize="small" />

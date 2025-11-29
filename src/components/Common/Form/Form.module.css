@@ -129,7 +129,6 @@
   font-family: var(--font-family);
   cursor: pointer;
   transition: var(--transition-all);
-  align-self: flex-start;
   box-shadow: var(--shadow-md);
 }
 
@@ -150,6 +149,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  justify-content: center;
 }
 
 .resetButton {
