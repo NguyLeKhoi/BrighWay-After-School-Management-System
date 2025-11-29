@@ -30,6 +30,7 @@ import MainWallet from '../pages/user/finance/MainWallet';
 import ChildrenWallet from '../pages/user/finance/ChildrenWallet';
 import TransactionHistory from '../pages/user/finance/TransactionHistory';
 import MyPackages from '../pages/user/packages';
+import UserPackageDetail from '../pages/user/packages/PackageDetail';
 import Notifications from '../pages/user/notifications';
 import PaymentSuccess from '../pages/user/paymentSuccess';
 import PaymentCancel from '../pages/user/paymentCancel';
@@ -224,6 +225,10 @@ export const routes = createBrowserRouter([
       {
         path: 'management/packages/:childId',
         element: <MyPackages />,
+      },
+      {
+        path: 'packages/detail/:id',
+        element: <UserPackageDetail />,
       },
       {
         path: 'finance/main-wallet',

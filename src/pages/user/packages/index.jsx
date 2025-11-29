@@ -7,7 +7,7 @@ import {
   Receipt as ServiceIcon,
   ShoppingCart as ShoppingCartIcon
 } from '@mui/icons-material';
-import { Box, Typography, Chip, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Box, Typography, Chip, Select, MenuItem, FormControl, InputLabel, Button, Alert } from '@mui/material';
 import ContentLoading from '@components/Common/ContentLoading';
 import Tabs from '@components/Common/Tabs';
 import Card from '@components/Common/Card';
@@ -509,8 +509,19 @@ const MyPackages = () => {
   // Handle buy package
   const handleBuyClick = (pkg) => {
     setSelectedPackage(pkg);
+    
+    // Tự động chọn con nếu:
+    // 1. Có childId trong URL (selectedStudentId)
+    // 2. Hoặc chỉ có 1 con trong danh sách
+    let autoSelectedStudentId = '';
+    if (selectedStudentId) {
+      autoSelectedStudentId = selectedStudentId;
+    } else if (children.length === 1) {
+      autoSelectedStudentId = children[0].id;
+    }
+    
     setBuyForm({
-      studentId: ''
+      studentId: autoSelectedStudentId
     });
     setShowBuyDialog(true);
   };
@@ -820,10 +831,6 @@ const MyPackages = () => {
         )}
       </div>
 
-      {pkg.desc && (
-        <p className={styles.packageDescription}>{pkg.desc}</p>
-      )}
-
       <div className={styles.packagePrice}>
         <span className={styles.priceLabel}>Giá:</span>
         <span className={styles.priceValue}>{formatCurrency(pkg.price)}</span>
@@ -834,87 +841,87 @@ const MyPackages = () => {
           <span className={styles.infoLabel}>Thời hạn:</span>
           <span className={styles.infoValue}>{pkg.durationInMonths} tháng</span>
         </div>
-        {isPurchased && (
-          <>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Ngày mua:</span>
-              <span className={styles.infoValue}>{formatDate(pkg.purchasedDate)}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Hết hạn:</span>
-              <span className={styles.infoValue}>{formatDate(pkg.expiryDate)}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Con:</span>
-              <span className={styles.infoValue}>{pkg.childName}</span>
-            </div>
-            {pkg.usedSlots !== undefined && pkg.totalSlots !== undefined && (
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Đã dùng:</span>
-                <span className={styles.infoValue}>
-                  {pkg.usedSlots}/{pkg.totalSlots} slot
-                  {pkg.remainingSlots !== undefined && (
-                    <span className={styles.remainingSlots}>
-                      {' '}(Còn lại: {pkg.remainingSlots} slot)
-                    </span>
-                  )}
-                </span>
-              </div>
-            )}
-          </>
-        )}
         {!isPurchased && (
           <div className={styles.infoRow}>
             <span className={styles.infoLabel}>Số slot:</span>
             <span className={styles.infoValue}>{pkg.totalSlots}</span>
           </div>
         )}
-        {pkg.branch && (
+        {isPurchased && pkg.usedSlots !== undefined && pkg.totalSlots !== undefined && (
           <div className={styles.infoRow}>
-            <span className={styles.infoLabel}>Chi nhánh:</span>
-            <span className={styles.infoValue}>{pkg.branch.branchName}</span>
-          </div>
-        )}
-        {pkg.studentLevel && (
-          <div className={styles.infoRow}>
-            <span className={styles.infoLabel}>Cấp độ:</span>
-            <span className={styles.infoValue}>{pkg.studentLevel.levelName}</span>
+            <span className={styles.infoLabel}>Đã dùng:</span>
+            <span className={styles.infoValue}>
+              {pkg.usedSlots}/{pkg.totalSlots} slot
+            </span>
           </div>
         )}
       </div>
 
+      {/* Benefits - chỉ hiển thị 3 lợi ích đầu tiên */}
       {pkg.benefits && pkg.benefits.length > 0 && (
         <div className={styles.benefitsSection}>
-          <h4 className={styles.benefitsTitle}>Lợi ích:</h4>
           <ul className={styles.benefitsList}>
-            {pkg.benefits.map((benefit, index) => (
+            {pkg.benefits.slice(0, 3).map((benefit, index) => (
               <li key={index} className={styles.benefitItem}>
                 <span className={styles.benefitIcon}>✓</span>
-                {benefit.name}
+                {benefit.name || benefit}
               </li>
             ))}
+            {pkg.benefits.length > 3 && (
+              <li className={styles.benefitItem} style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+                +{pkg.benefits.length - 3} lợi ích khác...
+              </li>
+            )}
           </ul>
         </div>
       )}
 
       <div className={styles.packageActions}>
-        {isPurchased ? (
-          <>
-            {pkg.status === 'active' && (
-              <button className={styles.extendButton}>
-                Gia hạn
-              </button>
-            )}
-          </>
-        ) : (
-          <>
-            <button 
-              className={styles.registerButton}
-              onClick={() => handleBuyClick(pkg)}
-            >
-              Đăng ký ngay
-            </button>
-          </>
+        <Button
+          variant="outlined"
+          onClick={() => navigate(`/user/packages/detail/${pkg.id}?type=${isPurchased ? 'purchased' : 'available'}`, {
+            state: { packageData: pkg, childId: selectedStudentId || childId }
+          })}
+          sx={{
+            flex: 1,
+            textTransform: 'none',
+            fontFamily: 'var(--font-family)',
+            fontSize: 'var(--font-size-sm)',
+            fontWeight: 'var(--font-weight-semibold)',
+            borderColor: 'var(--border-medium)',
+            color: 'var(--text-primary)',
+            '&:hover': {
+              borderColor: 'var(--color-primary)',
+              backgroundColor: 'var(--color-primary-50)',
+              color: 'var(--color-primary)'
+            }
+          }}
+        >
+          Xem chi tiết
+        </Button>
+        {!isPurchased && (
+          <Button
+            variant="contained"
+            onClick={() => handleBuyClick(pkg)}
+            sx={{
+              flex: 1,
+              textTransform: 'none',
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--font-size-sm)',
+              fontWeight: 'var(--font-weight-semibold)',
+              background: 'var(--color-secondary)',
+              color: 'var(--text-primary)',
+              boxShadow: 'var(--shadow-sm)',
+              '&:hover': {
+                background: 'var(--color-secondary-dark)',
+                color: 'var(--text-inverse)',
+                transform: 'translateY(-2px)',
+                boxShadow: 'var(--shadow-md)'
+              }
+            }}
+          >
+            Đăng ký ngay
+          </Button>
         )}
       </div>
     </div>
@@ -1068,56 +1075,102 @@ const MyPackages = () => {
             ) : purchasedPackages.length > 0 ? (
               <div className={styles.packagesGrid}>
                 {purchasedPackages.map((pkg) => {
-                  const infoRows = [
-                    { label: 'Giá', value: formatCurrency(pkg.price) },
-                    { label: 'Thời hạn', value: `${pkg.durationInMonths} tháng` },
-                    { label: 'Ngày mua', value: formatDate(pkg.purchasedDate) },
-                    { label: 'Hết hạn', value: formatDate(pkg.expiryDate) },
-                    { label: 'Con', value: pkg.childName || '—' }
-                  ];
-
-                  if (pkg.usedSlots !== undefined && pkg.totalSlots !== undefined) {
-                    infoRows.push({
-                      label: 'Đã dùng',
-                      value: `${pkg.usedSlots}/${pkg.totalSlots} slot${pkg.remainingSlots !== undefined ? ` (Còn lại: ${pkg.remainingSlots} slot)` : ''}`
-                    });
-                  }
-
-                  if (pkg.branch?.branchName) {
-                    infoRows.push({ label: 'Chi nhánh', value: pkg.branch.branchName });
-                  }
-
-                  if (pkg.studentLevel?.levelName) {
-                    infoRows.push({ label: 'Cấp độ', value: pkg.studentLevel.levelName });
-                  }
-
-                  const badges = pkg.benefits && pkg.benefits.length > 0
-                    ? pkg.benefits.map((benefit, index) => ({
-                        text: benefit.name || benefit,
-                        type: 'fullweek'
-                      }))
-                    : [];
-
+                  // Tạo một card tương tự như available packages nhưng có thêm nút "Hoàn tiền" nếu cần
                   return (
-                    <Card
-                      key={pkg.id}
-                      title={pkg.name}
-                      status={{
-                        text: pkg.status === 'active' ? 'Đang sử dụng' : 'Đã hết hạn',
-                        type: pkg.status === 'active' ? 'active' : 'pending'
-                      }}
-                      infoRows={infoRows}
-                      badges={badges}
-                      actions={pkg.status === 'active' ? [
-                        // Chỉ hiển thị nút refund nếu chưa sử dụng slot nào
-                        ...(pkg.usedSlots === 0 ? [{
-                          text: 'Hoàn tiền',
-                          primary: false,
-                          onClick: () => handleRefundClick(pkg),
-                          danger: false
-                        }] : [])
-                      ] : []}
-                    />
+                    <div key={pkg.id} className={styles.packageCard}>
+                      <div className={styles.packageHeader}>
+                        <h3 className={styles.packageName}>{pkg.name}</h3>
+                        <span className={`${styles.statusBadge} ${styles[pkg.status]}`}>
+                          {pkg.status === 'active' ? 'Đang sử dụng' : 'Đã hết hạn'}
+                        </span>
+                      </div>
+
+                      <div className={styles.packagePrice}>
+                        <span className={styles.priceLabel}>Giá:</span>
+                        <span className={styles.priceValue}>{formatCurrency(pkg.price)}</span>
+                      </div>
+
+                      <div className={styles.packageInfo}>
+                        <div className={styles.infoRow}>
+                          <span className={styles.infoLabel}>Thời hạn:</span>
+                          <span className={styles.infoValue}>{pkg.durationInMonths} tháng</span>
+                        </div>
+                        {pkg.usedSlots !== undefined && pkg.totalSlots !== undefined && (
+                          <div className={styles.infoRow}>
+                            <span className={styles.infoLabel}>Đã dùng:</span>
+                            <span className={styles.infoValue}>
+                              {pkg.usedSlots}/{pkg.totalSlots} slot
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Benefits - chỉ hiển thị 3 lợi ích đầu tiên */}
+                      {pkg.benefits && pkg.benefits.length > 0 && (
+                        <div className={styles.benefitsSection}>
+                          <ul className={styles.benefitsList}>
+                            {pkg.benefits.slice(0, 3).map((benefit, index) => (
+                              <li key={index} className={styles.benefitItem}>
+                                <span className={styles.benefitIcon}>✓</span>
+                                {benefit.name || benefit}
+                              </li>
+                            ))}
+                            {pkg.benefits.length > 3 && (
+                              <li className={styles.benefitItem} style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+                                +{pkg.benefits.length - 3} lợi ích khác...
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className={styles.packageActions}>
+                        <Button
+                          variant="outlined"
+                          onClick={() => navigate(`/user/packages/detail/${pkg.id}?type=purchased`, {
+                            state: { packageData: pkg, childId: selectedStudentId || childId }
+                          })}
+                          sx={{
+                            flex: 1,
+                            textTransform: 'none',
+                            fontFamily: 'var(--font-family)',
+                            fontSize: 'var(--font-size-sm)',
+                            fontWeight: 'var(--font-weight-semibold)',
+                            borderColor: 'var(--border-medium)',
+                            color: 'var(--text-primary)',
+                            '&:hover': {
+                              borderColor: 'var(--color-primary)',
+                              backgroundColor: 'var(--color-primary-50)',
+                              color: 'var(--color-primary)'
+                            }
+                          }}
+                        >
+                          Xem chi tiết
+                        </Button>
+                        {pkg.status === 'active' && pkg.usedSlots === 0 && (
+                          <Button
+                            variant="outlined"
+                            onClick={() => handleRefundClick(pkg)}
+                            sx={{
+                              flex: 1,
+                              textTransform: 'none',
+                              fontFamily: 'var(--font-family)',
+                              fontSize: 'var(--font-size-sm)',
+                              fontWeight: 'var(--font-weight-semibold)',
+                              borderColor: 'var(--color-warning)',
+                              color: 'var(--color-warning)',
+                              '&:hover': {
+                                borderColor: 'var(--color-warning-dark)',
+                                backgroundColor: 'var(--color-warning-light)',
+                                color: 'var(--color-warning-dark)'
+                              }
+                            }}
+                          >
+                            Hoàn tiền
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -1199,27 +1252,66 @@ const MyPackages = () => {
             </Box>
           )}
 
-          <Form
-            schema={buyPackageSchema}
-            defaultValues={buyForm}
-            onSubmit={handleBuyPackage}
-            submitText="Xác nhận mua"
-            loading={isBuying}
+          {(() => {
+            // Xác định con được chọn
+            const selectedChildId = selectedStudentId || (children.length === 1 ? children[0].id : '');
+            const selectedChild = children.find(child => child.id === selectedChildId);
+            
+            if (!selectedChild) {
+              return (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  Vui lòng chọn con từ trang trước
+                </Alert>
+              );
+            }
+            
+            return (
+              <>
+                <Box sx={{ mb: 3, p: 2, backgroundColor: 'var(--bg-secondary)', borderRadius: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    Mua gói cho:
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    {selectedChild.name || 'Không tên'}
+                  </Typography>
+                  {selectedChild.branchName && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      Chi nhánh: {selectedChild.branchName}
+                    </Typography>
+                  )}
+                </Box>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setShowBuyDialog(false);
+                      setSelectedPackage(null);
+                      setBuyForm({ studentId: '' });
+                    }}
                     disabled={isBuying}
-            fields={[
-              {
-                name: 'studentId',
-                label: 'Chọn con',
-                type: 'select',
-                required: true,
-                placeholder: '-- Chọn con --',
-                options: children.map(child => ({
-                  value: child.id,
-                  label: child.name || 'Không tên'
-                }))
-              }
-            ]}
-          />
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleBuyPackage({ studentId: selectedChildId })}
+                    disabled={isBuying}
+                    sx={{
+                      background: 'var(--color-secondary)',
+                      color: 'var(--text-primary)',
+                      '&:hover': {
+                        background: 'var(--color-secondary-dark)',
+                        color: 'var(--text-inverse)'
+                      }
+                    }}
+                  >
+                    {isBuying ? 'Đang xử lý...' : 'Xác nhận mua'}
+                  </Button>
+                </Box>
+              </>
+            );
+          })()}
         </ManagementFormDialog>
 
         {/* Refund Confirm Dialog */}
