@@ -1,3 +1,11 @@
+// Room Status Enum Values
+const ROOM_STATUS_OPTIONS = [
+  { value: 'Active', label: 'Hoạt động' },
+  { value: 'Inactive', label: 'Không hoạt động' },
+  { value: 'UnderMaintenance', label: 'Đang bảo trì' },
+  { value: 'Closed', label: 'Đã đóng' }
+];
+
 export const createRoomFormFields = ({
   actionLoading,
   isDataLoading,
@@ -43,6 +51,16 @@ export const createRoomFormFields = ({
     required: true,
     disabled: actionLoading,
     gridSize: 6
+  },
+  {
+    name: 'status',
+    label: 'Trạng Thái',
+    type: 'select',
+    required: true,
+    options: ROOM_STATUS_OPTIONS,
+    disabled: actionLoading,
+    gridSize: 6,
+    defaultValue: 'Active'
   }
 ];
 

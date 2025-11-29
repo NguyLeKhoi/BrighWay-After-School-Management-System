@@ -94,7 +94,7 @@ const PackageManagement = () => {
   } = useBaseCRUD({
     loadFunction: async (params) => {
       return packageTemplateService.getTemplatesPaged({
-        page: params.page,
+        pageIndex: params.pageIndex,
         pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || '',
         status: params.status === '' ? null : params.status === 'true'
@@ -138,7 +138,7 @@ const PackageManagement = () => {
   } = useBaseCRUD({
     loadFunction: async (params) => {
       return packageService.getPackagesPaged({
-        page: params.page,
+        pageIndex: params.pageIndex,
         pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || '',
         status: params.status === '' ? null : params.status === 'true',
@@ -638,6 +638,7 @@ const PackageManagement = () => {
               totalCount={packageTotalCount}
               onPageChange={packageHandlePageChange}
               onRowsPerPageChange={packageHandleRowsPerPageChange}
+              onView={(pkg) => navigate(`/admin/packages/detail/${pkg.id}`)}
               onEdit={handleEditPackage}
               onDelete={packageHandleDelete}
               expandableConfig={{

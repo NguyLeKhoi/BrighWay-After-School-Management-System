@@ -38,8 +38,8 @@ const ParentManagement = () => {
   // Parent CRUD - memoize loadFunction to prevent unnecessary re-renders
   const loadParentFunction = useCallback(async (params) => {
     return await userService.getUsersPagedByRole({
-      pageIndex: params.page || params.pageIndex || 1,
-      pageSize: params.pageSize || params.rowsPerPage || 10,
+      pageIndex: params.pageIndex,
+      pageSize: params.pageSize,
       Role: 'User',
       Keyword: params.Keyword || params.searchTerm || ''
     });

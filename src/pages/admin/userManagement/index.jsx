@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Alert } from '@mui/material';
-import { Person as PersonIcon } from '@mui/icons-material';
-import { useLocation } from 'react-router-dom';
+import { Alert, Chip, Box, Typography } from '@mui/material';
+import { 
+  Person as PersonIcon,
+  Email as EmailIcon,
+  CalendarToday as CalendarIcon
+} from '@mui/icons-material';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -21,21 +25,65 @@ const createUserColumns = () => [
   {
     key: 'name',
     header: 'Tên',
-    align: 'left'
+    align: 'left',
+    render: (value) => (
+      <Box display="flex" alignItems="center" gap={1}>
+        <PersonIcon fontSize="small" color="primary" />
+        <Typography variant="subtitle2" fontWeight="medium">
+          {value || 'N/A'}
+        </Typography>
+      </Box>
+    )
   },
   {
     key: 'email',
     header: 'Email',
-    align: 'left'
+    align: 'left',
+    render: (value) => (
+      <Box display="flex" alignItems="center" gap={1}>
+        <EmailIcon fontSize="small" color="action" />
+        <Typography variant="body2" color="text.secondary">
+          {value || 'N/A'}
+        </Typography>
+      </Box>
+    )
   },
   {
     key: 'createdAt',
     header: 'Ngày tạo',
     align: 'left',
     render: (value) => {
-      if (!value) return '—';
+      if (!value) return (
+        <Box display="flex" alignItems="center" gap={1}>
+          <CalendarIcon fontSize="small" color="action" />
+          <Typography variant="body2" color="text.secondary">—</Typography>
+        </Box>
+      );
       const date = new Date(value);
-      return date.toLocaleDateString('vi-VN');
+      return (
+        <Box display="flex" alignItems="center" gap={1}>
+          <CalendarIcon fontSize="small" color="action" />
+          <Typography variant="body2" color="text.secondary">
+            {date.toLocaleDateString('vi-VN')}
+          </Typography>
+        </Box>
+      );
+    }
+  },
+  {
+    key: 'isActive',
+    header: 'Trạng Thái',
+    align: 'center',
+    render: (value, item) => {
+      const isActive = item.isActive !== undefined ? item.isActive : value !== undefined ? value : true;
+      return (
+        <Chip
+          label={isActive ? 'Hoạt động' : 'Không hoạt động'}
+          color={isActive ? 'success' : 'default'}
+          size="small"
+          variant={isActive ? 'filled' : 'outlined'}
+        />
+      );
     }
   }
 ];
@@ -65,6 +113,7 @@ const createUserFormFields = (dialogMode, actionLoading) => {
 };
 
 const UserManagement = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const isInitialMount = useRef(true);
 
@@ -97,13 +146,12 @@ const UserManagement = () => {
     loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
-      const response = await userService.getUsersPagedByRole({
-        pageIndex: params.page || params.pageIndex || 1,
-        pageSize: params.pageSize || params.rowsPerPage || 10,
-        Role: 'User', // Only show User role
+      return await userService.getUsersPagedByRole({
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
+        Role: 'User',
         Keyword: params.Keyword || params.searchTerm || ''
       });
-      return response;
     },
     updateFunction: userService.updateUser,
     deleteFunction: userService.deleteUser,
@@ -195,6 +243,7 @@ const UserManagement = () => {
           totalCount={totalCount}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={(user) => navigate(`/admin/users/detail/${user.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
           emptyMessage="Không có người dùng nào."

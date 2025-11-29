@@ -311,7 +311,7 @@ const StaffDashboard = () => {
             Tổng quan
           </h1>
           <p className={styles.subtitle}>
-            Chào mừng, {user?.name || 'Staff'}! Tổng quan công việc của bạn
+            Chào mừng, {user?.name || 'Nhân viên'}! Tổng quan công việc của bạn
           </p>
         </motion.div>
 

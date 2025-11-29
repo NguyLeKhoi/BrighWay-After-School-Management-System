@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, IconButton, Tooltip, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, IconButton, Tooltip, Typography, Menu, MenuItem, ListItemIcon, ListItemText, Chip } from '@mui/material';
 import {
   Business as BusinessIcon,
   Assignment as AssignIcon,
@@ -9,6 +9,7 @@ import {
   ExpandLess as ExpandLessIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
   MoreVert as MoreVertIcon
 } from '@mui/icons-material';
 
@@ -18,6 +19,7 @@ export const createBranchColumns = ({
   onAssignBenefits,
   onAssignSchools,
   onAssignStudentLevels,
+  onViewBranch,
   onEditBranch,
   onDeleteBranch
 }) => [
@@ -63,6 +65,70 @@ export const createBranchColumns = ({
         {value}
       </Typography>
     )
+  },
+  {
+    key: 'status',
+    header: 'Trạng Thái',
+    align: 'center',
+    render: (_, item) => {
+      // Map numeric status to string enum (same as room)
+      const statusMap = {
+        0: 'Active',
+        1: 'Active',
+        2: 'Inactive',
+        3: 'UnderMaintenance',
+        4: 'Closed',
+        '0': 'Active',
+        '1': 'Active',
+        '2': 'Inactive',
+        '3': 'UnderMaintenance',
+        '4': 'Closed',
+        'Active': 'Active',
+        'Inactive': 'Inactive',
+        'UnderMaintenance': 'UnderMaintenance',
+        'Closed': 'Closed'
+      };
+      
+      const statusLabels = {
+        'Active': 'Hoạt động',
+        'Inactive': 'Không hoạt động',
+        'UnderMaintenance': 'Đang bảo trì',
+        'Closed': 'Đã đóng'
+      };
+      const statusColors = {
+        'Active': 'success',
+        'Inactive': 'default',
+        'UnderMaintenance': 'warning',
+        'Closed': 'error'
+      };
+      
+      // Convert numeric status to string enum
+      const rawStatus = item.status;
+      let status = rawStatus;
+      
+      // If status exists in map, convert to enum
+      if (rawStatus !== null && rawStatus !== undefined && statusMap[rawStatus] !== undefined) {
+        status = statusMap[rawStatus];
+      }
+      
+      // Default to Active if status is not valid
+      if (!status || !statusLabels[status]) {
+        status = 'Active';
+      }
+      
+      const isDeleted = item.isDeleted !== undefined ? item.isDeleted : item.IsDeleted !== undefined ? item.IsDeleted : false;
+      const displayStatus = isDeleted ? 'Đã xóa' : (statusLabels[status] || 'Hoạt động');
+      const displayColor = isDeleted ? 'error' : (statusColors[status] || 'success');
+      
+      return (
+        <Chip
+          label={displayStatus}
+          color={displayColor}
+          size="small"
+          variant={isDeleted ? 'outlined' : 'filled'}
+        />
+      );
+    }
   },
   {
     key: 'actions',
@@ -111,6 +177,14 @@ export const createBranchColumns = ({
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
+              {onViewBranch && (
+                <MenuItem onClick={() => handleMenuAction(() => onViewBranch(item))}>
+                  <ListItemIcon>
+                    <VisibilityIcon fontSize="small" color="info" />
+                  </ListItemIcon>
+                  <ListItemText>Xem chi tiết</ListItemText>
+                </MenuItem>
+              )}
               <MenuItem onClick={() => handleMenuAction(() => onAssignBenefits(item))}>
                 <ListItemIcon>
                   <AssignIcon fontSize="small" color="info" />
@@ -129,27 +203,31 @@ export const createBranchColumns = ({
                 </ListItemIcon>
                 <ListItemText>Gán cấp độ học sinh</ListItemText>
               </MenuItem>
-              <MenuItem onClick={() => handleMenuAction(() => onEditBranch(item))}>
-                <ListItemIcon>
-                  <EditIcon fontSize="small" color="primary" />
-                </ListItemIcon>
-                <ListItemText>Sửa</ListItemText>
-              </MenuItem>
-              <MenuItem 
-                onClick={() => handleMenuAction(() => onDeleteBranch(item))}
-                sx={{
-                  color: 'error.main',
-                  '&:hover': {
-                    backgroundColor: 'error.light',
-                    color: 'error.dark'
-                  }
-                }}
-              >
-                <ListItemIcon>
-                  <DeleteIcon fontSize="small" color="error" />
-                </ListItemIcon>
-                <ListItemText>Xóa</ListItemText>
-              </MenuItem>
+              {onEditBranch && (
+                <MenuItem onClick={() => handleMenuAction(() => onEditBranch(item))}>
+                  <ListItemIcon>
+                    <EditIcon fontSize="small" color="primary" />
+                  </ListItemIcon>
+                  <ListItemText>Sửa</ListItemText>
+                </MenuItem>
+              )}
+              {onDeleteBranch && (
+                <MenuItem 
+                  onClick={() => handleMenuAction(() => onDeleteBranch(item))}
+                  sx={{
+                    color: 'error.main',
+                    '&:hover': {
+                      backgroundColor: 'error.light',
+                      color: 'error.dark'
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    <DeleteIcon fontSize="small" color="error" />
+                  </ListItemIcon>
+                  <ListItemText>Xóa</ListItemText>
+                </MenuItem>
+              )}
             </Menu>
           </>
         );

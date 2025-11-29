@@ -146,14 +146,10 @@ const StudentManagement = () => {
         throw new Error('Không thể xác định chi nhánh. Vui lòng đăng nhập lại.');
       }
       
-      const pageIndex = params.page || params.pageIndex || 1;
-      const pageSize = params.pageSize || params.rowsPerPage || 10;
-      const keyword = params.Keyword || params.searchTerm || '';
-      
       return await studentService.getStudentsPaged({
-        pageIndex,
-        pageSize,
-        name: keyword || undefined,
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
+        name: (params.Keyword || params.searchTerm) || undefined,
         branchId: resolvedBranchId, // Luôn filter theo branchId của manager
         schoolId: params.schoolId || undefined,
         levelId: params.studentLevelId || params.levelId || undefined,
@@ -218,7 +214,7 @@ const StudentManagement = () => {
           }));
         } else {
           console.error('Manager không có chi nhánh được gán');
-          showGlobalError('Manager không có chi nhánh được gán. Vui lòng liên hệ quản trị viên.');
+          showGlobalError('Quản lý không có chi nhánh được gán. Vui lòng liên hệ quản trị viên.');
         }
       } catch (error) {
         showGlobalError('Không thể xác định chi nhánh. Vui lòng đăng nhập lại.');

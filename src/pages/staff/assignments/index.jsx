@@ -9,17 +9,8 @@ import {
   Typography, 
   Alert, 
   Paper, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
+  Button,
   Chip,
-  CircularProgress,
   ToggleButton,
   ToggleButtonGroup
 } from '@mui/material';
@@ -34,7 +25,6 @@ import {
   Person,
   CheckCircle
 } from '@mui/icons-material';
-import { toast } from 'react-toastify';
 import studentSlotService from '../../../services/studentSlot.service';
 import { useLoading } from '../../../hooks/useLoading';
 import Loading from '../../../components/Common/Loading';
@@ -56,10 +46,6 @@ const StaffAssignments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'schedule'
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
-  const [studentsList, setStudentsList] = useState([]);
-  const [loadingStudents, setLoadingStudents] = useState(false);
   
   // Pagination states for each section
   const [pagination, setPagination] = useState({
@@ -319,95 +305,20 @@ const StaffAssignments = () => {
   }, []);
 
   // Event handlers cho FullCalendar
-  const handleEventClick = async (clickInfo) => {
+  const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
     const slotId = event.extendedProps.slotId;
     
-    // Tìm slot từ rawSlots
-    const slot = rawSlots.all.find(s => s.id === slotId);
-    if (!slot) return;
-
-    setSelectedSlot({
-      slotId: slot.id,
-      date: slot.branchSlot?.date || slot.date,
-      roomName: slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định',
-      branchName: slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định',
-      timeframe: slot.timeframe || slot.timeFrame,
-      timeframeName: (slot.timeframe || slot.timeFrame)?.name || 'Chưa xác định',
-      timeDisplay: event.extendedProps.timeDisplay,
-      studentName: slot.student?.name || slot.studentName || 'Chưa xác định'
-    });
-
-    // Fetch danh sách học sinh cho slot này (tất cả slots cùng branchSlotId và date)
-    const dateValue = slot.branchSlot?.date || slot.date;
-    const branchSlotId = slot.branchSlotId;
-    if (branchSlotId && dateValue) {
-      await fetchStudentsForSlot(branchSlotId, dateValue);
+    if (slotId) {
+      navigate(`/staff/assignments/${slotId}`);
     }
   };
 
   // Handler cho card click
-  const handleCardClick = async (slot) => {
-    setSelectedSlot({
-      slotId: slot.id,
-      date: slot.branchSlot?.date || slot.date,
-      roomName: slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định',
-      branchName: slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định',
-      timeframe: slot.timeframe || slot.timeFrame,
-      timeframeName: (slot.timeframe || slot.timeFrame)?.name || 'Chưa xác định',
-      timeDisplay: (() => {
-        const tf = slot.timeframe || slot.timeFrame;
-        if (!tf) return 'Chưa xác định';
-        const start = tf.startTime?.substring(0, 5) || '';
-        const end = tf.endTime?.substring(0, 5) || '';
-        return `${start}-${end}`;
-      })(),
-      studentName: slot.student?.name || slot.studentName || 'Chưa xác định'
-    });
-
-    const dateValue = slot.branchSlot?.date || slot.date;
-    const branchSlotId = slot.branchSlotId;
-    if (branchSlotId && dateValue) {
-      await fetchStudentsForSlot(branchSlotId, dateValue);
+  const handleCardClick = (slot) => {
+    if (slot && slot.id) {
+      navigate(`/staff/assignments/${slot.id}`);
     }
-  };
-
-  const fetchStudentsForSlot = async (branchSlotId, date) => {
-    setLoadingStudents(true);
-    setStudentsList([]);
-    setStudentsDialogOpen(true);
-
-    try {
-      const response = await studentSlotService.getStaffSlots({
-        pageIndex: 1,
-        pageSize: 1000,
-        branchSlotId: branchSlotId,
-        date: date,
-        upcomingOnly: false
-      });
-
-      const slots = response?.items || [];
-      const bookedSlots = slots.filter(slot => 
-        slot.status === 'Booked' || slot.status === 'booked'
-      );
-
-      setStudentsList(bookedSlots);
-    } catch (err) {
-      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải danh sách học sinh';
-      toast.error(errorMessage, {
-        position: 'top-right',
-        autoClose: 4000
-      });
-      console.error('Error fetching students:', err);
-    } finally {
-      setLoadingStudents(false);
-    }
-  };
-
-  const handleCloseStudentsDialog = () => {
-    setStudentsDialogOpen(false);
-    setSelectedSlot(null);
-    setStudentsList([]);
   };
 
   // Handler cho view mode change
@@ -973,108 +884,6 @@ const StaffAssignments = () => {
             Chưa có ca giữ trẻ nào được phân công.
           </Alert>
         )}
-
-        {/* Dialog hiển thị danh sách học sinh */}
-        <Dialog 
-          open={studentsDialogOpen} 
-          onClose={handleCloseStudentsDialog}
-          maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: 'var(--radius-xl)'
-            }
-          }}
-        >
-          <DialogTitle>
-            <Typography variant="h6" component="div" sx={{ fontFamily: 'var(--font-family-heading)', fontWeight: 600 }}>
-              Danh sách học sinh
-            </Typography>
-            {selectedSlot && (
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {selectedSlot.branchName} • {selectedSlot.timeframeName} • {selectedSlot.roomName}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {formatDateOnlyUTC7(selectedSlot.date, {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })} • {selectedSlot.timeDisplay}
-                </Typography>
-              </Box>
-            )}
-          </DialogTitle>
-          <DialogContent>
-            {loadingStudents ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-                <CircularProgress />
-              </Box>
-            ) : studentsList.length === 0 ? (
-              <Alert severity="info">
-                Không có học sinh nào đã đăng ký cho slot này.
-              </Alert>
-            ) : (
-              <List>
-                {studentsList.map((slot, index) => (
-                  <React.Fragment key={slot.id || index}>
-                    <ListItem
-                      sx={{
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        py: 2,
-                        px: 2,
-                        borderRadius: 1,
-                        mb: 1,
-                        bgcolor: 'background.paper',
-                        border: '1px solid',
-                        borderColor: 'divider'
-                      }}
-                    >
-                      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                          <ListItemText
-                            primary={
-                              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                {slot.studentName || slot.student?.name || 'Chưa có tên'}
-                              </Typography>
-                            }
-                            secondary={
-                              <>
-                                {slot.parentName && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Phụ huynh: {slot.parentName}
-                                  </Typography>
-                                )}
-                                {slot.parentNote && (
-                                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                    Ghi chú: {slot.parentNote}
-                                  </Typography>
-                                )}
-                              </>
-                            }
-                          />
-                        </Box>
-                        <Chip
-                          label={slot.status === 'Booked' || slot.status === 'booked' ? 'Đã đăng ký' : slot.status}
-                          color={slot.status === 'Booked' || slot.status === 'booked' ? 'success' : 'default'}
-                          size="small"
-                        />
-                      </Box>
-                    </ListItem>
-                    {index < studentsList.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseStudentsDialog} variant="contained">
-              Đóng
-            </Button>
-          </DialogActions>
-        </Dialog>
       </div>
     </div>
   );

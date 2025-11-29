@@ -69,14 +69,13 @@ const ManagerRoomManagement = () => {
     
     const effectiveBranchFilter = managerBranchId; // Always use manager's branch
     
-    const response = await roomService.getRoomsPaged(
-      params.page || params.pageIndex || 1,
-      params.pageSize || params.rowsPerPage || 10,
+    return await roomService.getRoomsPaged(
+      params.pageIndex,
+      params.pageSize,
       params.Keyword || params.searchTerm || '',
       '',
       effectiveBranchFilter
     );
-    return response;
   }, [managerBranchId]);
 
   // Use Manager CRUD hook with custom load function

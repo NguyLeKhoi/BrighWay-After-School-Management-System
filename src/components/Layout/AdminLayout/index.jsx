@@ -123,7 +123,7 @@ const AdminLayout = () => {
         {/* Generic Drawer */}
         <GenericDrawer
           title="BRIGHWAY"
-          subtitle="Admin Portal"
+          subtitle="Cổng Quản Trị"
           menuItems={menuItems}
           onLogout={handleLogout}
         />

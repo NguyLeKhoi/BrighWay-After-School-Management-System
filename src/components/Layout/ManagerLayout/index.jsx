@@ -88,7 +88,7 @@ const ManagerLayout = () => {
         {/* Generic Drawer */}
         <GenericDrawer
           title="BRIGHWAY"
-          subtitle="Manager Portal"
+          subtitle="Cổng Quản Lý"
           menuItems={menuItems}
           onLogout={handleLogout}
           profilePath="/manager/profile"

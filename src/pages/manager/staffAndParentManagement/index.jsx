@@ -34,8 +34,8 @@ const StaffAndParentManagement = () => {
   // Staff CRUD - memoize loadFunction to prevent unnecessary re-renders
   const loadStaffFunction = useCallback(async (params) => {
       return await userService.getUsersPagedByRole({
-        pageIndex: params.page || params.pageIndex || 1,
-        pageSize: params.pageSize || params.rowsPerPage || 10,
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
         Role: 'Staff',
         Keyword: params.Keyword || params.searchTerm || ''
       });
@@ -118,7 +118,7 @@ const StaffAndParentManagement = () => {
   const handleStaffSubmit = async (data) => {
     try {
       await userService.createStaff(data);
-      toast.success('Tạo tài khoản Staff thành công!');
+      toast.success('Tạo tài khoản Nhân viên thành công!');
       if (staffCrud.loadData) {
         staffCrud.loadData(false);
       }

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   Paper,
   Table,
@@ -12,14 +12,20 @@ import {
   Chip,
   Typography,
   CircularProgress,
-  Box
+  Box,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Tooltip
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Visibility as VisibilityIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon
+  ExpandLess as ExpandLessIcon,
+  MoreVert as MoreVertIcon
 } from '@mui/icons-material';
 
 const DataTable = ({
@@ -31,6 +37,7 @@ const DataTable = ({
   totalCount = 0,
   onPageChange,
   onRowsPerPageChange,
+  onView,
   onEdit,
   onDelete,
   emptyMessage = "Không có dữ liệu",
@@ -39,7 +46,7 @@ const DataTable = ({
   getRowClassName = null,
   getRowSx = null
 }) => {
-  const [expandedRows, setExpandedRows] = React.useState({});
+  const [expandedRows, setExpandedRows] = useState({});
 
   const isRowExpandable = expandableConfig?.isRowExpandable;
   const renderExpandedContent = expandableConfig?.renderExpandedContent;
@@ -51,17 +58,89 @@ const DataTable = ({
     }));
   }, []);
 
-  const handleEdit = useCallback((item) => {
-    if (onEdit) {
-      onEdit(item);
-    }
-  }, [onEdit]);
+  const hasAnyAction = Boolean(onView || onEdit || onDelete);
 
-  const handleDelete = useCallback((item) => {
-    if (onDelete) {
-      onDelete(item);
-    }
-  }, [onDelete]);
+  // Action Menu Component for each row
+  const ActionMenu = ({ item }) => {
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+
+    const handleClick = (event) => {
+      event.stopPropagation();
+      setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
+
+    const handleMenuAction = (action) => {
+      handleClose();
+      if (action) {
+        action(item);
+      }
+    };
+
+    return (
+      <>
+        <Tooltip title="Thao tác">
+          <IconButton
+            size="small"
+            onClick={handleClick}
+            sx={{
+              '&:hover': {
+                backgroundColor: 'action.hover'
+              }
+            }}
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          onClick={(e) => e.stopPropagation()}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          {onView && (
+            <MenuItem onClick={() => handleMenuAction(onView)}>
+              <ListItemIcon>
+                <VisibilityIcon fontSize="small" color="info" />
+              </ListItemIcon>
+              <ListItemText>Xem chi tiết</ListItemText>
+            </MenuItem>
+          )}
+          {onEdit && (
+            <MenuItem onClick={() => handleMenuAction(onEdit)}>
+              <ListItemIcon>
+                <EditIcon fontSize="small" color="primary" />
+              </ListItemIcon>
+              <ListItemText>Sửa</ListItemText>
+            </MenuItem>
+          )}
+          {onDelete && (
+            <MenuItem 
+              onClick={() => handleMenuAction(onDelete)}
+              sx={{
+                color: 'error.main',
+                '&:hover': {
+                  backgroundColor: 'error.light',
+                  color: 'error.dark'
+                }
+              }}
+            >
+              <ListItemIcon>
+                <DeleteIcon fontSize="small" color="error" />
+              </ListItemIcon>
+              <ListItemText>Xóa</ListItemText>
+            </MenuItem>
+          )}
+        </Menu>
+      </>
+    );
+  };
 
   if (loading) {
     return (
@@ -131,31 +210,15 @@ const DataTable = ({
                         {column.render ? column.render(item[column.key], item) : item[column.key]}
                       </TableCell>
                     ))}
-                    {showActions && (
+                    {showActions && hasAnyAction && (
                       <TableCell align="center">
-                        <Box display="flex" gap={1} justifyContent="center">
-                          {onEdit && (
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() => handleEdit(item)}
-                              title="Xem chi tiết"
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          )}
-                          {onDelete && (
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleDelete(item)}
-                              title="Xóa"
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          )}
+                        <Box display="flex" justifyContent="center">
+                          <ActionMenu item={item} />
                         </Box>
                       </TableCell>
+                    )}
+                    {showActions && !hasAnyAction && (
+                      <TableCell align="center" />
                     )}
                   </TableRow>
                   {expandable && isExpanded && renderExpandedContent && (

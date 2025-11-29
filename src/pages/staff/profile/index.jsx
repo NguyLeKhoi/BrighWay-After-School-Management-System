@@ -271,7 +271,7 @@ const StaffProfile = () => {
                   mb: 1
                 }}
               >
-                {userData?.fullName || 'Staff'}
+                {userData?.fullName || 'Nhân viên'}
               </Typography>
               <Typography 
                 variant="body1" 
@@ -281,7 +281,7 @@ const StaffProfile = () => {
                   mb: 2
                 }}
               >
-                Tài khoản Staff
+                Tài khoản Nhân viên
               </Typography>
             </Box>
           </Box>

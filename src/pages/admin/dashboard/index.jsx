@@ -20,7 +20,7 @@ import styles from './Dashboard.module.css';
 const AdminDashboard = () => {
   const stats = [
     {
-      title: 'Tổng User',
+      title: 'Tổng Người Dùng',
       value: '1,234',
       icon: PeopleIcon,
       color: 'primary'
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
         transition={{ duration: 0.4 }}
       >
         <h1 className={styles.title}>
-          Dashboard Admin
+          Tổng quan Quản Trị
         </h1>
         <p className={styles.subtitle}>
           Tổng quan hệ thống quản lý
@@ -94,7 +94,7 @@ const AdminDashboard = () => {
       <div className={styles.chartsSection}>
         <AnimatedCard delay={0.4} className={styles.chartCard}>
           <h3 className={styles.chartTitle}>
-            Thống kê User theo tháng
+            Thống kê Người Dùng theo tháng
           </h3>
           <div className={styles.chartContent}>
             Biểu đồ sẽ được thêm vào đây
@@ -103,10 +103,10 @@ const AdminDashboard = () => {
         
         <AnimatedCard delay={0.5} className={styles.chartCard}>
           <h3 className={styles.chartTitle}>
-            User mới nhất
+            Người Dùng mới nhất
           </h3>
           <div className={styles.chartContent}>
-            Danh sách user mới sẽ được thêm vào đây
+            Danh sách người dùng mới sẽ được thêm vào đây
           </div>
         </AnimatedCard>
       </div>

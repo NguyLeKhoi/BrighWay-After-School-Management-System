@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import { School as SchoolIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Box, Typography } from '@mui/material';
+import { School as SchoolIcon } from '@mui/icons-material';
 
-export const createSchoolColumns = ({ onEdit, onDelete }) => [
+export const createSchoolColumns = () => [
   {
     key: 'name',
     header: 'Tên Trường',
@@ -42,25 +42,6 @@ export const createSchoolColumns = ({ onEdit, onDelete }) => [
       </Typography>
     )
   },
-  {
-    key: 'actions',
-    header: 'Thao tác',
-    align: 'center',
-    render: (_, item) => (
-      <Box display="flex" gap={0.5} justifyContent="center">
-        <Tooltip title="Sửa">
-          <IconButton size="small" color="primary" onClick={() => onEdit(item)}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Xóa (Soft Delete)">
-          <IconButton size="small" color="error" onClick={() => onDelete(item)}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    )
-  }
 ];
 
 

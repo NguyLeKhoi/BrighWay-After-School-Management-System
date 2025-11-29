@@ -104,7 +104,7 @@ const ManagerBranchSlotManagement = () => {
   } = useBaseCRUD({
     loadFunction: async (params) => {
       return branchSlotService.getMyBranchSlotsPaged({
-        page: params.page,
+        pageIndex: params.pageIndex,
         pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || '',
         status: params.status === '' ? null : params.status,

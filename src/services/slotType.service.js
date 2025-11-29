@@ -26,13 +26,13 @@ const slotTypeService = {
   getSlotTypesPaged: async (params = {}) => {
     try {
       const {
-        page = 1,
+        pageIndex = 1,
         pageSize = 10,
         searchTerm = ''
       } = params;
 
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
 

@@ -41,18 +41,27 @@ import AdminDashboard from '../pages/admin/dashboard';
 import BranchManagement from '../pages/admin/branchManagement';
 import CreateBranch from '../pages/admin/branchManagement/CreateBranch';
 import UpdateBranch from '../pages/admin/branchManagement/UpdateBranch';
+import BranchDetail from '../pages/admin/branchManagement/BranchDetail';
 import FacilityManagement from '../pages/admin/facilityManagement';
+import FacilityDetail from '../pages/admin/facilityManagement/FacilityDetail';
 import RoomManagement from '../pages/admin/roomManagement';
+import RoomDetail from '../pages/admin/roomManagement/RoomDetail';
 import ManagerManagement from '../pages/admin/managerManagement';
+import ManagerDetail from '../pages/admin/managerManagement/ManagerDetail';
 import UserManagement from '../pages/admin/userManagement';
+import UserDetail from '../pages/admin/userManagement/UserDetail';
 import BenefitManagement from '../pages/admin/benefitManagement';
+import BenefitDetail from '../pages/admin/benefitManagement/BenefitDetail';
 import StudentLevelManagement from '../pages/admin/studentLevelManagement';
+import StudentLevelDetail from '../pages/admin/studentLevelManagement/StudentLevelDetail';
 import PackageManagement from '../pages/admin/packageManagement';
+import PackageDetail from '../pages/admin/packageManagement/PackageDetail';
 import AdminCreateTemplate from '../pages/admin/packageManagement/CreateTemplate';
 import AdminUpdateTemplate from '../pages/admin/packageManagement/UpdateTemplate';
 import AdminCreatePackage from '../pages/admin/packageManagement/CreatePackage';
 import AdminUpdatePackage from '../pages/admin/packageManagement/UpdatePackage';
 import SchoolManagement from '../pages/admin/schoolManagement';
+import SchoolDetail from '../pages/admin/schoolManagement/SchoolDetail';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
@@ -76,6 +85,7 @@ import StaffDashboard from '../pages/staff/dashboard';
 import StaffActivityTypes from '../pages/staff/activityTypes';
 import StaffActivities from '../pages/staff/activities';
 import StaffAssignments from '../pages/staff/assignments';
+import StaffAssignmentDetail from '../pages/staff/assignments/AssignmentDetail';
 import StaffProfile from '../pages/staff/profile';
 
 // Other Pages
@@ -264,32 +274,64 @@ export const routes = createBrowserRouter([
         element: <UpdateBranch />,
       },
       {
+        path: 'branches/detail/:id',
+        element: <BranchDetail />,
+      },
+      {
         path: 'facilities',
         element: <FacilityManagement />,
+      },
+      {
+        path: 'facilities/detail/:id',
+        element: <FacilityDetail />,
       },
       {
         path: 'rooms',
         element: <RoomManagement />,
       },
       {
+        path: 'rooms/detail/:id',
+        element: <RoomDetail />,
+      },
+      {
         path: 'staffAndManager',
         element: <ManagerManagement />,
+      },
+      {
+        path: 'staffAndManager/detail/:id',
+        element: <ManagerDetail />,
       },
       {
         path: 'users',
         element: <UserManagement />,
       },
       {
+        path: 'users/detail/:id',
+        element: <UserDetail />,
+      },
+      {
         path: 'benefits',
         element: <BenefitManagement />,
+      },
+      {
+        path: 'benefits/detail/:id',
+        element: <BenefitDetail />,
       },
       {
         path: 'student-levels',
         element: <StudentLevelManagement />,
       },
       {
+        path: 'student-levels/detail/:id',
+        element: <StudentLevelDetail />,
+      },
+      {
         path: 'packages',
         element: <PackageManagement />,
+      },
+      {
+        path: 'packages/detail/:id',
+        element: <PackageDetail />,
       },
       {
         path: 'packages/templates/create',
@@ -301,6 +343,10 @@ export const routes = createBrowserRouter([
       {
         path: 'schools',
         element: <SchoolManagement />,
+      },
+      {
+        path: 'schools/detail/:id',
+        element: <SchoolDetail />,
       },
     ],
   },
@@ -414,6 +460,10 @@ export const routes = createBrowserRouter([
       {
         path: 'assignments',
         element: <StaffAssignments />,
+      },
+      {
+        path: 'assignments/:slotId',
+        element: <StaffAssignmentDetail />,
       },
       {
         path: 'profile',

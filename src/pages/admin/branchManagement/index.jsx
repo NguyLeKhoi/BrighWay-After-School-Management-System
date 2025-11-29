@@ -48,12 +48,11 @@ const BranchManagement = () => {
     loadData
   } = useBaseCRUD({
     loadFunction: async (params) => {
-      const response = await branchService.getBranchesPaged({
-        page: params.page,
+      return await branchService.getBranchesPaged({
+        pageIndex: params.pageIndex,
         pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || ''
       });
-      return response;
     },
     createFunction: branchService.createBranch,
     updateFunction: branchService.updateBranch,
@@ -84,6 +83,10 @@ const BranchManagement = () => {
 
   const handleCreateWithData = () => {
     navigate('/admin/branches/create');
+  };
+
+  const handleViewDetail = (branch) => {
+    navigate(`/admin/branches/detail/${branch.id}`);
   };
 
   const handleEditWithData = (branch) => {
@@ -122,6 +125,7 @@ const BranchManagement = () => {
     onAssignBenefits: assignBenefits.handleOpen,
     onAssignSchools: assignSchools.handleOpen,
     onAssignStudentLevels: assignStudentLevels.handleOpen,
+    onViewBranch: handleViewDetail,
     onEditBranch: handleEditWithData,
     onDeleteBranch: handleDelete
   });

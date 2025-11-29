@@ -97,7 +97,7 @@ const packageService = {
   getPackagesPaged: async (params = {}) => {
     try {
       const { 
-        page = 1, 
+        pageIndex = 1,
         pageSize = 10, 
         searchTerm = '', 
         status = null,
@@ -105,7 +105,7 @@ const packageService = {
       } = params;
       
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
       
@@ -136,7 +136,7 @@ const packageService = {
   getMyBranchPackagesPaged: async (params = {}) => {
     try {
       const {
-        page = 1,
+        pageIndex = 1,
         pageSize = 10,
         searchTerm = '',
         status = null,
@@ -144,7 +144,7 @@ const packageService = {
       } = params;
 
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
 

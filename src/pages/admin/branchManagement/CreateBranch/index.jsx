@@ -10,6 +10,14 @@ import schoolService from '../../../../services/school.service';
 import studentLevelService from '../../../../services/studentLevel.service';
 import { toast } from 'react-toastify';
 
+// Branch Status Enum Values
+const BRANCH_STATUS_OPTIONS = [
+  { value: 'Active', label: 'Hoạt động' },
+  { value: 'Inactive', label: 'Không hoạt động' },
+  { value: 'UnderMaintenance', label: 'Đang bảo trì' },
+  { value: 'Closed', label: 'Đã đóng' }
+];
+
 const Step1BranchInfo = forwardRef(({ data, updateData }, ref) => {
   const [branchName, setBranchName] = useState(data.branchName || '');
   useImperativeHandle(ref, () => ({
@@ -41,6 +49,7 @@ const Step1AddressContact = forwardRef(({ data, updateData }, ref) => {
   const [phone, setPhone] = useState(data.phone || '');
   const [provinceId, setProvinceId] = useState('');
   const [districtId, setDistrictId] = useState('');
+  const [status, setStatus] = useState(data.status || 'Active');
 
   useEffect(() => { fetchProvinces(); }, [fetchProvinces]);
 
@@ -50,7 +59,7 @@ const Step1AddressContact = forwardRef(({ data, updateData }, ref) => {
       if (!districtId) { toast.error('Vui lòng chọn Quận/Huyện'); return false; }
       if (!address.trim()) { toast.error('Vui lòng nhập địa chỉ'); return false; }
       if (!phone.trim()) { toast.error('Vui lòng nhập số điện thoại'); return false; }
-      updateData({ address: address.trim(), phone: phone.trim(), districtId });
+      updateData({ address: address.trim(), phone: phone.trim(), districtId, status });
       return true;
     }
   }));
@@ -108,6 +117,19 @@ const Step1AddressContact = forwardRef(({ data, updateData }, ref) => {
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
       />
+      <FormControl fullWidth required>
+        <InputLabel>Trạng Thái</InputLabel>
+        <Select
+          label="Trạng Thái"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          MenuProps={{ disableScrollLock: true }}
+        >
+          {BRANCH_STATUS_OPTIONS.map(option => (
+            <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
     </Box>
   );
 });
@@ -360,7 +382,8 @@ const CreateBranch = () => {
         branchName: data.branchName,
         address: data.address,
         phone: data.phone,
-        districtId: data.districtId
+        districtId: data.districtId,
+        status: data.status || 'Active'
       });
       setFormData(prev => ({ ...prev, createdBranchId: created.id }));
       toast.success('Tạo chi nhánh thành công, tiếp tục gán lợi ích');

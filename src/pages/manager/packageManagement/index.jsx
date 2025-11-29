@@ -68,7 +68,15 @@ const ManagerPackageManagement = () => {
     updateFilter,
     loadData
   } = useBaseCRUD({
-    loadFunction: packageService.getMyBranchPackagesPaged,
+    loadFunction: async (params) => {
+      return packageService.getMyBranchPackagesPaged({
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
+        searchTerm: params.searchTerm || params.Keyword || '',
+        status: params.status === '' ? null : params.status === 'true',
+        branchId: params.branchId || ''
+      });
+    },
     createFunction: packageService.createMyBranchPackage,
     updateFunction: packageService.updateMyBranchPackage,
     deleteFunction: null,
