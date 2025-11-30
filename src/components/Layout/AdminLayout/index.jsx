@@ -110,6 +110,11 @@ const AdminLayout = () => {
       path: '/admin/benefits',
       label: 'Lợi Ích',
       icon: BenefitIcon
+    },
+    {
+      path: '/admin/services',
+      label: 'Dịch Vụ',
+      icon: ServiceIcon
         }
       ]
     }
