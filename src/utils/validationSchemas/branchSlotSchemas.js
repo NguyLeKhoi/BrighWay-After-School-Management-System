@@ -25,6 +25,6 @@ export const branchSlotSchema = yup.object({
   status: yup
     .string()
     .required('Vui lòng chọn trạng thái')
-    .oneOf(['Available', 'Full', 'Cancelled'], 'Trạng thái không hợp lệ')
+    .oneOf(['Available', 'Occupied', 'Cancelled', 'Maintenance'], 'Trạng thái không hợp lệ')
 });
 

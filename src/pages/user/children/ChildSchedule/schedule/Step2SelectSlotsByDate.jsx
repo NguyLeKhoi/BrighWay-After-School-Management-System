@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
-import ContentLoading from '../../../components/Common/ContentLoading';
-import branchSlotService from '../../../services/branchSlot.service';
-import { useApp } from '../../../contexts/AppContext';
+import ContentLoading from '../../../../../components/Common/ContentLoading';
+import branchSlotService from '../../../../../services/branchSlot.service';
+import { useApp } from '../../../../../contexts/AppContext';
 import styles from './Schedule.module.css';
 
 const WEEKDAY_LABELS = {
@@ -14,7 +14,7 @@ const WEEKDAY_LABELS = {
   6: 'Thứ bảy'
 };
 
-const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
+const Step2SelectSlotsByDate = forwardRef(({ data, updateData, stepIndex, totalSteps }, ref) => {
   const [slots, setSlots] = useState([]);
   const [selectedSlotId, setSelectedSlotId] = useState(data?.slotId || '');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,61 +27,19 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
         return false;
       }
       const selectedSlot = slots.find(s => s.id === selectedSlotId);
-      
-      // Auto-assign roomId and room info when submitting
-      let roomData = {};
-      
-      if (selectedSlot?.roomId) {
-        roomData = {
-          roomId: selectedSlot.roomId,
-          room: {
-            id: selectedSlot.roomId,
-            name: selectedSlot.roomName || 'Phòng tự động'
-          }
-        };
-      } else {
-        // Try to get room from API if not already loaded
-        try {
-          const roomsResponse = await branchSlotService.getRoomsByBranchSlot(selectedSlotId, {
-            pageIndex: 1,
-            pageSize: 1
-          });
-          const rooms = Array.isArray(roomsResponse)
-            ? roomsResponse
-            : Array.isArray(roomsResponse?.items)
-              ? roomsResponse.items
-              : [];
-          
-          if (rooms.length > 0) {
-            const firstRoom = rooms[0];
-            roomData = {
-              roomId: firstRoom.id,
-              room: {
-                id: firstRoom.id,
-                name: firstRoom.roomName || 'Phòng tự động',
-                capacity: firstRoom.capacity || 0
-              }
-            };
-          }
-        } catch (err) {
-          // Continue without room - will be assigned by backend
-        }
-      }
-      
       updateData({ 
         slotId: selectedSlotId,
-        slot: selectedSlot,
-        ...roomData
+        slot: selectedSlot
       });
       return true;
     }
   }));
 
   useEffect(() => {
-    if (data?.studentId) {
-      loadAvailableSlots(data.studentId);
+    if (data?.studentId && data?.selectedDate) {
+      loadAvailableSlots(data.studentId, data.selectedDate);
     }
-  }, [data?.studentId]);
+  }, [data?.studentId, data?.selectedDate]);
 
   useEffect(() => {
     if (data?.slotId) {
@@ -89,8 +47,8 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
     }
   }, [data?.slotId]);
 
-  const loadAvailableSlots = async (studentId) => {
-    if (!studentId) {
+  const loadAvailableSlots = async (studentId, selectedDate) => {
+    if (!studentId || !selectedDate) {
       return;
     }
     
@@ -98,9 +56,13 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
     setError(null);
 
     try {
+      // Convert date to proper format
+      const dateObj = selectedDate instanceof Date ? selectedDate : new Date(selectedDate);
+      
       const response = await branchSlotService.getAvailableSlotsForStudent(studentId, {
         pageIndex: 1,
-        pageSize: 20
+        pageSize: 100,
+        date: dateObj
       });
       
       const items = Array.isArray(response)
@@ -114,33 +76,25 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
         return;
       }
 
-      const mapped = items.map((slot) => {
-        // Auto-assign room from first staff member if available
-        // From Swagger, staff is an array, but may be empty
-        const firstStaff = Array.isArray(slot.staff) && slot.staff.length > 0 ? slot.staff[0] : null;
-        const roomId = firstStaff?.roomId || null;
-        const roomName = firstStaff?.roomName || null;
-
-        return {
-          id: slot.id,
-          branchName: slot.branch?.branchName || slot.branchName || '',
-          weekDay: slot.weekDate,
-          status: slot.status || 'Khả dụng',
-          timeframeName: slot.timeframe?.name || slot.timeframeName || '',
-          startTime: slot.timeframe?.startTime || slot.startTime,
-          endTime: slot.timeframe?.endTime || slot.endTime,
-          slotTypeName: slot.slotType?.name || slot.slotTypeName || '',
-          slotTypeDescription: slot.slotType?.description || slot.slotTypeDescription || '',
-          description: slot.description || '',
-          roomId: roomId,
-          roomName: roomName
-        };
-      });
+      const mapped = items.map((slot) => ({
+        id: slot.id,
+        branchName: slot.branch?.branchName || slot.branchName || '',
+        weekDay: slot.weekDate,
+        status: slot.status || 'Available',
+        timeframeName: slot.timeframe?.name || slot.timeframeName || '',
+        startTime: slot.timeframe?.startTime || slot.startTime,
+        endTime: slot.timeframe?.endTime || slot.endTime,
+        slotTypeName: slot.slotType?.name || slot.slotTypeName || '',
+        slotTypeDescription: slot.slotType?.description || slot.slotTypeDescription || '',
+        slotTypeId: slot.slotTypeId,
+        allowedPackages: slot.allowedPackages || [],
+        rooms: slot.rooms || [], // Lưu rooms từ response
+        staff: slot.staff || [], // Lưu staff từ response
+        description: slot.description || ''
+      }));
 
       setSlots(mapped);
     } catch (err) {
-      
-      // Extract error message from various possible locations
       let errorMessage = 'Không thể tải slot phù hợp';
       
       if (err?.response?.data) {
@@ -150,13 +104,9 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
           errorMessage = err.response.data.message;
         } else if (err.response.data?.error) {
           errorMessage = err.response.data.error;
-        } else if (err.response.data?.errors && Array.isArray(err.response.data.errors)) {
-          errorMessage = err.response.data.errors.join(', ');
         }
       } else if (err?.message) {
         errorMessage = err.message;
-      } else if (typeof err === 'string') {
-        errorMessage = err;
       }
       
       setError(errorMessage);
@@ -175,8 +125,22 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
     }
   };
 
-  const handleSlotSelect = async (slotId) => {
-    // If clicking the same slot that's already selected, deselect it
+  const formatDate = (date) => {
+    if (!date) return '—';
+    try {
+      const dateObj = date instanceof Date ? date : new Date(date);
+      return dateObj.toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return '—';
+    }
+  };
+
+  const handleSlotSelect = (slotId) => {
     if (selectedSlotId === slotId) {
       handleSlotDeselect();
       return;
@@ -184,52 +148,9 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
 
     setSelectedSlotId(slotId);
     const selectedSlot = slots.find(s => s.id === slotId);
-    
-    // Auto-assign roomId and room info when slot is selected
-    let roomData = {};
-    
-    if (selectedSlot?.roomId) {
-      // Room already available from slot data
-      roomData = {
-        roomId: selectedSlot.roomId,
-        room: {
-          id: selectedSlot.roomId,
-          name: selectedSlot.roomName || 'Phòng tự động'
-        }
-      };
-    } else {
-      // Try to get room from API
-      try {
-        const roomsResponse = await branchSlotService.getRoomsByBranchSlot(slotId, {
-          pageIndex: 1,
-          pageSize: 1
-        });
-        const rooms = Array.isArray(roomsResponse)
-          ? roomsResponse
-          : Array.isArray(roomsResponse?.items)
-            ? roomsResponse.items
-            : [];
-        
-        if (rooms.length > 0) {
-          const firstRoom = rooms[0];
-          roomData = {
-            roomId: firstRoom.id,
-            room: {
-              id: firstRoom.id,
-              name: firstRoom.roomName || 'Phòng tự động',
-              capacity: firstRoom.capacity || 0
-            }
-          };
-        }
-      } catch (err) {
-        // Continue without room - will be assigned by backend
-      }
-    }
-    
     updateData({ 
       slotId: slotId,
-      slot: selectedSlot,
-      ...roomData
+      slot: selectedSlot
     });
   };
 
@@ -237,28 +158,44 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
     setSelectedSlotId('');
     updateData({ 
       slotId: null,
-      slot: null,
-      roomId: null,
-      room: null
+      slot: null
     });
   };
 
   const handleCancelClick = (e, slotId) => {
-    e.stopPropagation(); // Prevent card click event
+    e.stopPropagation();
     if (selectedSlotId === slotId) {
       handleSlotDeselect();
     }
   };
 
+  if (!data?.selectedDate) {
+    return (
+      <div className={styles.stepContainer}>
+        <div className={styles.emptyState}>
+          <h3>Vui lòng chọn ngày trước</h3>
+          <p>Bạn cần chọn ngày ở bước trước để xem các slot khả dụng.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.stepContainer}>
+      <div className={styles.stepHeader}>
+        <h2 className={styles.stepTitle}>Bước {stepIndex + 1}/{totalSteps}: Chọn slot</h2>
+        <p className={styles.stepSubtitle}>
+          Chọn slot khả dụng cho ngày {formatDate(data.selectedDate)}
+        </p>
+      </div>
+
       {isLoading && <ContentLoading isLoading={isLoading} text="Đang tải slot phù hợp..." />}
       {!isLoading && error ? (
         <div className={styles.errorState}>
           <p>{error}</p>
           <button
             className={styles.retryButton}
-            onClick={() => loadAvailableSlots(data?.studentId)}
+            onClick={() => loadAvailableSlots(data?.studentId, data?.selectedDate)}
           >
             Thử lại
           </button>
@@ -294,10 +231,6 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
                 <div>
                   <p className={styles.infoLabel}>Chi nhánh</p>
                   <p className={styles.infoValue}>{slot.branchName || '—'}</p>
-                </div>
-                <div>
-                  <p className={styles.infoLabel}>Thứ</p>
-                  <p className={styles.infoValue}>{WEEKDAY_LABELS[slot.weekDay] ?? '—'}</p>
                 </div>
                 <div>
                   <p className={styles.infoLabel}>Loại slot</p>
@@ -339,14 +272,14 @@ const Step2SelectSlot = forwardRef(({ data, updateData }, ref) => {
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>⏱️</div>
           <h3>Chưa có slot phù hợp</h3>
-          <p>Chi nhánh chưa có slot trống cho trẻ em này.</p>
+          <p>Không có slot nào khả dụng cho ngày {formatDate(data.selectedDate)}.</p>
         </div>
       )}
     </div>
   );
 });
 
-Step2SelectSlot.displayName = 'Step2SelectSlot';
+Step2SelectSlotsByDate.displayName = 'Step2SelectSlotsByDate';
 
-export default Step2SelectSlot;
+export default Step2SelectSlotsByDate;
 

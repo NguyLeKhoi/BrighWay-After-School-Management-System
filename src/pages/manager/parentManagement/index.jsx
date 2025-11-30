@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -16,6 +16,7 @@ import styles from './parentManagement.module.css';
 
 const ParentManagement = () => {
   const navigate = useNavigate();
+
 
   const handleCreateWithOCR = () => {
     navigate('/manager/parents/create?mode=ocr');

@@ -6,8 +6,6 @@ export const createBranchSlotFormFields = ({
   weekDateOptions
 }) => [
   {
-    section: 'Thông tin cơ bản',
-    sectionDescription: 'Thông tin về ca giữ trẻ trong chi nhánh. Sau khi tạo, bạn có thể gán phòng và nhân viên.',
     name: 'timeframeId',
     label: 'Khung giờ',
     type: 'select',
@@ -43,8 +41,9 @@ export const createBranchSlotFormFields = ({
     required: true,
     options: [
       { value: 'Available', label: 'Có sẵn' },
-      { value: 'Full', label: 'Đã đầy' },
-      { value: 'Cancelled', label: 'Đã hủy' }
+      { value: 'Occupied', label: 'Đã đầy' },
+      { value: 'Cancelled', label: 'Đã hủy' },
+      { value: 'Maintenance', label: 'Bảo trì' }
     ],
     gridSize: 6,
     disabled: actionLoading || dependenciesLoading

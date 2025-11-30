@@ -377,5 +377,3 @@ const CreatePackage = () => {
 };
 
 export default CreatePackage;
-
-

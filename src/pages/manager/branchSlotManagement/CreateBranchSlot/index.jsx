@@ -10,7 +10,6 @@ import useBranchSlotDependencies from '../../../../hooks/useBranchSlotDependenci
 import { useAuth } from '../../../../contexts/AuthContext';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2AssignRooms from './Step2AssignRooms';
-import Step3AssignStaff from './Step3AssignStaff';
 
 const CreateBranchSlot = () => {
   const navigate = useNavigate();
@@ -21,7 +20,6 @@ const CreateBranchSlot = () => {
     timeframeOptions,
     slotTypeOptions,
     roomOptions,
-    staffOptions,
     loading: dependenciesLoading,
     fetchDependencies
   } = useBranchSlotDependencies();
@@ -41,15 +39,13 @@ const CreateBranchSlot = () => {
       weekDate: parsedWeekDate,
       status: 'Available',
       roomIds: [],
-      userId: '',
-      roomId: '',
-      name: '',
       branchSlotId: '',
       branchId: ''
     };
   });
 
   const formDataRef = React.useRef(formData);
+
 
   useEffect(() => {
     formDataRef.current = formData;
@@ -191,13 +187,19 @@ const CreateBranchSlot = () => {
       setActionLoading(true);
       try {
         const branchSlotId = await ensureBranchSlotExists();
+        
+        if (!branchSlotId) {
+          throw new Error('Không tìm thấy ID ca giữ trẻ');
+        }
+
+        console.log('Assigning rooms:', { branchSlotId, roomIds: mergedRooms });
 
         await branchSlotService.assignRooms({
           branchSlotId,
           roomIds: mergedRooms
         });
 
-        toast.success('Gán phòng thành công! Tiếp tục gán nhân viên.', {
+        toast.success('Gán phòng thành công!', {
           position: 'top-right',
           autoClose: 2500
         });
@@ -216,56 +218,8 @@ const CreateBranchSlot = () => {
     [ensureBranchSlotExists, updateFormData]
   );
 
-  const handleStep3Complete = useCallback(
-    async (data) => {
-      const mergedData = {
-        userId: data.userId || '',
-        roomId: data.roomId || '',
-        name: data.name || ''
-      };
-      updateFormData(mergedData);
-
-      const hasStaff = mergedData.userId;
-      if (!hasStaff) {
-        toast.info('Bạn có thể gán nhân viên sau.', {
-          position: 'top-right',
-          autoClose: 2500
-        });
-        return true;
-      }
-
-      setActionLoading(true);
-      try {
-        const branchSlotId = await ensureBranchSlotExists();
-
-        await branchSlotService.assignStaff({
-          branchSlotId,
-          userId: mergedData.userId,
-          roomId: mergedData.roomId || null,
-          name: mergedData.name || null
-        });
-
-        toast.success('Gán nhân viên thành công!', {
-          position: 'top-right',
-          autoClose: 2500
-        });
-        return true;
-      } catch (error) {
-        const errorMessage = error?.response?.data?.message || error.message || 'Không thể gán nhân viên';
-        toast.error(errorMessage, {
-          position: 'top-right',
-          autoClose: 4000
-        });
-        return false;
-      } finally {
-        setActionLoading(false);
-      }
-    },
-    [ensureBranchSlotExists, updateFormData]
-  );
-
   const handleComplete = useCallback(() => {
-    toast.success('Hoàn tất tạo ca giữ trẻ!', {
+    toast.success('Hoàn tất tạo ca giữ trẻ! Bạn có thể gán nhân viên sau.', {
       position: 'top-right',
       autoClose: 2500
     });
@@ -287,14 +241,9 @@ const CreateBranchSlot = () => {
         label: 'Gán phòng',
         component: Step2AssignRooms,
         validation: handleStep2Complete
-      },
-      {
-        label: 'Gán nhân viên',
-        component: Step3AssignStaff,
-        validation: handleStep3Complete
       }
     ],
-    [handleStep1Complete, handleStep2Complete, handleStep3Complete]
+    [handleStep1Complete, handleStep2Complete]
   );
 
   return (
@@ -317,7 +266,6 @@ const CreateBranchSlot = () => {
           timeframeOptions,
           slotTypeOptions,
           roomOptions,
-          staffOptions,
           dependenciesLoading,
           actionLoading
         }}

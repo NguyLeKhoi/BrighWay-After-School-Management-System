@@ -24,6 +24,7 @@ const ManagerManagement = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isInitialMount = useRef(true);
+
   
   // Branch selection state
   const [userRoleType, setUserRoleType] = useState(null); // 'staff' or 'manager'

@@ -35,6 +35,7 @@ const ManagerPackageManagement = () => {
   const location = useLocation();
   const isInitialMount = useRef(true);
   const { showGlobalError } = useApp();
+
   const {
     templates,
     loading: dependenciesLoading,

@@ -17,6 +17,7 @@ const Login = () => {
   const { login } = useAuth();
   const { addNotification, showGlobalError, showSessionEndedDialog } = useApp();
   const { isLoading, showLoading, hideLoading } = useLoading(300);
+
   
   // Check for session ended message when login page loads
   useEffect(() => {

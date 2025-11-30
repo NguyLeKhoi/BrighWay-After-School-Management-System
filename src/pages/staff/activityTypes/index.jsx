@@ -8,7 +8,7 @@ import ManagementFormDialog from '../../../components/Management/FormDialog';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import activityTypeService from '../../../services/activityType.service';
 import { useLoading } from '../../../hooks/useLoading';
-import Loading from '../../../components/Common/Loading';
+import ContentLoading from '../../../components/Common/ContentLoading';
 import { createStaffActivityTypeColumns } from '../../../definitions/staff/activityTypes/tableColumns';
 import { createActivityTypeFormFields } from '../../../definitions/staff/activityTypes/formFields';
 import { activityTypeSchema } from '../../../utils/validationSchemas/activityTypeSchemas';
@@ -31,6 +31,7 @@ const StaffActivityTypes = () => {
 
   const columns = useMemo(() => createStaffActivityTypeColumns(), []);
   const formFields = useMemo(() => createActivityTypeFormFields(actionLoading), [actionLoading]);
+
 
   const loadData = async () => {
     setError(null);
@@ -140,7 +141,10 @@ const StaffActivityTypes = () => {
 
   return (
     <>
-      {isLoading && <Loading />}
+      <ContentLoading 
+        isLoading={isLoading} 
+        text="Đang tải danh sách loại hoạt động..." 
+      />
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <ManagementPageHeader
           title="Danh sách Loại Hoạt Động"

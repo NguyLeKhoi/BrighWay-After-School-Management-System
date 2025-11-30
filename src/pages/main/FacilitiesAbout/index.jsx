@@ -12,11 +12,6 @@ const FacilitiesAbout = () => {
   const [loading, setLoading] = useState(true);
   const { showGlobalError } = useApp();
 
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
   useEffect(() => {
     const fetchFacilities = async () => {
       try {

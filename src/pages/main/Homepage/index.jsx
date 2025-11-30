@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import HeroSection from '@components/Common/HeroSection';
 import ContentSection from '@components/Common/ContentSection';

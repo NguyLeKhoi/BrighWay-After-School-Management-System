@@ -32,6 +32,7 @@ const PaymentSuccess = () => {
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [hasChecked, setHasChecked] = useState(false);
 
+
   useEffect(() => {
     // Check if user is authenticated
     if (!user) {

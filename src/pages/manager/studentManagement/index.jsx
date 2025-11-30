@@ -70,6 +70,8 @@ const StudentManagement = () => {
   const location = useLocation();
   const branchIdRef = useRef(user?.branchId || '');
   const isInitialMount = useRef(true);
+
+
   const [activeTab, setActiveTab] = useState(0); // 0 = Approved, 1 = Unverified, 2 = Approved with Unverified Documents
   const [parentOptions, setParentOptions] = useState([]);
   const [schoolOptions, setSchoolOptions] = useState([]);

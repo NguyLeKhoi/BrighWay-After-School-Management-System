@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Threads from '../../Animation/Background/Threads';
 import PageTransition from '../../Common/PageTransition';
+import ScrollToTop from '../../Common/ScrollToTop';
 import styles from './AuthLayout.module.css';
 
 const AuthLayout = () => {
@@ -16,6 +17,7 @@ const AuthLayout = () => {
         />
       </div>
       <div className={styles.authContainer}>
+        <ScrollToTop />
         <PageTransition>
           <Outlet />
         </PageTransition>
