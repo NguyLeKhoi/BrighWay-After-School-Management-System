@@ -314,8 +314,8 @@ const StaffAssignments = () => {
     }
   };
 
-  // Handler cho card click
-  const handleCardClick = (slot) => {
+  // Handler cho xem chi tiết
+  const handleViewDetail = (slot) => {
     if (slot && slot.id) {
       navigate(`/staff/assignments/${slot.id}`);
     }
@@ -625,7 +625,7 @@ const StaffAssignments = () => {
                 loading={false}
                 emptyMessage="Chưa có ca giữ trẻ đang diễn ra"
                 showActions={rawSlots.current.length > 0}
-                onEdit={handleCardClick}
+                onView={handleViewDetail}
                 onDelete={null}
                 page={pagination.current.page}
                 rowsPerPage={pagination.current.rowsPerPage}
@@ -677,7 +677,7 @@ const StaffAssignments = () => {
                 loading={false}
                 emptyMessage="Chưa có ca giữ trẻ sắp tới"
                 showActions={rawSlots.upcoming.length > 0}
-                onEdit={handleCardClick}
+                onView={handleViewDetail}
                 onDelete={null}
                 page={pagination.upcoming.page}
                 rowsPerPage={pagination.upcoming.rowsPerPage}
@@ -728,7 +728,7 @@ const StaffAssignments = () => {
                 loading={false}
                 emptyMessage="Chưa có ca giữ trẻ đã qua"
                 showActions={rawSlots.past.length > 0}
-                onEdit={handleCardClick}
+                onView={handleViewDetail}
                 onDelete={null}
                 page={pagination.past.page}
                 rowsPerPage={pagination.past.rowsPerPage}

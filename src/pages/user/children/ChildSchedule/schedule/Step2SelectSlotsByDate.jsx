@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
-import ContentLoading from '../../../components/Common/ContentLoading';
-import branchSlotService from '../../../services/branchSlot.service';
-import { useApp } from '../../../contexts/AppContext';
+import ContentLoading from '../../../../../components/Common/ContentLoading';
+import branchSlotService from '../../../../../services/branchSlot.service';
+import { useApp } from '../../../../../contexts/AppContext';
 import styles from './Schedule.module.css';
 
 const WEEKDAY_LABELS = {

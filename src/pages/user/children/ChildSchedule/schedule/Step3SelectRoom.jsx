@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
-import ContentLoading from '../../../components/Common/ContentLoading';
-import packageService from '../../../services/package.service';
-import { useApp } from '../../../contexts/AppContext';
+import ContentLoading from '../../../../../components/Common/ContentLoading';
+import packageService from '../../../../../services/package.service';
+import { useApp } from '../../../../../contexts/AppContext';
 import { Alert } from '@mui/material';
 import styles from './Schedule.module.css';
 
@@ -62,6 +62,7 @@ const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps },
           name: room.roomName || room.name || 'N/A',
           facilityName: room.facilityName || 'N/A',
           capacity: room.capacity || 0,
+          availableCapacity: room.availableCapacity ?? room.capacity ?? 0, // Sức chứa còn lại
           staff: roomStaff.map(staff => ({
             id: staff.staffId || staff.id,
             name: staff.staffName || staff.name || 'N/A',
@@ -70,7 +71,10 @@ const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps },
         };
       });
 
-      setRooms(mapped);
+      // Chỉ hiển thị phòng có staff
+      const roomsWithStaff = mapped.filter(room => room.staff && room.staff.length > 0);
+
+      setRooms(roomsWithStaff);
       setIsLoading(false);
       setError(null);
     } else if (data?.slotId) {
@@ -243,8 +247,8 @@ const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps },
                   <p className={styles.infoValue}>{room.facilityName || '—'}</p>
                 </div>
                 <div>
-                  <p className={styles.infoLabel}>Sức chứa</p>
-                  <p className={styles.infoValue}>{room.capacity || '—'} chỗ</p>
+                  <p className={styles.infoLabel}>Sức chứa còn lại</p>
+                  <p className={styles.infoValue}>{room.availableCapacity ?? room.capacity ?? 0} chỗ</p>
                 </div>
               </div>
 
@@ -274,8 +278,8 @@ const Step3SelectRoom = forwardRef(({ data, updateData, stepIndex, totalSteps },
       ) : (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>🚪</div>
-          <h3>Chưa có phòng nào</h3>
-          <p>Ca giữ trẻ này chưa có phòng được gán. Hệ thống sẽ tự động gán phòng khi đăng ký.</p>
+          <h3>Chưa có phòng nào có nhân viên</h3>
+          <p>Ca giữ trẻ này chưa có phòng nào được gán nhân viên. Vui lòng chọn slot khác hoặc liên hệ quản lý.</p>
           <button
             className={styles.retryButton}
             onClick={() => setSelectedRoomId('')}

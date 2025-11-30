@@ -3,16 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { CalendarToday as ScheduleIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import StepperForm from '../../../components/Common/StepperForm';
-import Step1SelectStudent from './Step1SelectStudent';
+import StepperForm from '../../../../../components/Common/StepperForm';
 import Step1SelectDate from './Step1SelectDate';
 import Step2SelectSlotsByDate from './Step2SelectSlotsByDate';
 import Step3SelectRoom from './Step3SelectRoom';
 import Step5Confirm from './Step5Confirm';
-import studentSlotService from '../../../services/studentSlot.service';
-import studentService from '../../../services/student.service';
-import packageService from '../../../services/package.service';
-import { useApp } from '../../../contexts/AppContext';
+import studentSlotService from '../../../../../services/studentSlot.service';
+import studentService from '../../../../../services/student.service';
+import packageService from '../../../../../services/package.service';
+import { useApp } from '../../../../../contexts/AppContext';
 
 const WEEKDAY_LABELS = {
   0: 'Chủ nhật',
@@ -259,20 +258,6 @@ const MySchedule = () => {
   // New flow steps
   const allSteps = [
     {
-      label: 'Chọn trẻ em',
-      component: Step1SelectStudent,
-      validation: async (data) => {
-        if (!data.studentId) {
-          addNotification({
-            message: 'Vui lòng chọn trẻ em',
-            severity: 'warning'
-          });
-          return false;
-        }
-        return true;
-      }
-    },
-    {
       label: 'Chọn ngày',
       component: Step1SelectDate,
       validation: async (data) => {
@@ -322,8 +307,8 @@ const MySchedule = () => {
     }
   ];
 
-  // Skip step 1 if childId is provided (student already selected)
-  const steps = childId ? allSteps.slice(1) : allSteps;
+  // Use steps directly (no need to skip since we removed student selection step)
+  const steps = allSteps;
 
   // Show loading while loading initial data
   if (childId && isLoadingInitialData) {

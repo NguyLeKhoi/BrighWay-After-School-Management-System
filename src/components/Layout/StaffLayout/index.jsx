@@ -7,7 +7,6 @@ import PageTransition from '../../Common/PageTransition';
 import {
   Dashboard as DashboardIcon,
   Category as ActivityTypeIcon,
-  Event as ActivityIcon,
   Assignment as AssignmentIcon,
   Person as ProfileIcon,
   Lock as LockIcon
@@ -33,11 +32,6 @@ const StaffLayout = () => {
       path: '/staff/activity-types',
       label: 'Loại Hoạt Động',
       icon: ActivityTypeIcon
-    },
-    {
-      path: '/staff/activities',
-      label: 'Hoạt Động',
-      icon: ActivityIcon
     },
     {
       path: '/staff/assignments',
