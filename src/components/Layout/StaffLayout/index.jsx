@@ -49,7 +49,7 @@ const StaffLayout = () => {
       <Box sx={{ display: 'flex' }}>
         {/* Sidebar */}
         <GenericDrawer
-          title="BRIGHWAY"
+          title="BRIGHTWAY"
           subtitle="Cổng Nhân Viên"
           menuItems={menuItems}
           onLogout={handleLogout}

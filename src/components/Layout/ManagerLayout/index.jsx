@@ -88,7 +88,7 @@ const ManagerLayout = () => {
       <Box sx={{ display: 'flex' }}>
         {/* Generic Drawer */}
         <GenericDrawer
-          title="BRIGHWAY"
+          title="BRIGHTWAY"
           subtitle="Cổng Quản Lý"
           menuItems={menuItems}
           onLogout={handleLogout}

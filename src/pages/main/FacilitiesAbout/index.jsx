@@ -75,7 +75,7 @@ const FacilitiesAbout = () => {
 
   const missionData = {
     heading: 'Sứ Mệnh Của Chúng Tôi',
-    description: 'BRIGHWAY cam kết mang đến môi trường chăm sóc tốt nhất cho trẻ em sau giờ học, với đội ngũ nhân viên chăm sóc chuyên nghiệp, cơ sở vật chất hiện đại và các hoạt động ngoài giờ đa dạng, phong phú. Chúng tôi tin rằng mỗi trẻ em đều có tiềm năng phát triển và chúng tôi sẽ đồng hành cùng các em trong quá trình phát triển toàn diện.',
+    description: 'BRIGHTWAY cam kết mang đến môi trường chăm sóc tốt nhất cho trẻ em sau giờ học, với đội ngũ nhân viên chăm sóc chuyên nghiệp, cơ sở vật chất hiện đại và các hoạt động ngoài giờ đa dạng, phong phú. Chúng tôi tin rằng mỗi trẻ em đều có tiềm năng phát triển và chúng tôi sẽ đồng hành cùng các em trong quá trình phát triển toàn diện.',
     hasImage: false
   };
 

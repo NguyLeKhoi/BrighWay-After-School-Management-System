@@ -30,7 +30,7 @@ const drawerWidth = 250;
 const collapsedDrawerWidth = 64;
 
 const GenericDrawer = ({ 
-  title = "BRIGHWAY",
+  title = "BRIGHTWAY",
   subtitle = "Portal",
   menuItems = [],
   onLogout = () => {},

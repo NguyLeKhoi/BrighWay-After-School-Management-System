@@ -49,7 +49,7 @@ const Footer = () => {
                   color: 'var(--bg-primary)'
                 }}
               >
-                BRIGHWAY
+                BRIGHTWAY
               </Typography>
               <Typography
                 variant="body2"
@@ -336,7 +336,7 @@ const Footer = () => {
                 fontFamily: 'var(--font-family)'
               }}
             >
-              &copy; 2024 BRIGHWAY. Tất cả quyền được bảo lưu.
+              &copy; 2024 BRIGHTWAY. Tất cả quyền được bảo lưu.
             </Typography>
           </Box>
         </Box>

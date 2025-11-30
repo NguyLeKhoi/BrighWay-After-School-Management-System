@@ -111,7 +111,7 @@ const Login = () => {
                 mb: 1,
                 fontFamily: 'var(--font-family-heading)'
               }}>
-                BRIGHWAY
+                BRIGHTWAY
               </Typography>
               <Typography variant="h6" component="h2" sx={{ 
                 color: 'var(--text-secondary)',
