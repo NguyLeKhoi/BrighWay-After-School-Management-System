@@ -102,6 +102,13 @@ const Step3AssignStaff = forwardRef(({ data, updateData, stepIndex, totalSteps, 
           onChange={handleUserIdChange}
           label="Nhân viên"
           displayEmpty
+          renderValue={(selected) => {
+            if (!selected || selected === '') {
+              return <span style={{ color: '#999' }}>Chọn nhân viên</span>;
+            }
+            const option = staffSelectOptions.find(opt => opt.value === selected);
+            return option ? option.label : selected;
+          }}
         >
           {staffSelectOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>
@@ -123,6 +130,13 @@ const Step3AssignStaff = forwardRef(({ data, updateData, stepIndex, totalSteps, 
           onChange={handleRoomIdChange}
           label="Phòng"
           displayEmpty
+          renderValue={(selected) => {
+            if (!selected || selected === '') {
+              return <span style={{ color: '#999' }}>Không chọn phòng (tùy chọn)</span>;
+            }
+            const option = roomSelectOptions.find(opt => opt.value === selected);
+            return option ? option.label : selected;
+          }}
         >
           {roomSelectOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>

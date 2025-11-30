@@ -65,6 +65,7 @@ const MainWallet = () => {
   const { showGlobalError, addNotification } = useApp();
   const { isLoading: isPageLoading, loadingText, showLoading, hideLoading } = useContentLoading();
 
+
   const loadWalletData = async ({ showSpinner = false } = {}) => {
     setWalletError(null);
     if (showSpinner) {

@@ -6,7 +6,6 @@ import {
   Event as EventIcon,
   Assignment as AssignmentIcon,
   People as PeopleIcon,
-  Person as PersonIcon,
   Today as TodayIcon,
   VisibilityOff as VisibilityOffIcon,
   TrendingUp as TrendingUpIcon,
@@ -15,7 +14,6 @@ import {
   CalendarToday,
   AccessTime,
   MeetingRoom,
-  Business,
   EventAvailable as ScheduleIcon
 } from '@mui/icons-material';
 import activityService from '../../../services/activity.service';
@@ -46,6 +44,7 @@ const StaffDashboard = () => {
   });
 
   const [upcomingAssignments, setUpcomingAssignments] = useState([]);
+
 
   useEffect(() => {
     loadDashboardStats();
@@ -384,8 +383,6 @@ const StaffDashboard = () => {
                 const dateValue = slot.branchSlot?.date || slot.date;
                 const timeframe = slot.timeframe || slot.timeFrame;
                 const roomName = slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định';
-                const branchName = slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định';
-                const studentName = slot.student?.name || slot.studentName || 'Chưa xác định';
                 const startTime = timeframe?.startTime || '';
                 const endTime = timeframe?.endTime || '';
                 
@@ -405,41 +402,29 @@ const StaffDashboard = () => {
                         transform: 'translateY(-2px)'
                       }
                     }}
-                    onClick={() => navigate('/staff/assignments')}
+                    onClick={() => navigate(`/staff/assignments/${slot.id}`)}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '180px' }}>
-                        <PersonIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-                        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.125rem' }}>
-                          {studentName}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: '1 1 200px' }}>
                         <CalendarToday sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.125rem' }}>
                           {dateValue ? formatDateOnlyUTC7(dateValue) : 'Chưa xác định'}
                         </Typography>
                       </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: '1 1 150px' }}>
+                        <MeetingRoom sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+                        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.125rem' }}>
+                          {roomName}
+                        </Typography>
+                      </Box>
                       {startTime && endTime && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: '1 1 150px' }}>
                           <AccessTime sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
                           <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
                             {startTime.substring(0, 5)} - {endTime.substring(0, 5)}
                           </Typography>
                         </Box>
                       )}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <MeetingRoom sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
-                          {roomName}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Business sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
-                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9375rem' }}>
-                          {branchName}
-                        </Typography>
-                      </Box>
                     </Box>
                   </Paper>
                 );

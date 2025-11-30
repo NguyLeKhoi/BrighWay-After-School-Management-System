@@ -406,7 +406,7 @@ const Form = forwardRef(({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder={field.placeholder || 'Chọn lợi ích'}
+                    placeholder={field.placeholder || 'Chọn...'}
                     size="small"
                   />
                 )}

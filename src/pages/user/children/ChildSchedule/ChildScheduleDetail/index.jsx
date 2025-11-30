@@ -53,6 +53,7 @@ const ChildScheduleDetail = () => {
   const [slot, setSlot] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   
   // Services state
   const [services, setServices] = useState([]);

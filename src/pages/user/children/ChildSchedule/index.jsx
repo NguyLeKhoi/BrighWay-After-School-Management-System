@@ -8,6 +8,7 @@ import { Box, CircularProgress, Alert, Typography, Button, Paper, Chip, ToggleBu
 import { ArrowBack, Add, ViewList, CalendarMonth, CalendarToday, AccessTime, MeetingRoom, Business, Person, CheckCircle } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import DataTable from '../../../../components/Common/DataTable';
+import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import studentService from '../../../../services/student.service';
 import studentSlotService from '../../../../services/studentSlot.service';
 import { useApp } from '../../../../contexts/AppContext';
@@ -20,6 +21,7 @@ const ChildSchedule = () => {
   const location = useLocation();
   const isInitialMount = useRef(true);
   const { showGlobalError, addNotification } = useApp();
+
 
   // Redirect if no childId
   useEffect(() => {
@@ -38,6 +40,7 @@ const ChildSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'schedule'
+  const [cancelDialog, setCancelDialog] = useState({ open: false, slot: null });
   
   // Pagination states for each section
   const [pagination, setPagination] = useState({
@@ -46,10 +49,38 @@ const ChildSchedule = () => {
     past: { page: 0, rowsPerPage: 10 }
   });
 
-  // Màu sắc cho các trạng thái khác nhau - sử dụng màu teal cho tất cả
+  // Màu sắc cho các trạng thái khác nhau
   const getStatusColor = (status) => {
-    // Tất cả events đều dùng màu teal
-    return 'var(--color-primary)';
+    if (!status) return 'var(--color-primary)';
+    
+    // Normalize status: convert to string and handle both enum names and numbers
+    const normalizedStatus = String(status).trim();
+    
+    // Handle numeric values from enum (0-4)
+    const statusMap = {
+      '0': 'Booked',
+      '1': 'Completed',
+      '2': 'Cancelled',
+      '3': 'NoShow',
+      '4': 'Rescheduled'
+    };
+    
+    const finalStatus = statusMap[normalizedStatus] || normalizedStatus;
+    
+    switch (finalStatus) {
+      case 'Booked':
+        return '#2196F3'; // Blue - Đã đăng ký
+      case 'Completed':
+        return '#4CAF50'; // Green - Đã hoàn thành
+      case 'Cancelled':
+        return '#F44336'; // Red - Đã hủy
+      case 'NoShow':
+        return '#FF9800'; // Orange - Vắng mặt
+      case 'Rescheduled':
+        return '#9C27B0'; // Purple - Đã dời lịch
+      default:
+        return 'var(--color-primary)'; // Teal - Mặc định
+    }
   };
 
   // Xác định loại lịch: past, current, upcoming
@@ -146,7 +177,7 @@ const ChildSchedule = () => {
     const endDateTime = `${dateStr}T${formattedEndTime}`;
 
     const status = slot.status || 'Booked';
-    const backgroundColor = getStatusColor(status);
+    const statusColor = getStatusColor(status);
 
     // Lấy room name từ slot.room hoặc slot.branchSlot
     const roomName = slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định';
@@ -173,13 +204,16 @@ const ChildSchedule = () => {
     const timeType = getSlotTimeType(slot);
     const timeTypeColor = getTimeTypeColor(timeType);
 
+    // Ưu tiên dùng màu theo trạng thái từ backend enum, fallback về timeTypeColor
+    const finalBackgroundColor = statusColor || timeTypeColor;
+
     return {
       id: slot.id,
       title: title, // Title cho fallback, sẽ custom trong eventContent
       start: startDateTime,
       end: endDateTime,
-      backgroundColor: timeTypeColor,
-      borderColor: timeTypeColor,
+      backgroundColor: finalBackgroundColor,
+      borderColor: finalBackgroundColor,
       textColor: 'white', // Chữ màu trắng
       display: 'block', // Hiển thị full trong slot
       classNames: ['custom-event', `event-${timeType}`], // Thêm class để có thể style thêm
@@ -400,10 +434,41 @@ const ChildSchedule = () => {
     navigate(`/user/management/schedule/${childId}/${slotId}`);
   };
 
-  // Handler cho card click
-  const handleCardClick = (slot) => {
+  // Handler cho xem chi tiết
+  const handleViewDetail = (slot) => {
     const slotId = slot.id;
     navigate(`/user/management/schedule/${childId}/${slotId}`);
+  };
+
+  // Handler cho hủy slot
+  const handleCancelClick = (slot) => {
+    setCancelDialog({ open: true, slot });
+  };
+
+  const handleConfirmCancel = async () => {
+    const { slot } = cancelDialog;
+    if (!slot || !slot.id || !childId) return;
+
+    try {
+      await studentSlotService.cancelSlot(slot.id, childId);
+      addNotification('success', 'Hủy lịch giữ trẻ thành công!');
+      setCancelDialog({ open: false, slot: null });
+      
+      // Reload data
+      await fetchSchedule();
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể hủy lịch giữ trẻ';
+      showGlobalError(errorMessage);
+      setCancelDialog({ open: false, slot: null });
+    }
+  };
+
+  // Kiểm tra slot có thể hủy không (chỉ hủy được slot có status Booked và chưa diễn ra)
+  const canCancelSlot = (slot) => {
+    const status = (slot.status || '').toString().trim();
+    const normalizedStatus = status === '0' || status === 'Booked' ? 'Booked' : status;
+    const timeType = getSlotTimeType(slot);
+    return normalizedStatus === 'Booked' && (timeType === 'upcoming' || timeType === 'current');
   };
 
   // Handler cho view mode change
@@ -438,12 +503,29 @@ const ChildSchedule = () => {
 
   // Define columns for DataTable
   const tableColumns = useMemo(() => {
+    // Helper function to normalize status (handle both enum names and numbers)
+    const normalizeStatus = (status) => {
+      if (!status) return 'Booked';
+      const normalized = String(status).trim();
+      
+      // Handle numeric values from enum (0-4)
+      const statusMap = {
+        '0': 'Booked',
+        '1': 'Completed',
+        '2': 'Cancelled',
+        '3': 'NoShow',
+        '4': 'Rescheduled'
+      };
+      
+      return statusMap[normalized] || normalized;
+    };
+
     const statusLabels = {
       'Booked': 'Đã đăng ký',
-      'Confirmed': 'Đã xác nhận',
-      'Cancelled': 'Đã hủy',
       'Completed': 'Đã hoàn thành',
-      'Pending': 'Chờ xử lý'
+      'Cancelled': 'Đã hủy',
+      'NoShow': 'Vắng mặt',
+      'Rescheduled': 'Đã dời lịch'
     };
 
     const formatTimeDisplay = (time) => {
@@ -555,9 +637,12 @@ const ChildSchedule = () => {
         ),
         render: (value, item) => {
           const status = item.status || 'Booked';
+          const normalizedStatus = normalizeStatus(status);
+          const statusLabel = statusLabels[normalizedStatus] || normalizedStatus;
+          
           return (
             <Chip
-              label={statusLabels[status] || status}
+              label={statusLabel}
               size="small"
               sx={{
                 backgroundColor: getStatusColor(status),
@@ -767,8 +852,8 @@ const ChildSchedule = () => {
                 loading={false}
                 emptyMessage="Chưa có lịch đang diễn ra"
                 showActions={rawSlots.current.length > 0}
-              onEdit={handleCardClick}
-              onDelete={null}
+              onView={handleViewDetail}
+              onDelete={(slot) => canCancelSlot(slot) ? handleCancelClick(slot) : null}
               page={pagination.current.page}
                 rowsPerPage={pagination.current.rowsPerPage}
                 totalCount={rawSlots.current.length}
@@ -819,8 +904,8 @@ const ChildSchedule = () => {
                 loading={false}
                 emptyMessage="Chưa có lịch sắp tới"
                 showActions={rawSlots.upcoming.length > 0}
-                onEdit={handleCardClick}
-                onDelete={null}
+                onView={handleViewDetail}
+                onDelete={(slot) => canCancelSlot(slot) ? handleCancelClick(slot) : null}
                 page={pagination.upcoming.page}
                 rowsPerPage={pagination.upcoming.rowsPerPage}
                 totalCount={rawSlots.upcoming.length}
@@ -870,7 +955,7 @@ const ChildSchedule = () => {
                 loading={false}
                 emptyMessage="Chưa có lịch đã qua"
                 showActions={rawSlots.past.length > 0}
-                onEdit={handleCardClick}
+                onView={handleViewDetail}
                 onDelete={null}
                 page={pagination.past.page}
                 rowsPerPage={pagination.past.rowsPerPage}
@@ -1033,6 +1118,19 @@ const ChildSchedule = () => {
           </Alert>
         )}
       </div>
+
+      {/* Cancel Slot Confirmation Dialog */}
+      <ConfirmDialog
+        open={cancelDialog.open}
+        onClose={() => setCancelDialog({ open: false, slot: null })}
+        onConfirm={handleConfirmCancel}
+        title="Hủy lịch giữ trẻ"
+        description={`Bạn có chắc chắn muốn hủy lịch giữ trẻ này không? Hành động này không thể hoàn tác.`}
+        confirmText="Hủy lịch"
+        cancelText="Không"
+        confirmColor="error"
+        showWarningIcon={true}
+      />
     </div>
   );
 };

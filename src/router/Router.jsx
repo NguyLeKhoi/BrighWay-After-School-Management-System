@@ -20,7 +20,7 @@ import Login from '../pages/auth/Login';
 import UserDashboard from '../pages/user/dashboard';
 import UserProfile from '../pages/user/profile';
 import ChangePassword from '../pages/common/ChangePassword';
-import MySchedule from '../pages/user/schedule';
+import MySchedule from '../pages/user/children/ChildSchedule/schedule';
 import ChildrenList from '../pages/user/children/AllChildren';
 import CreateChild from '../pages/user/children/CreateChild';
 import ChildProfile from '../pages/user/children/ChildProfile';
@@ -81,6 +81,7 @@ import ManagerStudentManagement from '../pages/manager/studentManagement';
 import ManagerBranchSlotManagement from '../pages/manager/branchSlotManagement';
 import CreateBranchSlot from '../pages/manager/branchSlotManagement/CreateBranchSlot';
 import UpdateBranchSlot from '../pages/manager/branchSlotManagement/UpdateBranchSlot';
+import BranchSlotDetail from '../pages/manager/branchSlotManagement/BranchSlotDetail';
 import CreateStudent from '../pages/manager/studentManagement/CreateStudent';
 import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 
@@ -88,7 +89,6 @@ import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 // Staff Pages
 import StaffDashboard from '../pages/staff/dashboard';
 import StaffActivityTypes from '../pages/staff/activityTypes';
-import StaffActivities from '../pages/staff/activities';
 import StaffAssignments from '../pages/staff/assignments';
 import StaffAssignmentDetail from '../pages/staff/assignments/AssignmentDetail';
 import StaffProfile from '../pages/staff/profile';
@@ -443,6 +443,10 @@ export const routes = createBrowserRouter([
         element: <UpdateBranchSlot />,
       },
       {
+        path: 'branch-slots/detail/:id',
+        element: <BranchSlotDetail />,
+      },
+      {
         path: 'profile',
         element: <StaffProfile />,
       },
@@ -474,10 +478,6 @@ export const routes = createBrowserRouter([
       {
         path: 'activity-types',
         element: <StaffActivityTypes />,
-      },
-      {
-        path: 'activities',
-        element: <StaffActivities />,
       },
       {
         path: 'assignments',

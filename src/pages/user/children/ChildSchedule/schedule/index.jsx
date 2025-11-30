@@ -3,16 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { CalendarToday as ScheduleIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import StepperForm from '../../../components/Common/StepperForm';
-import Step1SelectStudent from './Step1SelectStudent';
-import Step2SelectSlot from './Step2SelectSlot';
-import Step3SelectDate from './Step3SelectDate';
-import Step4SelectPackage from './Step4SelectPackage';
+import StepperForm from '../../../../../components/Common/StepperForm';
+import Step1SelectDate from './Step1SelectDate';
+import Step2SelectSlotsByDate from './Step2SelectSlotsByDate';
+import Step3SelectRoom from './Step3SelectRoom';
 import Step5Confirm from './Step5Confirm';
-import studentSlotService from '../../../services/studentSlot.service';
-import studentService from '../../../services/student.service';
-import packageService from '../../../services/package.service';
-import { useApp } from '../../../contexts/AppContext';
+import studentSlotService from '../../../../../services/studentSlot.service';
+import studentService from '../../../../../services/student.service';
+import packageService from '../../../../../services/package.service';
+import { useApp } from '../../../../../contexts/AppContext';
 
 const WEEKDAY_LABELS = {
   0: 'Chủ nhật',
@@ -31,6 +30,7 @@ const MySchedule = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [initialData, setInitialData] = useState({});
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(false);
+
 
   // Load child data if childId is provided in URL
   useEffect(() => {
@@ -81,43 +81,103 @@ const MySchedule = () => {
     return result;
   };
 
+  // Auto-load package subscription (hidden step)
+  const autoLoadPackage = useCallback(async (studentId, slot) => {
+    try {
+      // Get student's active subscriptions
+      const subscriptionsResponse = await packageService.getSubscriptionsByStudent(studentId);
+      let subscriptions = [];
+      
+      if (Array.isArray(subscriptionsResponse)) {
+        subscriptions = subscriptionsResponse;
+      } else if (Array.isArray(subscriptionsResponse?.items)) {
+        subscriptions = subscriptionsResponse.items;
+      } else if (subscriptionsResponse?.id) {
+        subscriptions = [subscriptionsResponse];
+      }
+
+      // Filter active subscriptions
+      const activeSubscriptions = subscriptions.filter(
+        sub => sub.status?.toLowerCase() === 'active'
+      );
+
+      if (activeSubscriptions.length === 0) {
+        return null;
+      }
+
+      // Backend already filters slots by allowed packages, so first active subscription should work
+      // But we verify it matches allowed packages if available
+      const firstActiveSubscription = activeSubscriptions[0];
+      
+      // Verify the package is in allowed packages for this slot (if available)
+      const allowedPackageIds = slot?.allowedPackages?.map(pkg => pkg.id) || [];
+      const subscriptionPackageId = firstActiveSubscription.packageId || firstActiveSubscription.package?.id;
+      
+      if (allowedPackageIds.length > 0 && subscriptionPackageId) {
+        if (!allowedPackageIds.includes(subscriptionPackageId)) {
+          return null;
+        }
+      }
+
+      return {
+        id: firstActiveSubscription.id,
+        name: firstActiveSubscription.packageName || 'Gói không tên'
+      };
+    } catch (err) {
+      console.error('Error auto-loading package:', err);
+      return null;
+    }
+  }, []);
+
   const handleComplete = useCallback(async (formData) => {
-    if (!formData.studentId || !formData.slotId || !formData.subscriptionId || !formData.selectedDate) {
+    if (!formData.studentId || !formData.slotId || !formData.selectedDate) {
       addNotification({
         message: 'Vui lòng hoàn thành đầy đủ thông tin',
         severity: 'warning'
       });
       return;
     }
-    
-    // RoomId is optional - backend will auto-assign if not provided
-    // But we'll try to use it if available
 
     setIsBooking(true);
     try {
+      // Auto-load package subscription if not already loaded
+      let subscriptionId = formData.subscriptionId;
+      let subscriptionName = formData.subscriptionName;
+
+      if (!subscriptionId && formData.slot) {
+        const autoPackage = await autoLoadPackage(formData.studentId, formData.slot);
+        if (autoPackage) {
+          subscriptionId = autoPackage.id;
+          subscriptionName = autoPackage.name;
+        } else {
+          addNotification({
+            message: 'Không tìm thấy gói hợp lệ cho đứa trẻ này. Vui lòng kiểm tra lại.',
+            severity: 'error'
+          });
+          setIsBooking(false);
+          return;
+        }
+      }
+
+      if (!subscriptionId) {
+        addNotification({
+          message: 'Không tìm thấy gói đăng ký hợp lệ',
+          severity: 'error'
+        });
+        setIsBooking(false);
+        return;
+      }
+
       // Get student name for display
       let studentName = '';
       try {
         const student = await studentService.getMyChildById(formData.studentId);
         studentName = student?.name || '';
       } catch (err) {
+        // Ignore error
       }
 
-      // Get subscription name for display
-      let subscriptionName = '';
-      try {
-        const subscriptions = await packageService.getSubscriptionsByStudent(formData.studentId);
-        const items = Array.isArray(subscriptions) 
-          ? subscriptions 
-          : Array.isArray(subscriptions?.items) 
-            ? subscriptions.items 
-            : [];
-        const selectedSub = items.find(s => s.id === formData.subscriptionId);
-        subscriptionName = selectedSub?.packageName || '';
-      } catch (err) {
-      }
-
-      // Use selected date from formData, or fallback to calculated date
+      // Use selected date from formData
       let selectedDate = formData.selectedDate instanceof Date 
         ? new Date(formData.selectedDate) 
         : new Date(formData.selectedDate);
@@ -150,7 +210,7 @@ const MySchedule = () => {
       await studentSlotService.bookSlot({
         studentId: formData.studentId,
         branchSlotId: formData.slotId,
-        packageSubscriptionId: formData.subscriptionId,
+        packageSubscriptionId: subscriptionId,
         roomId: formData.roomId || null, // Optional - backend will auto-assign if null
         date: isoDate,
         parentNote: formData.parentNote || ''
@@ -173,7 +233,7 @@ const MySchedule = () => {
         navigate('/user/management/children');
       }
     } catch (err) {
-      const errorMessage = err?.message || err?.error || 'Không thể đặt lịch giữ trẻ';
+      const errorMessage = err?.response?.data?.message || err?.message || err?.error || 'Không thể đặt lịch giữ trẻ';
       addNotification({
         message: errorMessage,
         severity: 'error'
@@ -185,7 +245,7 @@ const MySchedule = () => {
     } finally {
       setIsBooking(false);
     }
-  }, [navigate, addNotification]);
+  }, [navigate, addNotification, autoLoadPackage, childId]);
 
   const handleCancel = useCallback(() => {
     // Navigate back - if came from child schedule, go back there
@@ -196,15 +256,15 @@ const MySchedule = () => {
     }
   }, [navigate, childId]);
 
-  // Filter steps - skip step 1 (chọn trẻ em) if childId is provided
+  // New flow steps
   const allSteps = [
     {
-      label: 'Chọn trẻ em',
-      component: Step1SelectStudent,
+      label: 'Chọn ngày',
+      component: Step1SelectDate,
       validation: async (data) => {
-        if (!data.studentId) {
+        if (!data.selectedDate) {
           addNotification({
-            message: 'Vui lòng chọn trẻ em',
+            message: 'Vui lòng chọn ngày đăng ký',
             severity: 'warning'
           });
           return false;
@@ -214,7 +274,7 @@ const MySchedule = () => {
     },
     {
       label: 'Chọn slot',
-      component: Step2SelectSlot,
+      component: Step2SelectSlotsByDate,
       validation: async (data) => {
         if (!data.slotId) {
           addNotification({
@@ -227,27 +287,14 @@ const MySchedule = () => {
       }
     },
     {
-      label: 'Chọn ngày',
-      component: Step3SelectDate,
+      label: 'Chọn phòng',
+      component: Step3SelectRoom,
       validation: async (data) => {
-        if (!data.selectedDate) {
-          addNotification({
-            message: 'Vui lòng chọn ngày học',
-            severity: 'warning'
-          });
-          return false;
-        }
-        return true;
-      }
-    },
-    {
-      label: 'Chọn gói',
-      component: Step4SelectPackage,
-      validation: async (data) => {
+        // Room is optional, but package validation is done in Step3SelectRoom
         if (!data.subscriptionId) {
           addNotification({
-            message: 'Vui lòng chọn gói đã mua',
-            severity: 'warning'
+            message: 'Gói không hợp lệ. Vui lòng chọn slot khác hoặc kiểm tra lại gói.',
+            severity: 'error'
           });
           return false;
         }
@@ -261,8 +308,8 @@ const MySchedule = () => {
     }
   ];
 
-  // Skip step 1 if childId is provided (student already selected)
-  const steps = childId ? allSteps.slice(1) : allSteps;
+  // Use steps directly (no need to skip since we removed student selection step)
+  const steps = allSteps;
 
   // Show loading while loading initial data
   if (childId && isLoadingInitialData) {

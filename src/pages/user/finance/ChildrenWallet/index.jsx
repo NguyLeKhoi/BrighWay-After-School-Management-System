@@ -47,6 +47,7 @@ const ChildrenWallet = () => {
   const { showGlobalError, addNotification } = useApp();
   const { loadingText, showLoading, hideLoading } = useContentLoading();
 
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',

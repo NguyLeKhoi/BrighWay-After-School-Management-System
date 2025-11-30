@@ -8,19 +8,10 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Paper,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
+  Button
 } from '@mui/material';
 import {
-  AccessTime as BranchSlotIcon,
-  Person as StaffIcon,
-  PersonAdd as AssignStaffIcon
+  AccessTime as BranchSlotIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -35,7 +26,6 @@ import useBaseCRUD from '../../../hooks/useBaseCRUD';
 import { createBranchSlotColumns } from '../../../definitions/branchSlot/tableColumns';
 import { createBranchSlotFormFields } from '../../../definitions/branchSlot/formFields';
 import { branchSlotSchema } from '../../../utils/validationSchemas/branchSlotSchemas';
-import { assignStaffSchema } from '../../../utils/validationSchemas/assignStaffSchemas';
 import { toast } from 'react-toastify';
 import styles from './BranchSlotManagement.module.css';
 
@@ -63,6 +53,8 @@ const ManagerBranchSlotManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isInitialMount = useRef(true);
+
+
   const {
     timeframeOptions,
     slotTypeOptions,
@@ -121,16 +113,6 @@ const ManagerBranchSlotManagement = () => {
 
   const branchSlotColumns = useMemo(() => createBranchSlotColumns(styles), []);
 
-  // Assign staff dialog state
-  const [assignStaffDialog, setAssignStaffDialog] = useState({
-    open: false,
-    branchSlot: null,
-    rooms: []
-  });
-  const [assignStaffLoading, setAssignStaffLoading] = useState(false);
-  const [slotRooms, setSlotRooms] = useState([]);
-  const [loadingRooms, setLoadingRooms] = useState(false);
-
   const timeframeSelectOptions = useMemo(
     () => [
       { value: '', label: 'Chọn khung giờ' },
@@ -164,35 +146,6 @@ const ManagerBranchSlotManagement = () => {
     []
   );
 
-  const staffSelectOptions = useMemo(
-    () => [
-      { value: '', label: 'Chọn nhân viên' },
-      ...staffOptions.map((staff) => ({
-        value: staff.id,
-        label: `${staff.name}${staff.email ? ` (${staff.email})` : ''}`
-      }))
-    ],
-    [staffOptions]
-  );
-
-  const roomSelectOptions = useMemo(
-    () => {
-      const options = [{ value: '', label: 'Không chọn phòng (tùy chọn)' }];
-      if (slotRooms.length > 0) {
-        options.push(...slotRooms.map((room) => ({
-          value: room.id,
-          label: room.roomName || room.name || 'N/A'
-        })));
-      } else if (roomOptions.length > 0) {
-        options.push(...roomOptions.map((room) => ({
-          value: room.id,
-          label: room.name || 'N/A'
-        })));
-      }
-      return options;
-    },
-    [slotRooms, roomOptions]
-  );
 
   const branchSlotFormFields = useMemo(
     () =>
@@ -231,14 +184,6 @@ const ManagerBranchSlotManagement = () => {
     }
   }, [dialogOpen, dialogMode, timeframeOptions.length, slotTypeOptions.length, fetchDependencies]);
 
-  // Fetch dependencies when assign staff dialog opens
-  useEffect(() => {
-    if (assignStaffDialog.open) {
-      if (staffOptions.length === 0 || roomOptions.length === 0) {
-        fetchDependencies();
-      }
-    }
-  }, [assignStaffDialog.open, staffOptions.length, roomOptions.length, fetchDependencies]);
 
   // Reload data when navigate back to this page (e.g., from create/update pages)
   useEffect(() => {
@@ -248,10 +193,19 @@ const ManagerBranchSlotManagement = () => {
         isInitialMount.current = false;
         return;
       }
+      // Force reload if there's a refresh query param (from update/create)
+      const searchParams = new URLSearchParams(location.search);
+      if (searchParams.has('refresh')) {
+        // Remove refresh param from URL after reloading
+        searchParams.delete('refresh');
+        const newSearch = searchParams.toString();
+        const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
       loadData(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   const handleCreate = useCallback(() => {
     // Navigate to create page with stepper
@@ -281,164 +235,7 @@ const ManagerBranchSlotManagement = () => {
     [handleFormSubmitBase]
   );
 
-  const handleAssignStaff = useCallback(async (branchSlot) => {
-    setAssignStaffDialog({ open: true, branchSlot, rooms: [] });
-    setSlotRooms([]);
-    setLoadingRooms(true);
-    
-    try {
-      // Fetch rooms assigned to this branch slot
-      const roomsData = await branchSlotService.getRoomsByBranchSlot(branchSlot.id);
-      const rooms = roomsData?.items || roomsData || [];
-      setSlotRooms(rooms);
-      setAssignStaffDialog(prev => ({ ...prev, rooms }));
-    } catch (err) {
-      console.error('Error fetching rooms:', err);
-      // Continue anyway, user can still assign staff without room
-    } finally {
-      setLoadingRooms(false);
-    }
-  }, []);
 
-  const handleAssignStaffSubmit = useCallback(async (data) => {
-    if (!assignStaffDialog.branchSlot) return;
-
-    setAssignStaffLoading(true);
-    try {
-      const submitData = {
-        branchSlotId: assignStaffDialog.branchSlot.id,
-        userId: data.userId,
-        roomId: data.roomId || null,
-        name: data.name || null
-      };
-
-      await branchSlotService.assignStaff(submitData);
-      
-      toast.success('Gán nhân viên thành công!', {
-        position: "top-right",
-        autoClose: 3000,
-      });
-
-      setAssignStaffDialog({ open: false, branchSlot: null, rooms: [] });
-      await loadData(false);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gán nhân viên';
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    } finally {
-      setAssignStaffLoading(false);
-    }
-  }, [assignStaffDialog.branchSlot, loadData]);
-
-  const assignStaffFormFields = useMemo(
-    () => [
-      {
-        section: 'Thông tin gán nhân viên',
-        sectionDescription: 'Chọn nhân viên và phòng (nếu có) để gán vào ca giữ trẻ này.',
-        name: 'userId',
-        label: 'Nhân viên',
-        type: 'select',
-        required: true,
-        options: staffSelectOptions,
-        gridSize: 12,
-        disabled: assignStaffLoading || dependenciesLoading || staffSelectOptions.length === 0
-      },
-      {
-        name: 'roomId',
-        label: 'Phòng (tùy chọn)',
-        type: 'select',
-        options: roomSelectOptions,
-        gridSize: 8,
-        disabled: assignStaffLoading || loadingRooms || roomSelectOptions.length === 0,
-        helperText: 'Chọn phòng nếu nhân viên sẽ làm việc tại phòng cụ thể'
-      },
-      {
-        name: 'name',
-        label: 'Tên vai trò (tùy chọn)',
-        type: 'text',
-        placeholder: 'Ví dụ: Nhân viên chăm sóc chính, Nhân viên hỗ trợ...',
-        gridSize: 4,
-        disabled: assignStaffLoading
-      }
-    ],
-    [assignStaffLoading, dependenciesLoading, loadingRooms, staffSelectOptions, roomSelectOptions]
-  );
-
-  const assignStaffDefaultValues = useMemo(
-    () => ({
-      userId: '',
-      roomId: '',
-      name: ''
-    }),
-    []
-  );
-
-  const renderStaffDetails = useCallback((staff = [], branchSlot) => {
-    return (
-      <Box className={styles.staffWrapper}>
-        <Box className={styles.staffMeta}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            Nhân viên được gán
-          </Typography>
-          <Box display="flex" gap={1} alignItems="center">
-            {staff.length > 0 && (
-              <Chip
-                label={`${staff.length} nhân viên`}
-                color="primary"
-                variant="outlined"
-                size="small"
-                sx={{ fontWeight: 500 }}
-              />
-            )}
-          </Box>
-        </Box>
-
-        {staff.length > 0 ? (
-          <TableContainer component={Paper} variant="outlined" className={styles.staffTable}>
-            <Table size="small">
-              <TableHead sx={{ backgroundColor: 'grey.100' }}>
-                <TableRow>
-                  <TableCell sx={{ width: 56, fontWeight: 600 }}>#</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Tên nhân viên</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Phòng</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {staff.map((staffMember, idx) => (
-                  <TableRow
-                    key={staffMember.staffId || idx}
-                    hover
-                    sx={{ '&:hover': { backgroundColor: 'grey.50' } }}
-                  >
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <StaffIcon fontSize="small" color="primary" />
-                        <Typography fontWeight={600}>
-                          {staffMember.staffName || 'Không rõ tên'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {staffMember.roomName || 'Chưa gán phòng'}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Chưa có nhân viên được gán cho ca giữ trẻ này.
-          </Typography>
-        )}
-      </Box>
-    );
-  }, []);
 
   const renderTimeframeFilter = (value, onChange) => (
     <FormControl className={styles.statusFilter} size="small" variant="outlined">
@@ -538,10 +335,6 @@ const ManagerBranchSlotManagement = () => {
           onView={(slot) => navigate(`/manager/branch-slots/detail/${slot.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          expandableConfig={{
-            isRowExpandable: (item) => true, // Always expandable to show assign button
-            renderExpandedContent: (item) => renderStaffDetails(item?.staff || [], item)
-          }}
           emptyMessage="Không có ca giữ trẻ nào. Hãy thêm ca giữ trẻ đầu tiên để bắt đầu."
         />
       </div>
@@ -564,27 +357,6 @@ const ManagerBranchSlotManagement = () => {
           loading={actionLoading || dependenciesLoading}
           disabled={actionLoading || dependenciesLoading}
           fields={branchSlotFormFields}
-        />
-      </ManagementFormDialog>
-
-      <ManagementFormDialog
-        open={assignStaffDialog.open}
-        onClose={() => setAssignStaffDialog({ open: false, branchSlot: null, rooms: [] })}
-        mode="create"
-        title="Gán Nhân Viên"
-        icon={AssignStaffIcon}
-        loading={assignStaffLoading || loadingRooms || dependenciesLoading}
-        maxWidth="sm"
-      >
-        <Form
-          key={`assign-staff-${assignStaffDialog.branchSlot?.id || 'new'}`}
-          schema={assignStaffSchema}
-          defaultValues={assignStaffDefaultValues}
-          onSubmit={handleAssignStaffSubmit}
-          submitText="Gán Nhân Viên"
-          loading={assignStaffLoading || loadingRooms || dependenciesLoading}
-          disabled={assignStaffLoading || loadingRooms || dependenciesLoading}
-          fields={assignStaffFormFields}
         />
       </ManagementFormDialog>
 

@@ -71,6 +71,7 @@ const TransactionHistory = () => {
     totalPages: 1,
     totalCount: 0
   });
+
   
   // Filters
   const [filterType, setFilterType] = useState('');

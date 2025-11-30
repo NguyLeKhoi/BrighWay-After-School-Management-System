@@ -291,6 +291,35 @@ const packageService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Renew a student's current active subscription
+   * @param {string} studentId - Student ID
+   * @returns {Promise} Renewed subscription
+   */
+  renewSubscription: async (studentId) => {
+    try {
+      const response = await axiosInstance.post(`/PackageSubscription/renew/${studentId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Upgrade a student's current active subscription to a higher package
+   * @param {string} studentId - Student ID
+   * @param {string} newPackageId - New package ID to upgrade to
+   * @returns {Promise} Upgraded subscription
+   */
+  upgradeSubscription: async (studentId, newPackageId) => {
+    try {
+      const response = await axiosInstance.post(`/PackageSubscription/upgrade/${studentId}/${newPackageId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

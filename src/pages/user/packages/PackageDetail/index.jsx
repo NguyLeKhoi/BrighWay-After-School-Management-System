@@ -56,6 +56,7 @@ const UserPackageDetail = () => {
   const [isBuying, setIsBuying] = useState(false);
   const { showLoading, hideLoading } = useContentLoading();
 
+
   useEffect(() => {
     const loadData = async () => {
       if (!id) {

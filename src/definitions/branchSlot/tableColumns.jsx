@@ -24,14 +24,16 @@ const WEEK_DAYS = {
 
 const STATUS_COLORS = {
   Available: 'success',
-  Full: 'warning',
-  Cancelled: 'error'
+  Occupied: 'warning',
+  Cancelled: 'error',
+  Maintenance: 'default'
 };
 
 const STATUS_LABELS = {
   Available: 'Có sẵn',
-  Full: 'Đã đầy',
-  Cancelled: 'Đã hủy'
+  Occupied: 'Đã đầy',
+  Cancelled: 'Đã hủy',
+  Maintenance: 'Bảo trì'
 };
 
 export const createBranchSlotColumns = (styles) => [
@@ -96,34 +98,6 @@ export const createBranchSlotColumns = (styles) => [
         variant="filled"
       />
     )
-  },
-  {
-    key: 'staff',
-    header: <Typography className={styles?.noWrap}>Nhân viên</Typography>,
-    render: (_, item) => {
-      const staffList = item?.staff || [];
-      if (staffList.length === 0) {
-        return (
-          <Typography variant="body2" color="text.secondary">
-            Chưa có nhân viên
-          </Typography>
-        );
-      }
-      return (
-        <Box>
-          {staffList.slice(0, 2).map((staff, idx) => (
-            <Typography key={idx} variant="body2">
-              {staff.staffName || 'N/A'}
-            </Typography>
-          ))}
-          {staffList.length > 2 && (
-            <Typography variant="body2" color="text.secondary">
-              +{staffList.length - 2} nhân viên khác
-            </Typography>
-          )}
-        </Box>
-      );
-    }
   }
 ];
 
