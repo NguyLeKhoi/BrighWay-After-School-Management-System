@@ -52,11 +52,19 @@ const branchSlotService = {
    */
   getAvailableSlotsForStudent: async (studentId, params = {}) => {
     try {
-      const { pageIndex = 1, pageSize = 10 } = params;
+      const { pageIndex = 1, pageSize = 10, date = null } = params;
       const query = new URLSearchParams({
         pageIndex: pageIndex.toString(),
         pageSize: pageSize.toString()
       });
+      
+      // Add date parameter if provided
+      if (date) {
+        // Convert date to ISO string if it's a Date object
+        const dateString = date instanceof Date ? date.toISOString() : date;
+        query.append('date', dateString);
+      }
+      
       const response = await axiosInstance.get(
         `/BranchSlot/available-for-student/${studentId}?${query.toString()}`
       );
@@ -102,9 +110,25 @@ const branchSlotService = {
    */
   updateBranchSlot: async (branchSlotId, branchSlotData) => {
     try {
+      console.log('updateBranchSlot API call:', {
+        url: `/BranchSlot/${branchSlotId}`,
+        method: 'PUT',
+        data: branchSlotData
+      });
       const response = await axiosInstance.put(`/BranchSlot/${branchSlotId}`, branchSlotData);
+      console.log('updateBranchSlot API response:', {
+        status: response.status,
+        data: response.data,
+        slotTypeId: response.data?.slotTypeId,
+        timeframeId: response.data?.timeframeId
+      });
       return response.data;
     } catch (error) {
+      console.error('updateBranchSlot API error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
       throw error.response?.data || error.message;
     }
   },
@@ -144,9 +168,17 @@ const branchSlotService = {
    */
   assignRooms: async (assignmentData) => {
     try {
+      console.log('assignRooms API call:', { 
+        url: '/BranchSlot/assign-rooms', 
+        data: assignmentData,
+        branchSlotId: assignmentData.branchSlotId,
+        roomIdsCount: assignmentData.roomIds?.length || 0
+      });
       const response = await axiosInstance.post('/BranchSlot/assign-rooms', assignmentData);
+      console.log('assignRooms API response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('assignRooms API error:', error.response?.data || error.message);
       throw error.response?.data || error.message;
     }
   },
@@ -156,7 +188,7 @@ const branchSlotService = {
    */
   getRoomsByBranchSlot: async (branchSlotId, params = {}) => {
     try {
-      const { pageIndex, pageSize } = params;
+      const { pageIndex = 1, pageSize = 1000 } = params;
       let url = `/BranchSlot/${branchSlotId}/rooms`;
       if (pageIndex !== undefined && pageSize !== undefined) {
         const query = new URLSearchParams({
@@ -165,9 +197,17 @@ const branchSlotService = {
         });
         url = `${url}?${query.toString()}`;
       }
+      console.log('getRoomsByBranchSlot API call:', { url, branchSlotId, pageIndex, pageSize });
       const response = await axiosInstance.get(url);
+      console.log('getRoomsByBranchSlot API response:', { 
+        branchSlotId, 
+        items: response.data?.items?.length || 0,
+        totalCount: response.data?.totalCount || 0,
+        data: response.data
+      });
       return response.data;
     } catch (error) {
+      console.error('getRoomsByBranchSlot API error:', { branchSlotId, error: error.response?.data || error.message });
       throw error.response?.data || error.message;
     }
   }

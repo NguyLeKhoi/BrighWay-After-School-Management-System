@@ -104,7 +104,7 @@ const Step5Confirm = forwardRef(({ data }, ref) => {
             <div>
               <p className={styles.infoLabel}>Thứ</p>
               <p className={styles.infoValue}>
-                {WEEKDAY_LABELS[data?.slot?.weekDay] ?? '—'}
+                {selectedDate ? WEEKDAY_LABELS[selectedDate.getDay()] ?? '—' : (WEEKDAY_LABELS[data?.slot?.weekDay] ?? '—')}
               </p>
             </div>
             <div>
@@ -133,6 +133,12 @@ const Step5Confirm = forwardRef(({ data }, ref) => {
               <p className={styles.infoLabel}>Tên phòng</p>
               <p className={styles.infoValue}>{data?.room?.name || 'Tự động gán'}</p>
             </div>
+            {data?.room?.facilityName && (
+              <div>
+                <p className={styles.infoLabel}>Cơ sở</p>
+                <p className={styles.infoValue}>{data.room.facilityName}</p>
+              </div>
+            )}
             {data?.room?.capacity && (
               <div>
                 <p className={styles.infoLabel}>Sức chứa</p>
@@ -140,6 +146,20 @@ const Step5Confirm = forwardRef(({ data }, ref) => {
               </div>
             )}
           </div>
+          {data?.room?.staff && Array.isArray(data.room.staff) && data.room.staff.length > 0 && (
+            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e0e0e0' }}>
+              <p className={styles.infoLabel} style={{ marginBottom: '8px' }}>Nhân viên phụ trách</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {data.room.staff.map((staff, index) => (
+                  <div key={staff.id || index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>
+                      • {staff.name || staff.staffName || 'N/A'} {staff.role && `(${staff.role || staff.staffRole || ''})`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.confirmSection}>

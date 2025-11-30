@@ -8,19 +8,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Paper,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
+  Button
 } from '@mui/material';
 import {
   AccessTime as BranchSlotIcon,
   Person as StaffIcon,
-  PersonAdd as AssignStaffIcon
+  PersonAdd as AssignStaffIcon,
+  MeetingRoomOutlined as AssignRoomIcon
 } from '@mui/icons-material';
 import DataTable from '../../../components/Common/DataTable';
 import ConfirmDialog from '../../../components/Common/ConfirmDialog';
@@ -36,6 +30,7 @@ import { createBranchSlotColumns } from '../../../definitions/branchSlot/tableCo
 import { createBranchSlotFormFields } from '../../../definitions/branchSlot/formFields';
 import { branchSlotSchema } from '../../../utils/validationSchemas/branchSlotSchemas';
 import { assignStaffSchema } from '../../../utils/validationSchemas/assignStaffSchemas';
+import { assignRoomsSchema } from '../../../utils/validationSchemas/assignRoomsSchemas';
 import { toast } from 'react-toastify';
 import styles from './BranchSlotManagement.module.css';
 
@@ -131,6 +126,15 @@ const ManagerBranchSlotManagement = () => {
   const [slotRooms, setSlotRooms] = useState([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
 
+  // Assign rooms dialog state
+  const [assignRoomsDialog, setAssignRoomsDialog] = useState({
+    open: false,
+    branchSlot: null
+  });
+  const [assignRoomsLoading, setAssignRoomsLoading] = useState(false);
+  const [assignedRooms, setAssignedRooms] = useState([]);
+  const [loadingAssignedRooms, setLoadingAssignedRooms] = useState(false);
+
   const timeframeSelectOptions = useMemo(
     () => [
       { value: '', label: 'Chọn khung giờ' },
@@ -178,20 +182,32 @@ const ManagerBranchSlotManagement = () => {
   const roomSelectOptions = useMemo(
     () => {
       const options = [{ value: '', label: 'Không chọn phòng (tùy chọn)' }];
+      // Chỉ hiển thị các phòng đã được gán vào slot
       if (slotRooms.length > 0) {
         options.push(...slotRooms.map((room) => ({
-          value: room.id,
-          label: room.roomName || room.name || 'N/A'
-        })));
-      } else if (roomOptions.length > 0) {
-        options.push(...roomOptions.map((room) => ({
-          value: room.id,
-          label: room.name || 'N/A'
+          value: room.id || room.roomId,
+          label: room.facilityName 
+            ? `${room.roomName || room.name || 'N/A'} - ${room.facilityName}` 
+            : room.roomName || room.name || 'N/A'
         })));
       }
       return options;
     },
-    [slotRooms, roomOptions]
+    [slotRooms]
+  );
+
+  const assignRoomsSelectOptions = useMemo(
+    () => {
+      return roomOptions
+        .filter((room) => room && room.id)
+        .map((room) => ({
+          value: room.id,
+          label: room.facilityName 
+            ? `${room.name || 'N/A'} - ${room.facilityName}` 
+            : room.name || 'N/A'
+        }));
+    },
+    [roomOptions]
   );
 
   const branchSlotFormFields = useMemo(
@@ -248,10 +264,19 @@ const ManagerBranchSlotManagement = () => {
         isInitialMount.current = false;
         return;
       }
+      // Force reload if there's a refresh query param (from update/create)
+      const searchParams = new URLSearchParams(location.search);
+      if (searchParams.has('refresh')) {
+        // Remove refresh param from URL after reloading
+        searchParams.delete('refresh');
+        const newSearch = searchParams.toString();
+        const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
       loadData(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   const handleCreate = useCallback(() => {
     // Navigate to create page with stepper
@@ -287,9 +312,13 @@ const ManagerBranchSlotManagement = () => {
     setLoadingRooms(true);
     
     try {
-      // Fetch rooms assigned to this branch slot
-      const roomsData = await branchSlotService.getRoomsByBranchSlot(branchSlot.id);
+      // Fetch rooms assigned to this branch slot - use large pageSize to get all rooms
+      const roomsData = await branchSlotService.getRoomsByBranchSlot(branchSlot.id, {
+        pageIndex: 1,
+        pageSize: 1000
+      });
       const rooms = roomsData?.items || roomsData || [];
+      console.log('Loaded rooms for assign staff:', { branchSlotId: branchSlot.id, roomsCount: rooms.length });
       setSlotRooms(rooms);
       setAssignStaffDialog(prev => ({ ...prev, rooms }));
     } catch (err) {
@@ -332,6 +361,58 @@ const ManagerBranchSlotManagement = () => {
     }
   }, [assignStaffDialog.branchSlot, loadData]);
 
+  const handleAssignRooms = useCallback(async (branchSlot) => {
+    setAssignRoomsDialog({ open: true, branchSlot });
+    setAssignedRooms([]);
+    setLoadingAssignedRooms(true);
+    
+    try {
+      // Fetch rooms assigned to this branch slot
+      const roomsData = await branchSlotService.getRoomsByBranchSlot(branchSlot.id, {
+        pageIndex: 1,
+        pageSize: 1000
+      });
+      const rooms = roomsData?.items || roomsData || [];
+      setAssignedRooms(rooms.map(room => room.id || room.roomId).filter(Boolean));
+    } catch (err) {
+      console.error('Error fetching assigned rooms:', err);
+      setAssignedRooms([]);
+    } finally {
+      setLoadingAssignedRooms(false);
+    }
+  }, []);
+
+  const handleAssignRoomsSubmit = useCallback(async (data) => {
+    if (!assignRoomsDialog.branchSlot) return;
+
+    setAssignRoomsLoading(true);
+    try {
+      const submitData = {
+        branchSlotId: assignRoomsDialog.branchSlot.id,
+        roomIds: Array.isArray(data.roomIds) ? data.roomIds : []
+      };
+
+      await branchSlotService.assignRooms(submitData);
+      
+      toast.success('Gán phòng thành công!', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      setAssignRoomsDialog({ open: false, branchSlot: null });
+      setAssignedRooms([]);
+      await loadData(false);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi gán phòng';
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setAssignRoomsLoading(false);
+    }
+  }, [assignRoomsDialog.branchSlot, loadData]);
+
   const assignStaffFormFields = useMemo(
     () => [
       {
@@ -350,20 +431,22 @@ const ManagerBranchSlotManagement = () => {
         label: 'Phòng (tùy chọn)',
         type: 'select',
         options: roomSelectOptions,
-        gridSize: 8,
+        gridSize: 12,
         disabled: assignStaffLoading || loadingRooms || roomSelectOptions.length === 0,
-        helperText: 'Chọn phòng nếu nhân viên sẽ làm việc tại phòng cụ thể'
+        helperText: slotRooms.length === 0 && !loadingRooms
+          ? 'Ca giữ trẻ chưa có phòng nào được gán. Vui lòng gán phòng trước.'
+          : 'Chọn phòng nếu nhân viên sẽ làm việc tại phòng cụ thể'
       },
       {
         name: 'name',
         label: 'Tên vai trò (tùy chọn)',
         type: 'text',
         placeholder: 'Ví dụ: Nhân viên chăm sóc chính, Nhân viên hỗ trợ...',
-        gridSize: 4,
+        gridSize: 12,
         disabled: assignStaffLoading
       }
     ],
-    [assignStaffLoading, dependenciesLoading, loadingRooms, staffSelectOptions, roomSelectOptions]
+    [assignStaffLoading, dependenciesLoading, loadingRooms, staffSelectOptions, roomSelectOptions, slotRooms]
   );
 
   const assignStaffDefaultValues = useMemo(
@@ -375,70 +458,32 @@ const ManagerBranchSlotManagement = () => {
     []
   );
 
-  const renderStaffDetails = useCallback((staff = [], branchSlot) => {
-    return (
-      <Box className={styles.staffWrapper}>
-        <Box className={styles.staffMeta}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            Nhân viên được gán
-          </Typography>
-          <Box display="flex" gap={1} alignItems="center">
-            {staff.length > 0 && (
-              <Chip
-                label={`${staff.length} nhân viên`}
-                color="primary"
-                variant="outlined"
-                size="small"
-                sx={{ fontWeight: 500 }}
-              />
-            )}
-          </Box>
-        </Box>
+  const assignRoomsFormFields = useMemo(
+    () => [
+      {
+        section: 'Gán phòng cho ca giữ trẻ',
+        sectionDescription: 'Chọn một hoặc nhiều phòng để gán vào ca giữ trẻ này.',
+        name: 'roomIds',
+        label: 'Phòng',
+        type: 'multiselect',
+        required: true,
+        options: assignRoomsSelectOptions,
+        gridSize: 12,
+        disabled: assignRoomsLoading || dependenciesLoading || assignRoomsSelectOptions.length === 0,
+        placeholder: 'Chọn phòng',
+        helperText: 'Chọn ít nhất một phòng để gán vào ca giữ trẻ'
+      }
+    ],
+    [assignRoomsLoading, dependenciesLoading, assignRoomsSelectOptions]
+  );
 
-        {staff.length > 0 ? (
-          <TableContainer component={Paper} variant="outlined" className={styles.staffTable}>
-            <Table size="small">
-              <TableHead sx={{ backgroundColor: 'grey.100' }}>
-                <TableRow>
-                  <TableCell sx={{ width: 56, fontWeight: 600 }}>#</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Tên nhân viên</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Phòng</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {staff.map((staffMember, idx) => (
-                  <TableRow
-                    key={staffMember.staffId || idx}
-                    hover
-                    sx={{ '&:hover': { backgroundColor: 'grey.50' } }}
-                  >
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <StaffIcon fontSize="small" color="primary" />
-                        <Typography fontWeight={600}>
-                          {staffMember.staffName || 'Không rõ tên'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {staffMember.roomName || 'Chưa gán phòng'}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Chưa có nhân viên được gán cho ca giữ trẻ này.
-          </Typography>
-        )}
-      </Box>
-    );
-  }, []);
+  const assignRoomsDefaultValues = useMemo(
+    () => ({
+      roomIds: assignedRooms || []
+    }),
+    [assignedRooms]
+  );
+
 
   const renderTimeframeFilter = (value, onChange) => (
     <FormControl className={styles.statusFilter} size="small" variant="outlined">
@@ -538,10 +583,8 @@ const ManagerBranchSlotManagement = () => {
           onView={(slot) => navigate(`/manager/branch-slots/detail/${slot.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          expandableConfig={{
-            isRowExpandable: (item) => true, // Always expandable to show assign button
-            renderExpandedContent: (item) => renderStaffDetails(item?.staff || [], item)
-          }}
+          onAssignRooms={handleAssignRooms}
+          onAssignStaff={handleAssignStaff}
           emptyMessage="Không có ca giữ trẻ nào. Hãy thêm ca giữ trẻ đầu tiên để bắt đầu."
         />
       </div>
@@ -585,6 +628,30 @@ const ManagerBranchSlotManagement = () => {
           loading={assignStaffLoading || loadingRooms || dependenciesLoading}
           disabled={assignStaffLoading || loadingRooms || dependenciesLoading}
           fields={assignStaffFormFields}
+        />
+      </ManagementFormDialog>
+
+      <ManagementFormDialog
+        open={assignRoomsDialog.open}
+        onClose={() => {
+          setAssignRoomsDialog({ open: false, branchSlot: null });
+          setAssignedRooms([]);
+        }}
+        mode="create"
+        title="Gán Phòng"
+        icon={AssignRoomIcon}
+        loading={assignRoomsLoading || loadingAssignedRooms || dependenciesLoading}
+        maxWidth="sm"
+      >
+        <Form
+          key={`assign-rooms-${assignRoomsDialog.branchSlot?.id || 'new'}`}
+          schema={assignRoomsSchema}
+          defaultValues={assignRoomsDefaultValues}
+          onSubmit={handleAssignRoomsSubmit}
+          submitText="Gán Phòng"
+          loading={assignRoomsLoading || loadingAssignedRooms || dependenciesLoading}
+          disabled={assignRoomsLoading || loadingAssignedRooms || dependenciesLoading}
+          fields={assignRoomsFormFields}
         />
       </ManagementFormDialog>
 

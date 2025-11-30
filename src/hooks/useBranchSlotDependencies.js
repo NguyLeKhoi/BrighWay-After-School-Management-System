@@ -70,7 +70,8 @@ const useBranchSlotDependencies = () => {
 
   const roomOptions = rooms.map(room => ({
     id: room.id,
-    name: room.roomName || room.name
+    name: room.roomName || room.name,
+    facilityName: room.facilityName || null
   }));
 
   const staffOptions = staff.map(user => ({

@@ -81,6 +81,7 @@ import ManagerStudentManagement from '../pages/manager/studentManagement';
 import ManagerBranchSlotManagement from '../pages/manager/branchSlotManagement';
 import CreateBranchSlot from '../pages/manager/branchSlotManagement/CreateBranchSlot';
 import UpdateBranchSlot from '../pages/manager/branchSlotManagement/UpdateBranchSlot';
+import BranchSlotDetail from '../pages/manager/branchSlotManagement/BranchSlotDetail';
 import CreateStudent from '../pages/manager/studentManagement/CreateStudent';
 import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
 
@@ -441,6 +442,10 @@ export const routes = createBrowserRouter([
       {
         path: 'branch-slots/update/:id',
         element: <UpdateBranchSlot />,
+      },
+      {
+        path: 'branch-slots/detail/:id',
+        element: <BranchSlotDetail />,
       },
       {
         path: 'profile',

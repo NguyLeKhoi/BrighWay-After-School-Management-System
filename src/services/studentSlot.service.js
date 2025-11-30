@@ -47,6 +47,20 @@ const studentSlotService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  cancelSlot: async (slotId, studentId) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (slotId) queryParams.append('slotId', slotId);
+      if (studentId) queryParams.append('studentId', studentId);
+      const queryString = queryParams.toString();
+      const url = queryString ? `/StudentSlot/cancel?${queryString}` : '/StudentSlot/cancel';
+      const response = await axiosInstance.delete(url);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 
