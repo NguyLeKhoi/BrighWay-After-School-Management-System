@@ -210,6 +210,36 @@ const branchSlotService = {
       console.error('getRoomsByBranchSlot API error:', { branchSlotId, error: error.response?.data || error.message });
       throw error.response?.data || error.message;
     }
+  },
+
+  /**
+   * Unassign a staff from a specific branch slot
+   * @param {string} branchSlotId - Branch slot ID
+   * @param {string} staffId - Staff ID (userId)
+   * @returns {Promise} Unassignment result
+   */
+  unassignStaff: async (branchSlotId, staffId) => {
+    try {
+      const response = await axiosInstance.delete(`/BranchSlot/${branchSlotId}/staff/${staffId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Unassign a room from a specific branch slot
+   * @param {string} branchSlotId - Branch slot ID
+   * @param {string} roomId - Room ID
+   * @returns {Promise} Unassignment result
+   */
+  unassignRoom: async (branchSlotId, roomId) => {
+    try {
+      const response = await axiosInstance.delete(`/BranchSlot/${branchSlotId}/rooms/${roomId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

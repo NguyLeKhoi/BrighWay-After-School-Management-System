@@ -118,8 +118,15 @@ const PackageSelect = () => {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
-              gap: 3
+              gridTemplateColumns: { 
+                xs: '1fr', 
+                sm: 'repeat(2, 1fr)', 
+                md: children.length <= 4 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', 
+                lg: children.length <= 4 ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' 
+              },
+              gap: 4,
+              maxWidth: children.length <= 4 ? '800px' : '100%',
+              margin: children.length <= 4 ? '0 auto' : 0
             }}
           >
             {children.map((child) => (
@@ -135,6 +142,9 @@ const PackageSelect = () => {
                   borderRadius: 'var(--radius-xl)',
                   overflow: 'hidden',
                   transition: 'all var(--transition-base)',
+                  minHeight: children.length <= 4 ? '280px' : 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
                   '&:hover': {
                     borderColor: 'var(--color-secondary)',
                     boxShadow: 'var(--shadow-md)',
@@ -142,65 +152,79 @@ const PackageSelect = () => {
                   }
                 }}
               >
-                <CardActionArea onClick={() => handleSelectChild(child.id)}>
-                  <CardContent sx={{ padding: 3 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                      <Avatar
+                <CardActionArea 
+                  onClick={() => handleSelectChild(child.id)}
+                  sx={{ 
+                    flex: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    alignItems: 'stretch',
+                    '& .MuiCardActionArea-focusHighlight': {
+                      background: 'transparent'
+                    }
+                  }}
+                >
+                  <CardContent sx={{ padding: 4, flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2.5 }}>
+                    <Avatar
+                      src={child.image && child.image !== 'string' ? child.image : undefined}
+                      sx={{
+                        width: 100,
+                        height: 100,
+                        bgcolor: 'var(--color-secondary-100)',
+                        color: 'var(--color-secondary)',
+                        fontSize: 40,
+                        fontWeight: 'var(--font-weight-bold)',
+                        border: '3px solid var(--color-secondary-50)'
+                      }}
+                    >
+                      {child.name?.[0]?.toUpperCase() || child.userName?.[0]?.toUpperCase() || 'C'}
+                    </Avatar>
+                    <Box sx={{ textAlign: 'center', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <Typography
+                        variant="h5"
                         sx={{
-                          width: 80,
-                          height: 80,
-                          bgcolor: 'var(--color-secondary-100)',
-                          color: 'var(--color-secondary)',
-                          fontSize: 32,
-                          fontWeight: 'var(--font-weight-bold)'
+                          fontFamily: 'var(--font-family-heading)',
+                          fontWeight: 'var(--font-weight-bold)',
+                          color: 'var(--text-primary)',
+                          marginBottom: 1
                         }}
                       >
-                        {child.name?.[0]?.toUpperCase() || child.userName?.[0]?.toUpperCase() || 'C'}
-                      </Avatar>
-                      <Box sx={{ textAlign: 'center', width: '100%' }}>
+                        {child.name || child.userName || 'Chưa có tên'}
+                      </Typography>
+                      {child.branchName && (
                         <Typography
-                          variant="h6"
+                          variant="body1"
                           sx={{
-                            fontFamily: 'var(--font-family-heading)',
-                            fontWeight: 'var(--font-weight-bold)',
-                            color: 'var(--text-primary)',
-                            marginBottom: 0.5
-                          }}
-                        >
-                          {child.name || child.userName || 'Chưa có tên'}
-                        </Typography>
-                        {child.branchName && (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: 'var(--text-secondary)',
-                              fontFamily: 'var(--font-family)'
-                            }}
-                          >
-                            {child.branchName}
-                          </Typography>
-                        )}
-                      </Box>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          color: 'var(--color-secondary)',
-                          marginTop: 1
-                        }}
-                      >
-                        <Typography
-                          variant="body2"
-                          sx={{
+                            color: 'var(--text-secondary)',
                             fontFamily: 'var(--font-family)',
-                            fontWeight: 'var(--font-weight-semibold)'
+                            fontSize: '0.95rem'
                           }}
                         >
-                          Mua gói
+                          {child.branchName}
                         </Typography>
-                        <ArrowForward sx={{ fontSize: 18 }} />
-                      </Box>
+                      )}
+                    </Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        color: 'var(--color-secondary)',
+                        marginTop: 'auto',
+                        pt: 2
+                      }}
+                    >
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontFamily: 'var(--font-family)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          fontSize: '1rem'
+                        }}
+                      >
+                        Mua gói
+                      </Typography>
+                      <ArrowForward sx={{ fontSize: 20 }} />
                     </Box>
                   </CardContent>
                 </CardActionArea>
