@@ -99,7 +99,7 @@ const UserLayout = () => {
       <Box sx={{ display: 'flex' }}>
         {/* Generic Drawer */}
         <GenericDrawer
-          title="BRIGHWAY"
+          title="BRIGHTWAY"
           subtitle="Cổng Người Dùng"
           menuItems={menuItems}
           onLogout={handleLogout}

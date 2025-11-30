@@ -109,7 +109,7 @@ const Contact = () => {
                 <h1 className={styles.contactTitle}>Liên Hệ Với Chúng Tôi</h1>
                 <p className={styles.contactSubtitle}>
                   Bạn đang tìm kiếm dịch vụ giữ trẻ chất lượng với các hoạt động ngoài giờ phong phú? 
-                  Hãy liên hệ với BRIGHWAY ngay hôm nay! Đội ngũ của chúng tôi luôn sẵn sàng tư vấn và hỗ trợ bạn 
+                  Hãy liên hệ với BRIGHTWAY ngay hôm nay! Đội ngũ của chúng tôi luôn sẵn sàng tư vấn và hỗ trợ bạn 
                   tìm được giải pháp phù hợp nhất cho con em của bạn.
                 </p>
                 
@@ -139,7 +139,7 @@ const Contact = () => {
               >
                 <img 
                   src="/images/6.jpg" 
-                  alt="Liên hệ BRIGHWAY - Dịch vụ giữ trẻ an toàn và chất lượng"
+                  alt="Liên hệ BRIGHTWAY - Dịch vụ giữ trẻ an toàn và chất lượng"
                   className={styles.contactImage}
                 />
               </motion.div>

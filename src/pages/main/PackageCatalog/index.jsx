@@ -108,7 +108,7 @@ const PackageCatalog = () => {
   const heroImage = (
     <img 
       src="/images/3.jpg" 
-      alt="Các gói dịch vụ giữ trẻ tại BRIGHWAY"
+      alt="Các gói dịch vụ giữ trẻ tại BRIGHTWAY"
       className={styles.heroImageImg}
     />
   );
@@ -176,7 +176,7 @@ const PackageCatalog = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Chào mừng bạn đến với danh mục gói dịch vụ của BRIGHWAY! Chúng tôi cung cấp các gói dịch vụ giữ trẻ đa dạng, 
+              Chào mừng bạn đến với danh mục gói dịch vụ của BRIGHTWAY! Chúng tôi cung cấp các gói dịch vụ giữ trẻ đa dạng, 
               được thiết kế phù hợp với từng độ tuổi và nhu cầu của trẻ em. Mỗi gói dịch vụ bao gồm các hoạt động ngoài giờ 
               phong phú, giúp trẻ phát triển toàn diện về thể chất, tinh thần và kỹ năng xã hội trong môi trường an toàn và vui vẻ.
             </motion.p>
