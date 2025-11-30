@@ -50,6 +50,7 @@ const PackageManagement = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
   const {
     benefits,
     benefitOptions,

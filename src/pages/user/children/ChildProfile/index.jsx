@@ -76,6 +76,8 @@ const ChildProfile = () => {
   const location = useLocation();
   const isInitialMount = useRef(true);
   const { showGlobalError } = useApp();
+
+
   const [child, setChild] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

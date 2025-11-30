@@ -18,10 +18,9 @@ import {
   ArrowBack, 
   ViewList, 
   CalendarMonth, 
-  CalendarToday, 
-  AccessTime, 
-  MeetingRoom, 
-  Business, 
+  CalendarToday,
+  AccessTime,
+  MeetingRoom,
   Person,
   CheckCircle
 } from '@mui/icons-material';
@@ -46,6 +45,7 @@ const StaffAssignments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'schedule'
+
   
   // Pagination states for each section
   const [pagination, setPagination] = useState({
@@ -436,18 +436,6 @@ const StaffAssignments = () => {
         }
       },
       {
-        key: 'student',
-        header: (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Person fontSize="small" />
-            <span>Học sinh</span>
-          </Box>
-        ),
-        render: (value, item) => {
-          return item.student?.name || item.studentName || 'Chưa xác định';
-        }
-      },
-      {
         key: 'room',
         header: (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -457,18 +445,6 @@ const StaffAssignments = () => {
         ),
         render: (value, item) => {
           return item.room?.roomName || item.roomName || item.branchSlot?.roomName || 'Chưa xác định';
-        }
-      },
-      {
-        key: 'branch',
-        header: (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Business fontSize="small" />
-            <span>Chi nhánh</span>
-          </Box>
-        ),
-        render: (value, item) => {
-          return item.branchSlot?.branchName || item.branchName || 'Chưa xác định';
         }
       },
       {

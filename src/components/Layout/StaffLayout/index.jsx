@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import ManagerStaffHeader from '../../Headers/ManagementHeader';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import PageTransition from '../../Common/PageTransition';
+import ScrollToTop from '../../Common/ScrollToTop';
 import {
   Dashboard as DashboardIcon,
   Category as ActivityTypeIcon,
@@ -67,6 +68,7 @@ const StaffLayout = () => {
             transition: 'background-color 0.3s ease'
           }}
         >
+          <ScrollToTop />
           <PageTransition>
             <Outlet />
           </PageTransition>

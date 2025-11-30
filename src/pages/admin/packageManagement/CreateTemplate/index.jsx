@@ -226,6 +226,7 @@ const CreateTemplate = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
 
+
   const steps = useMemo(() => ([
     { label: 'Thông tin cơ bản', component: Step1TemplateBasic },
     { label: 'Giá & Thời hạn', component: Step2PricingDuration },

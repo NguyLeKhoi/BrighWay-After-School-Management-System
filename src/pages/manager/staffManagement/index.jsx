@@ -31,6 +31,7 @@ const StaffManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isInitialMount = React.useRef(true);
+
   
   // Staff CRUD - memoize loadFunction to prevent unnecessary re-renders
   const loadStaffFunction = useCallback(async (params) => {

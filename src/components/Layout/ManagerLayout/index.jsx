@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import ManagerStaffHeader from '../../Headers/ManagementHeader';
 import PageTransition from '../../Common/PageTransition';
+import ScrollToTop from '../../Common/ScrollToTop';
 import {
   Person as UserIcon,
   School as CoursesIcon,
@@ -106,6 +107,7 @@ const ManagerLayout = () => {
             transition: 'background-color 0.3s ease'
           }}
         >
+          <ScrollToTop />
           <PageTransition>
             <Outlet />
           </PageTransition>

@@ -22,6 +22,7 @@ const ChildSchedule = () => {
   const isInitialMount = useRef(true);
   const { showGlobalError, addNotification } = useApp();
 
+
   // Redirect if no childId
   useEffect(() => {
     if (!childId) {

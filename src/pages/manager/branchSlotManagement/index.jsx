@@ -53,6 +53,8 @@ const ManagerBranchSlotManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isInitialMount = useRef(true);
+
+
   const {
     timeframeOptions,
     slotTypeOptions,

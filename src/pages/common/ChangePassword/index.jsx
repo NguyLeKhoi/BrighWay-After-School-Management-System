@@ -69,6 +69,7 @@ const ChangePassword = () => {
 
   const profilePath = getProfilePath(user?.role);
 
+
   useEffect(() => {
     if (user?.email) {
       setEmail(user.email);

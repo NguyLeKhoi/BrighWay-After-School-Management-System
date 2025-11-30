@@ -49,6 +49,7 @@ const MyPackages = () => {
   const selectedStudentId = childId || searchParams.get('studentId');
   const tabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabFromUrl && ['available', 'purchased'].includes(tabFromUrl) ? tabFromUrl : 'purchased');
+
   const [availablePackages, setAvailablePackages] = useState([]);
   const [purchasedPackages, setPurchasedPackages] = useState([]);
   const [services, setServices] = useState([]);

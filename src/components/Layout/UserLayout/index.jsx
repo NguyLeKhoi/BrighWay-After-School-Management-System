@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import GenericDrawer from '../../Common/Drawer/GenericDrawer';
 import UserHeader from '../../Headers/UserHeader';
 import PageTransition from '../../Common/PageTransition';
+import ScrollToTop from '../../Common/ScrollToTop';
 import {
   Person as PersonIcon,
   Dashboard as DashboardIcon,
@@ -117,6 +118,7 @@ const UserLayout = () => {
             transition: 'background-color 0.3s ease'
           }}
         >
+          <ScrollToTop />
           <PageTransition>
             <Outlet />
           </PageTransition>

@@ -109,6 +109,7 @@ const BranchSlotDetail = () => {
   const [assignedRooms, setAssignedRooms] = useState([]);
   const [loadingAssignedRooms, setLoadingAssignedRooms] = useState(false);
 
+
   const loadData = useCallback(async () => {
     if (!id) {
       setError('Thiếu thông tin cần thiết');

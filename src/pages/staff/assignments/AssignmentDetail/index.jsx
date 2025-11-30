@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -29,7 +29,7 @@ import {
   Checkbox,
   FormControlLabel,
   Collapse,
-  InputAdornment
+  InputAdornment,
 } from '@mui/material';
 import { 
   ArrowBack,
@@ -53,6 +53,7 @@ import { toast } from 'react-toastify';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import ImageUpload from '../../../../components/Common/ImageUpload';
+import DataTable from '../../../../components/Common/DataTable';
 import studentSlotService from '../../../../services/studentSlot.service';
 import activityService from '../../../../services/activity.service';
 import activityTypeService from '../../../../services/activityType.service';
@@ -77,14 +78,20 @@ const AssignmentDetail = () => {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState(null);
   
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  
   // Activities state - theo từng học sinh
   const [activitiesByStudent, setActivitiesByStudent] = useState({});
   const [loadingActivities, setLoadingActivities] = useState({});
-  const [expandedActivities, setExpandedActivities] = useState(new Set());
   
   // Check-in state
   const [checkedStudents, setCheckedStudents] = useState(new Set());
   const [checkingIn, setCheckingIn] = useState(new Set());
+  const [checkinDeleteDialogOpen, setCheckinDeleteDialogOpen] = useState(false);
+  const [checkinToDelete, setCheckinToDelete] = useState(null);
+  const [deletingCheckin, setDeletingCheckin] = useState(false);
   
   // Activity types
   const [activityTypes, setActivityTypes] = useState([]);
@@ -108,6 +115,7 @@ const AssignmentDetail = () => {
   // Loading states
   const [submittingActivity, setSubmittingActivity] = useState(false);
   const [deletingActivity, setDeletingActivity] = useState(false);
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -226,10 +234,29 @@ const AssignmentDetail = () => {
       });
       setFilteredStudentsList(filtered);
     }
+    // Reset to first page when search changes
+    setPage(0);
   }, [searchTerm, studentsList]);
 
+  // Pagination handlers
+  const handlePageChange = useCallback((event, newPage) => {
+    setPage(newPage);
+  }, []);
+
+  const handleRowsPerPageChange = useCallback((event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  }, []);
+
+  // Paginated data
+  const paginatedStudents = useMemo(() => {
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return filteredStudentsList.slice(startIndex, endIndex);
+  }, [filteredStudentsList, page, rowsPerPage]);
+
   // Load activities for a student
-  const loadActivitiesForStudent = async (studentSlotId) => {
+  const loadActivitiesForStudent = useCallback(async (studentSlotId) => {
     if (loadingActivities[studentSlotId]) {
       return;
     }
@@ -247,6 +274,20 @@ const AssignmentDetail = () => {
         ...prev,
         [studentSlotId]: activities
       }));
+
+      // Update checked students based on check-in activities
+      const hasCheckin = activities.some(activity => 
+        activity.activityType?.name === 'Điểm danh vào' && 
+        !activity.isDeleted
+      );
+      
+      if (hasCheckin) {
+        // Find the student slot to get studentId
+        const slot = studentsList.find(s => s.id === studentSlotId);
+        if (slot?.studentId) {
+          setCheckedStudents(prev => new Set(prev).add(slot.studentId));
+        }
+      }
     } catch (err) {
       console.error('Error loading activities:', err);
       setActivitiesByStudent(prev => ({
@@ -256,27 +297,30 @@ const AssignmentDetail = () => {
     } finally {
       setLoadingActivities(prev => ({ ...prev, [studentSlotId]: false }));
     }
-  };
+  }, [loadingActivities, studentsList]);
 
-  // Toggle expand/collapse activities
-  const handleToggleActivities = (studentSlotId) => {
-    setExpandedActivities(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(studentSlotId)) {
-        newSet.delete(studentSlotId);
-      } else {
-        newSet.add(studentSlotId);
-        // Load activities when expanding if not already loaded
-        if (studentSlotId && !activitiesByStudent[studentSlotId]) {
-          loadActivitiesForStudent(studentSlotId);
-        }
-      }
-      return newSet;
+  // Find check-in activity for a student slot
+  const findCheckinActivity = useCallback((studentSlotId) => {
+    const activities = activitiesByStudent[studentSlotId] || [];
+    return activities.find(activity => 
+      activity.activityType?.name === 'Điểm danh vào' && 
+      !activity.isDeleted
+    );
+  }, [activitiesByStudent]);
+
+  // Activity handlers - must be defined before columns
+  const handleCreateActivity = useCallback((slot) => {
+    setSelectedStudentSlot(slot);
+    setActivityForm({
+      activityTypeId: '',
+      note: '',
+      imageFile: null
     });
-  };
+    setActivityDialogOpen(true);
+  }, []);
 
   // Check-in handler
-  const handleCheckinToggle = async (slot, checked) => {
+  const handleCheckinToggle = useCallback(async (slot, checked) => {
     if (!slot.studentId) {
       toast.error('Không tìm thấy ID học sinh', {
         position: 'top-right',
@@ -290,6 +334,17 @@ const AssignmentDetail = () => {
       try {
         await activityService.checkinStaff(slot.studentId);
         setCheckedStudents(prev => new Set(prev).add(slot.studentId));
+        
+        // Reload activities to show new check-in
+        if (slot.id) {
+          setActivitiesByStudent(prev => {
+            const newState = { ...prev };
+            delete newState[slot.id];
+            return newState;
+          });
+          await loadActivitiesForStudent(slot.id);
+        }
+        
         toast.success(`Đã điểm danh cho ${slot.studentName || 'học sinh'}`, {
           position: 'top-right',
           autoClose: 3000
@@ -308,25 +363,206 @@ const AssignmentDetail = () => {
         });
       }
     } else {
-      setCheckedStudents(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(slot.studentId);
-        return newSet;
+      // Uncheck: Find and delete check-in activity if exists
+      const checkinActivity = findCheckinActivity(slot.id);
+      
+      if (checkinActivity) {
+        // Check if current user created this activity (can only delete own activities)
+        if (checkinActivity.createdById === user?.id) {
+          // Open confirmation dialog
+          setCheckinToDelete({ activity: checkinActivity, slot });
+          setCheckinDeleteDialogOpen(true);
+        } else {
+          toast.error('Bạn chỉ có thể xóa điểm danh do chính mình tạo', {
+            position: 'top-right',
+            autoClose: 4000
+          });
+          // Re-check the checkbox
+          setCheckedStudents(prev => new Set(prev).add(slot.studentId));
+        }
+      } else {
+        // No check-in activity, just uncheck
+        setCheckedStudents(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(slot.studentId);
+          return newSet;
+        });
+      }
+    }
+  }, [findCheckinActivity, loadActivitiesForStudent, user?.id]);
+
+  // Columns definition
+  const columns = useMemo(() => [
+    {
+      key: 'checkin',
+      header: 'Điểm danh',
+      align: 'left',
+      render: (_, slot) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Checkbox
+            checked={checkedStudents.has(slot.studentId)}
+            onChange={(e) => handleCheckinToggle(slot, e.target.checked)}
+            disabled={checkingIn.has(slot.studentId)}
+            color="primary"
+            size="small"
+          />
+          {checkingIn.has(slot.studentId) && (
+            <CircularProgress size={16} />
+          )}
+        </Box>
+      )
+    },
+    {
+      key: 'studentName',
+      header: 'Tên học sinh',
+      render: (_, slot) => (
+        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+          {slot.studentName || 'Chưa có tên'}
+        </Typography>
+      )
+    },
+    {
+      key: 'parentName',
+      header: 'Phụ huynh',
+      render: (_, slot) => (
+        <Typography variant="body2" color="text.secondary">
+          {slot.parentName || 'Chưa có thông tin'}
+        </Typography>
+      )
+    },
+    {
+      key: 'parentNote',
+      header: 'Ghi chú',
+      render: (_, slot) => (
+        slot.parentNote ? (
+          <Typography 
+            variant="body2" 
+            color="text.secondary" 
+            sx={{ fontStyle: 'italic', maxWidth: 300 }}
+            noWrap
+          >
+            {slot.parentNote}
+          </Typography>
+        ) : (
+          <Typography variant="body2" color="text.disabled">
+            -
+          </Typography>
+        )
+      )
+    },
+    {
+      key: 'status',
+      header: 'Trạng thái',
+      align: 'left',
+      render: (_, slot) => (
+        <Chip
+          label={slot.status === 'Booked' || slot.status === 'booked' ? 'Đã đăng ký' : slot.status}
+          color={slot.status === 'Booked' || slot.status === 'booked' ? 'success' : 'default'}
+          size="small"
+        />
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Thao tác',
+      align: 'center',
+      render: (_, slot) => {
+        const studentSlotId = slot.id;
+        const activities = activitiesByStudent[studentSlotId] || [];
+        const isLoadingActivities = loadingActivities[studentSlotId];
+        
+        return (
+          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Tooltip title="Tạo hoạt động">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreateActivity(slot);
+                }}
+                color="primary"
+              >
+                <AddPhotoIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            {activities.length > 0 && (
+              <Chip
+                label={activities.length}
+                size="small"
+                color="primary"
+                sx={{
+                  minWidth: 28,
+                  height: 20,
+                  fontSize: '0.7rem',
+                  fontWeight: 600
+                }}
+              />
+            )}
+          </Box>
+        );
+      }
+    }
+  ], [checkedStudents, checkingIn, activitiesByStudent, loadingActivities, handleCheckinToggle, handleCreateActivity]);
+
+  // Confirm delete check-in
+  const handleConfirmDeleteCheckin = async () => {
+    if (!checkinToDelete?.activity) return;
+
+    setDeletingCheckin(true);
+    try {
+      await activityService.deleteActivity(checkinToDelete.activity.id);
+      
+      toast.success('Đã xóa điểm danh', {
+        position: 'top-right',
+        autoClose: 3000
       });
+      
+      // Update checked students
+      if (checkinToDelete.slot?.studentId) {
+        setCheckedStudents(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(checkinToDelete.slot.studentId);
+          return newSet;
+        });
+      }
+      
+      // Reload activities
+      if (checkinToDelete.slot?.id) {
+        setActivitiesByStudent(prev => {
+          const newState = { ...prev };
+          delete newState[checkinToDelete.slot.id];
+          return newState;
+        });
+        await loadActivitiesForStudent(checkinToDelete.slot.id);
+      }
+      
+      setCheckinDeleteDialogOpen(false);
+      setCheckinToDelete(null);
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể xóa điểm danh';
+      toast.error(errorMessage, {
+        position: 'top-right',
+        autoClose: 4000
+      });
+    } finally {
+      setDeletingCheckin(false);
+    }
+  };
+
+  const handleCloseCheckinDeleteDialog = () => {
+    if (!deletingCheckin) {
+      const slotToRevert = checkinToDelete?.slot;
+      setCheckinDeleteDialogOpen(false);
+      setCheckinToDelete(null);
+      
+      // Re-check the checkbox if canceled
+      if (slotToRevert?.studentId) {
+        setCheckedStudents(prev => new Set(prev).add(slotToRevert.studentId));
+      }
     }
   };
 
   // Activity handlers
-  const handleCreateActivity = (slot) => {
-    setSelectedStudentSlot(slot);
-    setActivityForm({
-      activityTypeId: '',
-      note: '',
-      imageFile: null
-    });
-    setActivityDialogOpen(true);
-  };
-
   const handleViewActivity = async (activity) => {
     try {
       const fullActivity = await activityService.getActivityById(activity.id);
@@ -535,6 +771,9 @@ const AssignmentDetail = () => {
   const handleConfirmDeleteActivity = async () => {
     if (!selectedActivity) return;
 
+    const wasCheckinActivity = selectedActivity.activityType?.name === 'Điểm danh vào';
+    const studentSlotIdToReload = selectedActivity.studentSlotId;
+
     setDeletingActivity(true);
     try {
       await activityService.deleteActivity(selectedActivity.id);
@@ -545,13 +784,26 @@ const AssignmentDetail = () => {
       handleCloseActivityDeleteDialog();
       
       // Reload activities
-      if (selectedActivity.studentSlotId) {
+      if (studentSlotIdToReload) {
         setActivitiesByStudent(prev => {
           const newState = { ...prev };
-          delete newState[selectedActivity.studentSlotId];
+          delete newState[studentSlotIdToReload];
           return newState;
         });
-        await loadActivitiesForStudent(selectedActivity.studentSlotId);
+        await loadActivitiesForStudent(studentSlotIdToReload);
+        
+        // If deleted activity was a check-in, update checked students
+        if (wasCheckinActivity) {
+          // Find the slot to get studentId
+          const slot = studentsList.find(s => s.id === studentSlotIdToReload);
+          if (slot?.studentId) {
+            setCheckedStudents(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(slot.studentId);
+              return newSet;
+            });
+          }
+        }
       }
     } catch (err) {
       const errorMessage = err?.response?.data?.message || err?.message || 'Không thể xóa hoạt động';
@@ -568,6 +820,122 @@ const AssignmentDetail = () => {
   const handleBack = () => {
     navigate('/staff/assignments');
   };
+
+  // ExpandedActivitiesContent component - renders activities when row is expanded
+  const ExpandedActivitiesContent = React.memo(({ row }) => {
+    const studentSlotId = row.id;
+    const activities = activitiesByStudent[studentSlotId] || [];
+    const isLoadingActivities = loadingActivities[studentSlotId];
+
+    // Load activities when component mounts (row is expanded)
+    useEffect(() => {
+      if (studentSlotId && !activitiesByStudent[studentSlotId] && !loadingActivities[studentSlotId]) {
+        loadActivitiesForStudent(studentSlotId);
+      }
+    }, [studentSlotId, activitiesByStudent, loadingActivities]);
+
+    if (isLoadingActivities) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      );
+    }
+
+    if (activities.length === 0) {
+      return (
+        <Alert severity="info" sx={{ m: 2 }}>
+          Chưa có hoạt động nào cho học sinh này.
+        </Alert>
+      );
+    }
+
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, m: 2 }}>
+        {activities.map((activity) => (
+          <Card 
+            key={activity.id} 
+            sx={{ 
+              borderRadius: 'var(--radius-lg)', 
+              border: '1px solid var(--border-light)', 
+              backgroundColor: 'var(--bg-secondary)' 
+            }}
+          >
+            <CardContent sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                <Chip 
+                  label={activity.activityType?.name || 'Chưa xác định'} 
+                  color="primary" 
+                  size="small" 
+                  sx={{ fontWeight: 600 }} 
+                />
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <Tooltip title="Xem chi tiết">
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleViewActivity(activity)} 
+                      sx={{ color: 'primary.main' }}
+                    >
+                      <VisibilityIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Sửa">
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleEditActivity(activity)} 
+                      sx={{ color: 'warning.main' }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Xóa">
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleDeleteActivity(activity)} 
+                      sx={{ color: 'error.main' }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+              {activity.imageUrl && (
+                <Box 
+                  sx={{ 
+                    width: '100%', 
+                    height: 100, 
+                    borderRadius: 1, 
+                    overflow: 'hidden', 
+                    mb: 1, 
+                    backgroundColor: 'grey.100' 
+                  }}
+                >
+                  <img 
+                    src={activity.imageUrl} 
+                    alt={activity.activityType?.name || 'Hoạt động'} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                </Box>
+              )}
+              {activity.note && (
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  {activity.note}
+                </Typography>
+              )}
+              <Typography variant="caption" color="text.secondary">
+                {formatDateTimeUTC7(activity.createdTime || activity.createdDate)}
+              </Typography>
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+    );
+  });
+
+  // Expandable config for DataTable
+  const expandableConfig = useMemo(() => ({
+    renderExpandedContent: (row) => <ExpandedActivitiesContent row={row} />
+  }), [activitiesByStudent, loadingActivities, loadActivitiesForStudent, handleViewActivity, handleEditActivity, handleDeleteActivity]);
 
   const formatTimeDisplay = (time) => {
     if (!time) return '00:00';
@@ -670,7 +1038,7 @@ const AssignmentDetail = () => {
 
         <Grid container spacing={3}>
           {/* Slot Information */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12}>
             <Paper 
               elevation={0}
               sx={{
@@ -678,7 +1046,8 @@ const AssignmentDetail = () => {
                 borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--border-light)',
                 backgroundColor: 'var(--bg-primary)',
-                height: '100%'
+                maxWidth: 800,
+                margin: '0 auto'
               }}
             >
               <Typography 
@@ -779,15 +1148,14 @@ const AssignmentDetail = () => {
           </Grid>
 
           {/* Students List with Activities */}
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12}>
             <Paper 
               elevation={0}
               sx={{
                 padding: 3,
                 borderRadius: 'var(--radius-xl)',
                 border: '1px solid var(--border-light)',
-                backgroundColor: 'var(--bg-primary)',
-                height: '100%'
+                backgroundColor: 'var(--bg-primary)'
               }}
             >
               <Typography 
@@ -840,278 +1208,19 @@ const AssignmentDetail = () => {
                       Không tìm thấy học sinh nào phù hợp với từ khóa "{searchTerm}".
                     </Alert>
                   ) : (
-                    <List sx={{ pt: 0, maxHeight: '70vh', overflowY: 'auto' }}>
-                      {filteredStudentsList.map((slot, index) => {
-                        const studentSlotId = slot.id;
-                        const activities = activitiesByStudent[studentSlotId] || [];
-                        const isLoadingActivities = loadingActivities[studentSlotId];
-                        
-                        return (
-                          <React.Fragment key={slot.id || index}>
-                            <ListItem
-                              sx={{ 
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
-                                py: 2,
-                                px: 2,
-                                borderRadius: 1,
-                                mb: 2,
-                                bgcolor: 'background.paper',
-                                border: '1px solid',
-                                borderColor: 'divider'
-                              }}
-                            >
-                              {/* Student Info */}
-                              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                                  <FormControlLabel
-                                    control={
-                                      <Checkbox
-                                        checked={checkedStudents.has(slot.studentId)}
-                                        onChange={(e) => handleCheckinToggle(slot, e.target.checked)}
-                                        disabled={checkingIn.has(slot.studentId)}
-                                        color="primary"
-                                      />
-                                    }
-                                    label={
-                                      <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                          {slot.studentName || 'Chưa có tên'}
-                                        </Typography>
-                                        {slot.parentName && (
-                                          <Typography variant="body2" color="text.secondary">
-                                            Phụ huynh: {slot.parentName}
-                                          </Typography>
-                                        )}
-                                        {slot.parentNote && (
-                                          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                            Ghi chú: {slot.parentNote}
-                                          </Typography>
-                                        )}
-                                      </Box>
-                                    }
-                                    sx={{ margin: 0 }}
-                                  />
-                                  {checkingIn.has(slot.studentId) && (
-                                    <CircularProgress size={20} />
-                                  )}
-                                </Box>
-                                <Chip
-                                  label={slot.status === 'Booked' || slot.status === 'booked' ? 'Đã đăng ký' : slot.status}
-                                  color={slot.status === 'Booked' || slot.status === 'booked' ? 'success' : 'default'}
-                                  size="small"
-                                />
-                              </Box>
-
-                              {/* Create Activity Button */}
-                              <Button
-                                variant="contained"
-                                startIcon={<AddPhotoIcon />}
-                                onClick={() => handleCreateActivity(slot)}
-                                size="small"
-                                sx={{ mb: 2 }}
-                              >
-                                Tạo hoạt động
-                              </Button>
-
-                              {/* Activities Section with Expand/Collapse */}
-                              <Box sx={{ width: '100%', mt: 2 }}>
-                                <Card
-                                  onClick={() => handleToggleActivities(studentSlotId)}
-                                  sx={{ 
-                                    cursor: 'pointer',
-                                    borderRadius: 'var(--radius-lg)',
-                                    border: '1px solid',
-                                    borderColor: expandedActivities.has(studentSlotId) ? 'primary.main' : 'divider',
-                                    backgroundColor: expandedActivities.has(studentSlotId) ? 'primary.50' : 'background.paper',
-                                    boxShadow: expandedActivities.has(studentSlotId) ? 'var(--shadow-sm)' : 'none',
-                                    transition: 'all 0.2s ease',
-                                    '&:hover': {
-                                      borderColor: 'primary.main',
-                                      backgroundColor: 'primary.50',
-                                      boxShadow: 'var(--shadow-sm)',
-                                      transform: 'translateY(-1px)'
-                                    }
-                                  }}
-                                >
-                                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <Box
-                                          sx={{
-                                            width: 40,
-                                            height: 40,
-                                            borderRadius: 'var(--radius-md)',
-                                            backgroundColor: expandedActivities.has(studentSlotId) ? 'primary.main' : 'action.hover',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            transition: 'all 0.2s ease'
-                                          }}
-                                        >
-                                          <EventIcon
-                                            sx={{
-                                              color: expandedActivities.has(studentSlotId) ? 'white' : 'primary.main',
-                                              fontSize: 20
-                                            }}
-                                          />
-                                        </Box>
-                                        <Box>
-                                          <Typography 
-                                            variant="subtitle1"
-                                            sx={{
-                                              fontWeight: 600,
-                                              color: 'text.primary',
-                                              fontFamily: 'var(--font-family-heading)'
-                                            }}
-                                          >
-                                            Hoạt động
-                                          </Typography>
-                                          <Typography 
-                                            variant="caption" 
-                                            color="text.secondary"
-                                            sx={{ display: 'block', mt: 0.25 }}
-                                          >
-                                            {isLoadingActivities
-                                              ? 'Đang tải...'
-                                              : activities.length === 0
-                                              ? 'Chưa có hoạt động'
-                                              : `${activities.length} hoạt động đã tạo`}
-                                          </Typography>
-                                        </Box>
-                                      </Box>
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        {isLoadingActivities ? (
-                                          <CircularProgress size={20} />
-                                        ) : (
-                                          <Chip
-                                            label={activities.length}
-                                            size="small"
-                                            color="primary"
-                                            sx={{
-                                              minWidth: 36,
-                                              height: 24,
-                                              fontSize: '0.75rem',
-                                              fontWeight: 600
-                                            }}
-                                          />
-                                        )}
-                                        <IconButton
-                                          size="small"
-                                          sx={{
-                                            color: 'primary.main',
-                                            transition: 'transform 0.2s ease',
-                                            transform: expandedActivities.has(studentSlotId) ? 'rotate(180deg)' : 'rotate(0deg)'
-                                          }}
-                                        >
-                                          <ExpandMoreIcon />
-                                        </IconButton>
-                                      </Box>
-                                    </Box>
-                                  </CardContent>
-                                </Card>
-                                
-                                <Collapse in={expandedActivities.has(studentSlotId)}>
-                                  {isLoadingActivities ? (
-                                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                                      <CircularProgress size={24} />
-                                    </Box>
-                                  ) : activities.length === 0 ? (
-                                    <Alert severity="info" sx={{ mt: 1 }}>
-                                      Chưa có hoạt động nào.
-                                    </Alert>
-                                  ) : (
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
-                                      {activities.map((activity) => (
-                                        <Card
-                                          key={activity.id}
-                                          sx={{
-                                            borderRadius: 'var(--radius-lg)',
-                                            border: '1px solid var(--border-light)',
-                                            backgroundColor: 'var(--bg-secondary)'
-                                          }}
-                                        >
-                                          <CardContent sx={{ p: 2 }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                              <Chip
-                                                label={activity.activityType?.name || 'Chưa xác định'}
-                                                color="primary"
-                                                size="small"
-                                                sx={{ fontWeight: 600 }}
-                                              />
-                                              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                                <Tooltip title="Xem chi tiết">
-                                                  <IconButton
-                                                    size="small"
-                                                    onClick={() => handleViewActivity(activity)}
-                                                    sx={{ color: 'primary.main' }}
-                                                  >
-                                                    <VisibilityIcon fontSize="small" />
-                                                  </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Sửa">
-                                                  <IconButton
-                                                    size="small"
-                                                    onClick={() => handleEditActivity(activity)}
-                                                    sx={{ color: 'warning.main' }}
-                                                  >
-                                                    <EditIcon fontSize="small" />
-                                                  </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Xóa">
-                                                  <IconButton
-                                                    size="small"
-                                                    onClick={() => handleDeleteActivity(activity)}
-                                                    sx={{ color: 'error.main' }}
-                                                  >
-                                                    <DeleteIcon fontSize="small" />
-                                                  </IconButton>
-                                                </Tooltip>
-                                              </Box>
-                                            </Box>
-                                            {activity.imageUrl && (
-                                              <Box
-                                                sx={{
-                                                  width: '100%',
-                                                  height: 100,
-                                                  borderRadius: 1,
-                                                  overflow: 'hidden',
-                                                  mb: 1,
-                                                  backgroundColor: 'grey.100'
-                                                }}
-                                              >
-                                                <img
-                                                  src={activity.imageUrl}
-                                                  alt={activity.activityType?.name || 'Hoạt động'}
-                                                  style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'cover'
-                                                  }}
-                                                />
-                                              </Box>
-                                            )}
-                                            {activity.note && (
-                                              <Typography variant="body2" sx={{ mb: 1 }}>
-                                                {activity.note}
-                                              </Typography>
-                                            )}
-                                            <Typography variant="caption" color="text.secondary">
-                                              {formatDateTimeUTC7(activity.createdTime || activity.createdDate)}
-                                            </Typography>
-                                          </CardContent>
-                                        </Card>
-                                      ))}
-                                    </Box>
-                                  )}
-                                </Collapse>
-                              </Box>
-                            </ListItem>
-                            {index < filteredStudentsList.length - 1 && <Divider />}
-                          </React.Fragment>
-                        );
-                      })}
-                    </List>
+                    <DataTable
+                      data={paginatedStudents}
+                      columns={columns}
+                      loading={loadingStudents}
+                      page={page}
+                      rowsPerPage={rowsPerPage}
+                      totalCount={filteredStudentsList.length}
+                      onPageChange={handlePageChange}
+                      onRowsPerPageChange={handleRowsPerPageChange}
+                      expandableConfig={expandableConfig}
+                      showActions={false}
+                      emptyMessage="Không có học sinh nào phù hợp với từ khóa tìm kiếm."
+                    />
                   )}
                 </>
               )}
@@ -1427,6 +1536,19 @@ const AssignmentDetail = () => {
           cancelText="Hủy"
           confirmColor="error"
           highlightText={selectedActivity?.activityType?.name}
+        />
+
+        {/* Dialog xác nhận xóa điểm danh */}
+        <ConfirmDialog
+          open={checkinDeleteDialogOpen}
+          onClose={handleCloseCheckinDeleteDialog}
+          onConfirm={handleConfirmDeleteCheckin}
+          title="Xác nhận xóa điểm danh"
+          description={`Bạn có chắc chắn muốn xóa điểm danh của ${checkinToDelete?.slot?.studentName || 'học sinh'}? Sau khi xóa, bạn có thể điểm danh lại.`}
+          confirmText={deletingCheckin ? 'Đang xóa...' : 'Xóa điểm danh'}
+          cancelText="Hủy"
+          confirmColor="error"
+          highlightText={checkinToDelete?.slot?.studentName}
         />
       </div>
     </div>

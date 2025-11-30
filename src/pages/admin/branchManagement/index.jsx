@@ -25,6 +25,7 @@ const BranchManagement = () => {
   const location = useLocation();
   const isInitialMount = useRef(true);
 
+
   // Use shared CRUD hook for basic operations
   const {
     data: branches,

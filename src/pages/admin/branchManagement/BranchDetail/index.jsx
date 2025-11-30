@@ -77,6 +77,7 @@ const BranchDetail = () => {
   const [studentLevelsPage, setStudentLevelsPage] = useState(0);
   const [studentLevelsRowsPerPage, setStudentLevelsRowsPerPage] = useState(10);
 
+
   useEffect(() => {
     const loadData = async () => {
       if (!id) {

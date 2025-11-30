@@ -35,6 +35,7 @@ const UpdatePackage = () => {
     [templates, selectedTemplateId]
   );
 
+
   useEffect(() => {
     const loadData = async () => {
       if (!id) {

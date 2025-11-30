@@ -67,6 +67,7 @@ const UserProfile = () => {
   const { isLoading, loadingText, showLoading, hideLoading } = useContentLoading();
   const { user, updateUser } = useAuth();
 
+
   useEffect(() => {
     loadUserData();
     loadProfiles();
