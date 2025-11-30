@@ -68,9 +68,21 @@ const MyPackages = () => {
     studentId: ''
   });
   const [isBuying, setIsBuying] = useState(false);
+  const [isRenewing, setIsRenewing] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
   const [refundDialog, setRefundDialog] = useState({
     open: false,
     package: null
+  });
+  const [renewDialog, setRenewDialog] = useState({
+    open: false,
+    package: null,
+    studentId: null
+  });
+  const [upgradeDialog, setUpgradeDialog] = useState({
+    open: false,
+    package: null,
+    studentId: null
   });
 
   // Buy service dialog state
@@ -241,8 +253,18 @@ const MyPackages = () => {
         });
       });
 
-      // Fetch subscriptions for each child
-      const subscriptionPromises = children.map(async (child) => {
+      // Filter by selectedStudentId if provided
+      let targetChildren = children;
+      if (selectedStudentId || childId) {
+        const targetStudentId = selectedStudentId || childId;
+        const selectedChild = children.find(child => child.id === targetStudentId);
+        if (selectedChild) {
+          targetChildren = [selectedChild];
+        }
+      }
+
+      // Fetch subscriptions for target children only
+      const subscriptionPromises = targetChildren.map(async (child) => {
         try {
           const subscriptionResponse = await packageService.getSubscriptionsByStudent(child.id);
           return { childId: child.id, subscriptionResponse };
@@ -284,8 +306,11 @@ const MyPackages = () => {
         // Tối ưu: chỉ fetch một lần cho mỗi child, không fetch nhiều lần cho mỗi subscription
         let suitablePackagesForChild = null;
         const needsPackageDetails = subscriptions.some(sub => {
-          const needsTotalSlots = sub.totalslotsSnapshot === null || sub.totalslotsSnapshot === undefined;
-          const needsDuration = sub.durationMonthsSnapshot === null || sub.durationMonthsSnapshot === undefined;
+          // Check cả camelCase và lowercase
+          const totalSlotsSnapshot = sub.totalSlotsSnapshot ?? sub.totalslotsSnapshot;
+          const durationMonthsSnapshot = sub.durationMonthsSnapshot ?? sub.durationmonthsSnapshot;
+          const needsTotalSlots = totalSlotsSnapshot === null || totalSlotsSnapshot === undefined;
+          const needsDuration = durationMonthsSnapshot === null || durationMonthsSnapshot === undefined;
           return (needsTotalSlots || needsDuration) && sub.packageId;
         });
         
@@ -315,8 +340,10 @@ const MyPackages = () => {
         });
         
         subscriptionsWithPackageDetails.forEach(({ sub, packageDetails }) => {
-          // Ưu tiên dùng snapshot, nếu null/undefined thì dùng từ package details
-          // Xử lý cả camelCase và lowercase, và cả các biến thể khác
+          // Ưu tiên dùng snapshot từ subscription, nếu null/undefined thì dùng từ package details
+          // Xử lý cả camelCase và lowercase cho totalSlotsSnapshot
+          const totalSlotsSnapshot = sub.totalSlotsSnapshot ?? sub.totalslotsSnapshot;
+          
           // Lấy totalSlots từ package - ưu tiên totalslots (lowercase) như trong available packages
           const totalSlotsFromPackage = packageDetails?.totalslots 
             ?? packageDetails?.totalSlots 
@@ -325,8 +352,8 @@ const MyPackages = () => {
           
           // Kiểm tra snapshot trước, nếu null/undefined thì dùng từ package
           // Không check !== 0 vì 0 có thể là giá trị hợp lệ
-          const totalSlots = (sub.totalslotsSnapshot !== null && sub.totalslotsSnapshot !== undefined) 
-            ? sub.totalslotsSnapshot 
+          const totalSlots = (totalSlotsSnapshot !== null && totalSlotsSnapshot !== undefined) 
+            ? totalSlotsSnapshot 
             : totalSlotsFromPackage;
           
           // Lấy durationInMonths từ package - ưu tiên durationInMonths (camelCase)
@@ -335,10 +362,13 @@ const MyPackages = () => {
             ?? packageDetails?.durationMonthsSnapshot
             ?? 0;
           
+          // Xử lý cả camelCase và lowercase cho durationMonthsSnapshot
+          const durationMonthsSnapshot = sub.durationMonthsSnapshot ?? sub.durationmonthsSnapshot;
+          
           // Kiểm tra snapshot trước, nếu null/undefined thì dùng từ package
           // Không check !== 0 vì 0 có thể là giá trị hợp lệ
-          const durationInMonths = (sub.durationMonthsSnapshot !== null && sub.durationMonthsSnapshot !== undefined)
-            ? sub.durationMonthsSnapshot
+          const durationInMonths = (durationMonthsSnapshot !== null && durationMonthsSnapshot !== undefined)
+            ? durationMonthsSnapshot
             : durationInMonthsFromPackage;
           
           // Xử lý cả camelCase và lowercase cho usedSlot
@@ -374,8 +404,18 @@ const MyPackages = () => {
         });
       }
 
+      // Filter by selectedStudentId if provided (additional check to ensure only correct student's packages)
+      let packagesToFilter = mappedPackages;
+      if (selectedStudentId || childId) {
+        const targetStudentId = selectedStudentId || childId;
+        packagesToFilter = mappedPackages.filter(pkg => {
+          const pkgStudentId = pkg.studentId;
+          return pkgStudentId === targetStudentId;
+        });
+      }
+
       // Lọc bỏ các gói đã hết hạn hoặc đã refund
-      const filteredPackages = mappedPackages.filter(pkg => {
+      const filteredPackages = packagesToFilter.filter(pkg => {
         // Bỏ các gói đã hết hạn
         if (pkg.status === 'expired') {
           return false;
@@ -401,7 +441,7 @@ const MyPackages = () => {
     } finally {
       setIsLoadingPurchased(false);
     }
-  }, [showGlobalError]);
+  }, [showGlobalError, selectedStudentId, childId]);
 
   const loadServices = useCallback(async () => {
     setIsLoadingServices(true);
@@ -639,6 +679,114 @@ const MyPackages = () => {
     }
   };
 
+  const handleRenewClick = (pkg) => {
+    if (!pkg.studentId) {
+      addNotification({
+        message: 'Không tìm thấy thông tin học sinh.',
+        severity: 'error'
+      });
+      return;
+    }
+
+    setRenewDialog({
+      open: true,
+      package: pkg,
+      studentId: pkg.studentId
+    });
+  };
+
+  const handleConfirmRenew = async () => {
+    if (!renewDialog.package || !renewDialog.studentId) return;
+
+    setIsRenewing(true);
+    showLoading();
+
+    try {
+      await packageService.renewSubscription(renewDialog.studentId);
+
+      addNotification({
+        message: 'Gia hạn gói thành công!',
+        severity: 'success'
+      });
+
+      setRenewDialog({ open: false, package: null, studentId: null });
+      
+      // Reload purchased packages to update the list
+      await loadPurchasedPackages();
+    } catch (err) {
+      const errorMessage = typeof err === 'string'
+        ? err
+        : err?.message || err?.error || 'Không thể gia hạn gói';
+      
+      showGlobalError(errorMessage);
+      addNotification({
+        message: errorMessage,
+        severity: 'error'
+      });
+    } finally {
+      setIsRenewing(false);
+      hideLoading();
+    }
+  };
+
+  const handleUpgradeClick = (pkg) => {
+    const studentId = selectedStudentId || childId;
+    if (!studentId) {
+      addNotification({
+        message: 'Vui lòng chọn con để nâng cấp gói.',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    setUpgradeDialog({
+      open: true,
+      package: pkg,
+      studentId: studentId
+    });
+  };
+
+  const handleConfirmUpgrade = async () => {
+    if (!upgradeDialog.package || !upgradeDialog.studentId) return;
+
+    setIsUpgrading(true);
+    showLoading();
+
+    try {
+      await packageService.upgradeSubscription(
+        upgradeDialog.studentId,
+        upgradeDialog.package.id
+      );
+
+      addNotification({
+        message: 'Nâng cấp gói thành công!',
+        severity: 'success'
+      });
+
+      setUpgradeDialog({ open: false, package: null, studentId: null });
+      
+      // Reload both lists
+      await loadPurchasedPackages();
+      await loadAvailablePackages();
+      
+      // Switch to purchased tab to show the upgraded package
+      setActiveTab('purchased');
+    } catch (err) {
+      const errorMessage = typeof err === 'string'
+        ? err
+        : err?.message || err?.error || 'Không thể nâng cấp gói';
+      
+      showGlobalError(errorMessage);
+      addNotification({
+        message: errorMessage,
+        severity: 'error'
+      });
+    } finally {
+      setIsUpgrading(false);
+      hideLoading();
+    }
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -816,7 +964,20 @@ const MyPackages = () => {
     { id: 'available', label: `Gói dịch vụ (${availablePackages.length})` }
   ];
 
-  const renderPackageCard = (pkg, isPurchased = false) => (
+  // Get current active package price for comparison
+  const currentActivePackage = useMemo(() => {
+    if (!selectedStudentId) {
+      // If no specific student selected, find the first active package
+      return purchasedPackages.find(pkg => pkg.status === 'active');
+    }
+    // Find active package for selected student
+    return purchasedPackages.find(pkg => 
+      pkg.status === 'active' && 
+      (pkg.studentId === selectedStudentId || pkg.studentId === childId)
+    );
+  }, [purchasedPackages, selectedStudentId, childId]);
+
+  const renderPackageCard = (pkg, isPurchased = false, canUpgrade = false) => (
     <div key={pkg.id} className={styles.packageCard}>
       <div className={styles.packageHeader}>
         <h3 className={styles.packageName}>{pkg.name}</h3>
@@ -899,7 +1060,30 @@ const MyPackages = () => {
         >
           Xem chi tiết
         </Button>
-        {!isPurchased && (
+        {!isPurchased && canUpgrade ? (
+          <Button
+            variant="contained"
+            onClick={() => handleUpgradeClick(pkg)}
+            disabled={isUpgrading}
+            sx={{
+              flex: 1,
+              textTransform: 'none',
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--font-size-sm)',
+              fontWeight: 'var(--font-weight-semibold)',
+              background: 'var(--color-primary)',
+              color: 'white',
+              boxShadow: 'var(--shadow-sm)',
+              '&:hover': {
+                background: 'var(--color-primary-dark)',
+                transform: 'translateY(-2px)',
+                boxShadow: 'var(--shadow-md)'
+              }
+            }}
+          >
+            Nâng cấp
+          </Button>
+        ) : !isPurchased && (
           <Button
             variant="contained"
             onClick={() => handleBuyClick(pkg)}
@@ -1030,7 +1214,11 @@ const MyPackages = () => {
               </div>
             ) : availablePackages.length > 0 ? (
               <div className={styles.packagesGrid}>
-                {availablePackages.map((pkg) => renderPackageCard(pkg, false))}
+                {availablePackages.map((pkg) => {
+                  // Check if this package can be upgraded (price higher than current active package)
+                  const canUpgrade = currentActivePackage && pkg.price > (currentActivePackage.price || 0);
+                  return renderPackageCard(pkg, false, canUpgrade);
+                })}
               </div>
             ) : !hasChildren ? (
               <div className={styles.emptyState}>
@@ -1147,27 +1335,52 @@ const MyPackages = () => {
                         >
                           Xem chi tiết
                         </Button>
-                        {pkg.status === 'active' && pkg.usedSlots === 0 && (
-                          <Button
-                            variant="outlined"
-                            onClick={() => handleRefundClick(pkg)}
-                            sx={{
-                              flex: 1,
-                              textTransform: 'none',
-                              fontFamily: 'var(--font-family)',
-                              fontSize: 'var(--font-size-sm)',
-                              fontWeight: 'var(--font-weight-semibold)',
-                              borderColor: 'var(--color-warning)',
-                              color: 'var(--color-warning)',
-                              '&:hover': {
-                                borderColor: 'var(--color-warning-dark)',
-                                backgroundColor: 'var(--color-warning-light)',
-                                color: 'var(--color-warning-dark)'
-                              }
-                            }}
-                          >
-                            Hoàn tiền
-                          </Button>
+                        {pkg.status === 'active' && (
+                          <>
+                            <Button
+                              variant="contained"
+                              onClick={() => handleRenewClick(pkg)}
+                              sx={{
+                                flex: 1,
+                                textTransform: 'none',
+                                fontFamily: 'var(--font-family)',
+                                fontSize: 'var(--font-size-sm)',
+                                fontWeight: 'var(--font-weight-semibold)',
+                                background: 'var(--color-primary)',
+                                color: 'white',
+                                boxShadow: 'var(--shadow-sm)',
+                                '&:hover': {
+                                  background: 'var(--color-primary-dark)',
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: 'var(--shadow-md)'
+                                }
+                              }}
+                            >
+                              Gia hạn
+                            </Button>
+                            {pkg.usedSlots === 0 && (
+                              <Button
+                                variant="outlined"
+                                onClick={() => handleRefundClick(pkg)}
+                                sx={{
+                                  flex: 1,
+                                  textTransform: 'none',
+                                  fontFamily: 'var(--font-family)',
+                                  fontSize: 'var(--font-size-sm)',
+                                  fontWeight: 'var(--font-weight-semibold)',
+                                  borderColor: 'var(--color-warning)',
+                                  color: 'var(--color-warning)',
+                                  '&:hover': {
+                                    borderColor: 'var(--color-warning-dark)',
+                                    backgroundColor: 'var(--color-warning-light)',
+                                    color: 'var(--color-warning-dark)'
+                                  }
+                                }}
+                              >
+                                Hoàn tiền
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -1326,6 +1539,36 @@ const MyPackages = () => {
           confirmText="Hoàn tiền"
           confirmColor="warning"
           highlightText={refundDialog.package?.name}
+        />
+
+        {/* Renew Confirm Dialog */}
+        <ConfirmDialog
+          open={renewDialog.open}
+          onClose={() => setRenewDialog({ open: false, package: null, studentId: null })}
+          onConfirm={handleConfirmRenew}
+          title="Xác nhận gia hạn gói"
+          description={renewDialog.package 
+            ? `Bạn có chắc chắn muốn gia hạn gói "${renewDialog.package.name}"? Gói sẽ được gia hạn thêm ${renewDialog.package.durationInMonths || 0} tháng.`
+            : ''}
+          confirmText="Gia hạn"
+          confirmColor="primary"
+          highlightText={renewDialog.package?.name}
+        />
+
+        {/* Upgrade Confirm Dialog */}
+        <ConfirmDialog
+          open={upgradeDialog.open}
+          onClose={() => setUpgradeDialog({ open: false, package: null, studentId: null })}
+          onConfirm={handleConfirmUpgrade}
+          title="Xác nhận nâng cấp gói"
+          description={upgradeDialog.package && currentActivePackage
+            ? `Bạn có chắc chắn muốn nâng cấp từ gói "${currentActivePackage.name}" (${formatCurrency(currentActivePackage.price || 0)}) lên gói "${upgradeDialog.package.name}" (${formatCurrency(upgradeDialog.package.price || 0)})? Bạn sẽ cần thanh toán chênh lệch ${formatCurrency((upgradeDialog.package.price || 0) - (currentActivePackage.price || 0))}.`
+            : upgradeDialog.package
+            ? `Bạn có chắc chắn muốn nâng cấp lên gói "${upgradeDialog.package.name}"?`
+            : ''}
+          confirmText="Nâng cấp"
+          confirmColor="primary"
+          highlightText={upgradeDialog.package?.name}
         />
 
         {/* Buy Service Dialog */}
