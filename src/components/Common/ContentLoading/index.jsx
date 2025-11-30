@@ -29,7 +29,7 @@ const ContentLoading = ({
           <div className={styles.logo}>
             <div className={styles.logoIcon}>B</div>
           </div>
-          <h1 className={styles.logoText}>BRIGHWAY</h1>
+          <h1 className={styles.logoText}>BRIGHTWAY</h1>
         </div>
 
         {/* Loading Animation */}

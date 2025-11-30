@@ -123,7 +123,7 @@ const AdminLayout = () => {
       <Box sx={{ display: 'flex' }}>
         {/* Generic Drawer */}
         <GenericDrawer
-          title="BRIGHWAY"
+          title="BRIGHTWAY"
           subtitle="Cổng Quản Trị"
           menuItems={menuItems}
           onLogout={handleLogout}

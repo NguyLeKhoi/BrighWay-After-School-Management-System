@@ -24,7 +24,7 @@ const MainHeader = () => {
           whileHover={{ scale: 1.05 }}
         >
           <Link to="/" className={styles.logoLink}>
-            <h1>BRIGHWAY</h1>
+            <h1>BRIGHTWAY</h1>
           </Link>
         </motion.div>
         

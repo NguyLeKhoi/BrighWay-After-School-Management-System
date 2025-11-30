@@ -26,9 +26,9 @@ const Homepage = () => {
   );
 
   const contentSection1 = {
-    heading: 'Về BRIGHWAY',
+    heading: 'Về BRIGHTWAY',
     subheading: 'Nơi giữ trẻ an toàn và tin cậy',
-    description: 'BRIGHWAY là dịch vụ giữ trẻ sau giờ học với các hoạt động ngoài giờ đa dạng, phong phú. Chúng tôi cam kết mang đến môi trường an toàn, vui vẻ và bổ ích cho trẻ em với đội ngũ nhân viên chăm sóc chuyên nghiệp và cơ sở vật chất hiện đại.',
+    description: 'BRIGHTWAY là dịch vụ giữ trẻ sau giờ học với các hoạt động ngoài giờ đa dạng, phong phú. Chúng tôi cam kết mang đến môi trường an toàn, vui vẻ và bổ ích cho trẻ em với đội ngũ nhân viên chăm sóc chuyên nghiệp và cơ sở vật chất hiện đại.',
     features: features,
     hasImage: true,
     imageContent: section1Image
@@ -74,7 +74,7 @@ const Homepage = () => {
     >
       <motion.div variants={itemVariants}>
         <HeroSection
-          title="BRIGHWAY - After School Management"
+          title="BRIGHTWAY - After School Management"
           subtitle="Nơi giữ trẻ an toàn với các hoạt động ngoài giờ phong phú và bổ ích"
           hasImage={false}
         />
