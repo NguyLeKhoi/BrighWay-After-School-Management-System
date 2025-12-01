@@ -34,7 +34,7 @@ import branchService from '../../../../services/branch.service';
 import { useApp } from '../../../../contexts/AppContext';
 import styles from './BranchDetail.module.css';
 
-// Convert numeric status to string enum
+// Convert numeric status or Vietnamese string to string enum
 const convertStatusToEnum = (status) => {
   const statusMap = {
     0: 'Active',
@@ -50,14 +50,36 @@ const convertStatusToEnum = (status) => {
     'Active': 'Active',
     'Inactive': 'Inactive',
     'UnderMaintenance': 'UnderMaintenance',
-    'Closed': 'Closed'
+    'Closed': 'Closed',
+    // Map Vietnamese status strings from API
+    'Hoạt động': 'Active',
+    'Không hoạt động': 'Inactive',
+    'Ngừng hoạt động': 'Inactive',
+    'Đang bảo trì': 'UnderMaintenance',
+    'Đã đóng': 'Closed'
   };
   
+  // If already a string enum, return as is
   if (typeof status === 'string' && ['Active', 'Inactive', 'UnderMaintenance', 'Closed'].includes(status)) {
     return status;
   }
   
-  return statusMap[status] || 'Active';
+  // Check if status exists in map
+  if (statusMap[status] !== undefined) {
+    return statusMap[status];
+  }
+  
+  // Try case-insensitive match for Vietnamese strings
+  if (typeof status === 'string') {
+    const statusLower = status.trim().toLowerCase();
+    for (const [key, value] of Object.entries(statusMap)) {
+      if (typeof key === 'string' && key.toLowerCase() === statusLower) {
+        return value;
+      }
+    }
+  }
+  
+  return 'Active';
 };
 
 const BranchDetail = () => {

@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert } from '@mui/material';
 import { LocalOffer as ServiceIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import DataTable from '../../../components/Common/DataTable';
 import Form from '../../../components/Common/Form';
+import ConfirmDialog from '../../../components/Common/ConfirmDialog';
 import ManagementPageHeader from '../../../components/Management/PageHeader';
 import ManagementSearchSection from '../../../components/Management/SearchSection';
 import ManagementFormDialog from '../../../components/Management/FormDialog';
@@ -15,6 +17,7 @@ import { serviceSchema } from '../../../utils/validationSchemas/serviceSchemas';
 import styles from './ServiceManagement.module.css';
 
 const ServiceManagement = () => {
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,6 +27,13 @@ const ServiceManagement = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openDialog, setOpenDialog] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [dialogMode, setDialogMode] = useState('create');
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    service: null,
+    onConfirm: null
+  });
 
   const columns = useMemo(() => createServiceColumns(), []);
   const serviceFormFields = useMemo(() => createServiceFormFields(actionLoading), [actionLoading]);
@@ -91,7 +101,46 @@ const ServiceManagement = () => {
   };
 
   const handleCreate = () => {
+    setSelectedService(null);
+    setDialogMode('create');
     setOpenDialog(true);
+  };
+
+  const handleView = (service) => {
+    navigate(`/admin/services/detail/${service.id}`);
+  };
+
+  const handleEdit = (service) => {
+    setSelectedService(service);
+    setDialogMode('edit');
+    setOpenDialog(true);
+  };
+
+  const handleDelete = (service) => {
+    setConfirmDialog({
+      open: true,
+      service: service,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await serviceService.deleteService(service.id);
+          toast.success('Xóa dịch vụ thành công!', {
+            position: 'top-right',
+            autoClose: 3000
+          });
+          setConfirmDialog({ open: false, service: null, onConfirm: null });
+          await loadServices();
+        } catch (err) {
+          const errorMessage = err?.message || err?.response?.data?.message || 'Có lỗi xảy ra khi xóa dịch vụ';
+          toast.error(errorMessage, {
+            position: 'top-right',
+            autoClose: 5000
+          });
+        } finally {
+          setActionLoading(false);
+        }
+      }
+    });
   };
 
   const handleFormSubmit = async (formData) => {
@@ -101,30 +150,43 @@ const ServiceManagement = () => {
     try {
       // Create FormData for multipart/form-data
       const formDataToSend = new FormData();
+      
+      if (dialogMode === 'edit' && selectedService) {
+        formDataToSend.append('Id', selectedService.id);
+      }
+      
       formDataToSend.append('Name', formData.name || '');
       formDataToSend.append('Description', formData.description || '');
       formDataToSend.append('Price', formData.price ? String(formData.price) : '0');
       formDataToSend.append('Status', formData.status !== undefined ? String(formData.status) : 'true');
       formDataToSend.append('ServiceType', 'AddOn'); // Fixed value as per user requirement
       
-      // Image file (optional)
+      // Image file (optional) - only append if it's a new file
       if (formData.imageFile && formData.imageFile instanceof File) {
         formDataToSend.append('imageFile', formData.imageFile);
       }
       
       // SlotTypeIds - send empty (don't append)
       
-      await serviceService.createService(formDataToSend);
-      
-      toast.success('Tạo dịch vụ thành công!', {
-        position: 'top-right',
-        autoClose: 3000
-      });
+      if (dialogMode === 'edit') {
+        await serviceService.updateService(formDataToSend);
+        toast.success('Cập nhật dịch vụ thành công!', {
+          position: 'top-right',
+          autoClose: 3000
+        });
+      } else {
+        await serviceService.createService(formDataToSend);
+        toast.success('Tạo dịch vụ thành công!', {
+          position: 'top-right',
+          autoClose: 3000
+        });
+      }
       
       setOpenDialog(false);
+      setSelectedService(null);
       await loadServices();
     } catch (err) {
-      const errorMessage = err?.message || err?.response?.data?.message || 'Có lỗi xảy ra khi tạo dịch vụ';
+      const errorMessage = err?.message || err?.response?.data?.message || `Có lỗi xảy ra khi ${dialogMode === 'edit' ? 'cập nhật' : 'tạo'} dịch vụ`;
       setError(errorMessage);
       toast.error(errorMessage, {
         position: 'top-right',
@@ -179,6 +241,9 @@ const ServiceManagement = () => {
           totalCount={filteredServices.length}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
           emptyMessage="Không có dịch vụ nào. Hãy thêm dịch vụ đầu tiên để bắt đầu."
         />
       </div>
@@ -186,8 +251,11 @@ const ServiceManagement = () => {
       {/* Form Dialog */}
       <ManagementFormDialog
         open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        mode="create"
+        onClose={() => {
+          setOpenDialog(false);
+          setSelectedService(null);
+        }}
+        mode={dialogMode}
         title="Dịch Vụ"
         icon={ServiceIcon}
         loading={actionLoading}
@@ -196,19 +264,40 @@ const ServiceManagement = () => {
         <Form
           schema={serviceSchema}
           defaultValues={{
-            name: '',
-            description: '',
-            price: 0,
-            status: true,
-            imageFile: null
+            name: selectedService?.name || '',
+            description: selectedService?.description || '',
+            price: selectedService?.price || 0,
+            status: selectedService?.status !== undefined ? selectedService.status : true,
+            imageFile: dialogMode === 'edit' && selectedService?.image ? selectedService.image : null
           }}
           onSubmit={handleFormSubmit}
-          submitText="Tạo Dịch Vụ"
+          submitText={dialogMode === 'edit' ? 'Cập nhật Dịch Vụ' : 'Tạo Dịch Vụ'}
           loading={actionLoading}
           disabled={actionLoading}
-          fields={serviceFormFields}
+          fields={serviceFormFields.map(field => {
+            // For edit mode, pass current image URL to ImageUpload component
+            if (field.name === 'imageFile' && dialogMode === 'edit' && selectedService?.image) {
+              return {
+                ...field,
+                currentImageUrl: selectedService.image
+              };
+            }
+            return field;
+          })}
         />
       </ManagementFormDialog>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ open: false, service: null, onConfirm: null })}
+        onConfirm={confirmDialog.onConfirm}
+        title="Xác nhận xóa dịch vụ"
+        description={`Bạn có chắc chắn muốn xóa dịch vụ "${confirmDialog.service?.name || ''}"? Hành động này không thể hoàn tác.`}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        confirmColor="error"
+      />
     </div>
   );
 };

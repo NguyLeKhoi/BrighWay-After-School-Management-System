@@ -34,9 +34,10 @@ export const createServiceFormFields = (actionLoading) => [
     sectionDescription: 'Tải lên hình ảnh cho dịch vụ (tùy chọn). Kích thước tối đa 5MB.',
     name: 'imageFile',
     label: 'Hình Ảnh',
-    type: 'file',
+    type: 'imageupload',
     required: false,
     accept: 'image/*',
+    maxSize: 5 * 1024 * 1024, // 5MB
     disabled: actionLoading,
     helperText: 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF). Kích thước tối đa 5MB.',
     gridSize: 12

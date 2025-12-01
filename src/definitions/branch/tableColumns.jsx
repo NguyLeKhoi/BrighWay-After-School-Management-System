@@ -75,7 +75,13 @@ export const createBranchColumns = ({
         'Active': 'Active',
         'Inactive': 'Inactive',
         'UnderMaintenance': 'UnderMaintenance',
-        'Closed': 'Closed'
+        'Closed': 'Closed',
+        // Map Vietnamese status strings from API
+        'Hoạt động': 'Active',
+        'Không hoạt động': 'Inactive',
+        'Ngừng hoạt động': 'Inactive',
+        'Đang bảo trì': 'UnderMaintenance',
+        'Đã đóng': 'Closed'
       };
       
       const statusLabels = {
@@ -91,13 +97,22 @@ export const createBranchColumns = ({
         'Closed': 'error'
       };
       
-      // Convert numeric status to string enum
+      // Convert numeric status or Vietnamese string to string enum
       const rawStatus = item.status;
       let status = rawStatus;
       
       // If status exists in map, convert to enum
       if (rawStatus !== null && rawStatus !== undefined && statusMap[rawStatus] !== undefined) {
         status = statusMap[rawStatus];
+      } else if (typeof rawStatus === 'string') {
+        // Try to find Vietnamese status match (case-insensitive)
+        const statusLower = rawStatus.trim().toLowerCase();
+        for (const [key, value] of Object.entries(statusMap)) {
+          if (typeof key === 'string' && key.toLowerCase() === statusLower) {
+            status = value;
+            break;
+          }
+        }
       }
       
       // Default to Active if status is not valid
