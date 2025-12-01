@@ -64,6 +64,8 @@ import AdminCreatePackage from '../pages/admin/packageManagement/CreatePackage';
 import AdminUpdatePackage from '../pages/admin/packageManagement/UpdatePackage';
 import SchoolManagement from '../pages/admin/schoolManagement';
 import SchoolDetail from '../pages/admin/schoolManagement/SchoolDetail';
+import ServiceManagement from '../pages/admin/serviceManagement';
+import ServiceDetail from '../pages/admin/serviceManagement/ServiceDetail';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
@@ -357,6 +359,14 @@ export const routes = createBrowserRouter([
       {
         path: 'schools/detail/:id',
         element: <SchoolDetail />,
+      },
+      {
+        path: 'services',
+        element: <ServiceManagement />,
+      },
+      {
+        path: 'services/detail/:id',
+        element: <ServiceDetail />,
       },
     ],
   },

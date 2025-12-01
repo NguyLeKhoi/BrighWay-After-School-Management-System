@@ -1,0 +1,32 @@
+.container {
+  padding: 24px;
+  background: var(--bg-secondary);
+  min-height: calc(100vh - 64px);
+}
+
+.errorAlert {
+  margin-bottom: 24px;
+  border-radius: var(--radius-lg);
+}
+
+.tableContainer {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+}
+

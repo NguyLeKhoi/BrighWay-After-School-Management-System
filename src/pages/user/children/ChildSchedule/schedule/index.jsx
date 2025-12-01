@@ -12,6 +12,7 @@ import studentSlotService from '../../../../../services/studentSlot.service';
 import studentService from '../../../../../services/student.service';
 import packageService from '../../../../../services/package.service';
 import { useApp } from '../../../../../contexts/AppContext';
+import { formatDateToUTC7ISO } from '../../../../../utils/dateHelper';
 
 const WEEKDAY_LABELS = {
   0: 'Chủ nhật',
@@ -182,7 +183,18 @@ const MySchedule = () => {
         ? new Date(formData.selectedDate) 
         : new Date(formData.selectedDate);
       
+      // Ensure date has time from slot before validation
+      if (formData.slot?.startTime) {
+        const time = formData.slot.startTime;
+        const [hours = '8', minutes = '0'] = time.split(':');
+        selectedDate.setHours(Number(hours), Number(minutes), 0, 0);
+      } else {
+        // Default to 00:00:00 if no startTime
+        selectedDate.setHours(0, 0, 0, 0);
+      }
+      
       // Validate that selected date matches slot's weekday
+      // Use getDay() which returns 0 (Sunday) to 6 (Saturday), same as backend WeekDate
       if (formData.slot?.weekDay !== undefined) {
         const selectedWeekDay = selectedDate.getDay();
         const slotWeekDay = formData.slot.weekDay;
@@ -197,15 +209,18 @@ const MySchedule = () => {
         }
       }
       
-      // Ensure date has time from slot
-      if (formData.slot?.startTime) {
-        const time = formData.slot.startTime;
-        const [hours = '8', minutes = '0'] = time.split(':');
-        selectedDate.setHours(Number(hours), Number(minutes), 0, 0);
-      }
+      // Format date to UTC+7 ISO string for backend
+      // This ensures the date maintains the same day regardless of timezone conversion
+      const isoDate = formatDateToUTC7ISO(selectedDate);
       
-      // Convert to ISO string for API
-      const isoDate = selectedDate.toISOString();
+      if (!isoDate) {
+        addNotification({
+          message: 'Ngày không hợp lệ. Vui lòng chọn lại ngày.',
+          severity: 'error'
+        });
+        setIsBooking(false);
+        return;
+      }
 
       await studentSlotService.bookSlot({
         studentId: formData.studentId,
