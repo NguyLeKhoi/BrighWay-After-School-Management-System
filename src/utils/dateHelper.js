@@ -209,3 +209,30 @@ export const parseAsUTC7 = (dateValue) => {
   return null;
 };
 
+/**
+ * Format Date object to ISO string with UTC+7 timezone for backend
+ * This ensures the date sent to backend maintains the same day regardless of browser timezone
+ * @param {Date} date - Date object to format
+ * @returns {string} ISO string with +07:00 timezone (e.g., "2025-12-01T08:00:00+07:00")
+ */
+export const formatDateToUTC7ISO = (date) => {
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    return null;
+  }
+
+  // Get date components in local time (as user sees them)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+
+  // Format as ISO string with UTC+7 timezone
+  // Backend will parse this and check DayOfWeek in UTC+7
+  // By formatting with the date components as the user sees them and adding +07:00,
+  // we ensure the backend receives the date in UTC+7 timezone, preserving the weekday
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}+07:00`;
+};
+

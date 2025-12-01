@@ -15,7 +15,7 @@ const BRANCH_STATUS_OPTIONS = [
   { value: 'Closed', label: 'Đã đóng' }
 ];
 
-// Convert numeric status from backend to string enum
+// Convert numeric status or Vietnamese string from backend to string enum
 const convertStatusToEnum = (status) => {
   const statusMap = {
     0: 'Active',
@@ -27,7 +27,17 @@ const convertStatusToEnum = (status) => {
     '1': 'Active',
     '2': 'Inactive',
     '3': 'UnderMaintenance',
-    '4': 'Closed'
+    '4': 'Closed',
+    'Active': 'Active',
+    'Inactive': 'Inactive',
+    'UnderMaintenance': 'UnderMaintenance',
+    'Closed': 'Closed',
+    // Map Vietnamese status strings from API
+    'Hoạt động': 'Active',
+    'Không hoạt động': 'Inactive',
+    'Ngừng hoạt động': 'Inactive',
+    'Đang bảo trì': 'UnderMaintenance',
+    'Đã đóng': 'Closed'
   };
   
   // If already a string enum, return as is
@@ -35,8 +45,23 @@ const convertStatusToEnum = (status) => {
     return status;
   }
   
-  // Convert numeric status to string enum
-  return statusMap[status] || 'Active';
+  // Check if status exists in map
+  if (statusMap[status] !== undefined) {
+    return statusMap[status];
+  }
+  
+  // Try case-insensitive match for Vietnamese strings
+  if (typeof status === 'string') {
+    const statusLower = status.trim().toLowerCase();
+    for (const [key, value] of Object.entries(statusMap)) {
+      if (typeof key === 'string' && key.toLowerCase() === statusLower) {
+        return value;
+      }
+    }
+  }
+  
+  // Default to Active
+  return 'Active';
 };
 
 const Step1BasicInfo = forwardRef(({ data, updateData }, ref) => {

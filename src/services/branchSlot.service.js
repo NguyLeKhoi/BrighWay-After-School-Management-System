@@ -1,4 +1,5 @@
 import axiosInstance from '../config/axios.config';
+import { formatDateToUTC7ISO, extractDateString } from '../utils/dateHelper';
 
 /**
  * Branch Slot Service
@@ -60,9 +61,24 @@ const branchSlotService = {
       
       // Add date parameter if provided
       if (date) {
-        // Convert date to ISO string if it's a Date object
-        const dateString = date instanceof Date ? date.toISOString() : date;
-        query.append('date', dateString);
+        // Convert date to UTC+7 ISO string if it's a Date object
+        // Use YYYY-MM-DD format for query params to avoid timezone issues
+        if (date instanceof Date) {
+          const dateStr = extractDateString(date);
+          if (dateStr) {
+            query.append('date', dateStr);
+          }
+        } else if (typeof date === 'string') {
+          // If it's already a string, try to extract date part
+          const dateStr = extractDateString(date);
+          if (dateStr) {
+            query.append('date', dateStr);
+          } else {
+            query.append('date', date);
+          }
+        } else {
+          query.append('date', date);
+        }
       }
       
       const response = await axiosInstance.get(

@@ -7,6 +7,7 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import ImageUpload from '../ImageUpload';
 import styles from './Form.module.css';
 
 // Password field component with show/hide toggle
@@ -524,6 +525,39 @@ const Form = forwardRef(({
               )}
             </Box>
           )}
+        />
+      );
+    } else if (type === 'imageupload') {
+      inputElement = (
+        <Controller
+          name={name}
+          control={control}
+          render={({ field: { value, onChange }, fieldState }) => {
+            // For edit mode, if value is a URL string and no file is selected, show the URL
+            // If value is a File, show the file preview
+            // If value is null/undefined, show empty
+            const displayValue = value instanceof File ? value : (value || fieldProps.currentImageUrl || null);
+            
+            return (
+              <ImageUpload
+                value={displayValue}
+                onChange={(file) => {
+                  onChange(file);
+                  // Call custom onChange handler if provided
+                  if (fieldOnChange) {
+                    fieldOnChange(file);
+                  }
+                }}
+                label={label}
+                helperText={helperText || fieldProps.helperText || 'Chọn file ảnh để tải lên (JPG, PNG, GIF). Kích thước tối đa 5MB.'}
+                accept={fieldProps.accept || 'image/*'}
+                maxSize={fieldProps.maxSize || 5 * 1024 * 1024} // 5MB default
+                disabled={field.disabled}
+                error={!!fieldState.error}
+                required={field.required}
+              />
+            );
+          }}
         />
       );
     } else {
