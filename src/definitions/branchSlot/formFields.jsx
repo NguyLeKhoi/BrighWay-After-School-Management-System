@@ -3,7 +3,8 @@ export const createBranchSlotFormFields = ({
   dependenciesLoading,
   timeframeSelectOptions,
   slotTypeSelectOptions,
-  weekDateOptions
+  weekDateOptions,
+  studentLevelSelectOptions = []
 }) => [
   {
     name: 'timeframeId',
@@ -33,6 +34,16 @@ export const createBranchSlotFormFields = ({
     gridSize: 6,
     disabled: actionLoading || dependenciesLoading,
     helperText: 'Chọn ngày cho ca giữ trẻ. Thứ trong tuần sẽ được tự động tính từ ngày này.'
+  },
+  {
+    name: 'studentLevelId',
+    label: 'Cấp độ học sinh',
+    type: 'select',
+    required: false,
+    options: studentLevelSelectOptions,
+    gridSize: 6,
+    disabled: actionLoading || dependenciesLoading || studentLevelSelectOptions.length === 0,
+    helperText: studentLevelSelectOptions.length === 0 ? 'Chưa có cấp độ học sinh khả dụng' : 'Chọn cấp độ học sinh cho ca giữ trẻ (tùy chọn)'
   },
   {
     name: 'status',

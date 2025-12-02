@@ -17,7 +17,8 @@ const branchSlotService = {
         status = null,
         weekDate = null,
         timeframeId = null,
-        slotTypeId = null
+        slotTypeId = null,
+        date = null
       } = params;
 
       const queryParams = new URLSearchParams({
@@ -39,6 +40,19 @@ const branchSlotService = {
 
       if (slotTypeId !== null && slotTypeId !== undefined && slotTypeId !== '') {
         queryParams.append('slotTypeId', slotTypeId.toString());
+      }
+
+      // Add date parameter if provided
+      if (date) {
+        // Convert date to YYYY-MM-DD format for query params
+        const dateStr = date instanceof Date 
+          ? date.toISOString().split('T')[0] 
+          : typeof date === 'string' 
+            ? date.split('T')[0] 
+            : date;
+        if (dateStr) {
+          queryParams.append('date', dateStr);
+        }
       }
 
       const response = await axiosInstance.get(`/BranchSlot/manager/paged?${queryParams}`);
@@ -312,6 +326,54 @@ const branchSlotService = {
       const response = await axiosInstance.delete(`/BranchSlot/${branchSlotId}/rooms/${roomId}`);
       return response.data;
     } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Duplicate a branch slot with its rooms and staff assignments for multiple dates
+   * @param {string} sourceSlotId - Source branch slot ID to duplicate
+   * @param {Array<string>} newDates - Array of date strings (ISO format) for new slots. If empty, creates one duplicate with source slot's date
+   * @returns {Promise} Duplication result
+   */
+  duplicateBranchSlot: async (sourceSlotId, newDates = []) => {
+    try {
+      console.log('duplicateBranchSlot API call:', {
+        url: `/BranchSlot/${sourceSlotId}/duplicate`,
+        method: 'POST',
+        data: newDates
+      });
+      const response = await axiosInstance.post(`/BranchSlot/${sourceSlotId}/duplicate`, newDates);
+      console.log('duplicateBranchSlot API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('duplicateBranchSlot API error:', error.response?.data || error.message);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
+   * Change the room assigned to a branch slot. Moves all students and staff from old room to new room
+   * @param {string} branchSlotId - Branch slot ID
+   * @param {string} oldRoomId - Old room ID
+   * @param {string} newRoomId - New room ID
+   * @returns {Promise} Change room result
+   */
+  changeRoom: async (branchSlotId, oldRoomId, newRoomId) => {
+    try {
+      console.log('changeRoom API call:', {
+        url: `/BranchSlot/${branchSlotId}/change-room`,
+        method: 'PUT',
+        data: { oldRoomId, newRoomId }
+      });
+      const response = await axiosInstance.put(`/BranchSlot/${branchSlotId}/change-room`, {
+        oldRoomId,
+        newRoomId
+      });
+      console.log('changeRoom API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('changeRoom API error:', error.response?.data || error.message);
       throw error.response?.data || error.message;
     }
   }

@@ -16,7 +16,12 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { 
   ArrowBack,
@@ -25,20 +30,24 @@ import {
   CalendarToday,
   MeetingRoom,
   Person,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  ContentCopy,
+  SwapHoriz
 } from '@mui/icons-material';
-import { IconButton, Tooltip } from '@mui/material';
-import { PersonAdd as AssignStaffIcon, MeetingRoomOutlined as AssignRoomIcon } from '@mui/icons-material';
+import { IconButton, Tooltip, InputAdornment } from '@mui/material';
+import { PersonAdd as AssignStaffIcon, MeetingRoomOutlined as AssignRoomIcon, Add as AddIcon, Remove as RemoveIcon, Visibility as VisibilityIcon, Search as SearchIcon } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
 import ManagementFormDialog from '../../../../components/Management/FormDialog';
 import Form from '../../../../components/Common/Form';
+import DataTable from '../../../../components/Common/DataTable';
 import branchSlotService from '../../../../services/branchSlot.service';
+import studentSlotService from '../../../../services/studentSlot.service';
 import useBranchSlotDependencies from '../../../../hooks/useBranchSlotDependencies';
 import { assignStaffSchema } from '../../../../utils/validationSchemas/assignStaffSchemas';
 import { assignRoomsSchema } from '../../../../utils/validationSchemas/assignRoomsSchemas';
 import { toast } from 'react-toastify';
-import { formatDateOnlyUTC7 } from '../../../../utils/dateHelper';
+import { formatDateOnlyUTC7, formatDateTimeUTC7 } from '../../../../utils/dateHelper';
 
 const WEEK_DAYS = [
   { value: 0, label: 'Chủ Nhật' },
@@ -109,6 +118,35 @@ const BranchSlotDetail = () => {
   const [assignRoomsLoading, setAssignRoomsLoading] = useState(false);
   const [assignedRooms, setAssignedRooms] = useState([]);
   const [loadingAssignedRooms, setLoadingAssignedRooms] = useState(false);
+
+  // Duplicate dialog state
+  const [duplicateDialog, setDuplicateDialog] = useState({
+    open: false,
+    dates: [null] // Array of dates to duplicate to
+  });
+  const [duplicateLoading, setDuplicateLoading] = useState(false);
+
+  // Change room dialog state
+  const [changeRoomDialog, setChangeRoomDialog] = useState({
+    open: false,
+    oldRoom: null, // Room to change from
+    newRoomId: '' // New room ID to change to
+  });
+  const [changeRoomLoading, setChangeRoomLoading] = useState(false);
+
+  // Student list dialog state
+  const [studentListDialog, setStudentListDialog] = useState({
+    open: false,
+    room: null, // Selected room
+    branchSlotId: null
+  });
+  const [students, setStudents] = useState([]);
+  const [studentListLoading, setStudentListLoading] = useState(false);
+  const [studentListPage, setStudentListPage] = useState(0);
+  const [studentListRowsPerPage, setStudentListRowsPerPage] = useState(10);
+  const [studentListTotalCount, setStudentListTotalCount] = useState(0);
+  const [studentListKeyword, setStudentListKeyword] = useState('');
+  const [studentListDate, setStudentListDate] = useState(null);
 
 
   const loadData = useCallback(async () => {
@@ -363,6 +401,230 @@ const BranchSlotDetail = () => {
     }
   }, [id, loadData]);
 
+  const handleDuplicate = useCallback(() => {
+    if (!id) return;
+    setDuplicateDialog({
+      open: true,
+      dates: [null] // Start with one empty date field
+    });
+  }, [id]);
+
+  const handleDuplicateSubmit = useCallback(async () => {
+    if (!id) return;
+
+    // Filter out null/empty dates and convert to ISO strings
+    const datesToSend = duplicateDialog.dates
+      .filter(date => date !== null && date !== undefined && date !== '')
+      .map(date => {
+        // Convert to ISO string format
+        if (date instanceof Date) {
+          return date.toISOString();
+        }
+        if (typeof date === 'string') {
+          // If already ISO string, use it
+          if (date.includes('T')) {
+            return date;
+          }
+          // If YYYY-MM-DD format, convert to ISO
+          if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            return new Date(date + 'T00:00:00').toISOString();
+          }
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    // If no dates provided, API will create one duplicate with source slot's date
+    setDuplicateLoading(true);
+    try {
+      await branchSlotService.duplicateBranchSlot(id, datesToSend);
+      
+      const dateCount = datesToSend.length || 1;
+      toast.success(`Đã sao chép ca giữ trẻ thành công! ${dateCount > 1 ? `Tạo ${dateCount} bản sao.` : 'Tạo 1 bản sao.'}`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      setDuplicateDialog({ open: false, dates: [null] });
+      // Navigate back to list to see the duplicated slots
+      setTimeout(() => {
+        navigate('/manager/branch-slots');
+      }, 1000);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi sao chép ca giữ trẻ';
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setDuplicateLoading(false);
+    }
+  }, [id, duplicateDialog.dates, navigate]);
+
+  const handleChangeRoom = useCallback((room) => {
+    if (!id || !room) return;
+    const roomId = room.id || room.roomId;
+    setChangeRoomDialog({
+      open: true,
+      oldRoom: room,
+      newRoomId: ''
+    });
+  }, [id]);
+
+  const handleChangeRoomSubmit = useCallback(async () => {
+    if (!id || !changeRoomDialog.oldRoom || !changeRoomDialog.newRoomId) {
+      toast.error('Vui lòng chọn phòng mới', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    const oldRoomId = changeRoomDialog.oldRoom.id || changeRoomDialog.oldRoom.roomId;
+    if (oldRoomId === changeRoomDialog.newRoomId) {
+      toast.error('Phòng mới phải khác phòng hiện tại', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    setChangeRoomLoading(true);
+    try {
+      await branchSlotService.changeRoom(id, oldRoomId, changeRoomDialog.newRoomId);
+      
+      const oldRoomName = changeRoomDialog.oldRoom.roomName || changeRoomDialog.oldRoom.name || 'phòng cũ';
+      const newRoom = roomOptions.find(r => r.id === changeRoomDialog.newRoomId);
+      const newRoomName = newRoom?.name || 'phòng mới';
+      
+      toast.success(`Đã đổi phòng từ "${oldRoomName}" sang "${newRoomName}" thành công!`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      setChangeRoomDialog({ open: false, oldRoom: null, newRoomId: '' });
+      await loadData(); // Reload data to show updated room
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi đổi phòng';
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setChangeRoomLoading(false);
+    }
+  }, [id, changeRoomDialog, roomOptions, loadData]);
+
+  // Load student list for a room
+  const loadStudentList = useCallback(async () => {
+    if (!studentListDialog.room || !studentListDialog.branchSlotId) return;
+
+    setStudentListLoading(true);
+    try {
+      const roomId = studentListDialog.room.id || studentListDialog.room.roomId;
+      const response = await studentSlotService.getManagerSlots({
+        branchSlotId: studentListDialog.branchSlotId,
+        roomId: roomId,
+        pageIndex: studentListPage + 1, // API uses 1-based indexing
+        pageSize: studentListRowsPerPage,
+        date: studentListDate ? (studentListDate instanceof Date ? studentListDate.toISOString().split('T')[0] : typeof studentListDate === 'string' ? studentListDate.split('T')[0] : studentListDate) : null,
+        upcomingOnly: false
+      });
+
+      // API response structure: items is array of branch slots, each has studentSlots array
+      // We need to flatten all studentSlots from all branch slots
+      const branchSlots = response?.items || [];
+      
+      // Flatten all studentSlots from all branch slots
+      const allStudentSlots = [];
+      branchSlots.forEach(branchSlot => {
+        const studentSlots = branchSlot.studentSlots || [];
+        studentSlots.forEach(studentSlot => {
+          allStudentSlots.push({
+            ...studentSlot,
+            // Add branch slot info for reference if needed
+            branchSlotId: branchSlot.id || branchSlot.Id,
+            branchSlotDate: branchSlot.date || branchSlot.Date,
+            roomId: branchSlot.roomId || branchSlot.RoomId,
+            roomName: branchSlot.roomName || branchSlot.RoomName
+          });
+        });
+      });
+      
+      // Transform student slots to flat structure for display
+      const transformedStudents = allStudentSlots.map((studentSlot, index) => {
+        // Get student name
+        const studentName = studentSlot.student?.name || 'Chưa có tên';
+        
+        // Get parent name
+        const parentName = studentSlot.parent?.name || 'Chưa có thông tin';
+        
+        // Get date
+        const date = studentSlot.date || studentSlot.Date || null;
+        
+        // Get status
+        const status = studentSlot.status || studentSlot.Status || 'Booked';
+        
+        // Get parent note
+        const parentNote = studentSlot.parentNote || studentSlot.ParentNote || null;
+        
+        return {
+          // Keep original data
+          ...studentSlot,
+          // Override with transformed/flattened values
+          id: studentSlot.studentSlotId || studentSlot.id || `slot-${index}`,
+          studentSlotId: studentSlot.studentSlotId || studentSlot.id,
+          studentName: studentName,
+          studentId: studentSlot.student?.id || studentSlot.studentId,
+          parentName: parentName,
+          parentId: studentSlot.parent?.id || studentSlot.parentId,
+          date: date,
+          status: status,
+          parentNote: parentNote
+        };
+      });
+
+      setStudents(transformedStudents);
+      // Use totalCount from response, or count all flattened student slots
+      setStudentListTotalCount(response?.totalCount || transformedStudents.length);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Không thể tải danh sách học sinh';
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+      setStudents([]);
+      setStudentListTotalCount(0);
+    } finally {
+      setStudentListLoading(false);
+    }
+  }, [studentListDialog, studentListPage, studentListRowsPerPage, studentListDate]);
+
+  // Open student list dialog
+  const handleViewStudents = useCallback((room) => {
+    if (!id || !room) return;
+    const roomId = room.id || room.roomId;
+    setStudentListDialog({
+      open: true,
+      room: room,
+      branchSlotId: id
+    });
+    setStudentListPage(0);
+    setStudentListRowsPerPage(10);
+    setStudentListKeyword('');
+    setStudentListDate(null);
+    setStudents([]);
+    setStudentListTotalCount(0);
+  }, [id]);
+
+  // Reload student list when dialog opens or pagination changes
+  useEffect(() => {
+    if (studentListDialog.open) {
+      loadStudentList();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentListDialog.open, studentListPage, studentListRowsPerPage, studentListDate]);
+
   // Form fields and options for assign dialogs
   const staffSelectOptions = useMemo(
     () => {
@@ -422,6 +684,23 @@ const BranchSlotDetail = () => {
         }));
     },
     [roomOptions]
+  );
+
+  // Options for change room dialog - exclude current room
+  const changeRoomSelectOptions = useMemo(
+    () => {
+      if (!changeRoomDialog.oldRoom) return [];
+      const currentRoomId = changeRoomDialog.oldRoom.id || changeRoomDialog.oldRoom.roomId;
+      return roomOptions
+        .filter((room) => room && room.id && room.id !== currentRoomId)
+        .map((room) => ({
+          value: room.id,
+          label: room.facilityName 
+            ? `${room.name || 'N/A'} - ${room.facilityName}` 
+            : room.name || 'N/A'
+        }));
+    },
+    [roomOptions, changeRoomDialog.oldRoom]
   );
 
   const assignStaffFormFields = useMemo(
@@ -654,6 +933,25 @@ const BranchSlotDetail = () => {
           >
             Chi tiết Ca Giữ Trẻ
           </Typography>
+          <Button
+            startIcon={<ContentCopy />}
+            onClick={handleDuplicate}
+            variant="outlined"
+            disabled={loading || !branchSlot}
+            sx={{
+              borderRadius: 'var(--radius-lg)',
+              textTransform: 'none',
+              fontFamily: 'var(--font-family)',
+              borderColor: 'var(--color-primary)',
+              color: 'var(--color-primary)',
+              '&:hover': {
+                borderColor: 'var(--color-primary-dark)',
+                backgroundColor: 'rgba(var(--color-primary-rgb), 0.1)'
+              }
+            }}
+          >
+            Sao chép
+          </Button>
         </Box>
       </Paper>
 
@@ -966,16 +1264,38 @@ const BranchSlotDetail = () => {
                               )}
                             </TableCell>
                             <TableCell>
-                              <Tooltip title="Gỡ phòng">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => handleUnassignRoom(item.room)}
-                                  disabled={unassigning}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
+                              <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                                <Tooltip title="Xem danh sách học sinh">
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => handleViewStudents(item.room)}
+                                    disabled={unassigning || changeRoomLoading}
+                                  >
+                                    <VisibilityIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Đổi phòng">
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => handleChangeRoom(item.room)}
+                                    disabled={unassigning || changeRoomLoading}
+                                  >
+                                    <SwapHoriz fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Gỡ phòng">
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleUnassignRoom(item.room)}
+                                    disabled={unassigning || changeRoomLoading}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
                             </TableCell>
                           </TableRow>
                         );
@@ -1038,6 +1358,348 @@ const BranchSlotDetail = () => {
           disabled={assignRoomsLoading || loadingAssignedRooms || dependenciesLoading}
           fields={assignRoomsFormFields}
         />
+      </ManagementFormDialog>
+
+      {/* Duplicate Dialog */}
+      <ManagementFormDialog
+        open={duplicateDialog.open}
+        onClose={() => setDuplicateDialog({ open: false, dates: [null] })}
+        mode="create"
+        title="Sao chép Ca Giữ Trẻ"
+        icon={ContentCopy}
+        loading={duplicateLoading}
+        maxWidth="sm"
+      >
+        <Box sx={{ p: 2 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Chọn các ngày để tạo bản sao của ca giữ trẻ này. Nếu không chọn ngày nào, sẽ tạo một bản sao với ngày của ca gốc.
+          </Typography>
+          
+          {duplicateDialog.dates.map((date, index) => (
+            <Box key={index} sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'flex-start' }}>
+              <TextField
+                type="date"
+                label={`Ngày ${index + 1}`}
+                value={date ? (date instanceof Date ? date.toISOString().split('T')[0] : typeof date === 'string' ? date.split('T')[0] : '') : ''}
+                onChange={(e) => {
+                  const newDates = [...duplicateDialog.dates];
+                  if (e.target.value) {
+                    const [year, month, day] = e.target.value.split('-').map(Number);
+                    newDates[index] = new Date(year, month - 1, day);
+                  } else {
+                    newDates[index] = null;
+                  }
+                  setDuplicateDialog({ ...duplicateDialog, dates: newDates });
+                }}
+                fullWidth
+                variant="standard"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+              {duplicateDialog.dates.length > 1 && (
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => {
+                    const newDates = duplicateDialog.dates.filter((_, i) => i !== index);
+                    setDuplicateDialog({ ...duplicateDialog, dates: newDates });
+                  }}
+                  sx={{ flexShrink: 0, mt: 1 }}
+                >
+                  <RemoveIcon />
+                </IconButton>
+              )}
+            </Box>
+          ))}
+          
+          <Button
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setDuplicateDialog({
+                ...duplicateDialog,
+                dates: [...duplicateDialog.dates, null]
+              });
+            }}
+            variant="outlined"
+            size="small"
+            sx={{ mb: 3, width: '100%' }}
+          >
+            Thêm ngày khác
+          </Button>
+          
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => setDuplicateDialog({ open: false, dates: [null] })}
+              disabled={duplicateLoading}
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleDuplicateSubmit}
+              variant="contained"
+              disabled={duplicateLoading}
+              startIcon={<ContentCopy />}
+            >
+              {duplicateLoading ? 'Đang sao chép...' : 'Sao chép'}
+            </Button>
+          </Box>
+        </Box>
+      </ManagementFormDialog>
+
+      {/* Change Room Dialog */}
+      <ManagementFormDialog
+        open={changeRoomDialog.open}
+        onClose={() => setChangeRoomDialog({ open: false, oldRoom: null, newRoomId: '' })}
+        mode="create"
+        title="Đổi Phòng"
+        icon={SwapHoriz}
+        loading={changeRoomLoading || dependenciesLoading}
+        maxWidth="sm"
+      >
+        <Box sx={{ p: 2 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Đổi phòng từ "{changeRoomDialog.oldRoom?.roomName || changeRoomDialog.oldRoom?.name || 'N/A'}" sang phòng mới. Tất cả học sinh và nhân viên sẽ được chuyển sang phòng mới.
+          </Typography>
+          
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <InputLabel>Phòng mới</InputLabel>
+            <Select
+              value={changeRoomDialog.newRoomId || ''}
+              onChange={(e) => {
+                setChangeRoomDialog({
+                  ...changeRoomDialog,
+                  newRoomId: e.target.value
+                });
+              }}
+              label="Phòng mới"
+              disabled={changeRoomLoading || dependenciesLoading || changeRoomSelectOptions.length === 0}
+            >
+              <MenuItem value="">
+                <em>Chọn phòng mới</em>
+              </MenuItem>
+              {changeRoomSelectOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {changeRoomSelectOptions.length === 0 && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                Không có phòng nào khả dụng để chuyển đổi
+              </Typography>
+            )}
+          </FormControl>
+          
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => setChangeRoomDialog({ open: false, oldRoom: null, newRoomId: '' })}
+              disabled={changeRoomLoading}
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleChangeRoomSubmit}
+              variant="contained"
+              disabled={changeRoomLoading || !changeRoomDialog.newRoomId || changeRoomSelectOptions.length === 0}
+              startIcon={<SwapHoriz />}
+            >
+              {changeRoomLoading ? 'Đang đổi...' : 'Đổi phòng'}
+            </Button>
+          </Box>
+        </Box>
+      </ManagementFormDialog>
+
+      {/* Student List Dialog */}
+      <ManagementFormDialog
+        open={studentListDialog.open}
+        onClose={() => {
+          setStudentListDialog({ open: false, room: null, branchSlotId: null });
+          setStudents([]);
+          setStudentListPage(0);
+          setStudentListRowsPerPage(10);
+          setStudentListKeyword('');
+          setStudentListDate(null);
+        }}
+        mode="view"
+        title={`Danh sách học sinh - ${studentListDialog.room?.roomName || studentListDialog.room?.name || 'Phòng'}`}
+        icon={Person}
+        loading={studentListLoading}
+        maxWidth="lg"
+      >
+        <Box sx={{ p: 2 }}>
+          {/* Search and Filter Section */}
+          <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+            <TextField
+              placeholder="Tìm kiếm theo tên học sinh..."
+              value={studentListKeyword}
+              onChange={(e) => setStudentListKeyword(e.target.value)}
+              size="small"
+              sx={{ flex: 1, minWidth: 250 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  setStudentListPage(0);
+                }
+              }}
+            />
+            <TextField
+              type="date"
+              label="Lọc theo ngày"
+              value={studentListDate ? (studentListDate instanceof Date ? studentListDate.toISOString().split('T')[0] : typeof studentListDate === 'string' ? studentListDate.split('T')[0] : '') : ''}
+              onChange={(e) => {
+                if (e.target.value) {
+                  const [year, month, day] = e.target.value.split('-').map(Number);
+                  setStudentListDate(new Date(year, month - 1, day));
+                } else {
+                  setStudentListDate(null);
+                }
+                setStudentListPage(0);
+              }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              size="small"
+              sx={{ minWidth: 200 }}
+            />
+            {(studentListKeyword || studentListDate) && (
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setStudentListKeyword('');
+                  setStudentListDate(null);
+                  setStudentListPage(0);
+                }}
+                size="small"
+              >
+                Xóa bộ lọc
+              </Button>
+            )}
+          </Box>
+
+          {/* Student List Table */}
+          <DataTable
+            data={students.filter(student => {
+              // Client-side filtering by keyword
+              if (studentListKeyword && studentListKeyword.trim()) {
+                const keyword = studentListKeyword.toLowerCase().trim();
+                const studentName = (student.studentName || '').toLowerCase();
+                const parentName = (student.parentName || '').toLowerCase();
+                if (!studentName.includes(keyword) && !parentName.includes(keyword)) {
+                  return false;
+                }
+              }
+              return true;
+            })}
+            columns={[
+              {
+                key: 'studentName',
+                header: 'Tên Học Sinh',
+                render: (value, item) => {
+                  const studentName = value || item?.studentName || 'Chưa có tên';
+                  return (
+                    <Typography variant="body1" fontWeight="medium">
+                      {studentName}
+                    </Typography>
+                  );
+                }
+              },
+              {
+                key: 'parentName',
+                header: 'Phụ Huynh',
+                render: (value, item) => {
+                  const parentName = value || item?.parentName || 'Chưa có thông tin';
+                  return (
+                    <Typography variant="body2" color="text.secondary">
+                      {parentName}
+                    </Typography>
+                  );
+                }
+              },
+              {
+                key: 'date',
+                header: 'Ngày',
+                render: (value) => (
+                  <Typography variant="body2" color="text.secondary">
+                    {value ? formatDateOnlyUTC7(value) : 'N/A'}
+                  </Typography>
+                )
+              },
+              {
+                key: 'status',
+                header: 'Trạng Thái',
+                render: (value) => {
+                  const statusLower = (value || '').toLowerCase();
+                  const statusMap = {
+                    'booked': { label: 'Đã đăng ký', color: 'success' },
+                    'attended': { label: 'Đã tham gia', color: 'primary' },
+                    'absent': { label: 'Vắng mặt', color: 'error' },
+                    'cancelled': { label: 'Đã hủy', color: 'default' },
+                    'available': { label: 'Có sẵn', color: 'info' },
+                    'completed': { label: 'Hoàn thành', color: 'success' }
+                  };
+                  const status = statusMap[statusLower] || { label: value || 'N/A', color: 'default' };
+                  return (
+                    <Chip
+                      label={status.label}
+                      color={status.color}
+                      size="small"
+                    />
+                  );
+                }
+              },
+              {
+                key: 'parentNote',
+                header: 'Ghi Chú',
+                render: (value, item) => {
+                  const note = value || item?.parentNote || null;
+                  return (
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        maxWidth: 200,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {note || '-'}
+                    </Typography>
+                  );
+                }
+              }
+            ]}
+            loading={studentListLoading}
+            page={studentListPage}
+            rowsPerPage={studentListRowsPerPage}
+            totalCount={students.filter(student => {
+              // Client-side filtering by keyword for total count
+              if (studentListKeyword && studentListKeyword.trim()) {
+                const keyword = studentListKeyword.toLowerCase().trim();
+                const studentName = (student.studentName || '').toLowerCase();
+                const parentName = (student.parentName || '').toLowerCase();
+                if (!studentName.includes(keyword) && !parentName.includes(keyword)) {
+                  return false;
+                }
+              }
+              return true;
+            }).length}
+            onPageChange={(event, newPage) => setStudentListPage(newPage)}
+            onRowsPerPageChange={(e) => {
+              setStudentListRowsPerPage(parseInt(e.target.value, 10));
+              setStudentListPage(0);
+            }}
+            emptyMessage="Không có học sinh nào trong phòng này."
+            showActions={false}
+          />
+        </Box>
       </ManagementFormDialog>
 
       {/* Confirmation Dialog */}

@@ -23,6 +23,7 @@ const Step1BasicInfo = forwardRef(
       totalSteps,
       timeframeOptions = [],
       slotTypeOptions = [],
+      studentLevelOptions = [],
       dependenciesLoading = false,
       actionLoading = false
     },
@@ -62,6 +63,17 @@ const Step1BasicInfo = forwardRef(
     []
   );
 
+  const studentLevelSelectOptions = useMemo(
+    () => [
+      { value: '', label: 'Chọn cấp độ học sinh (tùy chọn)' },
+      ...studentLevelOptions.map((sl) => ({
+        value: sl.id,
+        label: sl.name
+      }))
+    ],
+    [studentLevelOptions]
+  );
+
     const formFields = useMemo(
       () =>
         createBranchSlotFormFields({
@@ -69,9 +81,10 @@ const Step1BasicInfo = forwardRef(
           dependenciesLoading,
           timeframeSelectOptions,
           slotTypeSelectOptions,
-          weekDateOptions: weekDateSelectOptions
+          weekDateOptions: weekDateSelectOptions,
+          studentLevelSelectOptions
         }),
-      [actionLoading, dependenciesLoading, timeframeSelectOptions, slotTypeSelectOptions, weekDateSelectOptions]
+      [actionLoading, dependenciesLoading, timeframeSelectOptions, slotTypeSelectOptions, weekDateSelectOptions, studentLevelSelectOptions]
     );
 
   const defaultValues = useMemo(
@@ -79,6 +92,7 @@ const Step1BasicInfo = forwardRef(
       timeframeId: data.timeframeId || '',
       slotTypeId: data.slotTypeId || '',
       date: data.date || null,
+      studentLevelId: data.studentLevelId || '',
       status: data.status || 'Available'
     }),
     [data]
@@ -113,6 +127,7 @@ const Step1BasicInfo = forwardRef(
       slotTypeId: formData.slotTypeId,
       weekDate: weekDate,
       date: formData.date || null,
+      studentLevelId: formData.studentLevelId || null,
       status: formData.status
     });
     return true;
