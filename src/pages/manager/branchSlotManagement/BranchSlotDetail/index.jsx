@@ -38,6 +38,7 @@ import useBranchSlotDependencies from '../../../../hooks/useBranchSlotDependenci
 import { assignStaffSchema } from '../../../../utils/validationSchemas/assignStaffSchemas';
 import { assignRoomsSchema } from '../../../../utils/validationSchemas/assignRoomsSchemas';
 import { toast } from 'react-toastify';
+import { formatDateOnlyUTC7 } from '../../../../utils/dateHelper';
 
 const WEEK_DAYS = [
   { value: 0, label: 'Chủ Nhật' },
@@ -759,6 +760,22 @@ const BranchSlotDetail = () => {
                     </Box>
                   </Box>
                 </Grid>
+
+                {branchSlot.date && (
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                      <CalendarToday sx={{ color: 'var(--text-secondary)', fontSize: 24, mt: 0.5 }} />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', mb: 0.5 }}>
+                          Ngày Cụ Thể
+                        </Typography>
+                        <Typography variant="body1" fontWeight="medium">
+                          {formatDateOnlyUTC7(branchSlot.date)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                )}
               </Grid>
             </CardContent>
           </Card>

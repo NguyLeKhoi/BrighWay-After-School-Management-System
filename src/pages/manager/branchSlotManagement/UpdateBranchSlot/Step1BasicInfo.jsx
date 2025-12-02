@@ -62,30 +62,44 @@ const Step1BasicInfo = forwardRef(({ data, updateData, stepIndex, totalSteps, ti
   );
 
   const defaultValues = useMemo(
-    () => {
-      // Ensure weekDate is converted to string for proper comparison
-      let weekDateValue = '';
-      if (data.weekDate !== null && data.weekDate !== undefined && data.weekDate !== '') {
-        weekDateValue = String(data.weekDate);
-      }
-      
-      return {
-        timeframeId: data.timeframeId || '',
-        slotTypeId: data.slotTypeId || '',
-        weekDate: weekDateValue,
-        status: data.status || 'Available'
-      };
-    },
+    () => ({
+      timeframeId: data.timeframeId || '',
+      slotTypeId: data.slotTypeId || '',
+      date: data.date || null,
+      status: data.status || 'Available'
+    }),
     [data]
   );
 
   const formRef = React.useRef(null);
 
   const handleSubmit = async (formData) => {
+    // Tự động tính weekDate từ date
+    let weekDate = 0;
+    if (formData.date) {
+      let dateObj;
+      if (formData.date instanceof Date) {
+        dateObj = formData.date;
+      } else if (typeof formData.date === 'string') {
+        // Parse date string as local date (YYYY-MM-DD format)
+        // Avoid timezone issues by parsing as local date
+        const dateStr = formData.date.split('T')[0]; // Get YYYY-MM-DD part
+        const [year, month, day] = dateStr.split('-').map(Number);
+        dateObj = new Date(year, month - 1, day); // Month is 0-indexed
+      } else {
+        dateObj = new Date(formData.date);
+      }
+      
+      if (!isNaN(dateObj.getTime())) {
+        weekDate = dateObj.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+      }
+    }
+    
     updateData({
       timeframeId: formData.timeframeId,
       slotTypeId: formData.slotTypeId,
-      weekDate: formData.weekDate,
+      weekDate: weekDate,
+      date: formData.date || null,
       status: formData.status
     });
     return true;

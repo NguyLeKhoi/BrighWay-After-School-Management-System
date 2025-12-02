@@ -36,7 +36,8 @@ const CreateBranchSlot = () => {
     return {
       timeframeId,
       slotTypeId,
-      weekDate: parsedWeekDate,
+      weekDate: parsedWeekDate || '', // Will be calculated from date
+      date: null,
       status: 'Available',
       roomIds: [],
       branchSlotId: '',
@@ -105,19 +106,54 @@ const CreateBranchSlot = () => {
     if (
       !currentData.timeframeId ||
       !currentData.slotTypeId ||
-      currentData.weekDate === '' ||
-      currentData.weekDate === undefined
+      !currentData.date
     ) {
       throw new Error('Vui lòng điền đầy đủ thông tin!');
     }
 
     const branchIdToUse = currentData.branchId || managerBranchId || currentData?.branch?.id || null;
 
+    // Format date to ISO string and calculate weekDate
+    // BE expects: DateTime? and calculates DayOfWeek from it
+    // C# DayOfWeek: Sunday=0, Monday=1, ..., Saturday=6 (same as JS)
+    let formattedDate = null;
+    let weekDate = 0;
+    if (currentData.date) {
+      let dateObj;
+      if (currentData.date instanceof Date) {
+        dateObj = currentData.date;
+      } else if (typeof currentData.date === 'string') {
+        // Parse date string as local date (YYYY-MM-DD format)
+        // Avoid timezone issues by parsing as local date
+        const dateStr = currentData.date.split('T')[0]; // Get YYYY-MM-DD part
+        const [year, month, day] = dateStr.split('-').map(Number);
+        dateObj = new Date(year, month - 1, day); // Month is 0-indexed, parse as local date
+      } else {
+        dateObj = new Date(currentData.date);
+      }
+      
+      if (!isNaN(dateObj.getTime())) {
+        // Calculate weekDate from local date FIRST (before any timezone conversion)
+        // This ensures we get the correct day of week for the date user selected
+        weekDate = dateObj.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+        
+        // Format date to ISO string with UTC+7 timezone at noon (12:00)
+        // Using noon instead of midnight avoids timezone conversion issues
+        // that could shift the date when BE parses it
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        // Format as UTC+7 noon to preserve the exact date even if timezone conversion occurs
+        formattedDate = `${year}-${month}-${day}T12:00:00.000+07:00`;
+      }
+    }
+
     const payload = {
       branchId: branchIdToUse,
       timeframeId: currentData.timeframeId,
       slotTypeId: currentData.slotTypeId,
-      weekDate: Number(currentData.weekDate),
+      weekDate: weekDate,
+      date: formattedDate,
       status: currentData.status || 'Available'
     };
 

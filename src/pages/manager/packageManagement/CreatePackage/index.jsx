@@ -8,6 +8,7 @@ import Step1BasicInfo from './Step1BasicInfo';
 import Step2GeneralInfo from './Step2GeneralInfo';
 import Step3Pricing from './Step2Pricing';
 import Step4Benefits from './Step3Benefits';
+import Step5AssignSlotTypes from './Step4AssignSlotTypes';
 import useManagerPackageDependencies from '../../../../hooks/useManagerPackageDependencies';
 import packageService from '../../../../services/package.service';
 import { extractBenefitIds, normalizeBenefitIds, toNumber } from '../../../../utils/packageForm.utils';
@@ -37,7 +38,8 @@ const CreatePackage = () => {
     price: '',
     durationInMonths: '',
     totalSlots: '',
-    benefitIds: []
+    benefitIds: [],
+    slotTypeIds: []
   });
 
 
@@ -137,7 +139,26 @@ const CreatePackage = () => {
       };
 
       try {
-        await packageService.createMyBranchPackage(payload);
+        const created = await packageService.createMyBranchPackage(payload);
+        
+        // Assign slot types if any were selected
+        const slotTypeIds = finalData.slotTypeIds && finalData.slotTypeIds.length > 0
+          ? finalData.slotTypeIds
+          : [];
+        
+        if (slotTypeIds.length > 0) {
+          try {
+            await packageService.assignSlotTypesToPackage(created.id, { slotTypeIds });
+          } catch (slotTypeErr) {
+            console.error('Error assigning slot types:', slotTypeErr);
+            // Don't fail the whole operation if slot types assignment fails
+            toast.warning('Gói đã được tạo nhưng có lỗi khi gán loại ca giữ trẻ', {
+              position: 'top-right',
+              autoClose: 4000
+            });
+          }
+        }
+        
         toast.success('Tạo gói bán thành công!', { position: 'top-right', autoClose: 2000 });
         navigate('/manager/packages');
       } catch (err) {
@@ -169,6 +190,10 @@ const CreatePackage = () => {
       {
         label: 'Lợi ích',
         component: Step4Benefits
+      },
+      {
+        label: 'Loại ca giữ trẻ',
+        component: Step5AssignSlotTypes
       }
     ],
     []

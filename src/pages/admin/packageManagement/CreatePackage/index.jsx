@@ -15,6 +15,7 @@ import {
   packageStep2AssociationsSchema, 
   packageStep3PricingSchema 
 } from '../../../../utils/validationSchemas/packageSchemas';
+import Step5AssignSlotTypes from './Step5AssignSlotTypes';
 import { toast } from 'react-toastify';
 
 // Step 1: Basic info (no benefits here)
@@ -277,9 +278,10 @@ const Step4AssignBenefits = forwardRef(({ data, updateData }, ref) => {
           getOptionLabel={(option) => option.name}
           value={options.filter(b => selected.includes(b.id))}
           onChange={(e, newVal) => setSelected(newVal.map(b => b.id))}
-          renderOption={(props, option) => (
+          disableCloseOnSelect={true}
+          renderOption={(props, option, { selected: isSelected }) => (
             <Box component="li" {...props}>
-              <Checkbox checked={selected.includes(option.id)} />
+              <Checkbox checked={isSelected} />
               <ListItemText primary={option.name} secondary={option.description || 'Không có mô tả'} />
             </Box>
           )}
@@ -299,7 +301,8 @@ const CreatePackage = () => {
     { label: 'Thông tin cơ bản', component: Step1PackageBasic },
     { label: 'Liên kết dữ liệu', component: Step2Associations },
     { label: 'Giá & Slot', component: Step3PricingSlots },
-    { label: 'Gán lợi ích', component: Step4AssignBenefits }
+    { label: 'Gán lợi ích', component: Step4AssignBenefits },
+    { label: 'Loại ca giữ trẻ', component: Step5AssignSlotTypes }
   ]), []);
 
   const handleComplete = useCallback(async (finalData) => {
@@ -344,6 +347,18 @@ const CreatePackage = () => {
           console.error('Error assigning benefits:', benefitErr);
           // Don't fail the whole operation if benefits assignment fails
           toast.warning('Gói đã được tạo nhưng có lỗi khi gán lợi ích');
+        }
+      }
+      
+      // Assign slot types if any were selected
+      const slotTypeIds = finalData?.slotTypeIds || [];
+      if (slotTypeIds.length > 0) {
+        try {
+          await packageService.assignSlotTypesToPackage(created.id, { slotTypeIds });
+        } catch (slotTypeErr) {
+          console.error('Error assigning slot types:', slotTypeErr);
+          // Don't fail the whole operation if slot types assignment fails
+          toast.warning('Gói đã được tạo nhưng có lỗi khi gán loại ca giữ trẻ');
         }
       }
       

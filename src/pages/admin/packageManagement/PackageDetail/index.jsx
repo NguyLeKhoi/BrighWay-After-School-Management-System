@@ -23,7 +23,8 @@ import {
   AttachMoney,
   CalendarToday,
   CardGiftcard,
-  Description
+  Description,
+  AccessTime
 } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import packageService from '../../../../services/package.service';
@@ -272,7 +273,7 @@ const PackageDetail = () => {
             </Card>
 
             {packageData.studentLevel && (
-              <Card sx={{ mb: 3 }}>
+              <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
                     Cấp Độ Học Sinh
@@ -286,8 +287,10 @@ const PackageDetail = () => {
                 </CardContent>
               </Card>
             )}
+          </Grid>
 
-            <Card>
+          <Grid item xs={12}>
+            <Card sx={{ mb: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
                   Lợi Ích
@@ -307,6 +310,33 @@ const PackageDetail = () => {
                 ) : (
                   <Typography variant="body2" color="text.secondary">
                     Chưa có lợi ích nào được gán
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
+                  Loại Ca Giữ Trẻ
+                </Typography>
+                {packageData.slotTypes && packageData.slotTypes.length > 0 ? (
+                  <List dense>
+                    {packageData.slotTypes.map((slotType) => (
+                      <ListItem key={slotType.id || slotType.slotTypeId} sx={{ px: 0 }}>
+                        <AccessTime sx={{ mr: 1, fontSize: 20, color: 'text.secondary' }} />
+                        <ListItemText
+                          primary={slotType.name || 'N/A'}
+                          secondary={slotType.description || ''}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Chưa có loại ca giữ trẻ nào được gán
                   </Typography>
                 )}
               </CardContent>
