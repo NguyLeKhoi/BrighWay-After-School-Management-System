@@ -26,7 +26,7 @@ const UpdateBranchSlot = () => {
   const [formData, setFormData] = useState({
     timeframeId: '',
     slotTypeId: '',
-    weekDate: '',
+    date: null,
     status: 'Available',
     branchId: ''
   });
@@ -57,7 +57,7 @@ const UpdateBranchSlot = () => {
           const basicInfo = {
             timeframeId: slotData.timeframeId || '',
             slotTypeId: slotData.slotTypeId || '',
-            weekDate: slotData.weekDate !== null && slotData.weekDate !== undefined ? slotData.weekDate.toString() : '',
+            date: slotData.date || null,
             status: slotData.status || 'Available',
             branchId: slotData.branchId || slotData.branch?.id || ''
           };
@@ -84,7 +84,7 @@ const UpdateBranchSlot = () => {
   const handleStep1Complete = useCallback(async (data) => {
     const currentData = { ...formData, ...data };
     
-    if (!currentData.timeframeId || !currentData.slotTypeId || currentData.weekDate === '' || currentData.weekDate === undefined) {
+    if (!currentData.timeframeId || !currentData.slotTypeId || !currentData.date) {
       toast.error('Vui lòng điền đầy đủ thông tin!', {
         position: "top-right",
         autoClose: 3000,
@@ -119,11 +119,11 @@ const UpdateBranchSlot = () => {
       finalData
     });
     
-    if (!finalData.timeframeId || !finalData.slotTypeId || finalData.weekDate === '' || finalData.weekDate === undefined) {
+    if (!finalData.timeframeId || !finalData.slotTypeId || !finalData.date) {
       console.error('handleComplete - Validation failed:', {
         timeframeId: finalData.timeframeId,
         slotTypeId: finalData.slotTypeId,
-        weekDate: finalData.weekDate,
+        date: finalData.date,
         status: finalData.status
       });
       toast.error('Vui lòng điền đầy đủ thông tin cơ bản!', {
@@ -135,12 +135,46 @@ const UpdateBranchSlot = () => {
 
     setLoading(true);
     try {
+      // Format date to ISO string and calculate weekDate
+      let formattedDate = null;
+      let weekDate = 0;
+      if (finalData.date) {
+        let dateObj;
+        if (finalData.date instanceof Date) {
+          dateObj = finalData.date;
+        } else if (typeof finalData.date === 'string') {
+          // Parse date string as local date (YYYY-MM-DD format)
+          // Avoid timezone issues by parsing as local date
+          const dateStr = finalData.date.split('T')[0]; // Get YYYY-MM-DD part
+          const [year, month, day] = dateStr.split('-').map(Number);
+          dateObj = new Date(year, month - 1, day); // Month is 0-indexed, parse as local date
+        } else {
+          dateObj = new Date(finalData.date);
+        }
+        
+        if (!isNaN(dateObj.getTime())) {
+          // Calculate weekDate from local date FIRST (before any timezone conversion)
+          // This ensures we get the correct day of week for the date user selected
+          weekDate = dateObj.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+          
+          // Format date to ISO string with UTC+7 timezone at noon (12:00)
+          // Using noon instead of midnight avoids timezone conversion issues
+          // that could shift the date when BE parses it
+          const year = dateObj.getFullYear();
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const day = String(dateObj.getDate()).padStart(2, '0');
+          // Format as UTC+7 noon to preserve the exact date even if timezone conversion occurs
+          formattedDate = `${year}-${month}-${day}T12:00:00.000+07:00`;
+        }
+      }
+
       // Step 1: Update Branch Slot - đảm bảo tất cả field đều có giá trị
       const submitData = {
         branchId: finalData.branchId,
         timeframeId: finalData.timeframeId,
         slotTypeId: finalData.slotTypeId,
-        weekDate: Number(finalData.weekDate),
+        weekDate: weekDate,
+        date: formattedDate,
         status: finalData.status || 'Available'
       };
 

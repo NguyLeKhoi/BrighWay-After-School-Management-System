@@ -383,7 +383,6 @@ const Form = forwardRef(({
             return (
               <Autocomplete
                 multiple
-                disableCloseOnSelect
                 options={options}
                 value={selectedOptions}
                 onChange={(_, newValue) => onChange(newValue.map((option) => option.value))}
@@ -421,6 +420,7 @@ const Form = forwardRef(({
                   }
                 }}
                 {...fieldProps}
+                disableCloseOnSelect={true}
               />
             );
           }}
@@ -555,6 +555,98 @@ const Form = forwardRef(({
                 disabled={field.disabled}
                 error={!!fieldState.error}
                 required={field.required}
+              />
+            );
+          }}
+        />
+      );
+    } else if (type === 'date') {
+      // Date field with proper value transformation
+      inputElement = (
+        <Controller
+          name={name}
+          control={control}
+          defaultValue={null}
+          render={({ field: controllerField, fieldState }) => {
+            // Convert Date object or ISO string to YYYY-MM-DD format for input
+            const formatDateForInput = (dateValue) => {
+              if (!dateValue) return '';
+              if (dateValue instanceof Date) {
+                return dateValue.toISOString().split('T')[0];
+              }
+              if (typeof dateValue === 'string') {
+                // If it's an ISO string, extract date part
+                if (dateValue.includes('T')) {
+                  return dateValue.split('T')[0];
+                }
+                // If it's already YYYY-MM-DD, return as is
+                return dateValue;
+              }
+              return '';
+            };
+
+            // Convert YYYY-MM-DD string to Date object or ISO string for form value
+            const handleDateChange = (event) => {
+              const inputValue = event.target.value;
+              if (!inputValue) {
+                controllerField.onChange(null);
+                if (fieldOnChange) {
+                  fieldOnChange(null);
+                }
+                return;
+              }
+              // Parse as local date to avoid timezone issues when calculating day of week
+              // Format: YYYY-MM-DD
+              const [year, month, day] = inputValue.split('-').map(Number);
+              const dateValue = new Date(year, month - 1, day); // Month is 0-indexed
+              controllerField.onChange(dateValue);
+              if (fieldOnChange) {
+                fieldOnChange(dateValue);
+              }
+            };
+
+            return (
+              <TextField
+                type="date"
+                id={name}
+                name={name}
+                value={formatDateForInput(controllerField.value)}
+                onChange={handleDateChange}
+                onBlur={controllerField.onBlur}
+                variant="standard"
+                placeholder={field.placeholder}
+                required={field.required}
+                disabled={field.disabled}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message || helperText}
+                fullWidth
+                InputLabelProps={{
+                  shrink: true
+                }}
+                sx={{
+                  '& .MuiInput-underline:before': {
+                    borderBottomColor: 'var(--color-primary)'
+                  },
+                  '& .MuiInput-underline:hover:before': {
+                    borderBottomColor: 'var(--color-primary-dark)'
+                  },
+                  '& .MuiInput-underline:after': {
+                    borderBottomColor: 'var(--color-primary)'
+                  },
+                  '& .MuiInputBase-input': {
+                    color: 'var(--text-primary) !important'
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: 'rgba(255, 255, 255, 0.7)'
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': {
+                    color: 'var(--color-primary)'
+                  },
+                  '& .MuiFormHelperText-root': {
+                    color: 'rgba(255, 255, 255, 0.6)'
+                  }
+                }}
+                {...fieldProps}
               />
             );
           }}

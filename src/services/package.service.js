@@ -90,6 +90,21 @@ const packageService = {
   },
 
   /**
+   * Assign slot types to a package (replace existing) — Admin/Manager only
+   * @param {string} packageId - Package ID
+   * @param {Object} assignmentData - Assignment data { slotTypeIds: [Guid] }
+   * @returns {Promise} Assignment result
+   */
+  assignSlotTypesToPackage: async (packageId, assignmentData) => {
+    try {
+      const response = await axiosInstance.post(`/Package/${packageId}/assign-slot-types`, assignmentData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  /**
    * Get paginated packages with filters
    * @param {Object} params - Pagination parameters { page, pageSize, searchTerm, status }
    * @returns {Promise} Paginated package list

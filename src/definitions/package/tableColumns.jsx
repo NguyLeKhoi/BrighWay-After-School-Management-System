@@ -136,14 +136,7 @@ export const createPackageColumns = (styles) => [
     render: (_, item) => (
       <Box className={styles?.compactCell}>
         <Typography variant="body2">
-          <strong>Chi nhánh:</strong> {item?.branch?.branchName || 'N/A'}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Cấp độ:</strong> {item?.studentLevel?.name || 'N/A'}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Mẫu gói:</strong>{' '}
-          {item?.packageTemplate?.name || item?.packageTemplateName || 'N/A'}
+          {item?.branch?.branchName || 'N/A'}
         </Typography>
       </Box>
     )
