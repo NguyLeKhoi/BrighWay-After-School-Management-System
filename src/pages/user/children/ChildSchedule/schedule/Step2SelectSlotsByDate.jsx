@@ -2,6 +2,7 @@ import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'rea
 import ContentLoading from '../../../../../components/Common/ContentLoading';
 import branchSlotService from '../../../../../services/branchSlot.service';
 import { useApp } from '../../../../../contexts/AppContext';
+import { parseDateFromUTC7 } from '../../../../../utils/dateHelper';
 import styles from './Schedule.module.css';
 
 const WEEKDAY_LABELS = {
@@ -76,22 +77,41 @@ const Step2SelectSlotsByDate = forwardRef(({ data, updateData, stepIndex, totalS
         return;
       }
 
-      const mapped = items.map((slot) => ({
-        id: slot.id,
-        branchName: slot.branch?.branchName || slot.branchName || '',
-        weekDay: slot.weekDate,
-        status: slot.status || 'Available',
-        timeframeName: slot.timeframe?.name || slot.timeframeName || '',
-        startTime: slot.timeframe?.startTime || slot.startTime,
-        endTime: slot.timeframe?.endTime || slot.endTime,
-        slotTypeName: slot.slotType?.name || slot.slotTypeName || '',
-        slotTypeDescription: slot.slotType?.description || slot.slotTypeDescription || '',
-        slotTypeId: slot.slotTypeId,
-        allowedPackages: slot.allowedPackages || [],
-        rooms: slot.rooms || [], // Lưu rooms từ response
-        staff: slot.staff || [], // Lưu staff từ response
-        description: slot.description || ''
-      }));
+      // Parse selectedDate for comparison
+      const selectedDateOnly = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+
+      const mapped = items
+        .map((slot) => {
+          const slotDate = slot.date ? parseDateFromUTC7(slot.date) : null;
+          
+          // If slot has specific date, check if it matches selectedDate
+          if (slotDate) {
+            const slotDateOnly = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate());
+            // Only include slot if date matches
+            if (slotDateOnly.getTime() !== selectedDateOnly.getTime()) {
+              return null; // Filter out this slot
+            }
+          }
+          
+          return {
+            id: slot.id,
+            branchName: slot.branch?.branchName || slot.branchName || '',
+            weekDay: slot.weekDate,
+            date: slotDate, // Parse date của branch slot nếu có
+            status: slot.status || 'Available',
+            timeframeName: slot.timeframe?.name || slot.timeframeName || '',
+            startTime: slot.timeframe?.startTime || slot.startTime,
+            endTime: slot.timeframe?.endTime || slot.endTime,
+            slotTypeName: slot.slotType?.name || slot.slotTypeName || '',
+            slotTypeDescription: slot.slotType?.description || slot.slotTypeDescription || '',
+            slotTypeId: slot.slotTypeId,
+            allowedPackages: slot.allowedPackages || [],
+            rooms: slot.rooms || [], // Lưu rooms từ response
+            staff: slot.staff || [], // Lưu staff từ response
+            description: slot.description || ''
+          };
+        })
+        .filter(slot => slot !== null); // Remove filtered out slots
 
       setSlots(mapped);
     } catch (err) {

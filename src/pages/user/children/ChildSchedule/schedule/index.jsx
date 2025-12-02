@@ -12,7 +12,7 @@ import studentSlotService from '../../../../../services/studentSlot.service';
 import studentService from '../../../../../services/student.service';
 import packageService from '../../../../../services/package.service';
 import { useApp } from '../../../../../contexts/AppContext';
-import { formatDateToUTC7ISO } from '../../../../../utils/dateHelper';
+import { formatDateToUTC7ISO, parseDateFromUTC7 } from '../../../../../utils/dateHelper';
 
 const WEEKDAY_LABELS = {
   0: 'Chủ nhật',
@@ -193,9 +193,29 @@ const MySchedule = () => {
         selectedDate.setHours(0, 0, 0, 0);
       }
       
-      // Validate that selected date matches slot's weekday
-      // Use getDay() which returns 0 (Sunday) to 6 (Saturday), same as backend WeekDate
-      if (formData.slot?.weekDay !== undefined) {
+      // Validate that selected date matches slot's date if slot has specific date
+      if (formData.slot?.date) {
+        // Slot has a specific date, check if selectedDate matches
+        const slotDate = parseDateFromUTC7(formData.slot.date);
+        
+        if (slotDate) {
+          // Compare dates (ignore time, only compare year, month, day)
+          const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+          const slotDateOnly = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate());
+          
+          if (selectedDateOnly.getTime() !== slotDateOnly.getTime()) {
+            const slotDateStr = slotDate.toLocaleDateString('vi-VN');
+            addNotification({
+              message: `Ngày đã chọn không khớp với ngày của slot. Slot này chỉ có vào ngày ${slotDateStr}.`,
+              severity: 'error'
+            });
+            setIsBooking(false);
+            return;
+          }
+        }
+      } else if (formData.slot?.weekDay !== undefined) {
+        // Slot doesn't have specific date, validate by weekday
+        // Use getDay() which returns 0 (Sunday) to 6 (Saturday), same as backend WeekDate
         const selectedWeekDay = selectedDate.getDay();
         const slotWeekDay = formData.slot.weekDay;
         
