@@ -678,6 +678,92 @@
   pointer-events: none !important;
 }
 
+.dateWithSlots {
+  position: relative;
+}
+
+.dateWithSlots :global(.fc-daygrid-day-frame) {
+  border: 2px solid var(--color-success) !important;
+  border-radius: 4px;
+}
+
+.dateWithoutSlots {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.dateWithoutSlots :global(.fc-daygrid-day-frame) {
+  background-color: #f3f4f6 !important;
+}
+
+.dateLoading {
+  opacity: 0.6 !important;
+  cursor: wait !important;
+}
+
+.dateLoading :global(.fc-daygrid-day-frame) {
+  background-color: #f9fafb !important;
+}
+
+.dateCellWithSlots {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 4px !important;
+  padding: 4px 2px !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.dateCellWithSlots .dateNumber {
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  color: #1f2937 !important;
+}
+
+.slotIndicator {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  background: #dcfce7 !important;
+  border-radius: 12px !important;
+  padding: 2px 6px !important;
+  min-width: 32px !important;
+}
+
+.slotIcon {
+  font-size: 12px !important;
+  color: #16a34a !important;
+}
+
+.slotCount {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #16a34a !important;
+  line-height: 1 !important;
+}
+
+.slotCountBadge {
+  position: absolute !important;
+  top: -4px !important;
+  right: -4px !important;
+  background: #ef4444 !important;
+  color: white !important;
+  border-radius: 50% !important;
+  width: 18px !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
 .selectedDateCell {
   background: #22c55e !important; /* Green color */
   color: white !important;
