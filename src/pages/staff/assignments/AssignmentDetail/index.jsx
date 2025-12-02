@@ -265,13 +265,12 @@ const AssignmentDetail = () => {
     
     setLoadingActivities(prev => ({ ...prev, [studentSlotId]: true }));
     try {
-      const response = await activityService.getActivitiesPaged({
-        pageIndex: 1,
-        pageSize: 100,
-        StudentSlotId: studentSlotId
+      // Load all pages to ensure we get all activities
+      const activities = await activityService.getAllActivitiesForStudentSlot({
+        StudentSlotId: studentSlotId,
+        pageSize: 100
       });
       
-      const activities = Array.isArray(response?.items) ? response.items : [];
       setActivitiesByStudent(prev => ({
         ...prev,
         [studentSlotId]: activities
