@@ -91,6 +91,64 @@ const branchSlotService = {
   },
 
   /**
+   * Load all available slots for a student (handles pagination automatically)
+   * @param {string} studentId - Student ID
+   * @param {Object} params - Parameters including date, pageSize (optional, default 100)
+   * @returns {Promise<Array>} Array of all available slots across all pages
+   */
+  getAllAvailableSlotsForStudent: async function(studentId, params = {}) {
+    const allSlots = [];
+    let pageIndex = 1;
+    const pageSize = params.pageSize || 100;
+    let hasMore = true;
+    let totalCount = 0;
+    let totalPages = 0;
+
+    while (hasMore) {
+      const response = await this.getAvailableSlotsForStudent(studentId, {
+        ...params,
+        pageIndex: pageIndex,
+        pageSize: pageSize
+      });
+
+      const items = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.items)
+          ? response.items
+          : [];
+      
+      if (pageIndex === 1) {
+        totalCount = response?.totalCount || 0;
+        totalPages = response?.totalPages;
+        
+        if (!totalPages && totalCount > 0) {
+          totalPages = Math.ceil(totalCount / pageSize);
+        }
+      }
+
+      if (items.length > 0) {
+        allSlots.push(...items);
+      }
+
+      if (totalPages > 0) {
+        if (pageIndex >= totalPages) {
+          hasMore = false;
+        } else {
+          pageIndex++;
+        }
+      } else {
+        if (items.length < pageSize) {
+          hasMore = false;
+        } else {
+          pageIndex++;
+        }
+      }
+    }
+
+    return allSlots;
+  },
+
+  /**
    * Get branch slot by ID
    * @param {string} branchSlotId - Branch slot ID
    * @returns {Promise} Branch slot details
