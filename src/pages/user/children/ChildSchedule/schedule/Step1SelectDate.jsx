@@ -170,17 +170,11 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
                   const checkDateStr = extractDateString(d);
                   if (!checkDateStr) return null;
                   
-                  const response = await branchSlotService.getAvailableSlotsForStudent(data.studentId, {
-                    pageIndex: 1,
-                    pageSize: 100, // Get more slots to count accurately
-                    date: d
+                  // Load all pages to ensure we get all available slots for accurate count
+                  const items = await branchSlotService.getAllAvailableSlotsForStudent(data.studentId, {
+                    date: d,
+                    pageSize: 100
                   });
-                  
-                  const items = Array.isArray(response)
-                    ? response
-                    : Array.isArray(response?.items)
-                      ? response.items
-                      : [];
                   
                   // Filter slots by date if they have specific date
                   const validSlots = items.filter(slot => {

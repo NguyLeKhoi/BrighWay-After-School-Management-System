@@ -60,17 +60,11 @@ const Step2SelectSlotsByDate = forwardRef(({ data, updateData, stepIndex, totalS
       // Convert date to proper format
       const dateObj = selectedDate instanceof Date ? selectedDate : new Date(selectedDate);
       
-      const response = await branchSlotService.getAvailableSlotsForStudent(studentId, {
-        pageIndex: 1,
-        pageSize: 100,
-        date: dateObj
+      // Load all pages to ensure we get all available slots
+      const items = await branchSlotService.getAllAvailableSlotsForStudent(studentId, {
+        date: dateObj,
+        pageSize: 100
       });
-      
-      const items = Array.isArray(response)
-        ? response
-        : Array.isArray(response?.items)
-          ? response.items
-          : [];
 
       if (items.length === 0) {
         setSlots([]);

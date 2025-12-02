@@ -191,6 +191,59 @@ const activityService = {
       throw error.response?.data || error.message;
     }
   },
+
+  /**
+   * Load all activities for a student slot (handles pagination automatically)
+   * @param {Object} params - Parameters including StudentSlotId, pageSize (optional, default 100), and other filters
+   * @returns {Promise<Array>} Array of all activities across all pages
+   */
+  getAllActivitiesForStudentSlot: async function(params = {}) {
+    const allActivities = [];
+    let pageIndex = 1;
+    const pageSize = params.pageSize || 100;
+    let hasMore = true;
+    let totalCount = 0;
+    let totalPages = 0;
+
+    while (hasMore) {
+      const response = await this.getActivitiesPaged({
+        ...params,
+        pageIndex: pageIndex,
+        pageSize: pageSize
+      });
+
+      const items = Array.isArray(response?.items) ? response.items : [];
+      
+      if (pageIndex === 1) {
+        totalCount = response?.totalCount || 0;
+        totalPages = response?.totalPages;
+        
+        if (!totalPages && totalCount > 0) {
+          totalPages = Math.ceil(totalCount / pageSize);
+        }
+      }
+
+      if (items.length > 0) {
+        allActivities.push(...items);
+      }
+
+      if (totalPages > 0) {
+        if (pageIndex >= totalPages) {
+          hasMore = false;
+        } else {
+          pageIndex++;
+        }
+      } else {
+        if (items.length < pageSize) {
+          hasMore = false;
+        } else {
+          pageIndex++;
+        }
+      }
+    }
+
+    return allActivities;
+  },
 };
 
 export default activityService;

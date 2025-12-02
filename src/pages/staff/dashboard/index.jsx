@@ -37,7 +37,6 @@ const StaffDashboard = () => {
     activitiesThisMonth: 0,
     totalSlots: 0,
     upcomingSlots: 0,
-    studentsToday: 0,
     unviewedActivities: 0,
     activitiesToday: 0,
     completedSlots: 0
@@ -198,19 +197,6 @@ const StaffDashboard = () => {
         return slotDate >= todayDate;
       }).length;
 
-      // Calculate students today
-      const studentsTodaySet = new Set();
-      slots.forEach(slot => {
-        if (slot.date) {
-          const slotDate = new Date(slot.date);
-          slotDate.setHours(0, 0, 0, 0);
-          if (slotDate.getTime() === todayDate.getTime() && slot.studentId) {
-            studentsTodaySet.add(slot.studentId);
-          }
-        }
-      });
-      const studentsToday = studentsTodaySet.size;
-
       // Calculate completed slots (past slots)
       const completedSlots = slots.filter(slot => {
         if (!slot.date) return false;
@@ -224,7 +210,6 @@ const StaffDashboard = () => {
         activitiesThisMonth,
         totalSlots,
         upcomingSlots,
-        studentsToday,
         unviewedActivities,
         activitiesToday,
         completedSlots
@@ -259,13 +244,6 @@ const StaffDashboard = () => {
       value: stats.upcomingSlots.toLocaleString('vi-VN'),
       icon: CalendarIcon,
       color: 'warning',
-      onClick: () => navigate('/staff/assignments')
-    },
-    {
-      title: 'Học Sinh Hôm Nay',
-      value: stats.studentsToday.toLocaleString('vi-VN'),
-      icon: PeopleIcon,
-      color: 'info',
       onClick: () => navigate('/staff/assignments')
     }
   ];

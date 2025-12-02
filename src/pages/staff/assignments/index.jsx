@@ -115,43 +115,45 @@ const StaffAssignments = () => {
   };
 
   // Chuyển đổi student slot từ API sang format FullCalendar (cho từng slot riêng lẻ)
-  const transformSlotToEvent = (slot) => {
-    const dateValue = slot.branchSlot?.date || slot.date;
+  const transformSlotToEvent = (studentSlot) => {
+    // studentSlot có thể có branchSlot bên trong hoặc đã được merge
+    const branchSlot = studentSlot.branchSlot;
+    const dateValue = studentSlot.date || branchSlot?.date; // Ưu tiên date từ studentSlot (ngày cụ thể của booking)
     if (!dateValue) {
       return null;
     }
 
-    const timeframe = slot.timeframe || slot.timeFrame;
+    const timeframe = branchSlot?.timeframe || branchSlot?.timeFrame || studentSlot.timeframe || studentSlot.timeFrame;
     if (!timeframe) {
       return null;
     }
 
-      const dateStr = extractDateString(dateValue);
-      if (!dateStr) {
-          return null;
-      }
-      
-      const startTime = timeframe.startTime || '00:00:00';
-      const endTime = timeframe.endTime || '00:00:00';
-      
-      const formatTime = (time) => {
-        if (!time) return '00:00:00';
-        if (time.length === 5) return time + ':00';
-        return time;
-      };
-      
-      const formattedStartTime = formatTime(startTime);
-      const formattedEndTime = formatTime(endTime);
-      
-      // Format with UTC+7 timezone to ensure correct date/time display
-      const startDateTime = `${dateStr}T${formattedStartTime}+07:00`;
-      const endDateTime = `${dateStr}T${formattedEndTime}+07:00`;
+    const dateStr = extractDateString(dateValue);
+    if (!dateStr) {
+      return null;
+    }
+    
+    const startTime = timeframe.startTime || '00:00:00';
+    const endTime = timeframe.endTime || '00:00:00';
+    
+    const formatTime = (time) => {
+      if (!time) return '00:00:00';
+      if (time.length === 5) return time + ':00';
+      return time;
+    };
+    
+    const formattedStartTime = formatTime(startTime);
+    const formattedEndTime = formatTime(endTime);
+    
+    // Format with UTC+7 timezone to ensure correct date/time display
+    const startDateTime = `${dateStr}T${formattedStartTime}+07:00`;
+    const endDateTime = `${dateStr}T${formattedEndTime}+07:00`;
 
-    const status = slot.status || 'Booked';
+    const status = studentSlot.status || 'Booked';
     const backgroundColor = getStatusColor(status);
 
-    const roomName = slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định';
-    const branchName = slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định';
+    const roomName = branchSlot?.roomName || studentSlot.room?.roomName || studentSlot.roomName || 'Chưa xác định';
+    const branchName = branchSlot?.branch?.branchName || branchSlot?.branchName || studentSlot.branchName || 'Chưa xác định';
     const timeframeName = timeframe.name || 'Chưa xác định';
 
     const formatTimeDisplay = (time) => {
@@ -160,14 +162,23 @@ const StaffAssignments = () => {
     };
 
     const timeDisplay = `${formatTimeDisplay(startTime)}-${formatTimeDisplay(endTime)}`;
-    const studentName = slot.student?.name || slot.studentName || 'Chưa xác định';
+    const studentName = studentSlot.student?.name || studentSlot.studentName || 'Chưa xác định';
 
-    const timeType = getSlotTimeType(slot);
+    // Sử dụng date từ studentSlot để xác định timeType
+    const timeType = getSlotTimeType({
+      date: dateValue,
+      branchSlot: { date: dateValue },
+      timeframe: timeframe
+    });
     const timeTypeColor = getTimeTypeColor(timeType);
 
+    // Lấy branchSlotId từ branchSlot
+    const branchSlotId = branchSlot?.id || studentSlot.branchSlotId;
+    const studentSlotId = studentSlot.studentSlotId || studentSlot.id;
+    
     return {
-      id: slot.id,
-      title: `${timeframeName} - ${studentName}`,
+      id: studentSlotId, // studentSlotId
+      title: `${timeframeName} - ${roomName}`, // Bỏ studentName, chỉ hiển thị timeframe và room
       start: startDateTime,
       end: endDateTime,
       backgroundColor: timeTypeColor,
@@ -179,12 +190,15 @@ const StaffAssignments = () => {
         status: status,
         roomName: roomName,
         branchName: branchName,
-        studentName: studentName,
+        studentName: studentName, // Giữ lại để dùng trong detail, nhưng không hiển thị
         timeframe: timeframe,
         timeframeName: timeframeName,
         timeDisplay: timeDisplay,
-        slotId: slot.id,
-        timeType: timeType
+        slotId: studentSlotId, // studentSlotId
+        branchSlotId: branchSlotId, // branchSlotId để navigate
+        timeType: timeType,
+        studentCount: studentSlot.studentCount || 1, // Số lượng học sinh trong slot này
+        studentSlots: studentSlot.studentSlots || [] // Danh sách studentSlots (nếu có)
       }
     };
   };
@@ -244,8 +258,46 @@ const StaffAssignments = () => {
       setError(null);
       showLoading();
 
-      // Lấy tất cả slots
-      const slots = await fetchAllStaffSlots();
+      // Lấy tất cả branch slots (API trả về BranchSlot với studentSlots array)
+      const branchSlots = await fetchAllStaffSlots();
+      
+      // Transform BranchSlot thành format hiển thị
+      // Mỗi BranchSlot có thể có nhiều studentSlots, nhưng ta hiển thị BranchSlot như một row
+      const transformedSlots = branchSlots.map(branchSlot => {
+        // Lấy thông tin từ branchSlot
+        const dateValue = branchSlot.date || branchSlot.branchSlot?.date;
+        const timeframe = branchSlot.timeframe || branchSlot.timeFrame;
+        const roomName = branchSlot.roomName || branchSlot.room?.roomName || branchSlot.branchSlot?.roomName || 'Chưa xác định';
+        const branchName = branchSlot.branch?.branchName || branchSlot.branchName || 'Chưa xác định';
+        const status = branchSlot.status || 'Available';
+        
+        // Đếm số học sinh đã đăng ký (chỉ tính Booked và Completed)
+        const studentSlots = branchSlot.studentSlots || [];
+        const bookedCount = studentSlots.filter(ss => 
+          ss.status === 'Booked' || ss.status === 'Completed'
+        ).length;
+        
+        // Đếm tổng số studentSlots có status hợp lệ (không tính Cancelled, NoShow)
+        // Đây là số học sinh thực tế đã từng đăng ký (bao gồm cả Completed)
+        const validStudentSlotsCount = studentSlots.filter(ss => 
+          ss.status !== 'Cancelled' && ss.status !== 'NoShow'
+        ).length;
+        
+        return {
+          id: branchSlot.id, // BranchSlot ID
+          branchSlotId: branchSlot.id,
+          date: dateValue,
+          timeframe: timeframe,
+          roomName: roomName,
+          branchName: branchName,
+          status: status,
+          studentCount: bookedCount, // Số học sinh đã đăng ký (Booked/Completed)
+          totalValidSlots: validStudentSlotsCount, // Tổng số slot hợp lệ (không tính Cancelled, NoShow)
+          studentSlots: studentSlots, // Giữ lại để dùng trong detail
+          // Giữ lại các field cũ để tương thích
+          branchSlot: branchSlot
+        };
+      });
       
       // Phân loại slots theo thời gian
       const now = new Date();
@@ -253,7 +305,7 @@ const StaffAssignments = () => {
       const currentSlots = [];
       const upcomingSlots = [];
 
-      slots.forEach(slot => {
+      transformedSlots.forEach(slot => {
         const timeType = getSlotTimeType(slot);
         if (timeType === 'past') {
           pastSlots.push(slot);
@@ -266,14 +318,14 @@ const StaffAssignments = () => {
 
       // Sắp xếp: past (mới nhất trước), upcoming (sớm nhất trước)
       pastSlots.sort((a, b) => {
-        const dateA = new Date(a.branchSlot?.date || a.date || 0);
-        const dateB = new Date(b.branchSlot?.date || b.date || 0);
+        const dateA = new Date(a.date || 0);
+        const dateB = new Date(b.date || 0);
         return dateB - dateA;
       });
 
       upcomingSlots.sort((a, b) => {
-        const dateA = new Date(a.branchSlot?.date || a.date || 0);
-        const dateB = new Date(b.branchSlot?.date || b.date || 0);
+        const dateA = new Date(a.date || 0);
+        const dateB = new Date(b.date || 0);
         return dateA - dateB;
       });
 
@@ -281,13 +333,61 @@ const StaffAssignments = () => {
         past: pastSlots,
         current: currentSlots,
         upcoming: upcomingSlots,
-        all: slots
+        all: transformedSlots
       });
 
       // Transform slots to events for calendar
-      const events = slots
-        .map(transformSlotToEvent)
-        .filter(Boolean);
+      // Group studentSlots theo branchSlot + date + room để tránh duplicate
+      const events = [];
+      const eventMap = new Map(); // Key: `${branchSlotId}_${dateStr}_${roomName}`
+      
+      branchSlots.forEach(branchSlot => {
+        const studentSlots = branchSlot.studentSlots || [];
+        const timeframe = branchSlot.timeframe || branchSlot.timeFrame;
+        const roomName = branchSlot.roomName || 'Chưa xác định';
+        
+        // Group studentSlots theo date
+        const slotsByDate = new Map();
+        studentSlots.forEach(studentSlot => {
+          const dateValue = studentSlot.date || branchSlot.date;
+          if (!dateValue) return;
+          
+          const dateStr = extractDateString(dateValue);
+          if (!dateStr) return;
+          
+          if (!slotsByDate.has(dateStr)) {
+            slotsByDate.set(dateStr, []);
+          }
+          slotsByDate.get(dateStr).push(studentSlot);
+        });
+        
+        // Tạo 1 event cho mỗi date (không tạo event riêng cho từng studentSlot)
+        slotsByDate.forEach((slotsForDate, dateStr) => {
+          const eventKey = `${branchSlot.id}_${dateStr}_${roomName}`;
+          
+          // Chỉ tạo event nếu chưa có (tránh duplicate)
+          if (!eventMap.has(eventKey)) {
+            // Lấy studentSlot đầu tiên để lấy thông tin date
+            const firstSlot = slotsForDate[0];
+            const event = transformSlotToEvent({
+              ...firstSlot,
+              branchSlot: branchSlot,
+              timeframe: timeframe,
+              room: { roomName: roomName },
+              branch: branchSlot.branch,
+              studentCount: slotsForDate.length // Thêm số lượng học sinh
+            });
+            
+            if (event) {
+              // Cập nhật extendedProps để lưu tất cả studentSlots cho ngày đó
+              event.extendedProps.studentSlots = slotsForDate;
+              event.extendedProps.studentCount = slotsForDate.length;
+              eventMap.set(eventKey, event);
+              events.push(event);
+            }
+          }
+        });
+      });
 
       setScheduleData(events);
     } catch (err) {
@@ -309,15 +409,18 @@ const StaffAssignments = () => {
   // Event handlers cho FullCalendar
   const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
-    const slotId = event.extendedProps.slotId;
+    // event.extendedProps.slotId là studentSlotId, nhưng ta cần branchSlotId
+    // Lấy từ extendedProps hoặc tìm branchSlotId từ event data
+    const branchSlotId = event.extendedProps.branchSlotId || event.extendedProps.slotId;
     
-    if (slotId) {
-      navigate(`/staff/assignments/${slotId}`);
+    if (branchSlotId) {
+      navigate(`/staff/assignments/${branchSlotId}`);
     }
   };
 
   // Handler cho xem chi tiết
   const handleViewDetail = (slot) => {
+    // slot.id là branchSlotId
     if (slot && slot.id) {
       navigate(`/staff/assignments/${slot.id}`);
     }
@@ -450,6 +553,33 @@ const StaffAssignments = () => {
         }
       },
       {
+        key: 'students',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Person fontSize="small" />
+            <span>Số học sinh</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          const studentCount = item.studentCount || 0;
+          const totalValidSlots = item.totalValidSlots || 0;
+          // Chỉ hiển thị "/ total" nếu có sự khác biệt và total > 0
+          // totalValidSlots bao gồm cả Completed, nên có thể lớn hơn studentCount
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" fontWeight="medium">
+                {studentCount}
+              </Typography>
+              {totalValidSlots > studentCount && totalValidSlots > 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  / {totalValidSlots}
+                </Typography>
+              )}
+            </Box>
+          );
+        }
+      },
+      {
         key: 'status',
         header: (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -458,10 +588,10 @@ const StaffAssignments = () => {
           </Box>
         ),
         render: (value, item) => {
-          const status = item.status || 'Booked';
+          const status = item.status || 'Available';
           return (
             <Chip
-              label={statusLabels[status] || status}
+              label={status === 'Available' ? 'Có sẵn' : (statusLabels[status] || status)}
               size="small"
               sx={{
                 backgroundColor: getStatusColor(status),
@@ -781,9 +911,9 @@ const StaffAssignments = () => {
                 eventContent={(arg) => {
                   const props = arg.event.extendedProps;
                   const timeframeName = props.timeframeName || '';
-                  const studentName = props.studentName || 'Chưa xác định';
                   const roomName = props.roomName || 'Chưa xác định';
                   const timeDisplay = props.timeDisplay || '';
+                  const studentCount = props.studentCount || 1;
                   
                   return {
                     html: `
@@ -828,7 +958,7 @@ const StaffAssignments = () => {
                           overflow-wrap: break-word;
                           white-space: normal;
                         ">
-                          ${studentName} - ${roomName}
+                          ${roomName}${studentCount > 1 ? ` (${studentCount})` : ''}
                         </div>
                       </div>
                     `

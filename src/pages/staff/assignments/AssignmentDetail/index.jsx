@@ -132,26 +132,25 @@ const AssignmentDetail = () => {
         // Load activity types
         await fetchActivityTypes();
 
-        // Lấy thông tin slot
-        const response = await studentSlotService.getStaffSlots({
-          pageIndex: 1,
-          pageSize: 1000,
-          upcomingOnly: false
+        // Lấy thông tin branchSlot (API trả về BranchSlot với studentSlots array)
+        // Load tất cả các trang để đảm bảo tìm được slot
+        const branchSlots = await studentSlotService.getAllStaffSlots({
+          upcomingOnly: false,
+          pageSize: 100
         });
+        
+        const foundBranchSlot = branchSlots.find(bs => bs.id === slotId);
 
-        const slots = response?.items || [];
-        const foundSlot = slots.find(s => s.id === slotId);
-
-        if (!foundSlot) {
+        if (!foundBranchSlot) {
           setError('Không tìm thấy ca giữ trẻ này');
           navigate('/staff/assignments');
           return;
         }
 
-        setSlot(foundSlot);
+        setSlot(foundBranchSlot);
         
-        // Load danh sách học sinh cho slot này
-        await loadStudents(foundSlot);
+        // Load danh sách học sinh từ studentSlots của branchSlot
+        await loadStudents(foundBranchSlot);
       } catch (err) {
         const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải thông tin';
         setError(errorMessage);
@@ -176,38 +175,41 @@ const AssignmentDetail = () => {
     }
   };
 
-  const loadStudents = async (slotData) => {
-    if (!slotData) return;
+  const loadStudents = async (branchSlotData) => {
+    if (!branchSlotData) return;
 
     setLoadingStudents(true);
     try {
-      const dateValue = slotData.branchSlot?.date || slotData.date;
-      const branchSlotId = slotData.branchSlotId;
-
-      if (!branchSlotId || !dateValue) {
-        setStudentsList([]);
-        setFilteredStudentsList([]);
-        return;
-      }
-
-      const response = await studentSlotService.getStaffSlots({
-        pageIndex: 1,
-        pageSize: 1000,
-        branchSlotId: branchSlotId,
-        date: dateValue,
-        upcomingOnly: false
+      // Lấy studentSlots từ branchSlot (đã có sẵn trong response)
+      const studentSlots = branchSlotData.studentSlots || [];
+      
+      // Transform studentSlots thành format phù hợp với columns
+      const transformedSlots = studentSlots.map(studentSlot => {
+        return {
+          id: studentSlot.studentSlotId, // studentSlotId
+          studentId: studentSlot.student?.id,
+          studentName: studentSlot.student?.name || 'Chưa có tên',
+          studentImage: studentSlot.student?.image,
+          parentName: studentSlot.parent?.name || 'Chưa có thông tin',
+          parentImage: studentSlot.parent?.image,
+          parentNote: studentSlot.parentNote || '',
+          status: studentSlot.status || 'Booked',
+          date: studentSlot.date, // Ngày cụ thể của booking
+          // Giữ lại toàn bộ data để dùng sau
+          ...studentSlot
+        };
       });
 
-      const slots = response?.items || [];
-      const bookedSlots = slots.filter(s => 
-        s.status === 'Booked' || s.status === 'booked'
+      // Lọc chỉ lấy Booked và Completed (có thể thêm Completed nếu cần)
+      const activeSlots = transformedSlots.filter(s => 
+        s.status === 'Booked' || s.status === 'Completed' || s.status === 'booked' || s.status === 'completed'
       );
 
-      setStudentsList(bookedSlots);
-      setFilteredStudentsList(bookedSlots);
+      setStudentsList(activeSlots);
+      setFilteredStudentsList(activeSlots);
       
       // Load activities for all students
-      bookedSlots.forEach(studentSlot => {
+      activeSlots.forEach(studentSlot => {
         if (studentSlot.id) {
           loadActivitiesForStudent(studentSlot.id);
         }
@@ -215,7 +217,7 @@ const AssignmentDetail = () => {
     } catch (err) {
       const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tải danh sách học sinh';
       showGlobalError(errorMessage);
-      console.error('Error fetching students:', err);
+      console.error('Error loading students:', err);
     } finally {
       setLoadingStudents(false);
     }
@@ -263,13 +265,12 @@ const AssignmentDetail = () => {
     
     setLoadingActivities(prev => ({ ...prev, [studentSlotId]: true }));
     try {
-      const response = await activityService.getActivitiesPaged({
-        pageIndex: 1,
-        pageSize: 100,
-        StudentSlotId: studentSlotId
+      // Load all pages to ensure we get all activities
+      const activities = await activityService.getAllActivitiesForStudentSlot({
+        StudentSlotId: studentSlotId,
+        pageSize: 100
       });
       
-      const activities = Array.isArray(response?.items) ? response.items : [];
       setActivitiesByStudent(prev => ({
         ...prev,
         [studentSlotId]: activities
@@ -971,15 +972,16 @@ const AssignmentDetail = () => {
     );
   }
 
-  // Parse slot data
-  const dateValue = slot.branchSlot?.date || slot.date;
+  // Parse branchSlot data
+  const dateValue = slot.date || slot.branchSlot?.date;
   const timeframe = slot.timeframe || slot.timeFrame;
-  const roomName = slot.room?.roomName || slot.roomName || slot.branchSlot?.roomName || 'Chưa xác định';
-  const branchName = slot.branchSlot?.branchName || slot.branchName || 'Chưa xác định';
-  const status = slot.status || 'Booked';
+  const roomName = slot.roomName || slot.room?.roomName || slot.branchSlot?.roomName || 'Chưa xác định';
+  const branchName = slot.branch?.branchName || slot.branchName || slot.branchSlot?.branchName || 'Chưa xác định';
+  const status = slot.status || 'Available';
   const timeframeName = timeframe?.name || 'Chưa xác định';
   const startTimeOnly = timeframe?.startTime || '';
   const endTimeOnly = timeframe?.endTime || '';
+  const slotTypeName = slot.slotType?.name || 'Chưa xác định';
 
   const statusLabels = {
     'Booked': 'Đã đăng ký',
@@ -1120,6 +1122,20 @@ const AssignmentDetail = () => {
                     </Typography>
                     <Typography variant="body1" fontWeight="medium">
                       {branchName}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Divider />
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <EventIcon sx={{ color: 'var(--text-secondary)', fontSize: 20 }} />
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+                      Loại ca giữ trẻ
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      {slotTypeName}
                     </Typography>
                   </Box>
                 </Box>
