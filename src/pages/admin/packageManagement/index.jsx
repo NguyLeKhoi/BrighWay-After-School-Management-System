@@ -9,7 +9,8 @@ import {
   MenuItem,
   Tabs,
   Tab,
-  Paper
+  Paper,
+  TextField
 } from '@mui/material';
 import {
   ShoppingCart as PackageIcon,
@@ -135,13 +136,14 @@ const PackageManagement = () => {
         pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || '',
         status: params.status === '' ? null : params.status === 'true',
-        branchId: params.branchId || ''
+        branchId: params.branchId || '',
+        date: params.date || null
       });
     },
     createFunction: packageService.createPackage,
     updateFunction: packageService.updatePackage,
     deleteFunction: packageService.deletePackage,
-    defaultFilters: { status: '', branchId: '' },
+    defaultFilters: { status: '', branchId: '', date: '' },
     loadOnMount: true
   });
 
@@ -354,6 +356,20 @@ const PackageManagement = () => {
     </FormControl>
   );
 
+  const renderDateFilter = (value, onChange) => (
+    <TextField
+      type="date"
+      label="Ngày tạo"
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value || '')}
+      InputLabelProps={{
+        shrink: true,
+      }}
+      size="small"
+      className={styles.statusFilter}
+    />
+  );
+
   return (
     <div className={styles.container}>
       {activeLoading && <ContentLoading isLoading={activeLoading} text={activeLoadingText} />}
@@ -541,6 +557,7 @@ const PackageManagement = () => {
               packageHandleClearSearch();
               packageUpdateFilter('status', '');
               packageUpdateFilter('branchId', '');
+              packageUpdateFilter('date', '');
             }}
             placeholder="Tìm kiếm theo tên gói bán..."
           >
@@ -549,6 +566,9 @@ const PackageManagement = () => {
             )}
             {renderBranchFilter(packageFilters.branchId || '', (e) =>
               packageUpdateFilter('branchId', e.target.value)
+            )}
+            {renderDateFilter(packageFilters.date || '', (value) =>
+              packageUpdateFilter('date', value)
             )}
       </ManagementSearchSection>
 

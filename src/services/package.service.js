@@ -116,7 +116,8 @@ const packageService = {
         pageSize = 10, 
         searchTerm = '', 
         status = null,
-        branchId = ''
+        branchId = '',
+        date = null
       } = params;
       
       const queryParams = new URLSearchParams({
@@ -134,6 +135,16 @@ const packageService = {
 
       if (branchId) {
         queryParams.append('filter.BranchId', branchId);
+      }
+
+      if (date) {
+        // Format date to ISO string for backend
+        const dateStr = date instanceof Date 
+          ? date.toISOString().split('T')[0] 
+          : typeof date === 'string' 
+            ? date.split('T')[0] 
+            : date;
+        queryParams.append('filter.CreatedTime', dateStr);
       }
       
       const response = await axiosInstance.get(`/Package/paged?${queryParams}`);
@@ -155,7 +166,8 @@ const packageService = {
         pageSize = 10,
         searchTerm = '',
         status = null,
-        branchId = ''
+        branchId = '',
+        date = null
       } = params;
 
       const queryParams = new URLSearchParams({
@@ -173,6 +185,16 @@ const packageService = {
 
       if (branchId) {
         queryParams.append('filter.BranchId', branchId);
+      }
+
+      if (date) {
+        // Format date to ISO string for backend
+        const dateStr = date instanceof Date 
+          ? date.toISOString().split('T')[0] 
+          : typeof date === 'string' 
+            ? date.split('T')[0] 
+            : date;
+        queryParams.append('filter.CreatedTime', dateStr);
       }
 
       const response = await axiosInstance.get(`/Package/paged/my-branch?${queryParams}`);

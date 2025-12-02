@@ -12,7 +12,8 @@ import {
   Typography,
   CircularProgress,
   Button,
-  TablePagination
+  TablePagination,
+  TextField
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -67,13 +68,14 @@ const ManagerPackageManagement = () => {
         pageSize: params.pageSize,
         searchTerm: params.searchTerm || params.Keyword || '',
         status: params.status === '' ? null : params.status === 'true',
-        branchId: params.branchId || ''
+        branchId: params.branchId || '',
+        date: params.date || null
       });
     },
     createFunction: packageService.createMyBranchPackage,
     updateFunction: packageService.updateMyBranchPackage,
     deleteFunction: null,
-    defaultFilters: { status: '' },
+    defaultFilters: { status: '', date: '' },
     loadOnMount: true
   });
 
@@ -117,6 +119,20 @@ const ManagerPackageManagement = () => {
       </Select>
     </FormControl>
   ), [filters.status, updateFilter]);
+
+  const dateFilterControl = useMemo(() => (
+    <TextField
+      type="date"
+      label="Ngày tạo"
+      value={filters.date || ''}
+      onChange={(e) => updateFilter('date', e.target.value || '')}
+      InputLabelProps={{
+        shrink: true,
+      }}
+      size="small"
+      className={styles.filterControl}
+    />
+  ), [filters.date, updateFilter]);
 
   // Reload data when navigate back to this page (e.g., from create/update pages)
   useEffect(() => {
@@ -226,10 +242,12 @@ const ManagerPackageManagement = () => {
         onClear={() => {
           handleClearSearch();
           updateFilter('status', '');
+          updateFilter('date', '');
         }}
         placeholder="Tìm kiếm theo tên gói bán..."
       >
         {statusFilterControl}
+        {dateFilterControl}
       </ManagementSearchSection>
 
       {error && (

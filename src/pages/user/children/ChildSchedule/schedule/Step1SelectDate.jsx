@@ -1,8 +1,10 @@
-import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useState, useImperativeHandle, forwardRef, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { CheckCircle } from '@mui/icons-material';
+import { CheckCircle, EventAvailable } from '@mui/icons-material';
+import branchSlotService from '../../../../../services/branchSlot.service';
+import { parseDateFromUTC7, extractDateString } from '../../../../../utils/dateHelper';
 import styles from './Schedule.module.css';
 
 // Vietnamese locale configuration for FullCalendar
@@ -51,6 +53,9 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
   const [calendarKey, setCalendarKey] = useState(0);
   const calendarRef = React.useRef(null);
   const isUserSelectingRef = React.useRef(false);
+  const [datesWithSlots, setDatesWithSlots] = useState(new Map()); // Map of date string -> slot count
+  const [checkedDates, setCheckedDates] = useState(new Set()); // Set of date strings that have been checked
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   const isSameDate = (date1, date2) => {
     if (!date1 || !date2) return false;
@@ -106,6 +111,158 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
     setMinDate(today);
   }, []);
 
+  // Load available slots for the next 2 months to show which dates have slots
+  useEffect(() => {
+    let isMounted = true; // Track if component is still mounted
+    
+    const loadAvailableDates = async () => {
+      if (!data?.studentId) {
+        return;
+      }
+
+      setIsLoadingSlots(true);
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const datesWithSlotsMap = new Map(); // Map<dateString, slotCount>
+        const checkedDatesSet = new Set(); // Track which dates have been checked
+        
+        // Load slots for the next 2 months only (reduce API calls)
+        // Strategy: Load current month first (fast), then load next month in background
+        const monthsToLoad = 2;
+        const allDatesByMonth = [];
+        
+        // Collect all dates to check, grouped by month
+        for (let monthOffset = 0; monthOffset < monthsToLoad; monthOffset++) {
+          const monthStart = new Date(today);
+          monthStart.setMonth(monthStart.getMonth() + monthOffset);
+          monthStart.setDate(1);
+          
+          const monthEnd = new Date(monthStart);
+          monthEnd.setMonth(monthEnd.getMonth() + 1);
+          monthEnd.setDate(0); // Last day of month
+          
+          const monthDates = [];
+          for (let d = new Date(monthStart); d <= monthEnd; d.setDate(d.getDate() + 1)) {
+            if (d >= today) {
+              monthDates.push(new Date(d));
+            }
+          }
+          allDatesByMonth.push(monthDates);
+        }
+        
+        // Load current month first (priority), then other months
+        const loadMonth = async (monthDates, isCurrentMonth = false) => {
+          if (!isMounted) return;
+          
+          // Load in batches (one week at a time) to optimize API calls
+          const batchSize = 7;
+          for (let i = 0; i < monthDates.length; i += batchSize) {
+            if (!isMounted) return; // Check if still mounted before each batch
+            
+            const batch = monthDates.slice(i, i + batchSize);
+            
+            // Load all dates in the batch in parallel
+            const results = await Promise.all(
+              batch.map(async (d) => {
+                try {
+                  const checkDateStr = extractDateString(d);
+                  if (!checkDateStr) return null;
+                  
+                  const response = await branchSlotService.getAvailableSlotsForStudent(data.studentId, {
+                    pageIndex: 1,
+                    pageSize: 100, // Get more slots to count accurately
+                    date: d
+                  });
+                  
+                  const items = Array.isArray(response)
+                    ? response
+                    : Array.isArray(response?.items)
+                      ? response.items
+                      : [];
+                  
+                  // Filter slots by date if they have specific date
+                  const validSlots = items.filter(slot => {
+                    if (!slot.date) {
+                      // Slot without specific date - check if it matches the weekday
+                      const slotWeekDay = slot.weekDate !== undefined ? slot.weekDate : null;
+                      if (slotWeekDay !== null) {
+                        return d.getDay() === slotWeekDay;
+                      }
+                      return true; // Include if no date restriction
+                    }
+                    
+                    const slotDate = parseDateFromUTC7(slot.date);
+                    if (!slotDate) return false;
+                    
+                    const slotDateOnly = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate());
+                    const checkDateOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                    
+                    return slotDateOnly.getTime() === checkDateOnly.getTime();
+                  });
+                  
+                  return {
+                    dateStr: checkDateStr,
+                    slotCount: validSlots.length
+                  };
+                } catch (err) {
+                  // Ignore errors for individual date checks
+                  console.debug('Error checking date:', d, err);
+                  return null;
+                }
+              })
+            );
+            
+            // Process results and update maps
+            results.forEach(result => {
+              if (!result) return;
+              
+              checkedDatesSet.add(result.dateStr);
+              datesWithSlotsMap.set(result.dateStr, result.slotCount);
+            });
+            
+            // Update state after each batch for current month only (to show progress)
+            if (isCurrentMonth && isMounted) {
+              setDatesWithSlots(new Map(datesWithSlotsMap));
+              setCheckedDates(new Set(checkedDatesSet));
+            }
+          }
+        };
+        
+        // Load current month first (synchronous), then other months in background
+        await loadMonth(allDatesByMonth[0], true);
+        
+        // Load other months in background (don't await)
+        if (allDatesByMonth.length > 1 && isMounted) {
+          loadMonth(allDatesByMonth[1], false).then(() => {
+            if (isMounted) {
+              setDatesWithSlots(new Map(datesWithSlotsMap));
+              setCheckedDates(new Set(checkedDatesSet));
+            }
+          });
+        } else if (isMounted) {
+          setDatesWithSlots(datesWithSlotsMap);
+          setCheckedDates(new Set(checkedDatesSet));
+        }
+      } catch (err) {
+        console.error('Error loading available dates:', err);
+        // Don't show error, just don't highlight dates
+      } finally {
+        if (isMounted) {
+          setIsLoadingSlots(false);
+        }
+      }
+    };
+
+    loadAvailableDates();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [data?.studentId]);
+
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       try {
@@ -145,6 +302,23 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
       classes.push(styles.disabledDate);
     }
 
+    // Check if this date has slots
+    const dateStr = extractDateString(cellDate);
+    const slotCount = dateStr ? datesWithSlots.get(dateStr) : undefined;
+    const hasSlots = slotCount !== undefined && slotCount > 0;
+    const isChecked = dateStr ? checkedDates.has(dateStr) : false;
+    const hasNoSlots = isChecked && slotCount !== undefined && slotCount === 0;
+    
+    if (hasSlots && !isPast) {
+      classes.push(styles.dateWithSlots);
+    } else if (hasNoSlots && !isPast) {
+      // Date has been checked and has no slots - disable it
+      classes.push(styles.dateWithoutSlots);
+    } else if (!isChecked && !isPast && checkedDates.size > 0) {
+      // Date hasn't been checked yet but we're loading - show as loading
+      classes.push(styles.dateLoading);
+    }
+
     if (normalizedSelectedDate) {
       const cellDate = new Date(info.date);
       cellDate.setHours(0, 0, 0, 0);
@@ -155,13 +329,37 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
     }
 
     return classes.join(' ');
-  }, [normalizedSelectedDate, minDate]);
+  }, [normalizedSelectedDate, minDate, datesWithSlots, checkedDates]);
 
   const handleDateClick = (info) => {
     const clickedDate = info.date;
 
     if (clickedDate < minDate) {
       return;
+    }
+
+    const dateStr = extractDateString(clickedDate);
+    
+    // Check if this date has been checked and has slots
+    if (checkedDates.size > 0) {
+      const isChecked = dateStr ? checkedDates.has(dateStr) : false;
+      const slotCount = dateStr ? datesWithSlots.get(dateStr) : undefined;
+      
+      // If date has been checked but has no slots, don't allow selection
+      if (isChecked && (slotCount === undefined || slotCount === 0)) {
+        return;
+      }
+      
+      // If date hasn't been checked yet, don't allow selection (still loading)
+      if (!isChecked) {
+        return;
+      }
+    } else if (datesWithSlots.size > 0) {
+      // Fallback: if we have some data but date not in map, it means no slots
+      const slotCount = dateStr ? datesWithSlots.get(dateStr) : 0;
+      if (!dateStr || slotCount === 0) {
+        return;
+      }
     }
 
     if (selectedDate && isSameDate(clickedDate, selectedDate)) {
@@ -184,26 +382,42 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
   };
 
   const dayCellContent = React.useCallback((info) => {
-    if (!normalizedSelectedDate) {
-      return info.dayNumberText;
-    }
-
     const cellDate = new Date(info.date);
     cellDate.setHours(0, 0, 0, 0);
+    const isPast = cellDate < minDate;
     
-    const isSelected = cellDate.getTime() === normalizedSelectedDate.getTime();
+    const dateStr = extractDateString(cellDate);
+    const slotCount = dateStr ? datesWithSlots.get(dateStr) || 0 : 0;
+    const hasSlots = slotCount > 0;
+    
+    const isSelected = normalizedSelectedDate && cellDate.getTime() === normalizedSelectedDate.getTime();
     
     if (isSelected) {
       return (
         <div className={styles.selectedDateCell}>
           <span className={styles.dateNumber}>{info.dayNumberText}</span>
           <CheckCircle className={styles.checkIcon} />
+          {hasSlots && (
+            <span className={styles.slotCountBadge}>{slotCount}</span>
+          )}
+        </div>
+      );
+    }
+    
+    if (hasSlots && !isPast) {
+      return (
+        <div className={styles.dateCellWithSlots}>
+          <span className={styles.dateNumber}>{info.dayNumberText}</span>
+          <div className={styles.slotIndicator}>
+            <EventAvailable className={styles.slotIcon} />
+            <span className={styles.slotCount}>{slotCount}</span>
+          </div>
         </div>
       );
     }
     
     return info.dayNumberText;
-  }, [normalizedSelectedDate]);
+  }, [normalizedSelectedDate, minDate, datesWithSlots]);
 
   const formatDate = (date) => {
     if (!date) return '—';
@@ -268,7 +482,30 @@ const Step1SelectDate = forwardRef(({ data, updateData, stepIndex, totalSteps },
                 <p className={styles.infoLabel}>Ngày</p>
                 <p className={styles.infoValue}>{formatDate(selectedDate)}</p>
               </div>
+              {datesWithSlots.size > 0 && (() => {
+                const dateStr = extractDateString(selectedDate);
+                const slotCount = dateStr ? datesWithSlots.get(dateStr) || 0 : 0;
+                return (
+                  <div>
+                    <p className={styles.infoLabel}>Số lượng slot</p>
+                    <p className={styles.infoValue} style={{ 
+                      color: slotCount > 0 ? 'var(--color-success)' : 'var(--color-warning)',
+                      fontWeight: 600
+                    }}>
+                      {slotCount > 0 
+                        ? `✓ ${slotCount} slot khả dụng` 
+                        : '⚠ Không có slot'}
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
+          </div>
+        )}
+        
+        {isLoadingSlots && (
+          <div style={{ marginTop: '16px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>
+            Đang tải thông tin slot...
           </div>
         )}
       </div>
