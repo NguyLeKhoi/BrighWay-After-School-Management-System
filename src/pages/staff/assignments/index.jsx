@@ -83,6 +83,7 @@ const StaffAssignments = () => {
       const formattedStartTime = formatTime(startTime);
       const formattedEndTime = formatTime(endTime);
       
+      // Parse date with UTC+7 timezone to ensure correct comparison
       const startDateTime = new Date(`${dateStr}T${formattedStartTime}+07:00`);
       const endDateTime = new Date(`${dateStr}T${formattedEndTime}+07:00`);
       const now = new Date();
@@ -125,25 +126,26 @@ const StaffAssignments = () => {
       return null;
     }
 
-    const dateStr = extractDateString(dateValue);
-    if (!dateStr) {
-        return null;
-    }
-    
-    const startTime = timeframe.startTime || '00:00:00';
-    const endTime = timeframe.endTime || '00:00:00';
-    
-    const formatTime = (time) => {
-      if (!time) return '00:00:00';
-      if (time.length === 5) return time + ':00';
-      return time;
-    };
-    
-    const formattedStartTime = formatTime(startTime);
-    const formattedEndTime = formatTime(endTime);
-    
-    const startDateTime = `${dateStr}T${formattedStartTime}`;
-    const endDateTime = `${dateStr}T${formattedEndTime}`;
+      const dateStr = extractDateString(dateValue);
+      if (!dateStr) {
+          return null;
+      }
+      
+      const startTime = timeframe.startTime || '00:00:00';
+      const endTime = timeframe.endTime || '00:00:00';
+      
+      const formatTime = (time) => {
+        if (!time) return '00:00:00';
+        if (time.length === 5) return time + ':00';
+        return time;
+      };
+      
+      const formattedStartTime = formatTime(startTime);
+      const formattedEndTime = formatTime(endTime);
+      
+      // Format with UTC+7 timezone to ensure correct date/time display
+      const startDateTime = `${dateStr}T${formattedStartTime}+07:00`;
+      const endDateTime = `${dateStr}T${formattedEndTime}+07:00`;
 
     const status = slot.status || 'Booked';
     const backgroundColor = getStatusColor(status);

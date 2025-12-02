@@ -26,13 +26,13 @@ export const createBranchSlotFormFields = ({
     helperText: 'Chọn loại ca giữ trẻ'
   },
   {
-    name: 'weekDate',
-    label: 'Ngày trong tuần',
-    type: 'select',
+    name: 'date',
+    label: 'Ngày',
+    type: 'date',
     required: true,
-    options: weekDateOptions,
     gridSize: 6,
-    disabled: actionLoading || dependenciesLoading
+    disabled: actionLoading || dependenciesLoading,
+    helperText: 'Chọn ngày cho ca giữ trẻ. Thứ trong tuần sẽ được tự động tính từ ngày này.'
   },
   {
     name: 'status',

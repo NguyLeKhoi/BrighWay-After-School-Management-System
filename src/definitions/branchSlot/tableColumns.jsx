@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Chip, Typography } from '@mui/material';
-import { AccessTime as TimeframeIcon, Category as SlotTypeIcon, CalendarToday as WeekDateIcon } from '@mui/icons-material';
+import { AccessTime as TimeframeIcon, Category as SlotTypeIcon, CalendarToday as WeekDateIcon, Event as DateIcon } from '@mui/icons-material';
+import { formatDateOnlyUTC7 } from '../../utils/dateHelper';
 
 /**
  * Week Date Mapping:
@@ -84,6 +85,26 @@ export const createBranchSlotColumns = (styles) => [
         <Typography variant="body2">
           {WEEK_DAYS[item?.weekDate] || `Ngày ${item?.weekDate || 'N/A'}`}
         </Typography>
+      </Box>
+    )
+  },
+  {
+    key: 'date',
+    header: <Typography className={styles?.noWrap}>Ngày cụ thể</Typography>,
+    render: (_, item) => (
+      <Box display="flex" alignItems="center" gap={1}>
+        {item?.date ? (
+          <>
+            <DateIcon fontSize="small" color="primary" />
+            <Typography variant="body2">
+              {formatDateOnlyUTC7(item.date)}
+            </Typography>
+          </>
+        ) : (
+          <Typography variant="body2" color="text.secondary" fontStyle="italic">
+            -
+          </Typography>
+        )}
       </Box>
     )
   },
