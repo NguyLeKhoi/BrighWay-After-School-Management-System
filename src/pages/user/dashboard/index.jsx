@@ -11,7 +11,6 @@ import {
 import {
   ChildCare as ChildIcon,
   AccountBalanceWallet as WalletIcon,
-  School as PackageIcon,
   Notifications as NotificationIcon,
   Add as AddIcon,
   ShoppingCart as ShoppingIcon,
@@ -28,7 +27,6 @@ import { useApp } from '../../../contexts/AppContext';
 import useContentLoading from '../../../hooks/useContentLoading';
 import studentService from '../../../services/student.service';
 import walletService from '../../../services/wallet.service';
-import packageService from '../../../services/package.service';
 import notificationService from '../../../services/notification.service';
 import studentSlotService from '../../../services/studentSlot.service';
 import { extractDateString, formatDateOnlyUTC7 } from '../../../utils/dateHelper';
@@ -41,7 +39,6 @@ const UserDashboard = () => {
 
   const [stats, setStats] = useState({
     childrenCount: 0,
-    packagesCount: 0,
     walletBalance: 0,
     unreadNotifications: 0
   });
@@ -177,23 +174,6 @@ const UserDashboard = () => {
         setStats(prev => ({ ...prev, walletBalance: 0 }));
       }
 
-      // Load packages count
-      try {
-        let totalPackages = 0;
-        for (const child of children) {
-          try {
-            const subscriptions = await packageService.getSubscriptionsByStudent(child.id);
-            const subs = Array.isArray(subscriptions) ? subscriptions : (subscriptions?.items || []);
-            totalPackages += subs.length;
-          } catch (error) {
-            // Skip this child if error loading packages
-          }
-        }
-        setStats(prev => ({ ...prev, packagesCount: totalPackages }));
-      } catch (error) {
-        // Silent fail
-      }
-
       // Load unread notifications count
       try {
         const notifications = await notificationService.getNotifications();
@@ -256,13 +236,6 @@ const UserDashboard = () => {
       icon: ChildIcon,
       color: 'primary',
       onClick: () => navigate('/user/management/children')
-    },
-    {
-      title: 'Gói dịch vụ',
-      value: stats.packagesCount,
-      icon: PackageIcon,
-      color: 'success',
-      onClick: () => navigate('/user/management/packages')
     },
     {
       title: 'Số dư ví',

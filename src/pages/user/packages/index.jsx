@@ -380,6 +380,11 @@ const MyPackages = () => {
           const branchName = childInfo.branchName || packageDetails?.branch?.branchName || '';
           const levelName = childInfo.levelName || packageDetails?.studentLevel?.name || '';
           
+          // Ưu tiên lấy benefits từ subscription, nếu không có thì lấy từ packageDetails
+          const benefits = sub.benefits && Array.isArray(sub.benefits) && sub.benefits.length > 0
+            ? sub.benefits
+            : (packageDetails?.benefits || []);
+          
           mappedPackages.push({
             id: sub.id,
             name: sub.packageName || packageDetails?.name || 'Gói không tên',
@@ -400,7 +405,7 @@ const MyPackages = () => {
               levelName: levelName
             },
             status: sub.status?.toLowerCase() === 'active' ? 'active' : 'expired',
-            benefits: packageDetails?.benefits || [] // Lấy benefits từ package nếu có
+            benefits: benefits // Ưu tiên từ subscription, sau đó từ package
           });
         });
       }
