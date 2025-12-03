@@ -2,7 +2,7 @@ import React, { useImperativeHandle, useMemo } from 'react';
 import { Box, Typography, Alert, Grid } from '@mui/material';
 import Form from '../../../../components/Common/Form';
 import ImageUpload from '../../../../components/Common/ImageUpload';
-import { createParentCCCDInfoSchema } from '../../../../utils/validationSchemas/parentSchemas';
+import { createParentCCCDInfoSchema, createParentCCCDInfoOCRSchema } from '../../../../utils/validationSchemas/parentSchemas';
 
 const Step2CCCDInfo = React.forwardRef(
   ({ data, updateData, stepIndex, totalSteps, mode = 'manual' }, ref) => {
@@ -190,13 +190,6 @@ const Step2CCCDInfo = React.forwardRef(
       submit: async () => {
         if (formRef.current?.submit) {
           const result = await formRef.current.submit();
-          // Additional validation for OCR mode
-          if (mode === 'ocr') {
-            const currentData = formRef.current?.getValues?.() || {};
-            if (!currentData.name || !currentData.email || !currentData.password) {
-              return false;
-            }
-          }
           return result;
         }
         return false;
@@ -224,7 +217,7 @@ const Step2CCCDInfo = React.forwardRef(
           <Form
             key={`step2-ocr-${data.name || ''}-${data.phoneNumber || ''}-${data.avatarFile?.name || ''}-${data.identityCardNumber || ''}-${data.dateOfBirth || ''}-${data.gender || ''}-${data.address || ''}-${data.issuedDate || ''}-${data.issuedPlace || ''}`}
             ref={formRef}
-            schema={createParentCCCDInfoSchema}
+            schema={mode === 'ocr' ? createParentCCCDInfoOCRSchema : createParentCCCDInfoSchema}
             defaultValues={defaultValues}
             onSubmit={handleSubmit}
             fields={fields}
