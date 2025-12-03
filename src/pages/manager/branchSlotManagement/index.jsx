@@ -8,7 +8,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Button
+  Button,
+  TextField
 } from '@mui/material';
 import {
   AccessTime as BranchSlotIcon
@@ -101,13 +102,14 @@ const ManagerBranchSlotManagement = () => {
         status: params.status === '' ? null : params.status,
         weekDate: params.weekDate === '' ? null : params.weekDate,
         timeframeId: params.timeframeId === '' ? null : params.timeframeId,
-        slotTypeId: params.slotTypeId === '' ? null : params.slotTypeId
+        slotTypeId: params.slotTypeId === '' ? null : params.slotTypeId,
+        date: params.date === '' ? null : params.date
       });
     },
     createFunction: branchSlotService.createMyBranchSlot,
     updateFunction: branchSlotService.updateBranchSlot,
     deleteFunction: branchSlotService.deleteBranchSlot,
-    defaultFilters: { status: '', weekDate: '', timeframeId: '', slotTypeId: '' },
+    defaultFilters: { status: '', weekDate: '', timeframeId: '', slotTypeId: '', date: '' },
     loadOnMount: true
   });
 
@@ -309,9 +311,26 @@ const ManagerBranchSlotManagement = () => {
           handleClearSearch();
           updateFilter('timeframeId', '');
           updateFilter('slotTypeId', '');
+          updateFilter('date', '');
         }}
         placeholder="Tìm kiếm theo khung giờ hoặc loại ca giữ trẻ..."
       >
+        <TextField
+          type="date"
+          label="Ngày"
+          value={filters.date || ''}
+          onChange={(e) => updateFilter('date', e.target.value || '')}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          size="small"
+          className={styles.statusFilter}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 'var(--radius-lg)',
+            }
+          }}
+        />
         {renderTimeframeFilter(filters.timeframeId || '', (e) => updateFilter('timeframeId', e.target.value))}
         {renderSlotTypeFilter(filters.slotTypeId || '', (e) => updateFilter('slotTypeId', e.target.value))}
       </ManagementSearchSection>

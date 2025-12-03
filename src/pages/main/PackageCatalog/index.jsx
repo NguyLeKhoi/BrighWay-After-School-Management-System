@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import HeroSection from '@components/Common/HeroSection';
 import Card from '@components/Common/Card';
@@ -8,6 +9,7 @@ import { useApp } from '../../../contexts/AppContext';
 import styles from './PackageCatalog.module.css';
 
 const PackageCatalog = () => {
+  const navigate = useNavigate();
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const { showGlobalError } = useApp();
@@ -84,13 +86,8 @@ const PackageCatalog = () => {
           text: 'Đăng ký', 
           primary: true, 
           onClick: () => {
-            // Redirect to login if not authenticated, or to family/services
-            const user = localStorage.getItem('user');
-            if (user) {
-              window.location.href = '/user/services';
-            } else {
-              window.location.href = '/login';
-            }
+            // Navigate to contact page
+            navigate('/contact');
           }
         }
       ]

@@ -114,6 +114,51 @@ const studentSlotService = {
     }
 
     return allSlots;
+  },
+
+  /**
+   * Get student slots for a specific branch slot and room (Manager only)
+   * @param {Object} params - Query parameters { branchSlotId (required), roomId (required), pageIndex, pageSize, date, upcomingOnly }
+   * @returns {Promise} Paginated list of student slots
+   */
+  getManagerSlots: async (params = {}) => {
+    try {
+      const {
+        branchSlotId,
+        roomId,
+        pageIndex = 1,
+        pageSize = 10,
+        date = null,
+        upcomingOnly = false
+      } = params;
+
+      if (!branchSlotId || !roomId) {
+        throw new Error('branchSlotId and roomId are required');
+      }
+
+      const queryParams = new URLSearchParams({
+        branchSlotId: branchSlotId.toString(),
+        roomId: roomId.toString(),
+        pageIndex: pageIndex.toString(),
+        pageSize: pageSize.toString(),
+        upcomingOnly: upcomingOnly.toString()
+      });
+
+      if (date) {
+        // Format date to ISO string for backend
+        const dateStr = date instanceof Date 
+          ? date.toISOString() 
+          : typeof date === 'string' 
+            ? date 
+            : date;
+        queryParams.append('date', dateStr);
+      }
+
+      const response = await axiosInstance.get(`/StudentSlot/manager-slots?${queryParams.toString()}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 
