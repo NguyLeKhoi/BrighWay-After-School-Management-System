@@ -56,7 +56,7 @@ const SlotTypeDetail = () => {
   }, [id, showGlobalError]);
 
   const handleBack = () => {
-    navigate('/admin/slot-types');
+    navigate('/manager/slot-types');
   };
 
   if (loading) {

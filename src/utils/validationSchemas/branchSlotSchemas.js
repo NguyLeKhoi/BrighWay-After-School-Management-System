@@ -12,7 +12,11 @@ export const branchSlotSchema = yup.object({
   date: yup
     .date()
     .required('Vui lòng chọn ngày')
-    .typeError('Ngày không hợp lệ'),
+    .typeError('Ngày không hợp lệ')
+    .min(
+      new Date(new Date().setHours(0, 0, 0, 0)),
+      'Không thể chọn ngày trong quá khứ'
+    ),
   status: yup
     .string()
     .required('Vui lòng chọn trạng thái')

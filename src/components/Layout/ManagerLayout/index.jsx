@@ -16,7 +16,8 @@ import {
   People as PeopleGroupIcon,
   BusinessCenter as FacilityServiceIcon,
   Person as ProfileIcon,
-  Lock as LockIcon
+  Lock as LockIcon,
+  Category as SlotTypeIcon
 } from '@mui/icons-material';
 
 const ManagerLayout = () => {
@@ -70,6 +71,11 @@ const ManagerLayout = () => {
           path: '/manager/branch-slots',
           label: 'Ca Giữ Trẻ',
           icon: BranchSlotIcon
+        },
+        {
+          path: '/manager/slot-types',
+          label: 'Loại Ca Giữ Trẻ',
+          icon: SlotTypeIcon
         },
     {
       path: '/manager/packages',

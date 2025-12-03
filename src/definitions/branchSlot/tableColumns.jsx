@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Chip, Typography } from '@mui/material';
-import { AccessTime as TimeframeIcon, Category as SlotTypeIcon, CalendarToday as WeekDateIcon, Event as DateIcon } from '@mui/icons-material';
+import { AccessTime as TimeframeIcon, Category as SlotTypeIcon, MeetingRoom as RoomIcon, Person as StaffIcon } from '@mui/icons-material';
 import { formatDateOnlyUTC7 } from '../../utils/dateHelper';
 
 /**
@@ -39,20 +39,26 @@ const STATUS_LABELS = {
 
 export const createBranchSlotColumns = (styles) => [
   {
-    key: 'timeframe',
-    header: <Typography className={styles?.noWrap}>Khung giờ</Typography>,
+    key: 'scheduleInfo',
+    header: <Typography className={styles?.noWrap}>Thông tin lịch</Typography>,
     render: (_, item) => (
       <Box display="flex" alignItems="center" gap={1}>
-        <TimeframeIcon fontSize="small" color="primary" />
-        <Box>
-          <Typography variant="subtitle2" fontWeight="medium">
+        <TimeframeIcon fontSize="small" color="primary" sx={{ flexShrink: 0 }} />
+        <Box display="flex" flexDirection="column" gap={0.25}>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ lineHeight: 1.3 }}>
             {item?.timeframe?.name || 'N/A'}
           </Typography>
-          {item?.timeframe?.startTime && item?.timeframe?.endTime && (
-            <Typography variant="body2" color="text.secondary">
-              {item.timeframe.startTime} - {item.timeframe.endTime}
-            </Typography>
-          )}
+          <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+            {item?.timeframe?.startTime && item?.timeframe?.endTime 
+              ? `${item.timeframe.startTime} - ${item.timeframe.endTime}`
+              : 'N/A'}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+            <strong>{WEEK_DAYS[item?.weekDate] || `Ngày ${item?.weekDate || 'N/A'}`}</strong>
+            {item?.date && (
+              <>, {formatDateOnlyUTC7(item.date)}</>
+            )}
+          </Typography>
         </Box>
       </Box>
     )
@@ -77,36 +83,29 @@ export const createBranchSlotColumns = (styles) => [
     )
   },
   {
-    key: 'weekDate',
-    header: <Typography className={styles?.noWrap}>Ngày trong tuần</Typography>,
-    render: (_, item) => (
-      <Box display="flex" alignItems="center" gap={1}>
-        <WeekDateIcon fontSize="small" color="primary" />
-        <Typography variant="body2">
-          {WEEK_DAYS[item?.weekDate] || `Ngày ${item?.weekDate || 'N/A'}`}
-        </Typography>
-      </Box>
-    )
-  },
-  {
-    key: 'date',
-    header: <Typography className={styles?.noWrap}>Ngày cụ thể</Typography>,
-    render: (_, item) => (
-      <Box display="flex" alignItems="center" gap={1}>
-        {item?.date ? (
-          <>
-            <DateIcon fontSize="small" color="primary" />
+    key: 'resources',
+    header: <Typography className={styles?.noWrap}>Phòng & Nhân viên</Typography>,
+    render: (_, item) => {
+      const roomCount = item?.roomSlots?.length || item?.rooms?.length || 0;
+      const staffCount = item?.staffSlots?.length || item?.staffs?.length || 0;
+      
+      return (
+        <Box display="flex" flexDirection="column" gap={0.5}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <RoomIcon fontSize="small" color="primary" />
             <Typography variant="body2">
-              {formatDateOnlyUTC7(item.date)}
+              <strong>{roomCount}</strong> phòng
             </Typography>
-          </>
-        ) : (
-          <Typography variant="body2" color="text.secondary" fontStyle="italic">
-            -
-          </Typography>
-        )}
-      </Box>
-    )
+          </Box>
+          <Box display="flex" alignItems="center" gap={1}>
+            <StaffIcon fontSize="small" color="primary" />
+            <Typography variant="body2">
+              <strong>{staffCount}</strong> nhân viên
+            </Typography>
+          </Box>
+        </Box>
+      );
+    }
   },
   {
     key: 'status',

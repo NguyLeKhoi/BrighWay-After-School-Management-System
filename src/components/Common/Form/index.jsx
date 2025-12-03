@@ -572,7 +572,12 @@ const Form = forwardRef(({
             const formatDateForInput = (dateValue) => {
               if (!dateValue) return '';
               if (dateValue instanceof Date) {
-                return dateValue.toISOString().split('T')[0];
+                // ✅ Use local date components, NOT UTC (toISOString converts to UTC!)
+                // This prevents timezone issues where selecting Dec 4 shows as Dec 3
+                const year = dateValue.getFullYear();
+                const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+                const day = String(dateValue.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
               }
               if (typeof dateValue === 'string') {
                 // If it's an ISO string, extract date part
@@ -622,6 +627,10 @@ const Form = forwardRef(({
                 fullWidth
                 InputLabelProps={{
                   shrink: true
+                }}
+                inputProps={{
+                  min: field.min || undefined,
+                  max: field.max || undefined
                 }}
                 sx={{
                   '& .MuiInput-underline:before': {
