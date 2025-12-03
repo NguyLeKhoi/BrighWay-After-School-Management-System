@@ -45,8 +45,6 @@ import UpdateBranch from '../pages/admin/branchManagement/UpdateBranch';
 import BranchDetail from '../pages/admin/branchManagement/BranchDetail';
 import FacilityManagement from '../pages/admin/facilityManagement';
 import FacilityDetail from '../pages/admin/facilityManagement/FacilityDetail';
-import RoomManagement from '../pages/admin/roomManagement';
-import RoomDetail from '../pages/admin/roomManagement/RoomDetail';
 import ManagerManagement from '../pages/admin/managerManagement';
 import ManagerDetail from '../pages/admin/managerManagement/ManagerDetail';
 import UserManagement from '../pages/admin/userManagement';
@@ -66,6 +64,8 @@ import SchoolManagement from '../pages/admin/schoolManagement';
 import SchoolDetail from '../pages/admin/schoolManagement/SchoolDetail';
 import ServiceManagement from '../pages/admin/serviceManagement';
 import ServiceDetail from '../pages/admin/serviceManagement/ServiceDetail';
+import SlotTypeManagement from '../pages/admin/slotTypeManagement';
+import SlotTypeDetail from '../pages/admin/slotTypeManagement/SlotTypeDetail';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/dashboard';
@@ -297,14 +297,6 @@ export const routes = createBrowserRouter([
         element: <FacilityDetail />,
       },
       {
-        path: 'rooms',
-        element: <RoomManagement />,
-      },
-      {
-        path: 'rooms/detail/:id',
-        element: <RoomDetail />,
-      },
-      {
         path: 'staffAndManager',
         element: <ManagerManagement />,
       },
@@ -367,6 +359,14 @@ export const routes = createBrowserRouter([
       {
         path: 'services/detail/:id',
         element: <ServiceDetail />,
+      },
+      {
+        path: 'slot-types',
+        element: <SlotTypeManagement />,
+      },
+      {
+        path: 'slot-types/detail/:id',
+        element: <SlotTypeDetail />,
       },
     ],
   },
