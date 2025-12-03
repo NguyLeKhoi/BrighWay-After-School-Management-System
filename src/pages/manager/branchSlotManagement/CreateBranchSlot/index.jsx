@@ -16,16 +16,17 @@ const CreateBranchSlot = () => {
   const [searchParams] = useSearchParams();
   const { user: authUser } = useAuth();
 
+  const [actionLoading, setActionLoading] = useState(false);
+  const [managerBranchId, setManagerBranchId] = useState('');
+
   const {
     timeframeOptions,
     slotTypeOptions,
     roomOptions,
+    studentLevelOptions,
     loading: dependenciesLoading,
     fetchDependencies
-  } = useBranchSlotDependencies();
-
-  const [actionLoading, setActionLoading] = useState(false);
-  const [managerBranchId, setManagerBranchId] = useState('');
+  } = useBranchSlotDependencies(managerBranchId || null);
   const [formData, setFormData] = useState(() => {
     const timeframeId = searchParams.get('timeframeId') || '';
     const slotTypeId = searchParams.get('slotTypeId') || '';
@@ -38,6 +39,7 @@ const CreateBranchSlot = () => {
       slotTypeId,
       weekDate: parsedWeekDate || '', // Will be calculated from date
       date: null,
+      studentLevelId: '',
       status: 'Available',
       roomIds: [],
       branchSlotId: '',
@@ -52,9 +54,13 @@ const CreateBranchSlot = () => {
     formDataRef.current = formData;
   }, [formData]);
 
+  // Hook will automatically refetch when managerBranchId changes
+  // This useEffect ensures refetch when branchId is first loaded
   useEffect(() => {
-    fetchDependencies();
-  }, [fetchDependencies]);
+    if (managerBranchId) {
+      fetchDependencies();
+    }
+  }, [managerBranchId, fetchDependencies]);
 
   useEffect(() => {
     const extractBranchId = (userData) =>
@@ -154,6 +160,7 @@ const CreateBranchSlot = () => {
       slotTypeId: currentData.slotTypeId,
       weekDate: weekDate,
       date: formattedDate,
+      studentLevelId: currentData.studentLevelId || null,
       status: currentData.status || 'Available'
     };
 
@@ -301,6 +308,7 @@ const CreateBranchSlot = () => {
         stepProps={{
           timeframeOptions,
           slotTypeOptions,
+          studentLevelOptions,
           roomOptions,
           dependenciesLoading,
           actionLoading
