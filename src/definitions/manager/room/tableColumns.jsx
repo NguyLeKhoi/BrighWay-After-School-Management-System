@@ -25,15 +25,6 @@ export const createManagerRoomColumns = (styles) => [
     )
   },
   {
-    key: 'branchName',
-    header: 'Chi Nhánh',
-    render: (_, item) => (
-      <Typography variant="body2">
-        {item.branchName || 'N/A'}
-      </Typography>
-    )
-  },
-  {
     key: 'capacity',
     header: 'Sức Chứa',
     render: (value) => (
