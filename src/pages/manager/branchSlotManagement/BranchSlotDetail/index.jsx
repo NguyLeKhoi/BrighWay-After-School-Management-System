@@ -26,7 +26,9 @@ import {
   MeetingRoom,
   Person,
   School,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  ContentCopy,
+  SwapHoriz
 } from '@mui/icons-material';
 import { IconButton, Tooltip } from '@mui/material';
 import { PersonAdd as AssignStaffIcon, MeetingRoomOutlined as AssignRoomIcon } from '@mui/icons-material';
