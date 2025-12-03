@@ -68,20 +68,11 @@ const UserLayout = () => {
       icon: FinanceIcon,
       children: [
         {
-          path: '/user/finance/main-wallet',
-          label: 'Ví chính',
+          path: '/user/finance/wallet',
+          label: 'Ví của tôi',
           icon: MainWalletIcon
         },
-        {
-          path: '/user/finance/children-wallet',
-          label: 'Ví con',
-          icon: ChildrenWalletIcon
-        },
-        {
-          path: '/user/finance/transaction-history',
-          label: 'Lịch sử giao dịch',
-          icon: TransactionHistoryIcon
-        }
+        
       ]
     },
     {

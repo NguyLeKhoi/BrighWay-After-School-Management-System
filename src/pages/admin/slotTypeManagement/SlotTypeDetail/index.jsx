@@ -8,12 +8,16 @@ import {
   Divider,
   Paper,
   Card,
-  CardContent
+  CardContent,
+  Chip,
+  Grid
 } from '@mui/material';
 import { 
   ArrowBack,
   AccessTime,
-  Description
+  Description,
+  Inventory as PackageIcon,
+  School as StudentLevelIcon
 } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import slotTypeService from '../../../../services/slotType.service';
@@ -56,7 +60,7 @@ const SlotTypeDetail = () => {
   }, [id, showGlobalError]);
 
   const handleBack = () => {
-    navigate('/admin/slot-types');
+    navigate('/manager/slot-types');
   };
 
   if (loading) {
@@ -169,6 +173,64 @@ const SlotTypeDetail = () => {
             </Box>
           </CardContent>
         </Card>
+
+        {/* Assigned Packages */}
+        {slotType.assignedPackages && slotType.assignedPackages.length > 0 && (
+          <Card sx={{ mt: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <PackageIcon sx={{ fontSize: 24, color: 'primary.main' }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Các Gói Đã Gán ({slotType.assignedPackages.length})
+                </Typography>
+              </Box>
+              
+              <Grid container spacing={2}>
+                {slotType.assignedPackages.map((pkg, index) => (
+                  <Grid item xs={12} md={6} key={pkg.id || index}>
+                    <Paper 
+                      elevation={0} 
+                      sx={{ 
+                        p: 2, 
+                        border: '1px solid', 
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        '&:hover': {
+                          boxShadow: 1,
+                          borderColor: 'primary.main'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {pkg.name || 'N/A'}
+                        </Typography>
+                        
+                        {pkg.desc && (
+                          <Typography variant="body2" color="text.secondary">
+                            {pkg.desc}
+                          </Typography>
+                        )}
+                        
+                        {pkg.studentLevel && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <StudentLevelIcon fontSize="small" color="primary" />
+                            <Chip 
+                              label={pkg.studentLevel.name || 'N/A'} 
+                              size="small" 
+                              variant="outlined"
+                              color="primary"
+                            />
+                          </Box>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

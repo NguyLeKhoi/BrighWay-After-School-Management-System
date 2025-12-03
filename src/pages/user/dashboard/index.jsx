@@ -242,7 +242,7 @@ const UserDashboard = () => {
       value: formatCurrencyShort(stats.walletBalance),
       icon: WalletIcon,
       color: 'warning',
-      onClick: () => navigate('/user/finance/main-wallet')
+      onClick: () => navigate('/user/finance/wallet')
     },
     {
       title: 'Thông báo',
@@ -270,7 +270,7 @@ const UserDashboard = () => {
       text: 'Nạp tiền ví',
       icon: <WalletIcon />,
       primary: false,
-      onClick: () => navigate('/user/finance/main-wallet')
+      onClick: () => navigate('/user/finance/wallet')
     },
     {
       text: 'Xem lịch giữ trẻ',

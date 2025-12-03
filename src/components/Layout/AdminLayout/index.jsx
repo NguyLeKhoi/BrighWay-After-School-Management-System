@@ -72,11 +72,6 @@ const AdminLayout = () => {
       path: '/admin/student-levels',
       label: 'Cấp Độ Học Sinh',
       icon: StudentLevelIcon
-    },
-    {
-      path: '/admin/slot-types',
-      label: 'Loại Ca Giữ Trẻ',
-      icon: SlotTypeIcon
         }
       ]
     },

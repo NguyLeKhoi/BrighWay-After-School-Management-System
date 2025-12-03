@@ -33,7 +33,8 @@ export const createBranchSlotFormFields = ({
     required: true,
     gridSize: 6,
     disabled: actionLoading || dependenciesLoading,
-    helperText: 'Chọn ngày cho ca giữ trẻ. Thứ trong tuần sẽ được tự động tính từ ngày này.'
+    helperText: 'Chọn ngày cho ca giữ trẻ. Thứ trong tuần sẽ được tự động tính từ ngày này.',
+    min: new Date().toISOString().split('T')[0]
   },
   {
     name: 'studentLevelId',
