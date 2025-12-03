@@ -233,16 +233,8 @@ export const routes = createBrowserRouter([
         element: <UserPackageDetail />,
       },
       {
-        path: 'finance/main-wallet',
+        path: 'finance/wallet',
         element: <MainWallet />,
-      },
-      {
-        path: 'finance/children-wallet',
-        element: <ChildrenWallet />,
-      },
-      {
-        path: 'finance/transaction-history',
-        element: <TransactionHistory />,
       },
       {
         path: 'notifications',
