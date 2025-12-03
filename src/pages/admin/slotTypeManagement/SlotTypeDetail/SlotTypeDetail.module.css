@@ -1,0 +1,10 @@
+.detailPage {
+  min-height: 100vh;
+  background: var(--background-gradient);
+}
+
+.container {
+  padding: var(--spacing-lg);
+  max-width: 1200px;
+  margin: 0 auto;
+}

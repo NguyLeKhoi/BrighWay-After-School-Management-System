@@ -66,6 +66,16 @@ export const createServiceColumns = () => [
     )
   },
   {
+    key: 'stock',
+    header: 'Tồn kho',
+    align: 'right',
+    render: (value) => (
+      <Typography variant="body2" fontWeight="medium">
+        {value !== null && value !== undefined ? value : 'N/A'}
+      </Typography>
+    )
+  },
+  {
     key: 'status',
     header: 'Trạng Thái',
     render: (value) => (

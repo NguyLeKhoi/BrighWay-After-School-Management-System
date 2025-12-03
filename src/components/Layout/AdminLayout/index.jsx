@@ -22,7 +22,8 @@ import {
   Group as GroupIcon,
   BusinessCenter as SystemIcon,
   LocationCity as BranchGroupIcon,
-  LocalOffer as ServiceIcon
+  LocalOffer as ServiceIcon,
+  AccessTime as SlotTypeIcon
 } from '@mui/icons-material';
 
 const AdminLayout = () => {
@@ -71,6 +72,11 @@ const AdminLayout = () => {
       path: '/admin/student-levels',
       label: 'Cấp Độ Học Sinh',
       icon: StudentLevelIcon
+    },
+    {
+      path: '/admin/slot-types',
+      label: 'Loại Ca Giữ Trẻ',
+      icon: SlotTypeIcon
         }
       ]
     },
@@ -88,12 +94,7 @@ const AdminLayout = () => {
       path: '/admin/facilities',
       label: 'Cơ Sở Vật Chất',
       icon: FacilityIcon
-    },
-    {
-      path: '/admin/rooms',
-      label: 'Phòng Học',
-      icon: RoomIcon
-        }
+    }
       ]
     },
     {
