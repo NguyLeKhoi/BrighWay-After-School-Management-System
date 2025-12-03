@@ -34,7 +34,7 @@ export const createParentBasicInfoSchema = yup.object({
     })
 });
 
-// Schema for Step 2: CCCD Info (all optional)
+// Schema for Step 2: CCCD Info (all optional for manual mode)
 export const createParentCCCDInfoSchema = yup.object({
   name: yup
     .string()
@@ -48,8 +48,71 @@ export const createParentCCCDInfoSchema = yup.object({
   password: yup
     .string()
     .optional()
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
-    .max(50, 'Mật khẩu không được quá 50 ký tự'),
+    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+    .max(128, 'Mật khẩu không được quá 128 ký tự')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]+$/,
+      'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%?&)'
+    ),
+  phoneNumber: yup
+    .string()
+    .optional()
+    .matches(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
+  avatarFile: yup
+    .mixed()
+    .nullable()
+    .notRequired()
+    .test('fileSize', 'Kích thước file không được vượt quá 5MB', (value) => {
+      if (!value) return true;
+      return value.size <= 5 * 1024 * 1024; // 5MB
+    })
+    .test('fileType', 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF)', (value) => {
+      if (!value) return true;
+      return ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'].includes(value.type);
+    }),
+  identityCardNumber: yup
+    .string()
+    .optional(),
+  dateOfBirth: yup
+    .string()
+    .optional()
+    .matches(/^(\d{2}\/\d{2}\/\d{4}|)$/, 'Ngày sinh phải có định dạng dd/mm/yyyy'),
+  gender: yup
+    .string()
+    .optional(),
+  address: yup
+    .string()
+    .optional(),
+  issuedDate: yup
+    .string()
+    .optional()
+    .matches(/^(\d{2}\/\d{2}\/\d{4}|)$/, 'Ngày cấp phải có định dạng dd/mm/yyyy'),
+  issuedPlace: yup
+    .string()
+    .optional()
+});
+
+// Schema for Step 2: CCCD Info in OCR mode (email & password required)
+export const createParentCCCDInfoOCRSchema = yup.object({
+  name: yup
+    .string()
+    .required('Họ và tên là bắt buộc')
+    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ và tên không được quá 100 ký tự'),
+  email: yup
+    .string()
+    .required('Email là bắt buộc')
+    .email('Email không hợp lệ')
+    .max(256, 'Email không được quá 256 ký tự'),
+  password: yup
+    .string()
+    .required('Mật khẩu là bắt buộc')
+    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+    .max(128, 'Mật khẩu không được quá 128 ký tự')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]+$/,
+      'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%?&)'
+    ),
   phoneNumber: yup
     .string()
     .optional()
@@ -98,12 +161,17 @@ export const createParentWithCCCDSchema = yup.object({
   email: yup
     .string()
     .required('Email là bắt buộc')
-    .email('Email không hợp lệ'),
+    .email('Email không hợp lệ')
+    .max(256, 'Email không được quá 256 ký tự'),
   password: yup
     .string()
     .required('Mật khẩu là bắt buộc')
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
-    .max(50, 'Mật khẩu không được quá 50 ký tự'),
+    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+    .max(128, 'Mật khẩu không được quá 128 ký tự')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]+$/,
+      'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%?&)'
+    ),
   identityCardNumber: yup
     .string()
     .optional(),
