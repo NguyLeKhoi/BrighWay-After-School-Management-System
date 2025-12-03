@@ -20,7 +20,7 @@ const slotTypeService = {
 
   /**
    * Get paginated slot types with optional filter
-   * @param {Object} params - Pagination parameters { page, pageSize, searchTerm }
+   * @param {Object} params - Pagination parameters { page, pageSize, searchTerm, branchId }
    * @returns {Promise} Paginated slot type list
    */
   getSlotTypesPaged: async (params = {}) => {
@@ -28,7 +28,8 @@ const slotTypeService = {
       const {
         pageIndex = 1,
         pageSize = 10,
-        searchTerm = ''
+        searchTerm = '',
+        branchId = null
       } = params;
 
       const queryParams = new URLSearchParams({
@@ -38,6 +39,10 @@ const slotTypeService = {
 
       if (searchTerm) {
         queryParams.append('filter.Name', searchTerm);
+      }
+
+      if (branchId) {
+        queryParams.append('filter.branchId', branchId);
       }
 
       const response = await axiosInstance.get(`/SlotType/paged?${queryParams}`);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Chip, Typography } from '@mui/material';
-import { AccessTime as TimeframeIcon, Category as SlotTypeIcon, MeetingRoom as RoomIcon, Person as StaffIcon } from '@mui/icons-material';
+import { AccessTime as TimeframeIcon, Category as SlotTypeIcon, MeetingRoom as RoomIcon, Person as StaffIcon, School as StudentLevelIcon } from '@mui/icons-material';
 import { formatDateOnlyUTC7 } from '../../utils/dateHelper';
 
 /**
@@ -62,6 +62,42 @@ export const createBranchSlotColumns = (styles) => [
         </Box>
       </Box>
     )
+  },
+  {
+    key: 'studentLevels',
+    header: <Typography className={styles?.noWrap}>Cấp độ học sinh</Typography>,
+    render: (_, item) => {
+      // Prefer explicit allowedStudentLevels if present
+      const explicitLevels = Array.isArray(item?.allowedStudentLevels)
+        ? item.allowedStudentLevels
+            .map(l => l?.name || l?.levelName || l)
+            .filter(Boolean)
+        : [];
+
+      // Fallback: derive from slotType.assignedPackages[].studentLevel
+      const packageLevels = Array.isArray(item?.slotType?.assignedPackages)
+        ? item.slotType.assignedPackages
+            .map(p => p?.studentLevel?.name || p?.studentLevel?.levelName)
+            .filter(Boolean)
+        : [];
+
+      const levelNames = Array.from(new Set([...(explicitLevels || []), ...(packageLevels || [])]));
+
+      return (
+        <Box display="flex" alignItems="flex-start" gap={1}>
+          <StudentLevelIcon fontSize="small" color="primary" />
+          {levelNames.length > 0 ? (
+            <Box display="flex" flexWrap="wrap" gap={0.5}>
+              {levelNames.map((name, idx) => (
+                <Chip key={`${name}-${idx}`} label={name} size="small" variant="outlined" />
+              ))}
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">N/A</Typography>
+          )}
+        </Box>
+      );
+    }
   },
   {
     key: 'slotType',

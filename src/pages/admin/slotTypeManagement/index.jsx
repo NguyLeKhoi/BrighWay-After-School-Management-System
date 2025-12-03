@@ -13,10 +13,12 @@ import slotTypeService from '../../../services/slotType.service';
 import { createSlotTypeColumns } from '../../../definitions/slotType/tableColumns';
 import { createSlotTypeFormFields } from '../../../definitions/slotType/formFields';
 import { slotTypeSchema } from '../../../utils/validationSchemas/slotTypeSchemas';
+import { useApp } from '../../../contexts/AppContext';
 import styles from './SlotTypeManagement.module.css';
 
 const SlotTypeManagement = () => {
   const navigate = useNavigate();
+  const { currentUser } = useApp();
 
   const columns = useMemo(() => createSlotTypeColumns(), []);
   const slotTypeFormFields = useMemo(() => createSlotTypeFormFields(false), []);
@@ -48,7 +50,10 @@ const SlotTypeManagement = () => {
     handlePageChange,
     handleRowsPerPageChange
   } = useBaseCRUD({
-    loadFunction: slotTypeService.getSlotTypesPaged,
+    loadFunction: (params) => slotTypeService.getSlotTypesPaged({
+      ...params,
+      branchId: currentUser?.branchId || null
+    }),
     createFunction: slotTypeService.createSlotType,
     updateFunction: slotTypeService.updateSlotType,
     deleteFunction: slotTypeService.deleteSlotType,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Chip } from '@mui/material';
-import { AccessTime as SlotTypeIcon } from '@mui/icons-material';
+import { AccessTime as SlotTypeIcon, Inventory as PackageIcon } from '@mui/icons-material';
 
 export const createSlotTypeColumns = () => [
   {
@@ -23,5 +23,23 @@ export const createSlotTypeColumns = () => [
         {value || 'Không có mô tả'}
       </Typography>
     )
+  },
+  {
+    key: 'assignedPackages',
+    header: 'Gói Đã Gán',
+    render: (_, item) => {
+      const packageCount = Array.isArray(item?.assignedPackages) ? item.assignedPackages.length : 0;
+      return (
+        <Box display="flex" alignItems="center" gap={1}>
+          <PackageIcon fontSize="small" color="primary" />
+          <Chip
+            label={`${packageCount} gói`}
+            size="small"
+            color={packageCount > 0 ? 'primary' : 'default'}
+            variant="outlined"
+          />
+        </Box>
+      );
+    }
   }
 ];

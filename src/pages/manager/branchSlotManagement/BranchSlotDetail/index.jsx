@@ -25,6 +25,7 @@ import {
   CalendarToday,
   MeetingRoom,
   Person,
+  School,
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { IconButton, Tooltip } from '@mui/material';
@@ -776,6 +777,43 @@ const BranchSlotDetail = () => {
                     </Box>
                   </Grid>
                 )}
+
+                <Grid item xs={12}>
+                  <Divider />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <School sx={{ color: 'var(--text-secondary)', fontSize: 24, mt: 0.5 }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', mb: 0.5 }}>
+                        Cấp Độ Học Sinh
+                      </Typography>
+                      {(() => {
+                        const explicitLevels = Array.isArray(branchSlot?.allowedStudentLevels)
+                          ? branchSlot.allowedStudentLevels
+                              .map(l => l?.name || l?.levelName || l)
+                              .filter(Boolean)
+                          : [];
+                        const packageLevels = Array.isArray(branchSlot?.slotType?.assignedPackages)
+                          ? branchSlot.slotType.assignedPackages
+                              .map(p => p?.studentLevel?.name || p?.studentLevel?.levelName)
+                              .filter(Boolean)
+                          : [];
+                        const levelNames = Array.from(new Set([...(explicitLevels || []), ...(packageLevels || [])]));
+                        return levelNames.length > 0 ? (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {levelNames.map((name, idx) => (
+                              <Chip key={`${name}-${idx}`} label={name} size="small" variant="outlined" />
+                            ))}
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">N/A</Typography>
+                        );
+                      })()}
+                    </Box>
+                  </Box>
+                </Grid>
               </Grid>
             </CardContent>
           </Card>
