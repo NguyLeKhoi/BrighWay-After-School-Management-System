@@ -39,7 +39,6 @@ const CreateBranchSlot = () => {
       slotTypeId,
       weekDate: parsedWeekDate || '', // Will be calculated from date
       date: null,
-      studentLevelId: '',
       status: 'Available',
       roomIds: [],
       branchSlotId: '',
