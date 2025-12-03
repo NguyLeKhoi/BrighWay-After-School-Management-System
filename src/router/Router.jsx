@@ -233,16 +233,8 @@ export const routes = createBrowserRouter([
         element: <UserPackageDetail />,
       },
       {
-        path: 'finance/main-wallet',
+        path: 'finance/wallet',
         element: <MainWallet />,
-      },
-      {
-        path: 'finance/children-wallet',
-        element: <ChildrenWallet />,
-      },
-      {
-        path: 'finance/transaction-history',
-        element: <TransactionHistory />,
       },
       {
         path: 'notifications',
@@ -360,14 +352,6 @@ export const routes = createBrowserRouter([
         path: 'services/detail/:id',
         element: <ServiceDetail />,
       },
-      {
-        path: 'slot-types',
-        element: <SlotTypeManagement />,
-      },
-      {
-        path: 'slot-types/detail/:id',
-        element: <SlotTypeDetail />,
-      },
     ],
   },
 
@@ -395,6 +379,14 @@ export const routes = createBrowserRouter([
       {
         path: 'staff/detail/:id',
         element: <StaffDetail />,
+      },
+      {
+        path: 'slot-types',
+        element: <SlotTypeManagement />,
+      },
+      {
+        path: 'slot-types/detail/:id',
+        element: <SlotTypeDetail />,
       },
       {
         path: 'parents',
