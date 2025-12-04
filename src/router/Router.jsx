@@ -86,6 +86,8 @@ import UpdateBranchSlot from '../pages/manager/branchSlotManagement/UpdateBranch
 import BranchSlotDetail from '../pages/manager/branchSlotManagement/BranchSlotDetail';
 import CreateStudent from '../pages/manager/studentManagement/CreateStudent';
 import UpdateStudent from '../pages/manager/studentManagement/UpdateStudent';
+import NfcCardManagement from '../pages/manager/nfcCardManagement';
+import NfcCardDetail from '../pages/manager/nfcCardManagement/NfcCardDetail';
 
 
 // Staff Pages
@@ -447,6 +449,14 @@ export const routes = createBrowserRouter([
       {
         path: 'branch-slots/detail/:id',
         element: <BranchSlotDetail />,
+      },
+      {
+        path: 'nfc-cards',
+        element: <NfcCardManagement />,
+      },
+      {
+        path: 'nfc-cards/detail/:studentId',
+        element: <NfcCardDetail />,
       },
       {
         path: 'profile',

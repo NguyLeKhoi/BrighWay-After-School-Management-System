@@ -5,7 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Box, CircularProgress, Alert, Typography, Button, Paper, Chip, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { ArrowBack, Add, ViewList, CalendarMonth, CalendarToday, AccessTime, MeetingRoom, Business, Person, CheckCircle } from '@mui/icons-material';
+import { ArrowBack, Add, ViewList, CalendarMonth, CalendarToday, AccessTime, MeetingRoom, Business, Person, CheckCircle, Category } from '@mui/icons-material';
 import ContentLoading from '../../../../components/Common/ContentLoading';
 import DataTable from '../../../../components/Common/DataTable';
 import ConfirmDialog from '../../../../components/Common/ConfirmDialog';
@@ -588,6 +588,27 @@ const ChildSchedule = () => {
           const timeframe = item.timeframe || item.timeFrame;
           if (!timeframe) return 'Chưa xác định';
           return `${formatTimeDisplay(timeframe.startTime)}-${formatTimeDisplay(timeframe.endTime)}`;
+        }
+      },
+      {
+        key: 'slotType',
+        header: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Category fontSize="small" />
+            <span>Loại ca</span>
+          </Box>
+        ),
+        render: (value, item) => {
+          const slotTypeName = item.branchSlot?.slotType?.name || item.slotTypeName || 'Chưa xác định';
+          return (
+            <Chip
+              label={slotTypeName}
+              size="small"
+              variant="outlined"
+              color="primary"
+              sx={{ fontWeight: 500 }}
+            />
+          );
         }
       },
       {
