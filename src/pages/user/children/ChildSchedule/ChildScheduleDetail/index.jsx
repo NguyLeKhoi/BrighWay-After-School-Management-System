@@ -733,6 +733,27 @@ const ChildScheduleDetail = () => {
 
                 <Divider />
 
+                {/* Loại ca */}
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Note sx={{ fontSize: 20, color: 'var(--color-primary)' }} />
+                    <Typography variant="subtitle2" color="text.secondary" fontWeight="medium">
+                      Loại ca
+                    </Typography>
+                  </Box>
+                  <Box sx={{ pl: 4 }}>
+                    <Chip
+                      label={slot?.branchSlot?.slotType?.name || slot?.slotTypeName || 'Chưa xác định'}
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      sx={{ fontWeight: 500 }}
+                    />
+                  </Box>
+                </Box>
+
+                <Divider />
+
                 {/* Phòng */}
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
