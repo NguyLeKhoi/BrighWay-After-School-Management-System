@@ -90,26 +90,21 @@ const createUserColumns = () => [
 
 // Form fields definition
 const createUserFormFields = (dialogMode, actionLoading) => {
-  const baseFields = [
+  return [
     {
       name: 'name',
       label: 'Tên',
       type: 'text',
       required: true,
       placeholder: 'Nhập tên người dùng'
+    },
+    {
+      name: 'isActive',
+      label: 'Trạng thái hoạt động',
+      type: 'switch',
+      required: false
     }
   ];
-
-  if (dialogMode === 'update') {
-    baseFields.push({
-      name: 'isActive',
-      label: 'Trạng thái',
-      type: 'checkbox',
-      required: false
-    });
-  }
-
-  return baseFields;
 };
 
 const UserManagement = () => {
